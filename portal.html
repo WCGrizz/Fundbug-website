@@ -657,6 +657,7 @@ function loadPreferencesUI(data) {
   ];
   const selFunding = (data.funding_purpose || []).filter(v => v !== 'any');
   const selDemo = (data.owner_demographics || []).filter(v => v !== 'any');
+  console.log('selFunding:', selFunding, 'selDemo:', selDemo);
   document.getElementById('fundingPurposeList').innerHTML = fundingOpts.map(o => `
     <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:'Jost',sans-serif;font-size:14px;">
       <input type="checkbox" name="funding_purpose" value="${o.value}" ${selFunding.includes(o.value)?'checked':''} style="accent-color:var(--green);width:17px;height:17px;margin:0;flex-shrink:0;">
