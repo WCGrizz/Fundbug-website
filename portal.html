@@ -475,10 +475,9 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
           <button class="save-btn" onclick="savePassword()">Update password</button>
         </div>
 
-        <div class="card" style="border-color:#f0c8c0">
-          <div class="card-title" style="color:var(--red)">Danger zone</div>
-          <div style="font-size:14px;color:var(--muted);margin-bottom:16px;font-weight:300;">Permanently delete your account and all associated data. This cannot be undone.</div>
-          <button class="btn-sm danger" onclick="deleteAccount()">Delete my account</button>
+        <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border);">
+          <button class="btn-sm danger" onclick="deleteAccount()" style="font-size:13px;">Delete my account</button>
+          <div style="font-size:12px;color:var(--muted2);margin-top:8px;font-weight:300;">This permanently deletes your account, cancels your subscription, and removes all your data. This cannot be undone.</div>
         </div>
       </div>
 
