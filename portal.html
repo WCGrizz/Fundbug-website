@@ -328,9 +328,48 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
           </div>
           <div class="form-group">
             <label>Years in business</label>
-            <input type="number" id="prof-yearsInBusiness" min="0" max="120">
+            <input type="number" id="prof-yearsInBusiness" min="0" max="150" style="max-width:180px;">
           </div>
-          <div style="display:flex;align-items:center">
+          <div class="form-group">
+            <label>Where do you operate?</label>
+            <select id="prof-location-type">
+              <option value="">Select…</option>
+              <option value="physical_own">Physical location — I own the space</option>
+              <option value="physical_rent">Physical location — I rent the space</option>
+              <option value="home_based">Home-based business</option>
+              <option value="mobile">Mobile (food truck, landscaping, etc.)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Access to bank financing</label>
+            <select id="prof-bank-access">
+              <option value="">Prefer not to say</option>
+              <option value="yes">I have an established banking relationship and access to credit</option>
+              <option value="good_standing">I have a business bank account and good credit but have not borrowed</option>
+              <option value="limited">My banking relationship is limited or I am working on building credit</option>
+              <option value="no">I have been turned down for bank financing or do not qualify</option>
+              <option value="not_looking">I am not looking for debt financing</option>
+              <option value="unsure">I have not explored bank financing recently and am not sure</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Grant experience</label>
+            <select id="prof-grant-experience">
+              <option value="">Select…</option>
+              <option value="never">I have never applied for a grant</option>
+              <option value="applied">I have applied but never won</option>
+              <option value="won">I have won grants before</option>
+            </select>
+          </div>
+          <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="prof-is-seasonal" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
+            <label style="margin:0;font-weight:400;">My business is seasonal</label>
+          </div>
+          <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="prof-is-startup" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
+            <label style="margin:0;font-weight:400;">My business is a start-up</label>
+          </div>
+          <div style="display:flex;align-items:center;margin-top:8px;">
             <button class="save-btn" onclick="savePreferences()">Save preferences</button>
             <span class="save-confirmation" id="prefConfirm">✓ Saved</span>
           </div>
@@ -598,18 +637,26 @@ async function loadProfile() {
 
 function loadPreferencesUI(data) {
   const fundingOpts = [
-    {value:'equipment',label:'Equipment or vehicles'},{value:'hiring',label:'Hiring and training'},
-    {value:'marketing',label:'Marketing and advertising'},{value:'working_capital',label:'Working capital / cash flow'},
-    {value:'real_estate',label:'Real estate or expansion'},{value:'technology',label:'Technology or software'},
-    {value:'export',label:'Export or international growth'},{value:'research',label:'Research and development'}
+    {value:'accessibility',label:'Accessibility improvements (ADA compliance)'},
+    {value:'energy',label:'Energy efficiency or clean energy upgrades'},
+    {value:'equipment',label:'Equipment or vehicles'},
+    {value:'export',label:'Export or international growth'},
+    {value:'hiring',label:'Hiring and training'},
+    {value:'inventory',label:'Inventory expansion'},
+    {value:'marketing',label:'Marketing and advertising'},
+    {value:'real_estate',label:'Real estate or expansion'},
+    {value:'research',label:'Research and development'},
+    {value:'storefront',label:'Storefront or facility improvements'},
+    {value:'technology',label:'Technology or software'},
+    {value:'working_capital',label:'Working capital / cash flow'},
   ];
   const demoOpts = [
     {value:'woman-owned',label:'Woman-owned business'},{value:'minority-owned',label:'Minority-owned business'},
     {value:'veteran-owned',label:'Veteran-owned business'},{value:'disability-owned',label:'Disability-owned business'},
     {value:'lgbtq-owned',label:'LGBTQ+-owned business'},{value:'immigrant-owned',label:'Immigrant-owned business'}
   ];
-  const selFunding = data.funding_purpose || [];
-  const selDemo = data.owner_demographics || [];
+  const selFunding = (data.funding_purpose || []).filter(v => v !== 'any');
+  const selDemo = (data.owner_demographics || []).filter(v => v !== 'any');
   document.getElementById('fundingPurposeList').innerHTML = fundingOpts.map(o => `
     <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:'Jost',sans-serif;font-size:14px;">
       <input type="checkbox" name="funding_purpose" value="${o.value}" ${selFunding.includes(o.value)?'checked':''} style="accent-color:var(--green);width:17px;height:17px;margin:0;flex-shrink:0;">
@@ -621,6 +668,11 @@ function loadPreferencesUI(data) {
       <span>${o.label}</span>
     </label>`).join('');
   document.getElementById('prof-yearsInBusiness').value = data.years_in_business || '';
+  if (data.location_type) document.getElementById('prof-location-type').value = data.location_type;
+  if (data.bank_financing_access) document.getElementById('prof-bank-access').value = data.bank_financing_access;
+  if (data.grant_experience) document.getElementById('prof-grant-experience').value = data.grant_experience;
+  document.getElementById('prof-is-seasonal').checked = data.is_seasonal || false;
+  document.getElementById('prof-is-startup').checked = data.is_startup || false;
 }
 
 async function saveProfile() {
@@ -660,7 +712,16 @@ async function savePreferences() {
     const fp = Array.from(document.querySelectorAll('input[name="funding_purpose"]:checked')).map(el => el.value);
     const od = Array.from(document.querySelectorAll('input[name="owner_demographics"]:checked')).map(el => el.value);
     const yr = document.getElementById('prof-yearsInBusiness').value;
-    await apiFetch('/api/portal/profile','PATCH',{ funding_purpose: fp, owner_demographics: od, years_in_business: yr ? parseInt(yr) : null });
+    await apiFetch('/api/portal/profile','PATCH',{
+      funding_purpose: fp,
+      owner_demographics: od,
+      years_in_business: yr ? parseInt(yr) : null,
+      location_type: document.getElementById('prof-location-type').value || null,
+      bank_financing_access: document.getElementById('prof-bank-access').value || null,
+      grant_experience: document.getElementById('prof-grant-experience').value || null,
+      is_seasonal: document.getElementById('prof-is-seasonal').checked,
+      is_startup: document.getElementById('prof-is-startup').checked,
+    });
     const conf = document.getElementById('prefConfirm');
     conf.classList.add('show'); setTimeout(() => conf.classList.remove('show'), 2500);
   } catch(e) { alert('Save failed: ' + e.message); }
