@@ -214,7 +214,7 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
       <!-- OVERVIEW -->
       <div class="page active" id="page-overview">
         <div class="page-title"><span id="greetTime">Good morning,</span> <span id="greetName"></span></div>
-        <div class="page-sub">Here's your FundBug dashboard.</div>
+
         <div class="stat-grid">
           <div class="stat-tile"><div class="stat-num green" id="ov-digests">—</div><div class="stat-lbl">Digests received</div></div>
           <div class="stat-tile"><div class="stat-num green" id="ov-opportunities">—</div><div class="stat-lbl">Opportunities found</div></div>
@@ -527,7 +527,7 @@ function doLogout() {
 function showApp() {
   document.getElementById('loginWrap').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  const name = subscriber?.first_name || subscriber?.business_name || 'there';
+  const name = subscriber?.first_name || 'there';
   document.getElementById('navUser').textContent = subscriber?.email || '';
   const hour = new Date().getHours();
   const greetTime = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
