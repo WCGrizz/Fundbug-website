@@ -108,6 +108,10 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
 .save-confirmation.show{opacity:1}
 
 @media(max-width:860px){.portal-wrap{grid-template-columns:1fr}.sidebar{display:none}.main{padding:24px 20px}.stat-grid{grid-template-columns:repeat(2,1fr)}}
+.tag-selector{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.tag-option{display:inline-flex;align-items:center;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--white);font-family:'Jost',sans-serif;font-size:13px;color:var(--muted);cursor:pointer;transition:all .12s;user-select:none}
+.tag-option:hover{border-color:var(--green);color:var(--green)}
+.tag-option.selected{background:var(--green);border-color:var(--green);color:#fff;font-weight:500}
 
 /* Profile edit panel */
 .profile-section{background:var(--white);border-radius:8px;border:1px solid var(--border);padding:24px;margin-bottom:20px}
@@ -320,11 +324,11 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
           <div class="card-title">Funding preferences</div>
           <div style="margin-bottom:20px">
             <label style="margin-bottom:12px;">What are you looking to fund?</label>
-            <div id="fundingPurposeList" style="display:flex;flex-direction:column;gap:10px"></div>
+            <div id="fundingPurposeList" class="tag-selector"></div>
           </div>
           <div style="margin-bottom:20px">
             <label style="margin-bottom:12px;">Business ownership (optional)</label>
-            <div id="ownerDemographicsList" style="display:flex;flex-direction:column;gap:10px"></div>
+            <div id="ownerDemographicsList" class="tag-selector"></div>
           </div>
           <div class="form-group">
             <label>Years in business</label>
@@ -637,37 +641,46 @@ async function loadProfile() {
 
 function loadPreferencesUI(data) {
   const fundingOpts = [
-    {value:'accessibility',label:'Accessibility improvements (ADA compliance)'},
-    {value:'energy',label:'Energy efficiency or clean energy upgrades'},
+    {value:'accessibility',label:'Accessibility (ADA)'},
+    {value:'energy',label:'Energy efficiency'},
     {value:'equipment',label:'Equipment or vehicles'},
-    {value:'export',label:'Export or international growth'},
+    {value:'export',label:'Export / international'},
     {value:'hiring',label:'Hiring and training'},
     {value:'inventory',label:'Inventory expansion'},
-    {value:'marketing',label:'Marketing and advertising'},
+    {value:'marketing',label:'Marketing'},
     {value:'real_estate',label:'Real estate or expansion'},
     {value:'research',label:'Research and development'},
-    {value:'storefront',label:'Storefront or facility improvements'},
+    {value:'storefront',label:'Storefront improvements'},
     {value:'technology',label:'Technology or software'},
-    {value:'working_capital',label:'Working capital / cash flow'},
+    {value:'working_capital',label:'Working capital'},
   ];
   const demoOpts = [
-    {value:'woman-owned',label:'Woman-owned business'},{value:'minority-owned',label:'Minority-owned business'},
-    {value:'veteran-owned',label:'Veteran-owned business'},{value:'disability-owned',label:'Disability-owned business'},
-    {value:'lgbtq-owned',label:'LGBTQ+-owned business'},{value:'immigrant-owned',label:'Immigrant-owned business'}
+    {value:'disability-owned',label:'Disability-owned'},
+    {value:'immigrant-owned',label:'Immigrant-owned'},
+    {value:'lgbtq-owned',label:'LGBTQ+-owned'},
+    {value:'minority-owned',label:'Minority-owned'},
+    {value:'veteran-owned',label:'Veteran-owned'},
+    {value:'woman-owned',label:'Woman-owned'},
   ];
-  const selFunding = (data.funding_purpose || []).filter(v => v !== 'any');
-  const selDemo = (data.owner_demographics || []).filter(v => v !== 'any');
-  console.log('selFunding:', selFunding, 'selDemo:', selDemo);
-  document.getElementById('fundingPurposeList').innerHTML = fundingOpts.map(o => `
-    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:'Jost',sans-serif;font-size:14px;">
-      <input type="checkbox" name="funding_purpose" value="${o.value}" ${selFunding.includes(o.value)?'checked':''} style="accent-color:var(--green);width:17px;height:17px;margin:0;flex-shrink:0;">
-      <span>${o.label}</span>
-    </label>`).join('');
-  document.getElementById('ownerDemographicsList').innerHTML = demoOpts.map(o => `
-    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:'Jost',sans-serif;font-size:14px;">
-      <input type="checkbox" name="owner_demographics" value="${o.value}" ${selDemo.includes(o.value)?'checked':''} style="accent-color:var(--green);width:17px;height:17px;margin:0;flex-shrink:0;">
-      <span>${o.label}</span>
-    </label>`).join('');
+  const selFunding = new Set((data.funding_purpose || []).filter(v => v !== 'any'));
+  const selDemo = new Set((data.owner_demographics || []).filter(v => v !== 'any'));
+
+  function renderTags(containerId, opts, selected) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    opts.forEach(o => {
+      const tag = document.createElement('div');
+      tag.className = 'tag-option' + (selected.has(o.value) ? ' selected' : '');
+      tag.dataset.value = o.value;
+      tag.textContent = o.label;
+      tag.onclick = () => tag.classList.toggle('selected');
+      container.appendChild(tag);
+    });
+  }
+
+  renderTags('fundingPurposeList', fundingOpts, selFunding);
+  renderTags('ownerDemographicsList', demoOpts, selDemo);
+
   document.getElementById('prof-yearsInBusiness').value = data.years_in_business || '';
   if (data.location_type) document.getElementById('prof-location-type').value = data.location_type;
   if (data.bank_financing_access) document.getElementById('prof-bank-access').value = data.bank_financing_access;
@@ -710,8 +723,8 @@ async function savePassword() {
 
 async function savePreferences() {
   try {
-    const fp = Array.from(document.querySelectorAll('input[name="funding_purpose"]:checked')).map(el => el.value);
-    const od = Array.from(document.querySelectorAll('input[name="owner_demographics"]:checked')).map(el => el.value);
+    const fp = Array.from(document.querySelectorAll('#fundingPurposeList .tag-option.selected')).map(el => el.dataset.value);
+    const od = Array.from(document.querySelectorAll('#ownerDemographicsList .tag-option.selected')).map(el => el.dataset.value);
     const yr = document.getElementById('prof-yearsInBusiness').value;
     await apiFetch('/api/portal/profile','PATCH',{
       funding_purpose: fp,
