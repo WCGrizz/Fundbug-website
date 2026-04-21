@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — FundBug</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a1a14; --ink2: #2d2d24; --green: #5a9e52; --green-lt: #7ab870;
+      --green-dk: #3d7a38; --cream: #f7f5f0; --cream2: #ede9e0; --cream3: #e2ddd4;
+      --muted: #8a8578; --border: #d8d3c8; --white: #ffffff;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--cream); color: var(--ink); font-family: 'Jost', sans-serif; font-size: 16px; line-height: 1.6; min-height: 100vh; }
+    h1, h2 { font-family: 'Fraunces', serif; line-height: 1.15; }
+
+    nav {
+      position: sticky; top: 0; z-index: 100; background: var(--ink);
+      padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo-text { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: var(--green); }
+    .nav-links { list-style: none; display: flex; align-items: center; gap: 32px; }
+    .nav-links a { color: var(--cream2); text-decoration: none; font-size: 14px; font-weight: 400; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta { background: var(--green); color: var(--white) !important; padding: 8px 18px; border-radius: 6px; font-weight: 500 !important; }
+    .nav-cta:hover { background: var(--green-dk) !important; }
+
+    .page-hero {
+      background: var(--ink); color: var(--white);
+      padding: 80px 40px 72px; text-align: center;
+    }
+    .page-hero .eyebrow { font-size: 12px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green-lt); margin-bottom: 16px; }
+    .page-hero h1 { font-size: clamp(28px, 4vw, 42px); font-weight: 700; color: var(--white); margin-bottom: 16px; }
+    .page-hero .lead { font-size: 17px; font-weight: 300; color: var(--cream3); max-width: 480px; margin: 0 auto; }
+
+    .content-wrap { max-width: 640px; margin: 0 auto; padding: 72px 40px; }
+
+    .contact-block {
+      background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+      padding: 40px; margin-bottom: 24px;
+    }
+    .contact-block h2 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .contact-block p { font-size: 16px; font-weight: 300; color: var(--ink2); line-height: 1.75; margin-bottom: 16px; }
+    .contact-email {
+      display: inline-block; font-size: 17px; font-weight: 500; color: var(--green-dk);
+      text-decoration: none; border-bottom: 1px solid var(--green-dk); transition: color 0.15s;
+    }
+    .contact-email:hover { color: var(--green); border-color: var(--green); }
+    .response-note { font-size: 14px; color: var(--ink2); margin-top: 12px; margin-bottom: 0 !important; }
+
+    .topics-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+    .topics-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 16px; font-weight: 300; color: var(--ink2); }
+    .topics-list li::before { content: '→'; color: var(--green); font-weight: 500; flex-shrink: 0; }
+
+    footer { background: var(--ink); padding: 60px 80px; }
+    .footer-inner { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 60px; margin-bottom: 40px; }
+    .footer-brand-text { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--green); margin-bottom: 12px; }
+    .footer-tagline { font-size: 13px; font-weight: 300; color: var(--muted); line-height: 1.6; }
+    .footer-col-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .footer-links a { color: var(--cream3); text-decoration: none; font-size: 14px; font-weight: 300; transition: color 0.15s; }
+    .footer-links a:hover { color: var(--white); }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 32px; border-top: 1px solid rgba(255,255,255,0.08); gap: 32px; }
+    .footer-legal { font-size: 12px; color: var(--muted); }
+    .footer-disclaimer { font-size: 11px; color: var(--muted); max-width: 480px; line-height: 1.5; }
+
+    @media (max-width: 640px) {
+      nav { padding: 0 20px; }
+      .page-hero { padding: 56px 24px 48px; }
+      .content-wrap { padding: 48px 24px; }
+      footer { padding: 60px 24px; }
+      .footer-inner { grid-template-columns: 1fr; gap: 40px; }
+      .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <span class="nav-logo-text">FundBug</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/#how">How it works</a></li>
+    <li><a href="/#pricing">Pricing</a></li>
+    <li><a href="portal.html">Sign in</a></li>
+    <li><a href="signup.html" class="nav-cta">Get started</a></li>
+  </ul>
+</nav>
+
+<div class="page-hero">
+  <div class="eyebrow">Get in touch</div>
+  <h1>We're a small operation and we read every email</h1>
+  <p class="lead">Questions, feedback, billing issues — all of it goes to the same place and gets a real response.</p>
+</div>
+
+<div class="content-wrap">
+
+  <div class="contact-block">
+    <h2>Email us</h2>
+    <p>The best way to reach FundBug. We typically respond within one business day.</p>
+    <a href="mailto:hello@fundbug.net" class="contact-email">hello@fundbug.net</a>
+    <p class="response-note">Based in Hyannis, MA · Eastern Time</p>
+  </div>
+
+  <div class="contact-block">
+    <h2>What we can help with</h2>
+    <ul class="topics-list">
+      <li>Questions about a program in your digest</li>
+      <li>Updating your business profile</li>
+      <li>Billing and subscription questions</li>
+      <li>Reporting a program that's out of date or incorrect</li>
+      <li>Suggesting a grant or funding program we should add</li>
+      <li>Anything else — we're happy to hear from you</li>
+    </ul>
+  </div>
+
+  <div class="contact-block">
+    <h2>Already a subscriber?</h2>
+    <p>Log in to your subscriber portal to update your business profile or manage your subscription. Billing questions are easiest to resolve there.</p>
+    <a href="portal.html" style="display:inline-block;margin-top:4px;padding:10px 20px;background:var(--green);color:var(--white);border-radius:6px;text-decoration:none;font-size:14px;font-weight:500;">Go to subscriber portal →</a>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand-text">FundBug</div>
+      <div class="footer-tagline">Funding intelligence for small businesses in Massachusetts, Rhode Island, and Pennsylvania. We find the money. You run the business.</div>
+    </div>
+    <div>
+      <div class="footer-col-title">Product</div>
+      <ul class="footer-links">
+        <li><a href="/#how">How it works</a></li>
+        <li><a href="/#pricing">Pricing</a></li>
+        <li><a href="signup.html">Get started</a></li>
+        <li><a href="portal.html">Sign in</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Company</div>
+      <ul class="footer-links">
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="terms.html">Terms of Service</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-legal">© 2026 FundBug LLC · fundbug.net · Hyannis, MA 02601</div>
+    <div class="footer-disclaimer">FundBug surfaces funding opportunities for informational purposes only. Always verify eligibility and terms directly with the program provider before applying.</div>
+  </div>
+</footer>
+
+</body>
+</html>

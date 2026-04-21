@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Portal — FundBug</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Jost:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1a1a14;--green:#5a9e52;--green-lt:#7ab870;--green-dk:#3d7a38;--cream:#f7f5f0;--cream2:#ede9e0;--muted:#8a8578;--muted2:#b5b0a5;--border:#d8d3c8;--white:#fff;--red:#c44b2a}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--cream);color:var(--ink);font-family:'Jost',sans-serif;font-size:16px;line-height:1.6;min-height:100vh}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink)}
+.login-card{background:var(--white);border-radius:12px;padding:48px;width:420px;box-shadow:0 24px 80px rgba(0,0,0,.4)}
+.login-logo{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:var(--green);margin-bottom:4px}
+.login-sub{font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:32px}
+label{display:block;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;color:var(--ink);margin-bottom:6px}
+input,select,textarea{width:100%;padding:10px 13px;background:var(--cream);border:1px solid var(--border);border-radius:5px;font-family:'Jost',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color .15s;appearance:none;margin-bottom:16px}
+input:focus,select:focus,textarea:focus{border-color:var(--green);background:var(--white)}
+textarea{height:100px;resize:vertical;line-height:1.6}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a8578' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;cursor:pointer}
+.btn{display:block;width:100%;background:var(--green);color:#fff;font-family:'Jost',sans-serif;font-size:15px;font-weight:500;padding:13px;border-radius:5px;border:none;cursor:pointer;transition:background .15s;text-align:center}
+.btn:hover{background:var(--green-lt)}
+.login-err{font-family:'Jost',sans-serif;font-size:12px;color:var(--red);margin-bottom:12px;min-height:16px}
+.login-toggle{font-family:'Jost',sans-serif;font-size:13px;color:var(--muted);text-align:center;margin-top:16px;cursor:pointer}
+.login-toggle span{color:var(--green);text-decoration:underline}
+
+/* APP */
+#app{display:none}
+nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.nav-logo{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--green);text-decoration:none}
+.nav-right{display:flex;align-items:center;gap:20px}
+.nav-user{font-family:'Jost',sans-serif;font-size:12px;color:var(--muted2);font-weight:400}
+.nav-signout{font-family:'Jost',sans-serif;font-size:12px;color:var(--muted2);background:none;border:none;cursor:pointer;transition:color .15s;font-weight:400}
+.nav-signout:hover{color:var(--cream)}
+
+/* LAYOUT */
+.portal-wrap{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px)}
+.sidebar{background:var(--white);border-right:1px solid var(--border);padding:28px 0}
+.sidebar-nav{list-style:none}
+.sidebar-nav li a{display:flex;align-items:center;gap:10px;padding:11px 24px;font-family:'Jost',sans-serif;font-size:14px;font-weight:400;color:var(--ink);text-decoration:none;transition:all .12s;border-left:2px solid transparent}
+.sidebar-nav li a:hover{color:var(--ink);background:var(--cream);border-left-color:var(--border)}
+.sidebar-nav li a.active{color:var(--green-dk);background:#f0faf0;border-left-color:var(--green);font-weight:500}
+.sidebar-nav li a .nav-icon{font-size:15px;flex-shrink:0}
+.sidebar-section{font-family:'Jost',sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);padding:20px 24px 8px;margin-top:8px}
+
+/* MAIN */
+.main{padding:40px 48px;background:var(--cream)}
+.page{display:none}
+.page.active{display:block;animation:fi .25s ease-out}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.page-title{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:var(--ink);margin-bottom:4px;letter-spacing:-.02em}
+.page-sub{font-family:'Jost',sans-serif;font-size:14px;font-weight:300;color:var(--ink);margin-bottom:32px}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:28px;margin-bottom:20px}
+.card-title{font-family:'Jost',sans-serif;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-tile{background:var(--white);border:1px solid var(--border);border-radius:7px;padding:20px}
+.stat-num{font-family:'Fraunces',serif;font-size:32px;font-weight:700;color:var(--ink);line-height:1;letter-spacing:-.03em}
+.stat-num.green{color:var(--green)}
+.stat-lbl{font-family:'Jost',sans-serif;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+
+/* DIGEST HISTORY */
+.digest-list{display:flex;flex-direction:column;gap:12px}
+.digest-item{background:var(--white);border:1px solid var(--border);border-radius:7px;padding:18px 22px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:border-color .12s}
+.digest-item:hover{border-color:var(--green)}
+.digest-date{font-family:'Jost',sans-serif;font-size:12px;font-weight:400;color:var(--muted);min-width:100px}
+.digest-title{font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--ink);flex:1}
+.digest-count{font-family:'Jost',sans-serif;font-size:12px;color:var(--green);font-weight:500}
+.digest-arrow{color:var(--muted2);font-size:12px}
+
+/* REFERRAL */
+.referral-box{background:var(--green-dk);border-radius:8px;padding:28px;color:var(--white)}
+.referral-title{font-family:'Fraunces',serif;font-size:22px;font-weight:700;margin-bottom:8px}
+.referral-body{font-family:'Jost',sans-serif;font-size:13px;font-weight:300;color:rgba(255,255,255,.75);line-height:1.6;margin-bottom:20px}
+.referral-link-wrap{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:5px;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.referral-link{font-family:'Jost',sans-serif;font-size:13px;font-weight:400;color:var(--white);flex:1;word-break:break-all}
+.copy-btn{background:var(--green);color:#fff;border:none;border-radius:4px;padding:8px 14px;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:background .12s;white-space:nowrap;flex-shrink:0}
+.copy-btn:hover{background:var(--green-lt)}
+.referral-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.ref-stat{background:rgba(255,255,255,.08);border-radius:6px;padding:14px;text-align:center}
+.ref-stat-num{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff;line-height:1}
+.ref-stat-lbl{font-family:'Jost',sans-serif;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-top:4px}
+
+/* SUBSCRIPTION */
+.plan-badge{display:inline-block;background:var(--green);color:#fff;font-family:'Jost',sans-serif;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:3px;margin-left:8px}
+.sub-detail-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--cream2)}
+.sub-detail-row:last-child{border-bottom:none}
+.sub-detail-lbl{font-family:'Jost',sans-serif;font-size:14px;font-weight:300;color:var(--ink)}
+.sub-detail-val{font-family:'Jost',sans-serif;font-size:14px;font-weight:500;color:var(--ink)}
+.btn-sm{padding:8px 18px;border-radius:4px;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .12s;border:1px solid var(--border);background:var(--white);color:var(--muted)}
+.btn-sm:hover{color:var(--ink);background:var(--cream2)}
+.btn-sm.danger{border-color:#f0c8c0;color:var(--red)}
+.btn-sm.danger:hover{background:#fdf0ec}
+.btn-sm.primary{background:var(--green);border-color:var(--green);color:#fff}
+.btn-sm.primary:hover{background:var(--green-lt)}
+
+/* PROFILE FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{margin-bottom:18px}
+.save-btn{background:var(--green);color:#fff;border:none;border-radius:5px;padding:11px 28px;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:background .12s}
+.save-btn:hover{background:var(--green-lt)}
+.save-confirmation{font-family:'Jost',sans-serif;font-size:12px;font-weight:500;color:var(--green);margin-left:12px;opacity:0;transition:opacity .3s}
+.save-confirmation.show{opacity:1}
+
+@media(max-width:860px){.portal-wrap{grid-template-columns:1fr}.sidebar{display:none}.main{padding:24px 20px}.stat-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* Profile edit panel */
+.profile-section{background:var(--white);border-radius:8px;border:1px solid var(--border);padding:24px;margin-bottom:20px}
+.profile-section-title{font-family:'Fraunces',serif;font-size:16px;font-weight:600;color:var(--ink);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--cream2)}
+.profile-field{margin-bottom:16px}
+.profile-field label{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:5px;display:block}
+.profile-field textarea{height:120px;font-size:14px;color:var(--ink);background:var(--cream);resize:vertical}
+.profile-field textarea:focus{background:var(--white)}
+.profile-save-btn{background:var(--green);color:#fff;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;padding:10px 24px;border-radius:5px;border:none;cursor:pointer;transition:background .15s}
+.profile-save-btn:hover{background:var(--green-lt)}
+.profile-save-btn:disabled{background:var(--cream2);color:var(--muted);cursor:not-allowed}
+.profile-hint{font-size:12px;color:var(--ink);margin-top:5px;font-style:italic}
+.profile-success{font-size:13px;color:var(--green-dk);font-weight:500;margin-top:8px;display:none}
+.profile-success.show{display:block}
+
+/* CANCEL MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--white);border-radius:10px;padding:40px;max-width:480px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.3);animation:fi .2s ease-out}
+.modal-title{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.modal-sub{font-size:14px;font-weight:300;color:var(--muted);margin-bottom:24px;line-height:1.6}
+.modal-question{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:12px}
+.cancel-reasons{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.cancel-reason{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:300;color:var(--ink)}
+.cancel-reason input{accent-color:var(--green);width:17px;height:17px;flex-shrink:0;cursor:pointer}
+.modal-actions{display:flex;gap:10px;flex-wrap:wrap}
+.modal-btn-cancel{padding:11px 24px;background:var(--red);color:#fff;border:none;border-radius:5px;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s}
+.modal-btn-cancel:hover{opacity:.85}
+.modal-btn-keep{padding:11px 24px;background:var(--green);color:#fff;border:none;border-radius:5px;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s}
+.modal-btn-keep:hover{opacity:.85}
+.modal-btn-secondary{padding:11px 24px;background:none;border:1px solid var(--border);border-radius:5px;font-family:'Jost',sans-serif;font-size:14px;font-weight:400;color:var(--muted);cursor:pointer}
+.modal-btn-secondary:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginWrap" class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">FundBug</div>
+    <div class="login-sub">Subscriber Portal</div>
+    <div id="loginErr" class="login-err"></div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="you@yourbusiness.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••">
+    </div>
+    <button class="btn" onclick="doLogin()">Sign in</button>
+    <div style="text-align:center;margin-top:10px">
+      <a href="#" onclick="showForgotPassword()" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;">Forgot your password?</a>
+    </div>
+    <div class="login-toggle" onclick="window.location.href='signup.html'">Not a subscriber? <span>Get started →</span></div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD -->
+<div id="forgotWrap" class="login-wrap" style="display:none">
+  <div class="login-card">
+    <div class="login-logo">FundBug</div>
+    <div class="login-sub">Reset your password</div>
+    <div id="forgotMsg" class="login-err" style="color:var(--green)"></div>
+    <div id="forgotErr" class="login-err"></div>
+    <div id="forgotForm">
+      <div class="form-group">
+        <label>Email address</label>
+        <input type="email" id="forgotEmail" placeholder="you@yourbusiness.com">
+      </div>
+      <button class="btn" onclick="doForgotPassword()">Send reset link</button>
+    </div>
+    <div style="text-align:center;margin-top:16px">
+      <a href="#" onclick="showLogin()" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;">← Back to sign in</a>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <nav>
+    <a href="index.html" class="nav-logo">FundBug</a>
+    <div class="nav-right">
+      <span class="nav-user" id="navUser"></span>
+      <button class="nav-signout" onclick="doLogout()">Sign out</button>
+    </div>
+  </nav>
+
+  <div class="portal-wrap">
+    <aside class="sidebar">
+      <ul class="sidebar-nav">
+        <li><a href="#" class="active" onclick="showPage('overview',this)"><span class="nav-icon">📊</span> Overview</a></li>
+
+        <div class="sidebar-section">Account</div>
+        <li><a href="#" onclick="showPage('profile',this)"><span class="nav-icon">🏢</span> Business Profile</a></li>
+        <li><a href="#" onclick="showPage('referral',this)"><span class="nav-icon">🎁</span> Referrals</a></li>
+        <li><a href="#" onclick="showPage('subscription',this)"><span class="nav-icon">💳</span> Subscription</a></li>
+      </ul>
+    </aside>
+
+    <main class="main">
+
+      <!-- OVERVIEW -->
+      <div class="page active" id="page-overview">
+        <div class="page-title"><span id="greetTime">Good morning,</span> <span id="greetName"></span></div>
+        <div class="page-sub">Here's your FundBug dashboard.</div>
+        <div class="stat-grid">
+          <div class="stat-tile"><div class="stat-num green" id="ov-digests">—</div><div class="stat-lbl">Digests received</div></div>
+          <div class="stat-tile"><div class="stat-num green" id="ov-opportunities">—</div><div class="stat-lbl">Opportunities found</div></div>
+          <div class="stat-tile"><div class="stat-num" id="ov-alerts">—</div><div class="stat-lbl">Alerts sent</div></div>
+          <div class="stat-tile"><div class="stat-num" id="ov-referrals">—</div><div class="stat-lbl">Referrals made</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Recent digests</div>
+          <div id="recentDigests"><div style="font-size:13px;color:var(--muted);font-weight:300">Your digests will appear here once sent.</div></div>
+        </div>
+        <div class="card" style="padding:16px 20px">
+          <div class="card-title" style="margin-bottom:8px">Next digest</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="font-family:'Jost',sans-serif;font-size:15px;font-weight:500;color:var(--ink)" id="nextDigestDate">Loading…</div>
+            <div style="font-family:'Jost',sans-serif;font-size:13px;font-weight:400;color:var(--green)" id="daysUntil"></div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- PROFILE -->
+      <div class="page" id="page-profile">
+        <div class="page-title">Business Profile</div>
+        <div class="page-sub">Keep this up to date — it directly affects the quality of your matches.</div>
+
+        <div class="card">
+          <div class="card-title">Business information</div>
+          <div class="form-row">
+            <div class="form-group"><label>Business name</label><input type="text" id="prof-businessName"></div>
+            <div class="form-group"><label>Your name</label><input type="text" id="prof-ownerName"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Industry</label>
+              <select id="prof-industry">
+                <option value="restaurant">Restaurant / Food Service</option>
+                <option value="retail">Retail</option>
+                <option value="construction">Construction / Trades</option>
+                <option value="professional">Professional Services</option>
+                <option value="healthcare">Healthcare / Wellness</option>
+                <option value="fitness">Fitness / Wellness Studio</option>
+                <option value="beauty">Beauty / Personal Care</option>
+                <option value="technology">Technology</option>
+                <option value="manufacturing">Manufacturing</option>
+                <option value="agriculture">Agriculture / Farming</option>
+                <option value="fishing">Fishing / Aquaculture</option>
+                <option value="hospitality">Hospitality / Tourism</option>
+                <option value="brewery">Brewery / Distillery / Winery</option>
+                <option value="event_planning">Event Planning / Catering</option>
+                <option value="property">Property Services</option>
+                <option value="cleaning">Cleaning / Maintenance Services</option>
+                <option value="landscaping">Landscaping / Lawn Care</option>
+                <option value="auto_marine">Auto / Marine Services</option>
+                <option value="transportation">Transportation / Logistics</option>
+                <option value="arts">Arts / Creative</option>
+                <option value="artisan">Artisan / Handmade Products</option>
+                <option value="jewelry">Jewelry / Accessories</option>
+                <option value="apparel">Apparel / Clothing</option>
+                <option value="specialty_food">Specialty Food Producer</option>
+                <option value="floral">Floral / Florist</option>
+                <option value="home_decor">Home Decor / Furniture / Interiors</option>
+                <option value="vintage">Vintage / Antiques / Consignment</option>
+                <option value="pet">Pet Products / Services</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Employees</label>
+              <select id="prof-employees">
+                <option value="1">Just me</option>
+                <option value="2-5">2–5</option>
+                <option value="6-10">6–10</option>
+                <option value="11-25">11–25</option>
+                <option value="26-50">26–50</option>
+                <option value="50+">50+</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>City</label><input type="text" id="prof-city"></div>
+            <div class="form-group">
+              <label>Annual revenue</label>
+              <select id="prof-revenue">
+                <option value="under_100k">Under $100K</option>
+                <option value="100k_500k">$100K – $500K</option>
+                <option value="500k_1m">$500K – $1M</option>
+                <option value="1m_5m">$1M – $5M</option>
+                <option value="over_5m">Over $5M</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Business description</label>
+            <textarea id="prof-description" placeholder="Tell us what you do, who you serve, and what you're working toward. The more specific you are, the better your funding matches will be." style="min-height:130px"></textarea>
+            <div style="font-size:12px;color:var(--ink);margin-top:4px;font-style:italic">Update this whenever your business focus, goals, or situation changes — it directly drives your match quality.</div>
+          </div>
+          <div class="form-group">
+            <label>What's new or changed recently? <span style="font-weight:400;font-size:12px;color:var(--muted)">(optional)</span></label>
+            <textarea id="prof-funding-note" placeholder="e.g. We just hired 2 people and are looking to expand our space. Also exploring export markets for the first time." style="min-height:90px"></textarea>
+            <div style="font-size:12px;color:var(--ink);margin-top:4px;font-style:italic">Any recent changes to your business, goals, or capital needs that we should factor into your matches.</div>
+          </div>
+          <div style="display:flex;align-items:center">
+            <button class="save-btn" onclick="saveProfile()">Save changes</button>
+            <span class="save-confirmation" id="saveConfirm">✓ Saved</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Account email</div>
+          <div class="form-row">
+            <div class="form-group"><label>Email address</label><input type="email" id="prof-email"></div>
+          </div>
+          <button class="save-btn" onclick="saveEmail()">Update email</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Change password</div>
+          <div class="form-row">
+            <div class="form-group"><label>New password</label><input type="password" id="prof-pw" placeholder="Min. 8 characters"></div>
+            <div class="form-group"><label>Confirm password</label><input type="password" id="prof-pw2" placeholder="Repeat password"></div>
+          </div>
+          <button class="save-btn" onclick="savePassword()">Update password</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Funding preferences</div>
+          <div style="margin-bottom:20px">
+            <label style="margin-bottom:12px;">What are you looking to fund?</label>
+            <div id="fundingPurposeList" style="display:flex;flex-direction:column;gap:10px"></div>
+          </div>
+          <div style="margin-bottom:20px">
+            <label style="margin-bottom:12px;">Business ownership (optional)</label>
+            <div id="ownerDemographicsList" style="display:flex;flex-direction:column;gap:10px"></div>
+          </div>
+          <div class="form-group">
+            <label>Years in business</label>
+            <input type="number" id="prof-yearsInBusiness" min="0" max="120">
+          </div>
+          <div style="display:flex;align-items:center">
+            <button class="save-btn" onclick="savePreferences()">Save preferences</button>
+            <span class="save-confirmation" id="prefConfirm">✓ Saved</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- REFERRAL -->
+      <div class="page" id="page-referral">
+        <div class="page-title">Referral Program</div>
+        <div class="page-sub">Earn a free month for every paying subscriber you refer — no limits.</div>
+        <div class="referral-box">
+          <div class="referral-title">Your referral link</div>
+          <div class="referral-body">Share this link with other business owners. When they subscribe and complete their first billing cycle, you get one month free — automatically.</div>
+          <div class="referral-link-wrap">
+            <div class="referral-link" id="refLink">Loading…</div>
+            <button class="copy-btn" onclick="copyRefLink()">Copy link</button>
+          </div>
+          <div class="referral-stats">
+            <div class="ref-stat"><div class="ref-stat-num" id="refCount">0</div><div class="ref-stat-lbl">Referrals made</div></div>
+            <div class="ref-stat"><div class="ref-stat-num" id="refCredits">$0</div><div class="ref-stat-lbl">Credits earned</div></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:20px">
+          <div class="card-title">How it works</div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <div style="width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:13px;font-weight:600;flex-shrink:0">1</div>
+              <div><div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px">Share your link</div><div style="font-size:13px;color:var(--muted);font-weight:300">Send it to other business owners in your area.</div></div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <div style="width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:13px;font-weight:600;flex-shrink:0">2</div>
+              <div><div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px">They subscribe</div><div style="font-size:13px;color:var(--muted);font-weight:300">They get their first digest free. When they become a paying subscriber, it counts as a referral.</div></div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <div style="width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:13px;font-weight:600;flex-shrink:0">3</div>
+              <div><div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px">You get a free month</div><div style="font-size:13px;color:var(--muted);font-weight:300">$25 credit applied to your next billing cycle automatically. No limit on referrals.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBSCRIPTION -->
+      <div class="page" id="page-subscription">
+        <div class="page-title">Subscription</div>
+        <div class="page-sub">Manage your plan, billing, and account status.</div>
+        <div class="card">
+          <div class="card-title">Current plan <span id="planBadge" class="plan-badge">Annual</span></div>
+          <div class="sub-detail-row"><span class="sub-detail-lbl">Plan</span><span class="sub-detail-val" id="sub-plan">Annual — $250/year</span></div>
+          <div class="sub-detail-row"><span class="sub-detail-lbl">Status</span><span class="sub-detail-val" style="color:var(--green)" id="sub-status">Active</span></div>
+          <div class="sub-detail-row"><span class="sub-detail-lbl">Next billing date</span><span class="sub-detail-val" id="sub-next-bill">—</span></div>
+          <div class="sub-detail-row"><span class="sub-detail-lbl">Credits</span><span class="sub-detail-val" id="sub-credits">$0.00</span></div>
+          <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn-sm primary" onclick="switchPlan()">Switch to Monthly</button>
+            <button class="btn-sm" onclick="pauseSubscription()">Pause for 30 days</button>
+            <button class="btn-sm danger" onclick="cancelSubscription()">Cancel subscription</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Billing history</div>
+          <div id="billingHistory" style="font-size:13px;color:var(--muted);font-weight:300">No charges yet — your trial is active.</div>
+        </div>
+        <div class="card" style="border-color:#f0c8c0">
+          <div class="card-title" style="color:var(--red)">Danger zone</div>
+          <p style="font-size:13px;font-weight:300;color:var(--muted);margin-bottom:16px;line-height:1.6">Permanently delete your account and all associated data. This cannot be undone.</p>
+          <button class="btn-sm danger" onclick="deleteAccount()">Delete my account</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Digest preferences</div>
+          <div class="sub-detail-row"><span class="sub-detail-lbl">Digest schedule</span><span class="sub-detail-val">Bi-weekly</span></div>
+          <div class="sub-detail-row"><span class="sub-detail-lbl">Urgent alerts</span><span class="sub-detail-val" style="color:var(--green)">Enabled</span></div>
+          <div class="sub-detail-row"><span class="sub-detail-lbl">Max alerts per week</span><span class="sub-detail-val">2</span></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- CANCEL MODAL -->
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal-box">
+    <div class="modal-title">Before you go...</div>
+    <div class="modal-sub">Your subscription will stay active until the end of your current billing period. We won't charge you again.</div>
+    <div class="modal-question">What's the main reason you're cancelling?</div>
+    <div class="cancel-reasons">
+      <label class="cancel-reason"><input type="radio" name="cancel_reason" value="too_expensive"> It's too expensive for my budget right now</label>
+      <label class="cancel-reason"><input type="radio" name="cancel_reason" value="not_relevant"> The programs weren't relevant to my business</label>
+      <label class="cancel-reason"><input type="radio" name="cancel_reason" value="found_what_needed"> I found what I needed and don't need the service anymore</label>
+      <label class="cancel-reason"><input type="radio" name="cancel_reason" value="too_busy"> I haven't had time to act on the digests</label>
+      <label class="cancel-reason"><input type="radio" name="cancel_reason" value="switching"> I'm using a different service</label>
+      <label class="cancel-reason"><input type="radio" name="cancel_reason" value="other"> Other</label>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="confirmCancel()">Cancel my subscription</button>
+      <button class="modal-btn-keep" onclick="closeCancelModal()">Keep my subscription</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://fundbug-production.up.railway.app';
+let token = localStorage.getItem('fb_token');
+let subscriber = JSON.parse(localStorage.getItem('fb_sub') || 'null');
+
+function showForgotPassword() {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('forgotWrap').style.display = 'flex';
+  document.getElementById('forgotEmail').value = document.getElementById('loginEmail').value || '';
+  document.getElementById('forgotMsg').textContent = '';
+  document.getElementById('forgotErr').textContent = '';
+}
+
+function showLogin() {
+  document.getElementById('forgotWrap').style.display = 'none';
+  document.getElementById('loginWrap').style.display = 'flex';
+}
+
+async function doForgotPassword() {
+  const email = document.getElementById('forgotEmail').value.trim();
+  document.getElementById('forgotErr').textContent = '';
+  document.getElementById('forgotMsg').textContent = '';
+  if (!email) { document.getElementById('forgotErr').textContent = 'Please enter your email address.'; return; }
+  try {
+    const r = await fetch(API + '/api/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    // Always show success message regardless of whether email exists (security best practice)
+    document.getElementById('forgotForm').style.display = 'none';
+    document.getElementById('forgotMsg').textContent = 'If that email is registered, you'll receive a reset link within a few minutes.';
+  } catch(e) {
+    document.getElementById('forgotErr').textContent = 'Something went wrong. Please try again.';
+  }
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  document.getElementById('loginErr').textContent = '';
+  try {
+    const r = await fetch(API + '/api/portal/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password}) });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || 'Login failed');
+    token = data.token;
+    subscriber = {
+      id: data.subscriber_id,
+      email: data.email,
+      first_name: data.first_name || '',
+      business_name: data.business_name || '',
+      subscription_status: data.subscription_status || 'trial',
+    };
+    localStorage.setItem('fb_token', token);
+    localStorage.setItem('fb_sub', JSON.stringify(subscriber));
+    showApp();
+  } catch(e) { document.getElementById('loginErr').textContent = e.message; }
+}
+
+function doLogout() {
+  localStorage.removeItem('fb_token'); localStorage.removeItem('fb_sub');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginWrap').style.display = 'flex';
+}
+
+function showApp() {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  const name = subscriber?.first_name || subscriber?.business_name || 'there';
+  document.getElementById('navUser').textContent = subscriber?.email || '';
+  const hour = new Date().getHours();
+  const greetTime = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greetTime').textContent = greetTime + ',';
+  document.getElementById('greetName').textContent = name + ' 👋';
+  loadOverview(); loadProfile(); loadReferral(); loadSubscription();
+}
+
+async function apiFetch(path, method='GET', body=null) {
+  const opts = { method, headers: {'Authorization':`Bearer ${token}`,'Content-Type':'application/json'} };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || 'API error');
+  return data;
+}
+
+async function loadOverview() {
+  try {
+    const data = await apiFetch('/api/portal/overview');
+    document.getElementById('ov-digests').textContent = data.digest_count ?? '0';
+    document.getElementById('ov-opportunities').textContent = data.total_opportunities ?? '0';
+    document.getElementById('ov-alerts').textContent = data.alert_count ?? '0';
+    document.getElementById('ov-referrals').textContent = data.referral_count ?? '0';
+    if (data.next_digest_date) {
+      const d = new Date(data.next_digest_date);
+      document.getElementById('nextDigestDate').textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+      const diff = Math.ceil((d - new Date()) / (1000*60*60*24));
+      document.getElementById('daysUntil').textContent = diff > 0 ? `In ${diff} day${diff !== 1 ? 's' : ''}` : 'Today';
+    }
+    if (data.recent_digests?.length) {
+      document.getElementById('recentDigests').innerHTML = data.recent_digests.slice(0,3).map(d => `
+        <div class="digest-item">
+          <div class="digest-date">${new Date(d.sent_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+          <div class="digest-title">${d.match_count} matches for ${subscriber?.business_name || 'your business'}</div>
+          <div class="digest-count">${d.match_count} matches</div>
+          <div class="digest-arrow">→</div>
+        </div>`).join('');
+    }
+  } catch(e) { console.log('Overview load error:', e.message); }
+}
+
+async function loadProfile() {
+  try {
+    const data = await apiFetch('/api/portal/profile');
+    document.getElementById('prof-businessName').value = data.business_name || '';
+    document.getElementById('prof-ownerName').value = [data.first_name, data.last_name].filter(Boolean).join(' ') || '';
+    document.getElementById('prof-city').value = (data.city || '').replace(', MA','').replace(',MA','');
+    document.getElementById('prof-email').value = data.email || '';
+    document.getElementById('prof-description').value = data.description || '';
+    if (document.getElementById('prof-funding-note')) document.getElementById('prof-funding-note').value = data.funding_note || '';
+    if (data.industry) document.getElementById('prof-industry').value = data.industry;
+    if (data.employee_count) document.getElementById('prof-employees').value = data.employee_count;
+    if (data.annual_revenue) document.getElementById('prof-revenue').value = data.annual_revenue;
+    loadPreferencesUI(data);
+  } catch(e) { console.log('Profile load error:', e.message); }
+}
+
+function loadPreferencesUI(data) {
+  const fundingOpts = [
+    {value:'equipment',label:'Equipment or vehicles'},{value:'hiring',label:'Hiring and training'},
+    {value:'marketing',label:'Marketing and advertising'},{value:'working_capital',label:'Working capital / cash flow'},
+    {value:'real_estate',label:'Real estate or expansion'},{value:'technology',label:'Technology or software'},
+    {value:'export',label:'Export or international growth'},{value:'research',label:'Research and development'}
+  ];
+  const demoOpts = [
+    {value:'woman-owned',label:'Woman-owned business'},{value:'minority-owned',label:'Minority-owned business'},
+    {value:'veteran-owned',label:'Veteran-owned business'},{value:'disability-owned',label:'Disability-owned business'},
+    {value:'lgbtq-owned',label:'LGBTQ+-owned business'},{value:'immigrant-owned',label:'Immigrant-owned business'}
+  ];
+  const selFunding = data.funding_purpose || [];
+  const selDemo = data.owner_demographics || [];
+  document.getElementById('fundingPurposeList').innerHTML = fundingOpts.map(o => `
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:'Jost',sans-serif;font-size:14px;">
+      <input type="checkbox" name="funding_purpose" value="${o.value}" ${selFunding.includes(o.value)?'checked':''} style="accent-color:var(--green);width:17px;height:17px;margin:0;flex-shrink:0;">
+      <span>${o.label}</span>
+    </label>`).join('');
+  document.getElementById('ownerDemographicsList').innerHTML = demoOpts.map(o => `
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:'Jost',sans-serif;font-size:14px;">
+      <input type="checkbox" name="owner_demographics" value="${o.value}" ${selDemo.includes(o.value)?'checked':''} style="accent-color:var(--green);width:17px;height:17px;margin:0;flex-shrink:0;">
+      <span>${o.label}</span>
+    </label>`).join('');
+  document.getElementById('prof-yearsInBusiness').value = data.years_in_business || '';
+}
+
+async function saveProfile() {
+  try {
+    await apiFetch('/api/portal/profile','PATCH',{
+      business_name: document.getElementById('prof-businessName').value,
+      full_name: document.getElementById('prof-ownerName').value,
+      industry: document.getElementById('prof-industry').value,
+      employee_count: document.getElementById('prof-employees').value,
+      city: document.getElementById('prof-city').value,
+      annual_revenue: document.getElementById('prof-revenue').value,
+      description: document.getElementById('prof-description').value,
+      funding_note: document.getElementById('prof-funding-note') ? document.getElementById('prof-funding-note').value : null,
+    });
+    const conf = document.getElementById('saveConfirm');
+    conf.classList.add('show'); setTimeout(() => conf.classList.remove('show'), 2500);
+  } catch(e) { alert('Save failed: ' + e.message); }
+}
+
+async function saveEmail() {
+  try { await apiFetch('/api/portal/profile','PATCH',{email: document.getElementById('prof-email').value}); alert('Email updated.'); }
+  catch(e) { alert('Update failed: ' + e.message); }
+}
+
+async function savePassword() {
+  const pw = document.getElementById('prof-pw').value, pw2 = document.getElementById('prof-pw2').value;
+  if (pw.length < 8) { alert('Password must be at least 8 characters.'); return; }
+  if (pw !== pw2) { alert('Passwords do not match.'); return; }
+  try {
+    await apiFetch('/api/portal/change-password','POST',{new_password: pw});
+    alert('Password updated.'); document.getElementById('prof-pw').value = ''; document.getElementById('prof-pw2').value = '';
+  } catch(e) { alert('Update failed: ' + e.message); }
+}
+
+async function savePreferences() {
+  try {
+    const fp = Array.from(document.querySelectorAll('input[name="funding_purpose"]:checked')).map(el => el.value);
+    const od = Array.from(document.querySelectorAll('input[name="owner_demographics"]:checked')).map(el => el.value);
+    const yr = document.getElementById('prof-yearsInBusiness').value;
+    await apiFetch('/api/portal/profile','PATCH',{ funding_purpose: fp, owner_demographics: od, years_in_business: yr ? parseInt(yr) : null });
+    const conf = document.getElementById('prefConfirm');
+    conf.classList.add('show'); setTimeout(() => conf.classList.remove('show'), 2500);
+  } catch(e) { alert('Save failed: ' + e.message); }
+}
+
+async function loadReferral() {
+  try {
+    const data = await apiFetch('/api/portal/referral');
+    document.getElementById('refLink').textContent = data.referral_url || 'fundbug.net/ref/' + (data.referral_code || '...');
+    document.getElementById('refCount').textContent = data.referral_count ?? '0';
+    document.getElementById('refCredits').textContent = '$' + ((data.credits_earned || 0) * 25);
+  } catch(e) { document.getElementById('refLink').textContent = 'fundbug.net/ref/YOUR-CODE'; }
+}
+
+function copyRefLink() {
+  const link = document.getElementById('refLink').textContent;
+  navigator.clipboard.writeText(link).then(() => {
+    const btn = event.target; btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy link', 2000);
+  });
+}
+
+async function loadSubscription() {
+  try {
+    const data = await apiFetch('/api/portal/subscription');
+    const planLabel = data.plan === 'annual' ? 'Annual — $250/year' : data.plan === 'trial' ? 'Monthly — $25/month' : 'Monthly — $25/month';
+    document.getElementById('sub-plan').textContent = planLabel;
+    document.getElementById('planBadge').textContent = data.plan === 'annual' ? 'Annual' : 'Monthly';
+    document.getElementById('sub-status').textContent = data.status === 'active' ? 'Active' : data.status === 'trialing' ? 'Free trial active' : data.status;
+    if (data.next_billing_date) document.getElementById('sub-next-bill').textContent = new Date(data.next_billing_date).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+    document.getElementById('sub-credits').textContent = '$' + (data.credit_balance || 0).toFixed(2);
+    const switchBtn = document.querySelector('.btn-sm.primary');
+    if (switchBtn) switchBtn.textContent = data.plan === 'annual' ? 'Switch to Monthly' : 'Switch to Annual — Save $50';
+  } catch(e) { console.log('Sub load error:', e.message); }
+}
+
+function switchPlan() {
+  if (confirm('Switch your plan? Changes take effect at your next billing date.'))
+    apiFetch('/api/portal/subscription/switch','POST').then(() => { loadSubscription(); alert('Plan updated.'); }).catch(e => alert('Error: ' + e.message));
+}
+
+function pauseSubscription() {
+  if (confirm('Pause your subscription for 30 days? No digests will be sent during this period.'))
+    apiFetch('/api/portal/subscription/pause','POST').then(() => { loadSubscription(); alert('Subscription paused for 30 days.'); }).catch(e => alert('Error: ' + e.message));
+}
+
+function deleteAccount() {
+  if (!confirm('This will permanently delete your account and all data. This cannot be undone.\n\nAre you absolutely sure?')) return;
+  apiFetch('/api/portal/account/delete', 'POST')
+    .then(() => {
+      localStorage.removeItem('fb_token');
+      localStorage.removeItem('fb_sub');
+      alert('Your account has been deleted. Thank you for trying FundBug.');
+      window.location.href = 'https://fundbug.net';
+    })
+    .catch(e => alert('Error: ' + e.message));
+}
+
+function cancelSubscription() {
+  document.getElementById('cancelModal').classList.add('open');
+}
+
+function closeCancelModal() {
+  document.getElementById('cancelModal').classList.remove('open');
+}
+
+async function confirmCancel() {
+  const reason = document.querySelector('input[name="cancel_reason"]:checked')?.value || 'not_specified';
+  const btn = document.querySelector('.modal-btn-cancel');
+  btn.disabled = true;
+  btn.textContent = 'Cancelling…';
+  try {
+    await apiFetch('/api/portal/subscription/cancel', 'POST', { cancel_reason: reason });
+    closeCancelModal();
+    loadSubscription();
+    // Show a friendly confirmation
+    const sub = document.getElementById('sub-status');
+    if (sub) sub.textContent = 'Cancelled — active until end of billing period';
+  } catch(e) {
+    alert('Error: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = 'Cancel my subscription';
+  }
+}
+
+// Close modal on overlay click
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('cancelModal').addEventListener('click', function(e) {
+    if (e.target === this) closeCancelModal();
+  });
+});
+
+function showPage(id, el) {
+  event.preventDefault();
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+if (token && subscriber) showApp();
+else document.getElementById('loginWrap').style.display = 'flex';
+
+async function saveDescription() {
+  const btn = document.getElementById('save-desc-btn');
+  const val = document.getElementById('profile-description').value.trim();
+  if (!val) return;
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const res = await fetch(API + '/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ description: val })
+    });
+    if (!res.ok) throw new Error('Save failed');
+    document.getElementById('desc-success').classList.add('show');
+    setTimeout(() => document.getElementById('desc-success').classList.remove('show'), 3000);
+  } catch(e) { alert('Error: ' + e.message); }
+  btn.disabled = false; btn.textContent = 'Save description';
+}
+
+async function saveFundingNote() {
+  const btn = document.getElementById('save-funding-btn');
+  const val = document.getElementById('profile-funding-note').value.trim();
+  if (!val) return;
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const res = await fetch(API + '/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ funding_note: val })
+    });
+    if (!res.ok) throw new Error('Save failed');
+    document.getElementById('funding-success').classList.add('show');
+    setTimeout(() => document.getElementById('funding-success').classList.remove('show'), 3000);
+  } catch(e) { alert('Error: ' + e.message); }
+  btn.disabled = false; btn.textContent = 'Save funding note';
+}
+
+// Load existing profile values into profile tab when switched to
+const _origSwitchTab = typeof switchTab === 'function' ? switchTab : null;
+
+</script>
+</body>
+</html>

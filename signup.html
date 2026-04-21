@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up — FundBug</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Jost:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a1a14; --ink2: #2d2d24; --green: #5a9e52; --green-lt: #7ab870;
+      --green-dk: #3d7a38; --cream: #f7f5f0; --cream2: #ede9e0; --cream3: #e2ddd4;
+      --muted: #8a8578; --muted2: #b5b0a5; --border: #d8d3c8; --white: #ffffff; --red: #c44b2a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--cream); color: var(--ink); font-family: 'Jost', sans-serif; font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+    h1, h2, h3 { font-family: 'Fraunces', serif; line-height: 1.15; }
+    h2 { font-size: 30px; margin-bottom: 10px; }
+    label { font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 500; color: var(--ink); display: block; margin-bottom: 6px; }
+    .req { color: var(--green); }
+
+    .container { display: grid; grid-template-columns: 1fr 380px; gap: 48px; max-width: 1200px; margin: 0 auto; padding: 60px 40px; min-height: 100vh; }
+    @media (max-width: 1024px) { .container { grid-template-columns: 1fr; gap: 32px; padding: 40px 24px; } .summary-panel { display: none !important; } }
+    .form-section { max-width: 540px; }
+
+    .privacy-banner { background: #eef4fb; border: 1px solid #b8d0e8; border-radius: 6px; padding: 14px 16px; margin-bottom: 28px; display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #3a5a7a; line-height: 1.55; }
+
+    .step-indicator { display: flex; align-items: center; gap: 12px; margin-bottom: 48px; }
+    .step-dot { width: 36px; height: 36px; border-radius: 50%; background: var(--cream2); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: 'Jost', sans-serif; font-weight: 500; font-size: 14px; color: var(--muted); transition: all 0.2s; flex-shrink: 0; }
+    .step-dot.active { background: var(--green); border-color: var(--green); color: var(--white); }
+    .step-dot.complete { background: var(--green-dk); border-color: var(--green-dk); color: var(--white); }
+    .step-line { flex: 1; height: 2px; background: var(--border); }
+    .step-line.active { background: var(--green); }
+    .step-label { font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); flex-shrink: 0; }
+
+    .form-group { margin-bottom: 22px; }
+    .label-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+    .label-row label { margin-bottom: 0; }
+
+    .tooltip-wrap { position: relative; display: inline-flex; align-items: center; }
+    .tooltip-icon { width: 16px; height: 16px; border-radius: 50%; background: var(--cream3); border: 1px solid var(--border); color: var(--muted); font-size: 10px; font-family: 'Jost', sans-serif; display: inline-flex; align-items: center; justify-content: center; cursor: help; flex-shrink: 0; }
+    .tooltip-icon:hover { background: var(--green); color: var(--white); border-color: var(--green); }
+    .tooltip-bubble { display: none; position: absolute; left: 24px; top: -4px; background: var(--ink); color: var(--white); font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 400; line-height: 1.55; padding: 10px 14px; border-radius: 6px; width: 240px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+    .tooltip-bubble::before { content: ''; position: absolute; left: -6px; top: 12px; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-right: 6px solid var(--ink); }
+    .tooltip-wrap:hover .tooltip-bubble { display: block; }
+
+    input[type="text"], input[type="email"], input[type="password"], input[type="number"], select, textarea { width: 100%; padding: 11px 14px; border: 1px solid var(--border); background: var(--white); color: var(--ink); font-family: 'Jost', sans-serif; font-size: 15px; font-weight: 400; border-radius: 4px; transition: all 0.2s; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(90,158,82,.1); }
+    input.error, select.error, textarea.error { border-color: var(--red); box-shadow: 0 0 0 3px rgba(196,75,42,.1); }
+    textarea { resize: vertical; min-height: 100px; }
+    .hint-text { font-size: 13px; font-weight: 300; color: var(--ink2); margin-top: 5px; font-style: italic; }
+    .error-message { font-size: 12px; color: var(--red); margin-top: 4px; display: none; }
+    .error-message.show { display: block; }
+
+    .section-explanation { background: rgba(90,158,82,.06); border-left: 3px solid var(--green); border-radius: 0 4px 4px 0; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; font-weight: 300; color: var(--ink2); line-height: 1.6; }
+    .field-explanation { font-size: 13px; font-weight: 300; color: var(--ink2); margin-top: -6px; margin-bottom: 10px; line-height: 1.55; font-style: italic; }
+
+    .button-group { display: flex; gap: 12px; margin-top: 40px; }
+    button { padding: 12px 24px; border: none; border-radius: 4px; font-family: 'Jost', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-primary { background: var(--green); color: var(--white); flex: 1; }
+    .btn-primary:hover:not(:disabled) { background: var(--green-lt); }
+    .btn-primary:disabled { background: var(--cream3); color: var(--muted); cursor: not-allowed; }
+    .btn-secondary { background: transparent; color: var(--ink); border: 1px solid var(--border); flex: 1; }
+    .btn-secondary:hover { border-color: var(--ink); background: var(--cream2); }
+
+    .summary-panel { position: sticky; top: 60px; height: fit-content; background: var(--ink); color: var(--white); padding: 32px; border-radius: 8px; }
+    .summary-panel.hidden { display: none !important; }
+    .summary-label { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: var(--white); margin-bottom: 16px; }
+    .summary-card { background: var(--ink2); padding: 20px; border-radius: 6px; margin-bottom: 24px; }
+    .summary-row { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,.1); }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-row-label { font-family: 'Jost', sans-serif; font-weight: 400; color: var(--muted2); }
+    .summary-row-value { font-family: 'Jost', sans-serif; font-weight: 500; color: var(--white); font-size: 13px; }
+    .summary-total { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 0; border-top: 2px solid rgba(255,255,255,.1); margin-top: 16px; }
+    .summary-total-label { font-family: 'Jost', sans-serif; font-weight: 500; color: var(--white); }
+    .summary-total-value { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--green-lt); }
+    .summary-badges { margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,.1); }
+    .badge { display: flex; align-items: center; gap: 8px; font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 300; color: var(--muted2); margin-bottom: 10px; }
+    .badge-icon { color: var(--green-lt); font-weight: 700; }
+
+    .step { display: none; }
+    .step.active { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .success-container { display: none; text-align: center; padding: 60px 40px; max-width: 500px; margin: 0 auto; }
+    .success-container.show { display: block; }
+    .success-icon { font-size: 64px; color: var(--green); margin-bottom: 24px; }
+
+    .trial-notice { background: rgba(90,158,82,.1); border: 1px solid var(--green); border-radius: 6px; padding: 14px 16px; margin-bottom: 24px; color: var(--ink); font-size: 14px; }
+
+    .plan-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+    .plan-option { padding: 18px 16px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; transition: all 0.2s; text-align: center; position: relative; }
+    .plan-option:hover { border-color: var(--green); }
+    .plan-option.selected { border-color: var(--green); background: rgba(90,158,82,.05); }
+    .plan-option input { position: absolute; opacity: 0; }
+    .plan-name { font-family: 'Jost', sans-serif; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+    .plan-price { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700; color: var(--green); line-height: 1; }
+    .plan-period { font-family: 'Jost', sans-serif; font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .plan-save { font-family: 'Jost', sans-serif; font-size: 11px; color: var(--green); margin-top: 4px; font-weight: 600; }
+    .plan-cadence { font-family: 'Jost', sans-serif; font-size: 11px; color: var(--muted2); margin-top: 3px; font-weight: 400; }
+
+    #card-element { padding: 12px 14px; border: 1px solid var(--border); border-radius: 4px; background: var(--white); }
+    #card-errors { color: var(--red); font-size: 12px; margin-top: 4px; display: none; }
+    #card-errors.show { display: block; }
+    .trust-line { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 400; color: var(--muted2); margin-top: 20px; }
+
+    .checkbox-group { display: flex; flex-direction: column; gap: 10px; margin: 8px 0; }
+    .checkbox-label { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+    .checkbox-label input[type="checkbox"] { width: 17px; height: 17px; margin: 0; cursor: pointer; accent-color: var(--green); flex-shrink: 0; }
+    .checkbox-label span { font-size: 15px; font-weight: 400; color: var(--ink); }
+    .checkbox-label:hover span { color: var(--green); }
+
+    .other-funding-wrap { display: none; margin-top: 8px; padding-left: 28px; }  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="form-section">
+
+    <div class="step-indicator">
+      <div class="step-dot active" id="dot-1">1</div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step-dot" id="dot-2">2</div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step-dot" id="dot-3">3</div>
+      <span class="step-label">Payment</span>
+    </div>
+
+    <form id="signup-form">
+
+      <!-- STEP 1 -->
+      <div class="step active" id="step-1">
+        <h2>Tell us about your business</h2>
+        <p style="color:var(--ink2);margin-bottom:24px;font-weight:300;">The more detail you share, the better your funding matches will be.</p>
+
+        <div class="privacy-banner">
+          <span style="font-size:16px;flex-shrink:0;margin-top:2px;">🔒</span>
+          <div><strong>Your information is private.</strong> FundBug will never sell, share, or rent your data to third parties — ever. The information you provide is used solely to match you with relevant funding opportunities. You can delete your account and all associated data at any time.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="business-name">Business name <span class="req">*</span></label>
+          <input type="text" id="business-name" name="business_name" required>
+          <div class="error-message"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label for="first-name">First name <span class="req">*</span></label>
+            <input type="text" id="first-name" name="first_name" required>
+            <div class="error-message"></div>
+          </div>
+          <div class="form-group">
+            <label for="last-name">Last name <span class="req">*</span></label>
+            <input type="text" id="last-name" name="last_name" required>
+            <div class="error-message"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="industry">Industry <span class="req">*</span></label>
+          <p class="field-explanation">The starting point for your matches. Many programs are industry-specific — grants for food businesses, loans for manufacturers, credits for construction trades. Pick the closest fit.</p>
+          <select id="industry" name="industry" required>
+            <option value="">Select your industry…</option>
+            <option value="agriculture">Agriculture / Farming</option>
+            <option value="apparel">Apparel / Clothing</option>
+            <option value="arts">Arts / Creative</option>
+            <option value="artisan">Artisan / Handmade Products</option>
+            <option value="auto_marine">Auto / Marine Services</option>
+            <option value="beauty">Beauty / Personal Care</option>
+            <option value="brewery">Brewery / Distillery / Winery</option>
+            <option value="cleaning">Cleaning / Maintenance Services</option>
+            <option value="construction">Construction / Trades</option>
+            <option value="event_planning">Event Planning / Catering</option>
+            <option value="fishing">Fishing / Aquaculture</option>
+            <option value="fitness">Fitness / Wellness Studio</option>
+            <option value="floral">Floral / Florist</option>
+            <option value="healthcare">Healthcare / Wellness</option>
+            <option value="home_decor">Home Decor / Furniture / Interiors</option>
+            <option value="hospitality">Hospitality / Tourism</option>
+            <option value="jewelry">Jewelry / Accessories</option>
+            <option value="landscaping">Landscaping / Lawn Care</option>
+            <option value="manufacturing">Manufacturing</option>
+            <option value="pet">Pet Products / Services</option>
+            <option value="professional">Professional Services</option>
+            <option value="property">Property Services</option>
+            <option value="restaurant">Restaurant / Food Service</option>
+            <option value="retail">Retail</option>
+            <option value="specialty_food">Specialty Food Producer</option>
+            <option value="technology">Technology</option>
+            <option value="transportation">Transportation / Logistics</option>
+            <option value="vintage">Vintage / Antiques / Consignment</option>
+            <option value="other">Other</option>
+          </select>
+          <div class="error-message"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Describe your business <span class="req">*</span></label>
+          <p class="field-explanation">The form fields give us the facts. This is where you give us the picture. We use your description to write the “why this fits you” section in your digest — so the more you tell us about your story, your situation, and what you’re working toward, the sharper that writing will be. Don’t worry about covering things you already answered above. Tell us what makes your business yours.</p>
+          <textarea id="description" name="description" placeholder="Tell us your story." required></textarea>
+          <div class="hint-text">Example: &ldquo;My mother opened this flower shop on Main Street in 1987 and I took it over from her eight years ago. We’re the only florist left downtown — everyone else moved to the strip mall or went online. We do weddings, funerals, corporate accounts, and walk-ins. The shop itself needs work — the cooler is original equipment and I’ve been nursing it along for two years. I also want to add a small gift section to bring in foot traffic in the slower months. I’ve never applied for a grant before. Flower costs are up, the electric bill on the cooler has crept up every year, and my insurance renewed higher again in January. I want to hear about any opportunities that fit me and make sure I don’t miss anything worthwhile.&rdquo;</div>
+          <div class="error-message"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="employees">Number of employees <span class="req">*</span></label>
+          <p class="field-explanation">Many programs cap eligibility by headcount — some are for businesses under 10 employees, others require a minimum. This filters out programs you won’t qualify for.</p>
+          <select id="employees" name="employee_count" required>
+            <option value="">Select…</option>
+            <option value="1">Just me (sole proprietor)</option>
+            <option value="2-5">2–5 employees</option>
+            <option value="6-10">6–10 employees</option>
+            <option value="11-25">11–25 employees</option>
+            <option value="26-50">26–50 employees</option>
+            <option value="50+">More than 50</option>
+          </select>
+          <div class="error-message"></div>
+        </div>
+
+        <!-- Street address -->
+        <div class="form-group">
+          <label for="street-address">Business street address <span class="req">*</span></label>
+          <p class="field-explanation">Your address unlocks neighborhood-specific programs — including HUBZone, Opportunity Zone, and Enterprise Zone grants tied to your exact location. Never shared externally.</p>
+          <input type="text" id="street-address" name="street_address" placeholder="e.g. 123 Main Street" required autocomplete="street-address">
+          <div class="error-message"></div>
+        </div>
+
+        <!-- City / State -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label for="city">City / Town <span class="req">*</span></label>
+            <input type="text" id="city" name="city" required autocomplete="address-level2">
+            <div class="error-message"></div>
+          </div>
+          <div class="form-group">
+            <label for="state">State <span class="req">*</span></label>
+            <select id="state" name="state" required autocomplete="address-level1">
+              <option value="">Select…</option>
+              <option value="MA">Massachusetts</option>
+              <option value="RI">Rhode Island</option>
+              <option value="PA">Pennsylvania</option>
+            </select>
+            <div class="hint-text">FundBug currently serves MA, RI, and PA.</div>
+            <div class="error-message"></div>
+          </div>
+        </div>
+
+        <!-- Zip code -->
+        <div class="form-group">
+          <label for="zip-code">ZIP code <span class="req">*</span></label>
+          <input type="text" id="zip-code" name="zip_code" required maxlength="10" pattern="[0-9]{5}(-[0-9]{4})?" autocomplete="postal-code" style="max-width:180px;">
+          <div class="error-message"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="revenue">Annual revenue <span style="font-weight:300;color:var(--muted);font-size:13px;">(optional)</span></label>
+          <p class="field-explanation">Helps us filter out programs with revenue caps that don’t match your size. If you skip this, we won’t filter by revenue — you’ll see all programs regardless of size requirements.</p>
+          <select id="revenue" name="annual_revenue">
+            <option value="">Prefer not to say</option>
+            <option value="under_100k">Under $100K</option>
+            <option value="100k_500k">$100K – $500K</option>
+            <option value="500k_1m">$500K – $1M</option>
+            <option value="1m_5m">$1M – $5M</option>
+            <option value="over_5m">Over $5M</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Where do you operate? <span class="req">*</span></label>
+          <select id="location-type" name="location_type" required>
+            <option value="">Select…</option>
+            <option value="physical_own">Physical location — I own the space</option>
+            <option value="physical_rent">Physical location — I rent the space</option>
+            <option value="home_based">Home-based business</option>
+            <option value="mobile">Mobile (food truck, landscaping, etc.)</option>
+          </select>
+          <div class="hint-text">Affects eligibility for real estate grants and location-based programs.</div>
+          <div class="error-message"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label" style="margin-bottom:6px;">
+            <input type="checkbox" id="is-seasonal" name="is_seasonal" onchange="toggleSeasonalMonths()">
+            <span>My business is seasonal</span>
+          </label>
+          <p class="field-explanation">Some loan and grant programs require businesses to demonstrate year-round operations — you'll still see all opportunities — we use this to improve the relevance of your matches, not to limit them.</p>
+          <div id="seasonal-months" style="display:none;margin-top:12px;">
+            <label style="margin-bottom:8px;">Which months are your peak season?</label>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+              <label class="checkbox-label"><input type="checkbox" name="peak_season_months" value="January"><span>Jan</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="peak_season_months" value="February"><span>Feb</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="peak_season_months" value="March"><span>Mar</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="peak_season_months" value="April"><span>Apr</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="peak_season_months" value="May"><span>May</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="peak_season_months" value="June"><span>Jun</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="peak_season_months" value="July"><span>Jul</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="peak_season_months" value="August"><span>Aug</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="peak_season_months" value="September"><span>Sep</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="peak_season_months" value="October"><span>Oct</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="peak_season_months" value="November"><span>Nov</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="peak_season_months" value="December"><span>Dec</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Do you sell products or services online?</label>
+          <p class="field-explanation">Several programs — including state e-commerce grants and digital adoption programs — are specifically for businesses that sell online. This helps us match or filter a meaningful slice of your opportunities.</p>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+            <label class="checkbox-label"><input type="radio" name="sells_online" value="yes" onchange="toggleOnlineDetails(this)"><span>Yes, I sell online</span></label>
+            <label class="checkbox-label"><input type="radio" name="sells_online" value="no" onchange="toggleOnlineDetails(this)"><span>No, I don’t sell online</span></label>
+            <label class="checkbox-label"><input type="radio" name="sells_online" value="want_to" onchange="toggleOnlineDetails(this)"><span>Not currently, but I’d like to</span></label>
+          </div>
+          <div id="online-details" style="display:none;margin-top:4px;">
+            <label class="checkbox-label" style="margin-bottom:8px;"><input type="checkbox" id="own-site" name="online_via_own_site"><span>Through my own website</span></label>
+            <label class="checkbox-label" style="margin-bottom:8px;"><input type="checkbox" id="third-party" name="online_via_third_party" onchange="togglePlatforms()"><span>Through third-party platforms (Amazon, Etsy, eBay, etc.)</span></label>
+            <div id="platform-list" style="display:none;margin-top:8px;padding-left:28px;">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+                <label class="checkbox-label"><input type="checkbox" name="third_party_platforms" value="amazon"><span>Amazon</span></label>
+                <label class="checkbox-label"><input type="checkbox" name="third_party_platforms" value="etsy"><span>Etsy</span></label>
+                <label class="checkbox-label"><input type="checkbox" name="third_party_platforms" value="ebay"><span>eBay</span></label>
+                <label class="checkbox-label"><input type="checkbox" name="third_party_platforms" value="shopify"><span>Shopify</span></label>
+                <label class="checkbox-label"><input type="checkbox" name="third_party_platforms" value="faire"><span>Faire</span></label>
+                <label class="checkbox-label"><input type="checkbox" name="third_party_platforms" value="other"><span>Other</span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>What best describes your current access to bank financing?</label>
+          <select id="bank-access" name="bank_financing_access">
+            <option value="">Prefer not to say</option>
+            <option value="yes">I have an established banking relationship and access to credit</option>
+            <option value="good_standing">I have a business bank account and good credit but haven't borrowed</option>
+            <option value="limited">My banking relationship is limited or I'm working on building credit</option>
+            <option value="no">I've been turned down for bank financing or don't qualify</option>
+            <option value="not_looking">I'm not looking for debt financing</option>
+            <option value="unsure">I haven't explored bank financing recently and am not sure</option>
+          </select>
+          <div class="hint-text">Some loan programs are designed specifically for businesses banks won't serve. If you skip this, we won't filter by financing access — you’ll see all loan opportunities regardless.</div>
+        </div>
+
+        <div class="form-group">
+          <label>Grant experience</label>
+          <select id="grant-experience" name="grant_experience">
+            <option value="">Select…</option>
+            <option value="never">I have never applied for a grant</option>
+            <option value="applied">I have applied but never won</option>
+            <option value="won">I have won grants before</option>
+          </select>
+          <div class="hint-text">Helps us calibrate application complexity and competition level for your matches.</div>
+        </div>
+
+        <div class="form-group">
+          <label>What are you looking to fund? (select all that apply)</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" name="funding_purpose" value="accessibility"><span>Accessibility improvements (ADA compliance)</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="funding_purpose" value="energy"><span>Energy efficiency or clean energy upgrades</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="funding_purpose" value="equipment"><span>Equipment or vehicles</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="funding_purpose" value="export"><span>Export or international growth</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="funding_purpose" value="hiring"><span>Hiring and training</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="funding_purpose" value="inventory"><span>Inventory expansion</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="funding_purpose" value="marketing"><span>Marketing and advertising</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="funding_purpose" value="real_estate"><span>Real estate or expansion</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="funding_purpose" value="research"><span>Research and development</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="funding_purpose" value="storefront"><span>Storefront or facility improvements</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="funding_purpose" value="technology"><span>Technology or software</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="funding_purpose" value="working_capital"><span>Working capital / cash flow</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="funding_purpose" value="other" onchange="toggleOtherFunding(this)"><span>Other</span></label>
+          </div>
+          <div class="other-funding-wrap" id="other-funding-wrap" style="display:none;margin-top:8px;">
+            <input type="text" id="other-funding-text" name="funding_purpose_other" placeholder="Tell us more about what you're looking to fund…" style="padding:9px 12px;font-size:14px;">
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;">
+          <div class="form-group">
+            <label for="years-in-business">Years in business <span class="req">*</span></label>
+            <p class="field-explanation">Many programs have minimum operating requirements — some are only for businesses under 2 years old, others require at least 2 years of history. This filters your matches to only what you’re eligible for.</p>
+            <select id="years-in-business" name="years_in_business" required>
+              <option value="">Select…</option>
+              <option value="0">Less than 1 year</option>
+              <option value="1">1–2 years</option>
+              <option value="3">2–5 years</option>
+              <option value="6">5–10 years</option>
+              <option value="11">More than 10 years</option>
+            </select>
+            <div class="error-message"></div>
+          </div>
+          <div class="form-group" style="padding-top:30px;">
+            <label class="checkbox-label">
+              <input type="checkbox" id="is-startup" name="is_startup">
+              <span>My business is a start-up</span>
+            </label>
+            <p class="field-explanation" style="margin-top:6px;">Several programs specifically target start-ups and early-stage businesses.</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Do any of these apply to you? <span style="font-weight:300;color:var(--muted);font-size:13px;">(optional)</span></label>
+          <p class="field-explanation">Many programs are specifically designed for underrepresented business owners — often with less competition and higher win rates than general programs. Checking what applies unlocks opportunities you’d otherwise never see. This information is never shared externally and is used solely for matching.</p>
+          <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" name="owner_demographics" value="woman-owned"><span>Woman-owned business</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="owner_demographics" value="minority-owned"><span>Minority-owned business</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="owner_demographics" value="veteran-owned"><span>Veteran-owned business</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="owner_demographics" value="disability-owned"><span>Disability-owned business</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="owner_demographics" value="lgbtq-owned"><span>LGBTQ+-owned business</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="owner_demographics" value="immigrant-owned"><span>Immigrant-owned business</span></label>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button type="button" class="btn-primary" onclick="nextStep()">Continue to account setup →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step" id="step-2">
+        <h2>Create your account</h2>
+        <p style="color:var(--ink2);margin-bottom:32px;font-weight:300;">Secure login for your FundBug portal.</p>
+        <div class="form-group">
+          <label for="email">Email address <span class="req">*</span></label>
+          <input type="email" id="email" name="email" required>
+          <div class="error-message"></div>
+        </div>
+        <div class="form-group">
+          <label for="password">Password <span class="req">*</span></label>
+          <input type="password" id="password" name="password" required minlength="8">
+          <div class="hint-text">Minimum 8 characters</div>
+          <div class="error-message"></div>
+        </div>
+        <div class="form-group">
+          <label for="confirm-password">Confirm password <span class="req">*</span></label>
+          <input type="password" id="confirm-password" name="confirm_password" required>
+          <div class="error-message"></div>
+        </div>
+        <div class="form-group">
+          <label for="referral">Referral code (optional)</label>
+          <input type="text" id="referral" name="referral_code">
+          <div class="hint-text">Got a referral code? Enter it here for a bonus month free.</div>
+        </div>
+        <div class="button-group">
+          <button type="button" class="btn-secondary" onclick="prevStep()">← Back</button>
+          <button type="button" class="btn-primary" onclick="nextStep()">Continue to payment →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step" id="step-3">
+        <h2>Choose your plan</h2>
+
+        <label style="margin-bottom:12px;">Select plan <span class="req">*</span></label>
+        <div class="plan-selector">
+          <label class="plan-option selected">
+            <input type="radio" name="plan" value="annual" checked>
+            <div class="plan-name">Annual</div>
+            <div class="plan-price">$250</div>
+            <div class="plan-period">per year</div>
+            <div class="plan-cadence">Two digests a month</div>
+            <div class="plan-save">Save $50/year</div>
+          </label>
+          <label class="plan-option">
+            <input type="radio" name="plan" value="monthly">
+            <div class="plan-name">Monthly</div>
+            <div class="plan-price">$25</div>
+            <div class="plan-period">per month</div>
+            <div class="plan-cadence">Two digests a month</div>
+          </label>
+        </div>
+        <div class="trial-notice" style="margin-bottom:20px;">✓ First digest free — your card won't be charged today</div>
+        <div class="form-group">
+          <label>Card details <span class="req">*</span></label>
+          <div id="card-element"></div>
+          <div id="card-errors"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:20px;">
+          <label class="checkbox-label" style="align-items:flex-start;gap:10px;">
+            <input type="checkbox" id="terms-consent" required style="margin-top:3px;width:17px;height:17px;flex-shrink:0;accent-color:var(--green);">
+            <span style="font-size:14px;font-weight:300;color:var(--ink2);line-height:1.6;">I agree to FundBug’s <a href="terms.html" target="_blank" style="color:var(--green-dk);">Terms of Service</a> and <a href="privacy.html" target="_blank" style="color:var(--green-dk);">Privacy Policy</a>. I understand that FundBug is an informational service and does not guarantee funding outcomes.</span>
+          </label>
+        </div>
+        <button type="submit" class="btn-primary" id="submit-btn">Subscribe to FundBug →</button>
+        <div class="trust-line"><span>🔒</span><span>Secured by Stripe</span><span>·</span><span>No charge today</span><span>·</span><span>Cancel anytime</span></div>
+        <div class="button-group" style="margin-top:32px;">
+          <button type="button" class="btn-secondary" onclick="prevStep()">← Back</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- SUMMARY PANEL -->
+  <div class="summary-panel hidden" id="summary-panel">
+    <div class="summary-label">Your business</div>
+    <div class="summary-card">
+      <div class="summary-row"><span class="summary-row-label">Business</span><span class="summary-row-value" id="summary-business">—</span></div>
+      <div class="summary-row"><span class="summary-row-label">Industry</span><span class="summary-row-value" id="summary-industry">—</span></div>
+      <div class="summary-row"><span class="summary-row-label">Location</span><span class="summary-row-value" id="summary-location">—</span></div>
+      <div class="summary-row"><span class="summary-row-label">Employees</span><span class="summary-row-value" id="summary-employees">—</span></div>
+      <div class="summary-row"><span class="summary-row-label">Years operating</span><span class="summary-row-value" id="summary-years">—</span></div>
+      <div class="summary-row"><span class="summary-row-label">Plan</span><span class="summary-row-value" id="summary-plan">—</span></div>
+    </div>
+    <div class="summary-badges">
+      <div class="badge"><span class="badge-icon">✓</span><span>First digest free</span></div>
+      <div class="badge"><span class="badge-icon">✓</span><span>Cancel anytime, no questions</span></div>
+      <div class="badge"><span class="badge-icon">✓</span><span>Your data is never sold</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="success-container" id="success-container">
+  <div class="success-icon">✓</div>
+  <h1 id="success-name" style="font-family:'Fraunces',serif;margin-bottom:12px;">You're in.</h1>
+  <p style="color:var(--ink2);font-weight:400;font-size:16px;margin-bottom:8px;">Check your email — a verification link is on its way.</p>
+  <p style="color:var(--muted);font-weight:300;font-size:14px;margin-bottom:24px;">Your first digest will be in your inbox shortly after you verify.</p>
+  <button class="btn-primary" onclick="window.location.href='portal.html'" style="width:100%;margin-top:8px;">Go to your portal →</button>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+const API = 'https://fundbug-production.up.railway.app';
+let stripe = null, cardElement = null, cardMounted = false, currentStep = 1;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Auto-populate referral code from ?ref= URL param
+  const refParam = new URLSearchParams(window.location.search).get('ref');
+  if (refParam) {
+    const refField = document.getElementById('referral');
+    if (refField) {
+      refField.value = refParam;
+      refField.readOnly = true;
+      refField.style.background = 'var(--cream2)';
+    }
+  }
+
+  try {
+    const res = await fetch(API + '/api/config');
+    const data = await res.json();
+    stripe = Stripe(data.stripe_publishable_key);
+    const elements = stripe.elements();
+    cardElement = elements.create('card');
+    cardElement.addEventListener('change', e => {
+      const err = document.getElementById('card-errors');
+      if (e.error) { err.textContent = e.error.message; err.classList.add('show'); }
+      else { err.textContent = ''; err.classList.remove('show'); }
+    });
+  } catch (e) { console.error('Stripe init failed:', e); }
+
+  document.querySelectorAll('.plan-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.plan-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      opt.querySelector('input').checked = true;
+      updateSummary();
+    });
+  });
+
+  document.getElementById('signup-form').addEventListener('submit', handleSubmit);
+});
+
+function nextStep() {
+  if (!validateStep(currentStep)) return;
+  currentStep++;
+  updateStepIndicator();
+  showStep(currentStep);
+  if (currentStep === 3) {
+    document.getElementById('summary-panel').classList.remove('hidden');
+    updateSummary();
+    if (cardElement && !cardMounted) { cardElement.mount('#card-element'); cardMounted = true; }
+  }
+}
+
+function prevStep() {
+  if (currentStep > 1) {
+    currentStep--;
+    updateStepIndicator();
+    showStep(currentStep);
+    if (currentStep < 3) document.getElementById('summary-panel').classList.add('hidden');
+  }
+}
+
+function showStep(step) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + step).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateStepIndicator() {
+  for (let i = 1; i <= 3; i++) {
+    const dot = document.getElementById('dot-' + i), line = document.getElementById('line-' + i);
+    if (i < currentStep) { dot.classList.add('complete'); dot.classList.remove('active'); if (line) line.classList.add('active'); }
+    else if (i === currentStep) { dot.classList.add('active'); dot.classList.remove('complete'); }
+    else { dot.classList.remove('active','complete'); if (line) line.classList.remove('active'); }
+  }
+}
+
+function validateStep(step) {
+  const fields = Array.from(document.getElementById('step-' + step).querySelectorAll('input[required],select[required],textarea[required]'));
+  let valid = true;
+  fields.forEach(f => {
+    const em = f.closest('.form-group')?.querySelector('.error-message');
+    let err = null;
+    if (f.hasAttribute('required') && !f.value.trim()) err = 'This field is required';
+    else if (f.id === 'confirm-password' && f.value !== document.getElementById('password').value) err = 'Passwords do not match';
+    else if (f.id === 'password' && f.value.length < 8) err = 'Password must be at least 8 characters';
+    else if (f.id === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.value)) err = 'Please enter a valid email';
+    if (err) { f.classList.add('error'); if (em) { em.textContent = err; em.classList.add('show'); } valid = false; }
+    else { f.classList.remove('error'); if (em) { em.textContent = ''; em.classList.remove('show'); } }
+  });
+  return valid;
+}
+
+async function handleSubmit(e) {
+  e.preventDefault();
+  if (!validateStep(currentStep)) return;
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = 'Processing…';
+  try {
+    const { paymentMethod, error } = await stripe.createPaymentMethod({
+      type: 'card', card: cardElement,
+      billing_details: { name: document.getElementById('first-name').value + ' ' + document.getElementById('last-name').value, email: document.getElementById('email').value }
+    });
+    if (error) throw new Error(error.message);
+
+    const get = id => document.getElementById(id);
+    const checked = name => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el => el.value);
+    const yr = get('years-in-business').value;
+
+    const empMap = {'1':1,'2-5':3,'6-10':8,'11-25':15,'26-50':35,'50+':60};
+    const revMap = {'under_100k':50000,'100k_500k':100000,'500k_1m':500000,'1m_5m':1000000,'over_5m':5000000};
+    const empRaw = get('employees').value;
+    const revRaw = get('revenue').value;
+    const demographics = checked('owner_demographics');
+
+    const payload = {
+      email: get('email').value, password: get('password').value,
+      first_name: get('first-name').value, last_name: get('last-name').value,
+      business_name: get('business-name').value, industry: get('industry').value,
+      state: get('state').value, city: get('city').value,
+      street_address: get('street-address').value || null,
+      zip_code: get('zip-code').value || null,
+      employee_count: empMap[empRaw] || parseInt(empRaw) || 1,
+      annual_revenue: revRaw ? (revMap[revRaw] || parseInt(revRaw) || null) : null,
+      years_in_business: yr ? parseInt(yr) : null,
+      business_stage: !yr ? 'any' : parseInt(yr) < 2 ? 'startup' : parseInt(yr) < 6 ? 'growth' : 'established',
+      is_startup: get('is-startup').checked,
+      description: get('description').value || null,
+      location_type: get('location-type').value || 'physical',
+      is_seasonal: get('is-seasonal').checked,
+      peak_season_months: checked('peak_season_months'),
+      sells_online: !!(document.querySelector('input[name="sells_online"]:checked') || {}).value,
+      online_via_own_site: get('own-site').checked,
+      online_via_third_party: get('third-party').checked,
+      third_party_platforms: checked('third_party_platforms'),
+      bank_financing_access: get('bank-access').value || null,
+      grant_experience: get('grant-experience').value || null,
+      women_owned: demographics.includes('woman-owned'),
+      minority_owned: demographics.includes('minority-owned'),
+      veteran_owned: demographics.includes('veteran-owned'),
+      lgbtq_owned: demographics.includes('lgbtq-owned'),
+      disability_owned: demographics.includes('disability-owned'),
+      immigrant_owned: demographics.includes('immigrant-owned'),
+      funding_purpose: checked('funding_purpose'),
+      funding_purpose_other: get('other-funding-text').value || null,
+      owner_demographics: demographics,
+      payment_method_id: paymentMethod.id,
+      plan: document.querySelector('input[name="plan"]:checked').value,
+      referral_code: get('referral').value || null
+    };
+
+    console.log('FundBug payload:', JSON.stringify(payload, null, 2));
+    console.log('FundBug payload:', JSON.stringify(payload, null, 2));
+    const res = await fetch(API + '/api/subscribe', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Signup failed');
+
+    get('signup-form').style.display = 'none';
+    document.getElementById('summary-panel').style.display = 'none';
+    document.getElementById('success-container').classList.add('show');
+    document.getElementById('success-name').textContent = `Welcome to FundBug, ${payload.business_name}!`;
+    localStorage.setItem('fundbug_token', data.token);
+  } catch (err) {
+    alert('Signup failed: ' + err.message);
+    btn.disabled = false; btn.textContent = 'Start free trial →';
+  }
+}
+
+function updateSummary() {
+  const ind = document.getElementById('industry');
+  document.getElementById('summary-business').textContent = document.getElementById('business-name').value || '—';
+  document.getElementById('summary-industry').textContent = ind.value ? ind.options[ind.selectedIndex].text : '—';
+  const emp = document.getElementById('employees');
+  document.getElementById('summary-employees').textContent = emp.value ? emp.options[emp.selectedIndex].text : '—';
+  const yrs = document.getElementById('years-in-business');
+  document.getElementById('summary-years').textContent = yrs.value ? yrs.options[yrs.selectedIndex].text : '—';
+  const city = document.getElementById('city').value, state = document.getElementById('state').value, zip = document.getElementById('zip-code') ? document.getElementById('zip-code').value : '';
+  document.getElementById('summary-location').textContent = (city && state) ? `${city}, ${state}${zip ? ' ' + zip : ''}` : '—';
+  const plan = document.querySelector('input[name="plan"]:checked')?.value;
+  document.getElementById('summary-plan').textContent = plan === 'annual' ? 'Annual – $250/yr' : 'Monthly – $25/mo';
+}
+
+function toggleSeasonalMonths() {
+  const c = document.getElementById('is-seasonal').checked;
+  document.getElementById('seasonal-months').style.display = c ? 'block' : 'none';
+  if (!c) document.querySelectorAll('input[name="peak_season_months"]').forEach(cb => cb.checked = false);
+}
+
+function toggleOnlineDetails(el) {
+  const showOnline = el && el.value === 'yes';
+  document.getElementById('online-details').style.display = showOnline ? 'block' : 'none';
+  if (!showOnline) { document.getElementById('own-site').checked = false; document.getElementById('third-party').checked = false; togglePlatforms(); }
+}
+
+function togglePlatforms() {
+  const c = document.getElementById('third-party').checked;
+  document.getElementById('platform-list').style.display = c ? 'block' : 'none';
+  if (!c) document.querySelectorAll('input[name="third_party_platforms"]').forEach(cb => cb.checked = false);
+}
+
+function toggleOtherFunding(cb) {
+  document.getElementById('other-funding-wrap').style.display = cb.checked ? 'block' : 'none';
+  if (!cb.checked) document.getElementById('other-funding-text').value = '';
+}
+
+document.addEventListener('focus', e => {
+  if (e.target.matches('input,select,textarea')) {
+    e.target.classList.remove('error');
+    const em = e.target.closest('.form-group')?.querySelector('.error-message');
+    if (em) { em.textContent = ''; em.classList.remove('show'); }
+  }
+}, true);
+
+</script>
+</body>
+</html>
