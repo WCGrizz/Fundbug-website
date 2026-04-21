@@ -366,18 +366,16 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
             </select>
           </div>
           <div class="form-group">
-            <label class="checkbox-label" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-              <input type="checkbox" id="prof-is-seasonal" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;" onchange="togglePortalSeasonalMonths()">
-              <span style="font-weight:400;font-size:15px;">My business is seasonal</span>
-            </label>
+            <div id="prof-is-seasonal-tag" class="tag-option" style="width:fit-content;" onclick="toggleSeasonalTag()">My business is seasonal</div>
+            <input type="hidden" id="prof-is-seasonal" value="false">
             <div id="prof-seasonal-months" style="display:none;margin-top:12px;">
               <label style="display:block;margin-bottom:8px;font-size:14px;">Which months are your peak season?</label>
               <div class="tag-selector" id="peakMonthTags"></div>
             </div>
           </div>
-          <div class="form-group" style="display:flex;align-items:center;gap:10px;">
-            <input type="checkbox" id="prof-is-startup" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
-            <label style="margin:0;font-weight:400;">My business is a start-up</label>
+          <div class="form-group">
+            <div id="prof-is-startup-tag" class="tag-option" style="width:fit-content;" onclick="this.classList.toggle('selected')">My business is a start-up</div>
+            <input type="hidden" id="prof-is-startup" value="false">
           </div>
           <div style="display:flex;align-items:center;margin-top:8px;">
             <button class="save-btn" onclick="savePreferences()">Save preferences</button>
@@ -691,10 +689,14 @@ function loadPreferencesUI(data) {
   if (data.location_type) document.getElementById('prof-location-type').value = data.location_type;
   if (data.bank_financing_access) document.getElementById('prof-bank-access').value = data.bank_financing_access;
   if (data.grant_experience) document.getElementById('prof-grant-experience').value = data.grant_experience;
-  document.getElementById('prof-is-seasonal').checked = data.is_seasonal || false;
+  const seasonalTag = document.getElementById('prof-is-seasonal-tag');
+  if (data.is_seasonal) { seasonalTag.classList.add('selected'); document.getElementById('prof-is-seasonal').value = 'true'; }
+  else { seasonalTag.classList.remove('selected'); document.getElementById('prof-is-seasonal').value = 'false'; }
   document.getElementById('prof-seasonal-months').style.display = data.is_seasonal ? 'block' : 'none';
   renderPeakMonths(data.peak_season_months || []);
-  document.getElementById('prof-is-startup').checked = data.is_startup || false;
+  const startupTag = document.getElementById('prof-is-startup-tag');
+  if (data.is_startup) startupTag.classList.add('selected');
+  else startupTag.classList.remove('selected');
 }
 
 async function saveProfile() {
@@ -741,9 +743,9 @@ async function savePreferences() {
       location_type: document.getElementById('prof-location-type').value || null,
       bank_financing_access: document.getElementById('prof-bank-access').value || null,
       grant_experience: document.getElementById('prof-grant-experience').value || null,
-      is_seasonal: document.getElementById('prof-is-seasonal').checked,
+      is_seasonal: document.getElementById('prof-is-seasonal-tag').classList.contains('selected'),
       peak_season_months: Array.from(document.querySelectorAll('#peakMonthTags .tag-option.selected')).map(el => el.dataset.value),
-      is_startup: document.getElementById('prof-is-startup').checked,
+      is_startup: document.getElementById('prof-is-startup-tag').classList.contains('selected'),
     });
     const conf = document.getElementById('prefConfirm');
     conf.classList.add('show'); setTimeout(() => conf.classList.remove('show'), 2500);
@@ -849,6 +851,14 @@ function showPage(id, el) {
 async function togglePortalSeasonalMonths() {
   const checked = document.getElementById('prof-is-seasonal').checked;
   document.getElementById('prof-seasonal-months').style.display = checked ? 'block' : 'none';
+}
+
+function toggleSeasonalTag() {
+  const tag = document.getElementById('prof-is-seasonal-tag');
+  tag.classList.toggle('selected');
+  const isSelected = tag.classList.contains('selected');
+  document.getElementById('prof-is-seasonal').value = isSelected;
+  document.getElementById('prof-seasonal-months').style.display = isSelected ? 'block' : 'none';
 }
 
 function renderPeakMonths(selected) {
