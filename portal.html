@@ -866,7 +866,7 @@ function renderPeakMonths(selected) {
   });
 }
 
-function loadAccountEmail() {
+async function loadAccountEmail() {
   try {
     const data = await apiFetch('/api/portal/profile');
     document.getElementById('prof-email').value = data.email || '';
