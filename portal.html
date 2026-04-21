@@ -189,7 +189,7 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
 <!-- APP -->
 <div id="app">
   <nav>
-    <a href="index.html" class="nav-logo">FundBug</a>
+    <a href="index.html" class="nav-logo"><img src="fundbug_logo.png" alt="FundBug" height="32" style="display:block;"></a>
     <div class="nav-right">
       <span class="nav-user" id="navUser"></span>
       <button class="nav-signout" onclick="doLogout()">Sign out</button>
@@ -205,6 +205,7 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
         <li><a href="#" onclick="showPage('profile',this)"><span class="nav-icon">🏢</span> Business Profile</a></li>
         <li><a href="#" onclick="showPage('referral',this)"><span class="nav-icon">🎁</span> Referrals</a></li>
         <li><a href="#" onclick="showPage('subscription',this)"><span class="nav-icon">💳</span> Subscription</a></li>
+        <li><a href="#" onclick="showPage('account',this)"><span class="nav-icon">⚙️</span> Account Settings</a></li>
       </ul>
     </aside>
 
@@ -226,10 +227,7 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
         </div>
         <div class="card" style="padding:16px 20px">
           <div class="card-title" style="margin-bottom:8px">Next digest</div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="font-family:'Jost',sans-serif;font-size:15px;font-weight:500;color:var(--ink)" id="nextDigestDate">Loading…</div>
-            <div style="font-family:'Jost',sans-serif;font-size:13px;font-weight:400;color:var(--green)" id="daysUntil"></div>
-          </div>
+          <div style="font-family:'Jost',sans-serif;font-size:15px;font-weight:500;color:var(--ink)" id="nextDigestDate">Calculating…</div>
         </div>
       </div>
 
@@ -322,22 +320,7 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-title">Account email</div>
-          <div class="form-row">
-            <div class="form-group"><label>Email address</label><input type="email" id="prof-email"></div>
-          </div>
-          <button class="save-btn" onclick="saveEmail()">Update email</button>
-        </div>
 
-        <div class="card">
-          <div class="card-title">Change password</div>
-          <div class="form-row">
-            <div class="form-group"><label>New password</label><input type="password" id="prof-pw" placeholder="Min. 8 characters"></div>
-            <div class="form-group"><label>Confirm password</label><input type="password" id="prof-pw2" placeholder="Repeat password"></div>
-          </div>
-          <button class="save-btn" onclick="savePassword()">Update password</button>
-        </div>
 
         <div class="card">
           <div class="card-title">Funding preferences</div>
@@ -429,6 +412,35 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
         </div>
       </div>
 
+      <!-- ACCOUNT SETTINGS -->
+      <div class="page" id="page-account">
+        <div class="page-title">Account Settings</div>
+        <div class="page-sub">Update your login email and password.</div>
+
+        <div class="card">
+          <div class="card-title">Email address</div>
+          <div class="form-row">
+            <div class="form-group"><label>Email address</label><input type="email" id="prof-email"></div>
+          </div>
+          <button class="save-btn" onclick="saveEmail()">Update email</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Change password</div>
+          <div class="form-row">
+            <div class="form-group"><label>New password</label><input type="password" id="prof-pw" placeholder="Min. 8 characters"></div>
+            <div class="form-group"><label>Confirm password</label><input type="password" id="prof-pw2" placeholder="Repeat password"></div>
+          </div>
+          <button class="save-btn" onclick="savePassword()">Update password</button>
+        </div>
+
+        <div class="card" style="border-color:#f0c8c0">
+          <div class="card-title" style="color:var(--red)">Danger zone</div>
+          <div style="font-size:14px;color:var(--muted);margin-bottom:16px;font-weight:300;">Permanently delete your account and all associated data. This cannot be undone.</div>
+          <button class="btn-sm danger" onclick="deleteAccount()">Delete my account</button>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -485,7 +497,7 @@ async function doForgotPassword() {
     });
     // Always show success message regardless of whether email exists (security best practice)
     document.getElementById('forgotForm').style.display = 'none';
-    document.getElementById('forgotMsg').textContent = "If that email is registered, you'll receive a reset link within a few minutes.";
+    document.getElementById('forgotMsg').textContent = 'If that email is registered, you'll receive a reset link within a few minutes.';
   } catch(e) {
     document.getElementById('forgotErr').textContent = 'Something went wrong. Please try again.';
   }
@@ -536,6 +548,12 @@ async function apiFetch(path, method='GET', body=null) {
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(API + path, opts);
   const data = await r.json();
+  if (r.status === 401) {
+    localStorage.removeItem('fb_token'); localStorage.removeItem('fb_sub');
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('loginWrap').style.display = 'flex';
+    throw new Error('Session expired — please sign in again.');
+  }
   if (!r.ok) throw new Error(data.detail || 'API error');
   return data;
 }
@@ -548,10 +566,13 @@ async function loadOverview() {
     document.getElementById('ov-alerts').textContent = data.alert_count ?? '0';
     document.getElementById('ov-referrals').textContent = data.referral_count ?? '0';
     if (data.next_digest_date) {
-      const d = new Date(data.next_digest_date);
-      document.getElementById('nextDigestDate').textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+      const d = new Date(data.next_digest_date + 'T13:00:00Z');
       const diff = Math.ceil((d - new Date()) / (1000*60*60*24));
-      document.getElementById('daysUntil').textContent = diff > 0 ? `In ${diff} day${diff !== 1 ? 's' : ''}` : 'Today';
+      const dateStr = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+      const daysStr = diff > 1 ? `in ${diff} days` : diff === 1 ? 'tomorrow' : 'today';
+      document.getElementById('nextDigestDate').textContent = `Your next digest is ${daysStr} — ${dateStr}`;
+    } else {
+      document.getElementById('nextDigestDate').textContent = 'Your next digest is coming soon.';
     }
     if (data.recent_digests?.length) {
       document.getElementById('recentDigests').innerHTML = data.recent_digests.slice(0,3).map(d => `
@@ -743,6 +764,14 @@ function showPage(id, el) {
   document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   el.classList.add('active');
+  if (id === 'account') loadAccountEmail();
+}
+
+async function loadAccountEmail() {
+  try {
+    const data = await apiFetch('/api/portal/profile');
+    document.getElementById('prof-email').value = data.email || '';
+  } catch(e) {}
 }
 
 if (token && subscriber) showApp();
