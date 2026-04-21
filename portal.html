@@ -365,9 +365,15 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
               <option value="won">I have won grants before</option>
             </select>
           </div>
-          <div class="form-group" style="display:flex;align-items:center;gap:10px;">
-            <input type="checkbox" id="prof-is-seasonal" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
-            <label style="margin:0;font-weight:400;">My business is seasonal</label>
+          <div class="form-group">
+            <label class="checkbox-label" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+              <input type="checkbox" id="prof-is-seasonal" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;" onchange="togglePortalSeasonalMonths()">
+              <span style="font-weight:400;font-size:15px;">My business is seasonal</span>
+            </label>
+            <div id="prof-seasonal-months" style="display:none;margin-top:12px;">
+              <label style="display:block;margin-bottom:8px;font-size:14px;">Which months are your peak season?</label>
+              <div class="tag-selector" id="peakMonthTags"></div>
+            </div>
           </div>
           <div class="form-group" style="display:flex;align-items:center;gap:10px;">
             <input type="checkbox" id="prof-is-startup" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
@@ -686,6 +692,8 @@ function loadPreferencesUI(data) {
   if (data.bank_financing_access) document.getElementById('prof-bank-access').value = data.bank_financing_access;
   if (data.grant_experience) document.getElementById('prof-grant-experience').value = data.grant_experience;
   document.getElementById('prof-is-seasonal').checked = data.is_seasonal || false;
+  document.getElementById('prof-seasonal-months').style.display = data.is_seasonal ? 'block' : 'none';
+  renderPeakMonths(data.peak_season_months || []);
   document.getElementById('prof-is-startup').checked = data.is_startup || false;
 }
 
@@ -734,6 +742,7 @@ async function savePreferences() {
       bank_financing_access: document.getElementById('prof-bank-access').value || null,
       grant_experience: document.getElementById('prof-grant-experience').value || null,
       is_seasonal: document.getElementById('prof-is-seasonal').checked,
+      peak_season_months: Array.from(document.querySelectorAll('#peakMonthTags .tag-option.selected')).map(el => el.dataset.value),
       is_startup: document.getElementById('prof-is-startup').checked,
     });
     const conf = document.getElementById('prefConfirm');
@@ -837,7 +846,27 @@ function showPage(id, el) {
   if (id === 'profile') loadProfile();
 }
 
-async function loadAccountEmail() {
+async function togglePortalSeasonalMonths() {
+  const checked = document.getElementById('prof-is-seasonal').checked;
+  document.getElementById('prof-seasonal-months').style.display = checked ? 'block' : 'none';
+}
+
+function renderPeakMonths(selected) {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const sel = new Set(selected || []);
+  const container = document.getElementById('peakMonthTags');
+  container.innerHTML = '';
+  months.forEach(m => {
+    const tag = document.createElement('div');
+    tag.className = 'tag-option' + (sel.has(m) ? ' selected' : '');
+    tag.dataset.value = m;
+    tag.textContent = m.slice(0,3);
+    tag.onclick = () => tag.classList.toggle('selected');
+    container.appendChild(tag);
+  });
+}
+
+function loadAccountEmail() {
   try {
     const data = await apiFetch('/api/portal/profile');
     document.getElementById('prof-email').value = data.email || '';
