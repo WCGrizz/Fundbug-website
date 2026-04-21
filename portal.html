@@ -485,7 +485,7 @@ async function doForgotPassword() {
     });
     // Always show success message regardless of whether email exists (security best practice)
     document.getElementById('forgotForm').style.display = 'none';
-    document.getElementById('forgotMsg').textContent = 'If that email is registered, you'll receive a reset link within a few minutes.';
+    document.getElementById('forgotMsg').textContent = "If that email is registered, you'll receive a reset link within a few minutes.";
   } catch(e) {
     document.getElementById('forgotErr').textContent = 'Something went wrong. Please try again.';
   }
