@@ -289,6 +289,7 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
             <div class="form-group">
               <label>Annual revenue</label>
               <select id="prof-revenue">
+                <option value="">Prefer not to say</option>
                 <option value="under_100k">Under $100K</option>
                 <option value="100k_500k">$100K – $500K</option>
                 <option value="500k_1m">$500K – $1M</option>
@@ -590,7 +591,7 @@ async function loadProfile() {
     if (document.getElementById('prof-funding-note')) document.getElementById('prof-funding-note').value = data.funding_note || '';
     if (data.industry) document.getElementById('prof-industry').value = data.industry;
     if (data.employee_count) document.getElementById('prof-employees').value = data.employee_count;
-    if (data.annual_revenue) document.getElementById('prof-revenue').value = data.annual_revenue;
+    if (data.annual_revenue) document.getElementById('prof-revenue').value = data.annual_revenue; else document.getElementById('prof-revenue').value = '';
     loadPreferencesUI(data);
   } catch(e) { console.log('Profile load error:', e.message); }
 }
