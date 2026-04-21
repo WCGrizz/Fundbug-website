@@ -208,15 +208,7 @@
         <div class="form-group">
           <label for="employees">Number of employees <span class="req">*</span></label>
           <p class="field-explanation">Many programs cap eligibility by headcount — some are for businesses under 10 employees, others require a minimum. This filters out programs you won’t qualify for.</p>
-          <select id="employees" name="employee_count" required>
-            <option value="">Select…</option>
-            <option value="1">Just me (sole proprietor)</option>
-            <option value="2-5">2–5 employees</option>
-            <option value="6-10">6–10 employees</option>
-            <option value="11-25">11–25 employees</option>
-            <option value="26-50">26–50 employees</option>
-            <option value="50+">More than 50</option>
-          </select>
+          <input type="number" id="employees" name="employee_count" required min="1" max="500" placeholder="e.g. 4" style="max-width:180px;">
           <div class="error-message"></div>
         </div>
 
@@ -381,14 +373,7 @@
           <div class="form-group">
             <label for="years-in-business">Years in business <span class="req">*</span></label>
             <p class="field-explanation">Many programs have minimum operating requirements — some are only for businesses under 2 years old, others require at least 2 years of history. This filters your matches to only what you’re eligible for.</p>
-            <select id="years-in-business" name="years_in_business" required>
-              <option value="">Select…</option>
-              <option value="0">Less than 1 year</option>
-              <option value="1">1–2 years</option>
-              <option value="3">2–5 years</option>
-              <option value="6">5–10 years</option>
-              <option value="11">More than 10 years</option>
-            </select>
+            <input type="number" id="years-in-business" name="years_in_business" required min="0" max="150" placeholder="e.g. 5" style="max-width:180px;">
             <div class="error-message"></div>
           </div>
           <div class="form-group" style="padding-top:30px;">
