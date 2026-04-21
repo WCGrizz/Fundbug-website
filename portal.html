@@ -821,6 +821,7 @@ function showPage(id, el) {
   document.getElementById('page-' + id).classList.add('active');
   el.classList.add('active');
   if (id === 'account') loadAccountEmail();
+  if (id === 'profile') loadProfile();
 }
 
 async function loadAccountEmail() {
