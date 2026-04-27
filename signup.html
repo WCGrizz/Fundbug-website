@@ -112,7 +112,14 @@
     .checkbox-label span { font-size: 15px; font-weight: 400; color: var(--ink); }
     .checkbox-label:hover span { color: var(--green); }
 
-    .other-funding-wrap { display: none; margin-top: 8px; padding-left: 28px; }  </style>
+    .other-funding-wrap { display: none; margin-top: 8px; padding-left: 28px; }  
+    .tag-selector{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .tag-option{display:inline-flex;align-items:center;padding:6px 14px;border-radius:20px;border:1px solid #ddd;background:#fff;font-size:13px;color:#666;cursor:pointer;transition:all .12s;user-select:none}
+    .tag-option:hover{border-color:var(--green);color:var(--green)}
+    .tag-option.selected{background:var(--green);border-color:var(--green);color:#fff;font-weight:500}
+    .tag-count-hint{font-size:12px;color:#999;margin-top:6px}
+    .tag-count-hint.maxed{color:#c44b2a}
+  </style>
 </head>
 <body>
 
@@ -159,42 +166,45 @@
           </div>
         </div>
 
+        <p style="font-size:13px;color:#8a8578;margin-bottom:16px;">New to grants? <a href="grants-guide.html" style="color:#3d7a38;text-decoration:none;border-bottom:1px solid #3d7a38;">Read our Grants 101 guide →</a></p>
+
         <div class="form-group">
-          <label for="industry">Industry <span class="req">*</span></label>
-          <p class="field-explanation">The starting point for your matches. Many programs are industry-specific — grants for food businesses, loans for manufacturers, credits for construction trades. Pick the closest fit.</p>
-          <select id="industry" name="industry" required>
-            <option value="">Select your industry…</option>
-            <option value="agriculture">Agriculture / Farming</option>
-            <option value="apparel">Apparel / Clothing</option>
-            <option value="arts">Arts / Creative</option>
-            <option value="artisan">Artisan / Handmade Products</option>
-            <option value="auto_marine">Auto / Marine Services</option>
-            <option value="beauty">Beauty / Personal Care</option>
-            <option value="brewery">Brewery / Distillery / Winery</option>
-            <option value="cleaning">Cleaning / Maintenance Services</option>
-            <option value="construction">Construction / Trades</option>
-            <option value="event_planning">Event Planning / Catering</option>
-            <option value="fishing">Fishing / Aquaculture</option>
-            <option value="fitness">Fitness / Wellness Studio</option>
-            <option value="floral">Floral / Florist</option>
-            <option value="healthcare">Healthcare / Wellness</option>
-            <option value="home_decor">Home Decor / Furniture / Interiors</option>
-            <option value="hospitality">Hospitality / Tourism</option>
-            <option value="jewelry">Jewelry / Accessories</option>
-            <option value="landscaping">Landscaping / Lawn Care</option>
-            <option value="manufacturing">Manufacturing</option>
-            <option value="pet">Pet Products / Services</option>
-            <option value="professional">Professional Services</option>
-            <option value="property">Property Services</option>
-            <option value="restaurant">Restaurant / Food Service</option>
-            <option value="retail">Retail</option>
-            <option value="specialty_food">Specialty Food Producer</option>
-            <option value="technology">Technology</option>
-            <option value="transportation">Transportation / Logistics</option>
-            <option value="vintage">Vintage / Antiques / Consignment</option>
-            <option value="other">Other</option>
-          </select>
-          <div class="error-message"></div>
+          <label>Industry <span class="req">*</span></label>
+          <p class="field-explanation">Select up to 3 industries that best describe your business. Many programs are industry-specific — the more accurate you are, the better your matches.</p>
+          <div class="tag-selector" id="industry-tags" data-max="3">
+            <div class="tag-option" data-value="apparel">Apparel / Clothing</div>
+            <div class="tag-option" data-value="auto_marine">Auto / Marine Services</div>
+            <div class="tag-option" data-value="bakery">Bakery / Café</div>
+            <div class="tag-option" data-value="beauty">Beauty / Personal Care</div>
+            <div class="tag-option" data-value="brewery">Brewery / Distillery / Winery</div>
+            <div class="tag-option" data-value="cleaning">Cleaning / Maintenance Services</div>
+            <div class="tag-option" data-value="construction">Construction / Trades</div>
+            <div class="tag-option" data-value="crafts">Arts, Crafts &amp; Handmade Goods</div>
+            <div class="tag-option" data-value="event_planning">Event Planning / Catering</div>
+            <div class="tag-option" data-value="fitness">Fitness / Wellness Studio</div>
+            <div class="tag-option" data-value="floral">Floral / Florist</div>
+            <div class="tag-option" data-value="graphic_design">Graphic Design / Branding</div>
+            <div class="tag-option" data-value="healthcare">Healthcare / Wellness</div>
+            <div class="tag-option" data-value="home_decor">Home Decor / Furniture / Interiors</div>
+            <div class="tag-option" data-value="hospitality">Hospitality / Tourism</div>
+            <div class="tag-option" data-value="jewelry">Jewelry / Accessories</div>
+            <div class="tag-option" data-value="landscaping">Landscaping / Lawn Care</div>
+            <div class="tag-option" data-value="manufacturing">Manufacturing</div>
+            <div class="tag-option" data-value="music">Music / Performing Arts</div>
+            <div class="tag-option" data-value="pet">Pet Products / Services</div>
+            <div class="tag-option" data-value="photography">Photography / Videography</div>
+            <div class="tag-option" data-value="professional">Professional Services</div>
+            <div class="tag-option" data-value="property">Property Services</div>
+            <div class="tag-option" data-value="restaurant">Restaurant / Food Service</div>
+            <div class="tag-option" data-value="retail">Retail</div>
+            <div class="tag-option" data-value="specialty_food">Specialty Food Producer</div>
+            <div class="tag-option" data-value="technology">Technology</div>
+            <div class="tag-option" data-value="transportation">Transportation / Logistics</div>
+            <div class="tag-option" data-value="vintage">Vintage / Antiques / Consignment</div>
+            <div class="tag-option" data-value="writing">Writing / Publishing / Media</div>
+          </div>
+          <div class="tag-count-hint" id="industry-count">Select up to 3</div>
+          <div class="error-message" id="industry-error"></div>
         </div>
 
         <div class="form-group">
@@ -208,7 +218,15 @@
         <div class="form-group">
           <label for="employees">Number of employees <span class="req">*</span></label>
           <p class="field-explanation">Many programs cap eligibility by headcount — some are for businesses under 10 employees, others require a minimum. This filters out programs you won’t qualify for.</p>
-          <input type="number" id="employees" name="employee_count" required min="1" max="500" placeholder="e.g. 4" style="max-width:180px;">
+          <select id="employees" name="employee_count" required>
+            <option value="">Select…</option>
+            <option value="1">Just me (sole proprietor)</option>
+            <option value="2-5">2–5 employees</option>
+            <option value="6-10">6–10 employees</option>
+            <option value="11-25">11–25 employees</option>
+            <option value="26-50">26–50 employees</option>
+            <option value="50+">More than 50</option>
+          </select>
           <div class="error-message"></div>
         </div>
 
@@ -336,6 +354,20 @@
           <div class="hint-text">Some loan programs are designed specifically for businesses banks won't serve. If you skip this, we won't filter by financing access — you’ll see all loan opportunities regardless.</div>
         </div>
 
+
+        <div class="form-group">
+          <label>Are you interested in government contracting opportunities?</label>
+          <div class="hint-text">This includes federal, state, and local government contracts, SBIR/STTR grants, and related programs.</div>
+          <div class="toggle-row" style="margin-top:10px;">
+            <label class="toggle-option">
+              <input type="radio" name="government_contracting" value="false" checked> No
+            </label>
+            <label class="toggle-option" style="margin-left:24px;">
+              <input type="radio" name="government_contracting" value="true"> Yes
+            </label>
+          </div>
+        </div>
+
         <div class="form-group">
           <label>Grant experience</label>
           <select id="grant-experience" name="grant_experience">
@@ -373,7 +405,14 @@
           <div class="form-group">
             <label for="years-in-business">Years in business <span class="req">*</span></label>
             <p class="field-explanation">Many programs have minimum operating requirements — some are only for businesses under 2 years old, others require at least 2 years of history. This filters your matches to only what you’re eligible for.</p>
-            <input type="number" id="years-in-business" name="years_in_business" required min="0" max="150" placeholder="e.g. 5" style="max-width:180px;">
+            <select id="years-in-business" name="years_in_business" required>
+              <option value="">Select…</option>
+              <option value="0">Less than 1 year</option>
+              <option value="1">1–2 years</option>
+              <option value="3">2–5 years</option>
+              <option value="6">5–10 years</option>
+              <option value="11">More than 10 years</option>
+            </select>
             <div class="error-message"></div>
           </div>
           <div class="form-group" style="padding-top:30px;">
@@ -510,6 +549,27 @@ const API = 'https://fundbug-production.up.railway.app';
 let stripe = null, cardElement = null, cardMounted = false, currentStep = 1;
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Tag selector init — industry (max 3)
+  document.querySelectorAll('.tag-selector').forEach(container => {
+    const max = parseInt(container.dataset.max) || 99;
+    const countEl = document.getElementById(container.id + '-count');
+    container.querySelectorAll('.tag-option').forEach(tag => {
+      tag.addEventListener('click', () => {
+        const selected = container.querySelectorAll('.tag-option.selected');
+        if (tag.classList.contains('selected')) {
+          tag.classList.remove('selected');
+        } else if (selected.length < max) {
+          tag.classList.add('selected');
+        }
+        const now = container.querySelectorAll('.tag-option.selected').length;
+        if (countEl) {
+          countEl.textContent = now === 0 ? `Select up to ${max}` : `${now} of ${max} selected`;
+          countEl.classList.toggle('maxed', now >= max);
+        }
+      });
+    });
+  });
+
   // Auto-populate referral code from ?ref= URL param
   const refParam = new URLSearchParams(window.location.search).get('ref');
   if (refParam) {
@@ -612,18 +672,26 @@ async function handleSubmit(e) {
 
     const get = id => document.getElementById(id);
     const checked = name => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el => el.value);
+    const getSelectedTags = id => Array.from(document.querySelectorAll(`#${id} .tag-option.selected`)).map(el => el.dataset.value);
     const yr = get('years-in-business').value;
 
     const empMap = {'1':1,'2-5':3,'6-10':8,'11-25':15,'26-50':35,'50+':60};
     const revMap = {'under_100k':50000,'100k_500k':100000,'500k_1m':500000,'1m_5m':1000000,'over_5m':5000000};
     const empRaw = get('employees').value;
     const revRaw = get('revenue').value;
+    const industries = getSelectedTags('industry-tags');
+    if (!industries.length) {
+      document.getElementById('industry-error').textContent = 'Please select at least one industry.';
+      document.getElementById('industry-tags').scrollIntoView({behavior:'smooth', block:'center'});
+      throw new Error('No industry selected');
+    }
+    document.getElementById('industry-error').textContent = '';
     const demographics = checked('owner_demographics');
 
     const payload = {
       email: get('email').value, password: get('password').value,
       first_name: get('first-name').value, last_name: get('last-name').value,
-      business_name: get('business-name').value, industry: get('industry').value,
+      business_name: get('business-name').value, industry: industries,
       state: get('state').value, city: get('city').value,
       street_address: get('street-address').value || null,
       zip_code: get('zip-code').value || null,
@@ -641,6 +709,7 @@ async function handleSubmit(e) {
       online_via_third_party: get('third-party').checked,
       third_party_platforms: checked('third_party_platforms'),
       bank_financing_access: get('bank-access').value || null,
+      government_contracting: document.querySelector('input[name="government_contracting"]:checked')?.value === 'true',
       grant_experience: get('grant-experience').value || null,
       women_owned: demographics.includes('woman-owned'),
       minority_owned: demographics.includes('minority-owned'),
@@ -674,9 +743,9 @@ async function handleSubmit(e) {
 }
 
 function updateSummary() {
-  const ind = document.getElementById('industry');
+  const indTags = getSelectedTags('industry-tags');
   document.getElementById('summary-business').textContent = document.getElementById('business-name').value || '—';
-  document.getElementById('summary-industry').textContent = ind.value ? ind.options[ind.selectedIndex].text : '—';
+  document.getElementById('summary-industry').textContent = indTags.length ? indTags.map(v => document.querySelector(`#industry-tags [data-value="${v}"]`)?.textContent || v).join(', ') : '—';
   const emp = document.getElementById('employees');
   document.getElementById('summary-employees').textContent = emp.value ? emp.options[emp.selectedIndex].text : '—';
   const yrs = document.getElementById('years-in-business');

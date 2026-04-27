@@ -111,7 +111,7 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
 .tag-selector{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .tag-option{display:inline-flex;align-items:center;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--white);font-family:'Jost',sans-serif;font-size:13px;color:var(--muted);cursor:pointer;transition:all .12s;user-select:none}
 .tag-option:hover{border-color:var(--green);color:var(--green)}
-.tag-option.selected{background:var(--green);border-color:var(--green);color:#fff;font-weight:500}
+.tag-option.selected{background:var(--green);border-color:var(--green);color:#fff;font-weight:500}.tag-count-hint{font-size:12px;color:#999;margin-top:6px}.tag-count-hint.maxed{color:#c44b2a}
 
 /* Profile edit panel */
 .profile-section{background:var(--white);border-radius:8px;border:1px solid var(--border);padding:24px;margin-bottom:20px}
@@ -160,7 +160,7 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
     </div>
     <div class="form-group">
       <label>Password</label>
-      <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="password" id="loginPassword" placeholder="••••••••">
     </div>
     <button class="btn" onclick="doLogin()">Sign in</button>
     <div style="text-align:center;margin-top:10px">
@@ -193,7 +193,7 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
 <!-- APP -->
 <div id="app">
   <nav>
-    <a href="index.html" class="nav-logo" style="display:flex;align-items:center;gap:10px;"><img src="fundbug_logo.png" alt="FundBug" height="44" style="display:block;"><span style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--green);">FundBug</span></a>
+    <a href="index.html" class="nav-logo"><img src="fundbug_logo.png" alt="FundBug" height="32" style="display:block;"></a>
     <div class="nav-right">
       <span class="nav-user" id="navUser"></span>
       <button class="nav-signout" onclick="doLogout()">Sign out</button>
@@ -205,6 +205,8 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
       <ul class="sidebar-nav">
         <li><a href="#" class="active" onclick="showPage('overview',this)"><span class="nav-icon">📊</span> Overview</a></li>
 
+        <div class="sidebar-section">Resources</div>
+        <li><a href="grants-guide.html" target="_blank"><span class="nav-icon">📖</span> Grants 101</a></li>
         <div class="sidebar-section">Account</div>
         <li><a href="#" onclick="showPage('profile',this)"><span class="nav-icon">🏢</span> Business Profile</a></li>
         <li><a href="#" onclick="showPage('referral',this)"><span class="nav-icon">🎁</span> Referrals</a></li>
@@ -218,7 +220,7 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
       <!-- OVERVIEW -->
       <div class="page active" id="page-overview">
         <div class="page-title"><span id="greetTime">Good morning,</span> <span id="greetName"></span></div>
-
+        <div class="page-sub">Here's your FundBug dashboard.</div>
         <div class="stat-grid">
           <div class="stat-tile"><div class="stat-num green" id="ov-digests">—</div><div class="stat-lbl">Digests received</div></div>
           <div class="stat-tile"><div class="stat-num green" id="ov-opportunities">—</div><div class="stat-lbl">Opportunities found</div></div>
@@ -250,42 +252,51 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Industry</label>
-              <select id="prof-industry">
-                <option value="agriculture">Agriculture / Farming</option>
-                <option value="apparel">Apparel / Clothing</option>
-                <option value="arts">Arts / Creative</option>
-                <option value="artisan">Artisan / Handmade Products</option>
-                <option value="auto_marine">Auto / Marine Services</option>
-                <option value="beauty">Beauty / Personal Care</option>
-                <option value="brewery">Brewery / Distillery / Winery</option>
-                <option value="cleaning">Cleaning / Maintenance Services</option>
-                <option value="construction">Construction / Trades</option>
-                <option value="event_planning">Event Planning / Catering</option>
-                <option value="fishing">Fishing / Aquaculture</option>
-                <option value="fitness">Fitness / Wellness Studio</option>
-                <option value="floral">Floral / Florist</option>
-                <option value="healthcare">Healthcare / Wellness</option>
-                <option value="home_decor">Home Decor / Furniture / Interiors</option>
-                <option value="hospitality">Hospitality / Tourism</option>
-                <option value="jewelry">Jewelry / Accessories</option>
-                <option value="landscaping">Landscaping / Lawn Care</option>
-                <option value="manufacturing">Manufacturing</option>
-                <option value="pet">Pet Products / Services</option>
-                <option value="professional">Professional Services</option>
-                <option value="property">Property Services</option>
-                <option value="restaurant">Restaurant / Food Service</option>
-                <option value="retail">Retail</option>
-                <option value="specialty_food">Specialty Food Producer</option>
-                <option value="technology">Technology</option>
-                <option value="transportation">Transportation / Logistics</option>
-                <option value="vintage">Vintage / Antiques / Consignment</option>
-                <option value="other">Other</option>
-              </select>
+              <label>Industry <span style="font-size:11px;color:#999;font-weight:400">(up to 3)</span></label>
+              <div class="tag-selector" id="prof-industry-tags" data-max="3">
+                <div class="tag-option" data-value="apparel">Apparel / Clothing</div>
+                <div class="tag-option" data-value="auto_marine">Auto / Marine Services</div>
+                <div class="tag-option" data-value="bakery">Bakery / Caf&eacute;</div>
+                <div class="tag-option" data-value="beauty">Beauty / Personal Care</div>
+                <div class="tag-option" data-value="brewery">Brewery / Distillery / Winery</div>
+                <div class="tag-option" data-value="cleaning">Cleaning / Maintenance Services</div>
+                <div class="tag-option" data-value="construction">Construction / Trades</div>
+                <div class="tag-option" data-value="crafts">Arts, Crafts &amp; Handmade Goods</div>
+                <div class="tag-option" data-value="event_planning">Event Planning / Catering</div>
+                <div class="tag-option" data-value="fitness">Fitness / Wellness Studio</div>
+                <div class="tag-option" data-value="floral">Floral / Florist</div>
+                <div class="tag-option" data-value="graphic_design">Graphic Design / Branding</div>
+                <div class="tag-option" data-value="healthcare">Healthcare / Wellness</div>
+                <div class="tag-option" data-value="home_decor">Home Decor / Furniture / Interiors</div>
+                <div class="tag-option" data-value="hospitality">Hospitality / Tourism</div>
+                <div class="tag-option" data-value="jewelry">Jewelry / Accessories</div>
+                <div class="tag-option" data-value="landscaping">Landscaping / Lawn Care</div>
+                <div class="tag-option" data-value="manufacturing">Manufacturing</div>
+                <div class="tag-option" data-value="music">Music / Performing Arts</div>
+                <div class="tag-option" data-value="pet">Pet Products / Services</div>
+                <div class="tag-option" data-value="photography">Photography / Videography</div>
+                <div class="tag-option" data-value="professional">Professional Services</div>
+                <div class="tag-option" data-value="property">Property Services</div>
+                <div class="tag-option" data-value="restaurant">Restaurant / Food Service</div>
+                <div class="tag-option" data-value="retail">Retail</div>
+                <div class="tag-option" data-value="specialty_food">Specialty Food Producer</div>
+                <div class="tag-option" data-value="technology">Technology</div>
+                <div class="tag-option" data-value="transportation">Transportation / Logistics</div>
+                <div class="tag-option" data-value="vintage">Vintage / Antiques / Consignment</div>
+                <div class="tag-option" data-value="writing">Writing / Publishing / Media</div>
+              </div>
+              <div class="tag-count-hint" id="prof-industry-count">Select up to 3</div>
             </div>
             <div class="form-group">
-              <label>Number of employees</label>
-              <input type="number" id="prof-employees" min="1" max="500" style="max-width:180px;">
+              <label>Employees</label>
+              <select id="prof-employees">
+                <option value="1">Just me</option>
+                <option value="2-5">2–5</option>
+                <option value="6-10">6–10</option>
+                <option value="11-25">11–25</option>
+                <option value="26-50">26–50</option>
+                <option value="50+">50+</option>
+              </select>
             </div>
           </div>
           <div class="form-row">
@@ -293,7 +304,6 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
             <div class="form-group">
               <label>Annual revenue</label>
               <select id="prof-revenue">
-                <option value="">Prefer not to say</option>
                 <option value="under_100k">Under $100K</option>
                 <option value="100k_500k">$100K – $500K</option>
                 <option value="500k_1m">$500K – $1M</option>
@@ -349,12 +359,23 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
             <select id="prof-bank-access">
               <option value="">Prefer not to say</option>
               <option value="yes">I have an established banking relationship and access to credit</option>
-              <option value="good_standing">I have a business bank account and good credit but have not borrowed</option>
-              <option value="limited">My banking relationship is limited or I am working on building credit</option>
-              <option value="no">I have been turned down for bank financing or do not qualify</option>
-              <option value="not_looking">I am not looking for debt financing</option>
-              <option value="unsure">I have not explored bank financing recently and am not sure</option>
+              <option value="good_standing">I have a business bank account and good credit but haven't borrowed</option>
+              <option value="limited">My banking relationship is limited or I'm working on building credit</option>
+              <option value="no">I've been turned down for bank financing or don't qualify</option>
+              <option value="not_looking">I'm not looking for debt financing</option>
+              <option value="unsure">I haven't explored bank financing recently and am not sure</option>
             </select>
+          </div>
+          <div class="form-group">
+            <label>Are you interested in government contracting opportunities?</label>
+            <div style="display:flex;gap:24px;margin-top:8px;">
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;">
+                <input type="radio" name="prof-govt-contracting" id="prof-govt-contracting-no" value="false" style="accent-color:var(--green);"> No
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;">
+                <input type="radio" name="prof-govt-contracting" id="prof-govt-contracting-yes" value="true" style="accent-color:var(--green);"> Yes
+              </label>
+            </div>
           </div>
           <div class="form-group">
             <label>Grant experience</label>
@@ -365,17 +386,13 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
               <option value="won">I have won grants before</option>
             </select>
           </div>
-          <div class="form-group">
-            <div id="prof-is-seasonal-tag" class="tag-option" style="width:fit-content;" onclick="toggleSeasonalTag()">My business is seasonal</div>
-            <input type="hidden" id="prof-is-seasonal" value="false">
-            <div id="prof-seasonal-months" style="display:none;margin-top:12px;">
-              <label style="display:block;margin-bottom:8px;font-size:14px;">Which months are your peak season?</label>
-              <div class="tag-selector" id="peakMonthTags"></div>
-            </div>
+          <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="prof-is-seasonal" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
+            <label style="margin:0;font-weight:400;">My business is seasonal</label>
           </div>
-          <div class="form-group">
-            <div id="prof-is-startup-tag" class="tag-option" style="width:fit-content;" onclick="this.classList.toggle('selected')">My business is a start-up</div>
-            <input type="hidden" id="prof-is-startup" value="false">
+          <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="prof-is-startup" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
+            <label style="margin:0;font-weight:400;">My business is a start-up</label>
           </div>
           <div style="display:flex;align-items:center;margin-top:8px;">
             <button class="save-btn" onclick="savePreferences()">Save preferences</button>
@@ -439,7 +456,11 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
           <div class="card-title">Billing history</div>
           <div id="billingHistory" style="font-size:13px;color:var(--muted);font-weight:300">No charges yet — your trial is active.</div>
         </div>
-
+        <div class="card" style="border-color:#f0c8c0">
+          <div class="card-title" style="color:var(--red)">Danger zone</div>
+          <p style="font-size:13px;font-weight:300;color:var(--muted);margin-bottom:16px;line-height:1.6">Permanently delete your account and all associated data. This cannot be undone.</p>
+          <button class="btn-sm danger" onclick="deleteAccount()">Delete my account</button>
+        </div>
 
         <div class="card">
           <div class="card-title">Digest preferences</div>
@@ -471,9 +492,10 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
           <button class="save-btn" onclick="savePassword()">Update password</button>
         </div>
 
-        <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border);">
-          <button class="btn-sm danger" onclick="deleteAccount()" style="font-size:13px;">Delete my account</button>
-          <div style="font-size:12px;color:var(--muted2);margin-top:8px;font-weight:300;">This permanently deletes your account, cancels your subscription, and removes all your data. This cannot be undone.</div>
+        <div class="card" style="border-color:#f0c8c0">
+          <div class="card-title" style="color:var(--red)">Danger zone</div>
+          <div style="font-size:14px;color:var(--muted);margin-bottom:16px;font-weight:300;">Permanently delete your account and all associated data. This cannot be undone.</div>
+          <button class="btn-sm danger" onclick="deleteAccount()">Delete my account</button>
         </div>
       </div>
 
@@ -533,7 +555,7 @@ async function doForgotPassword() {
     });
     // Always show success message regardless of whether email exists (security best practice)
     document.getElementById('forgotForm').style.display = 'none';
-    document.getElementById('forgotMsg').textContent = 'If that email is registered, you will receive a reset link within a few minutes.';
+    document.getElementById('forgotMsg').textContent = 'If that email is registered, you'll receive a reset link within a few minutes.';
   } catch(e) {
     document.getElementById('forgotErr').textContent = 'Something went wrong. Please try again.';
   }
@@ -570,7 +592,7 @@ function doLogout() {
 function showApp() {
   document.getElementById('loginWrap').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  const name = subscriber?.first_name || 'there';
+  const name = subscriber?.first_name || subscriber?.business_name || 'there';
   document.getElementById('navUser').textContent = subscriber?.email || '';
   const hour = new Date().getHours();
   const greetTime = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
@@ -584,12 +606,6 @@ async function apiFetch(path, method='GET', body=null) {
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(API + path, opts);
   const data = await r.json();
-  if (r.status === 401) {
-    localStorage.removeItem('fb_token'); localStorage.removeItem('fb_sub');
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('loginWrap').style.display = 'flex';
-    throw new Error('Session expired — please sign in again.');
-  }
   if (!r.ok) throw new Error(data.detail || 'API error');
   return data;
 }
@@ -631,11 +647,17 @@ async function loadProfile() {
     document.getElementById('prof-email').value = data.email || '';
     document.getElementById('prof-description').value = data.description || '';
     if (document.getElementById('prof-funding-note')) document.getElementById('prof-funding-note').value = data.funding_note || '';
-    if (data.industry) document.getElementById('prof-industry').value = data.industry;
+    // Load industry tags (supports both old string and new array)
+    const indVals = Array.isArray(data.industry) ? data.industry : (data.industry ? [data.industry] : []);
+    document.querySelectorAll('#prof-industry-tags .tag-option').forEach(t => {
+      t.classList.toggle('selected', indVals.includes(t.dataset.value));
+    });
+    const indCount = document.getElementById('prof-industry-count');
+    if (indCount) indCount.textContent = indVals.length ? `${indVals.length} of 3 selected` : 'Select up to 3';
     if (data.employee_count) document.getElementById('prof-employees').value = data.employee_count;
-    if (data.annual_revenue) document.getElementById('prof-revenue').value = data.annual_revenue; else document.getElementById('prof-revenue').value = '';
+    if (data.annual_revenue) document.getElementById('prof-revenue').value = data.annual_revenue;
     loadPreferencesUI(data);
-  } catch(e) { console.error('Profile load error:', e.message, e); }
+  } catch(e) { console.log('Profile load error:', e.message); }
 }
 
 function loadPreferencesUI(data) {
@@ -680,18 +702,34 @@ function loadPreferencesUI(data) {
   renderTags('fundingPurposeList', fundingOpts, selFunding);
   renderTags('ownerDemographicsList', demoOpts, selDemo);
 
+  // Industry tag selector click handler (max 3)
+  document.querySelectorAll('#prof-industry-tags .tag-option').forEach(tag => {
+    tag.addEventListener('click', () => {
+      const sel = document.querySelectorAll('#prof-industry-tags .tag-option.selected');
+      if (tag.classList.contains('selected')) {
+        tag.classList.remove('selected');
+      } else if (sel.length < 3) {
+        tag.classList.add('selected');
+      }
+      const now = document.querySelectorAll('#prof-industry-tags .tag-option.selected').length;
+      const countEl = document.getElementById('prof-industry-count');
+      if (countEl) {
+        countEl.textContent = now === 0 ? 'Select up to 3' : `${now} of 3 selected`;
+        countEl.classList.toggle('maxed', now >= 3);
+      }
+    });
+  });
+
   document.getElementById('prof-yearsInBusiness').value = data.years_in_business || '';
   if (data.location_type) document.getElementById('prof-location-type').value = data.location_type;
   if (data.bank_financing_access) document.getElementById('prof-bank-access').value = data.bank_financing_access;
+  const govtVal = data.government_contracting === true ? 'true' : 'false';
+  const govtRadio = document.querySelector(`input[name="prof-govt-contracting"][value="${govtVal}"]`);
+  if (govtRadio) govtRadio.checked = true;
+  else document.getElementById('prof-govt-contracting-no').checked = true;
   if (data.grant_experience) document.getElementById('prof-grant-experience').value = data.grant_experience;
-  const seasonalTag = document.getElementById('prof-is-seasonal-tag');
-  if (data.is_seasonal) { seasonalTag.classList.add('selected'); document.getElementById('prof-is-seasonal').value = 'true'; }
-  else { seasonalTag.classList.remove('selected'); document.getElementById('prof-is-seasonal').value = 'false'; }
-  document.getElementById('prof-seasonal-months').style.display = data.is_seasonal ? 'block' : 'none';
-  renderPeakMonths(data.peak_season_months || []);
-  const startupTag = document.getElementById('prof-is-startup-tag');
-  if (data.is_startup) startupTag.classList.add('selected');
-  else startupTag.classList.remove('selected');
+  document.getElementById('prof-is-seasonal').checked = data.is_seasonal || false;
+  document.getElementById('prof-is-startup').checked = data.is_startup || false;
 }
 
 async function saveProfile() {
@@ -699,7 +737,7 @@ async function saveProfile() {
     await apiFetch('/api/portal/profile','PATCH',{
       business_name: document.getElementById('prof-businessName').value,
       full_name: document.getElementById('prof-ownerName').value,
-      industry: document.getElementById('prof-industry').value,
+      industry: Array.from(document.querySelectorAll('#prof-industry-tags .tag-option.selected')).map(t => t.dataset.value),
       employee_count: document.getElementById('prof-employees').value,
       city: document.getElementById('prof-city').value,
       annual_revenue: document.getElementById('prof-revenue').value,
@@ -737,10 +775,10 @@ async function savePreferences() {
       years_in_business: yr ? parseInt(yr) : null,
       location_type: document.getElementById('prof-location-type').value || null,
       bank_financing_access: document.getElementById('prof-bank-access').value || null,
+      government_contracting: document.querySelector('input[name="prof-govt-contracting"]:checked')?.value === 'true',
       grant_experience: document.getElementById('prof-grant-experience').value || null,
-      is_seasonal: document.getElementById('prof-is-seasonal-tag').classList.contains('selected'),
-      peak_season_months: Array.from(document.querySelectorAll('#peakMonthTags .tag-option.selected')).map(el => el.dataset.value),
-      is_startup: document.getElementById('prof-is-startup-tag').classList.contains('selected'),
+      is_seasonal: document.getElementById('prof-is-seasonal').checked,
+      is_startup: document.getElementById('prof-is-startup').checked,
     });
     const conf = document.getElementById('prefConfirm');
     conf.classList.add('show'); setTimeout(() => conf.classList.remove('show'), 2500);
@@ -840,35 +878,6 @@ function showPage(id, el) {
   document.getElementById('page-' + id).classList.add('active');
   el.classList.add('active');
   if (id === 'account') loadAccountEmail();
-  if (id === 'profile') loadProfile();
-}
-
-async function togglePortalSeasonalMonths() {
-  const checked = document.getElementById('prof-is-seasonal').checked;
-  document.getElementById('prof-seasonal-months').style.display = checked ? 'block' : 'none';
-}
-
-function toggleSeasonalTag() {
-  const tag = document.getElementById('prof-is-seasonal-tag');
-  tag.classList.toggle('selected');
-  const isSelected = tag.classList.contains('selected');
-  document.getElementById('prof-is-seasonal').value = isSelected;
-  document.getElementById('prof-seasonal-months').style.display = isSelected ? 'block' : 'none';
-}
-
-function renderPeakMonths(selected) {
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const sel = new Set(selected || []);
-  const container = document.getElementById('peakMonthTags');
-  container.innerHTML = '';
-  months.forEach(m => {
-    const tag = document.createElement('div');
-    tag.className = 'tag-option' + (sel.has(m) ? ' selected' : '');
-    tag.dataset.value = m;
-    tag.textContent = m.slice(0,3);
-    tag.onclick = () => tag.classList.toggle('selected');
-    container.appendChild(tag);
-  });
 }
 
 async function loadAccountEmail() {

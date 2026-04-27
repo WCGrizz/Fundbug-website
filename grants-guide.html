@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Small Business Grants: A Complete Guide for 2026 | FundBug</title>
+  <meta name="description" content="Everything small business owners need to know about grants — what they are, how to find them, how to apply, and what to avoid. A practical guide from FundBug.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a1a14;
+      --green: #5a9e52;
+      --green-lt: #7ab870;
+      --green-dk: #3d7a38;
+      --cream: #f7f5f0;
+      --cream2: #ede9e0;
+      --muted: #8a8578;
+      --muted2: #b5b0a5;
+      --border: #d8d3c8;
+      --white: #fff;
+      --red: #c44b2a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Jost', sans-serif;
+      font-size: 17px;
+      line-height: 1.75;
+    }
+
+    /* NAV */
+    nav {
+      background: var(--ink);
+      padding: 0 40px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 3px solid var(--green);
+    }
+    .nav-logo {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--green);
+      text-decoration: none;
+      letter-spacing: -0.3px;
+    }
+    .nav-cta {
+      background: var(--green);
+      color: #fff;
+      font-family: 'Jost', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: 4px;
+      text-decoration: none;
+      letter-spacing: .03em;
+      transition: background .15s;
+    }
+    .nav-cta:hover { background: var(--green-lt); }
+
+    /* HERO */
+    .hero {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 72px 40px 64px;
+      text-align: center;
+    }
+    .hero-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 700;
+      line-height: 1.15;
+      max-width: 760px;
+      margin: 0 auto 20px;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+    .hero-sub {
+      font-size: 17px;
+      color: var(--muted2);
+      max-width: 560px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* LAYOUT */
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* TABLE OF CONTENTS */
+    .toc {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px 32px;
+      margin: 48px auto;
+      max-width: 760px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .toc-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .toc ol {
+      padding-left: 20px;
+    }
+    .toc li {
+      margin-bottom: 6px;
+    }
+    .toc a {
+      color: var(--green-dk);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .toc a:hover { text-decoration: underline; }
+
+    /* CONTENT */
+    .content {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    .section {
+      margin-bottom: 56px;
+    }
+
+    h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25;
+      margin-bottom: 16px;
+      letter-spacing: -0.3px;
+      padding-top: 8px;
+    }
+
+    h3 {
+      font-family: 'Jost', sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 8px;
+      margin-top: 28px;
+    }
+
+    p {
+      color: #2e2e28;
+      margin-bottom: 16px;
+      font-size: 17px;
+    }
+
+    /* CALLOUT BOXES */
+    .callout {
+      background: var(--white);
+      border-left: 3px solid var(--green);
+      border-radius: 0 6px 6px 0;
+      padding: 20px 24px;
+      margin: 28px 0;
+    }
+    .callout p { margin-bottom: 0; font-size: 15px; color: var(--ink); }
+    .callout strong { color: var(--green-dk); }
+
+    .callout-warn {
+      background: #fdf6f4;
+      border-left-color: var(--red);
+    }
+    .callout-warn p { color: #5a2018; }
+
+    /* MYTH CARDS */
+    .myth-grid {
+      display: grid;
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .myth-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+    .myth-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 6px;
+    }
+    .myth-title {
+      font-family: 'Fraunces', serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .myth-card p { font-size: 15px; margin-bottom: 0; color: #3a3a32; }
+
+    /* TYPE CARDS */
+    .type-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .type-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+    }
+    .type-icon { font-size: 22px; margin-bottom: 8px; }
+    .type-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .type-card p { font-size: 13px; color: var(--ink); margin-bottom: 0; line-height: 1.5; }
+
+    /* CHECKLIST */
+    .checklist {
+      list-style: none;
+      padding: 0;
+      margin: 16px 0;
+    }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      color: #2e2e28;
+    }
+    .checklist li:last-child { border-bottom: none; }
+    .checklist li::before {
+      content: '✓';
+      color: var(--green);
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* PITFALL LIST */
+    .pitfall-list {
+      list-style: none;
+      padding: 0;
+      margin: 16px 0;
+    }
+    .pitfall-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      color: #2e2e28;
+    }
+    .pitfall-list li:last-child { border-bottom: none; }
+    .pitfall-list li::before {
+      content: '✕';
+      color: var(--red);
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* COMPARISON TABLE */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      font-size: 15px;
+    }
+    .compare-table th {
+      background: var(--ink);
+      color: #fff;
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: .03em;
+    }
+    .compare-table th:first-child { border-radius: 6px 0 0 0; }
+    .compare-table th:last-child { border-radius: 0 6px 0 0; }
+    .compare-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      color: #2e2e28;
+    }
+    .compare-table tr:nth-child(even) td { background: var(--white); }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table td:first-child { font-weight: 500; color: var(--ink); }
+
+    /* FUNDBUG PLUG */
+    .fundbug-plug {
+      background: var(--ink);
+      border-radius: 10px;
+      padding: 36px 40px;
+      margin: 40px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .fundbug-plug::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--green);
+    }
+    .plug-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 10px;
+    }
+    .plug-title {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+    .plug-body {
+      font-size: 15px;
+      color: var(--muted2);
+      line-height: 1.65;
+      margin-bottom: 20px;
+    }
+    .plug-body p { color: var(--muted2); font-size: 15px; margin-bottom: 0; }
+    .plug-cta {
+      display: inline-block;
+      background: var(--green);
+      color: #fff;
+      font-family: 'Jost', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 11px 24px;
+      border-radius: 5px;
+      text-decoration: none;
+      letter-spacing: .03em;
+      transition: background .15s;
+    }
+    .plug-cta:hover { background: var(--green-lt); }
+
+    /* CTA SECTION */
+    .cta-section {
+      background: var(--green);
+      padding: 64px 40px;
+      text-align: center;
+    }
+    .cta-section h2 {
+      color: #fff;
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    .cta-section p {
+      color: rgba(255,255,255,.85);
+      font-size: 16px;
+      max-width: 480px;
+      margin: 0 auto 28px;
+    }
+    .cta-btn {
+      display: inline-block;
+      background: #fff;
+      color: var(--green-dk);
+      font-family: 'Jost', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 5px;
+      text-decoration: none;
+      letter-spacing: .03em;
+      transition: opacity .15s;
+    }
+    .cta-btn:hover { opacity: .92; }
+
+    /* FOOTER */
+    footer {
+      background: var(--ink);
+      padding: 32px 40px;
+      text-align: center;
+    }
+    footer p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+    footer a { color: var(--green); text-decoration: none; }
+
+    /* DIVIDER */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 48px 0;
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 20px; }
+      .hero { padding: 48px 20px 40px; }
+      .content { padding: 0 20px 60px; }
+      .toc { margin: 32px 20px; }
+      .fundbug-plug { padding: 28px 24px; }
+      .type-grid { grid-template-columns: 1fr 1fr; }
+      .cta-section { padding: 48px 20px; }
+      .compare-table { font-size: 13px; }
+      .compare-table th, .compare-table td { padding: 10px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="/" class="nav-logo">FundBug</a>
+    <a href="/signup" class="nav-cta">Get My Digest →</a>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-label">Grant Guide 2026</div>
+    <h1>Small Business Grants:<br>What They Are and How to Get Them</h1>
+    <p class="hero-sub">A no-nonsense guide to finding, applying for, and winning grant funding — written for real small business owners.</p>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc container">
+    <div class="toc-title">In this guide</div>
+    <ol>
+      <li><a href="#what-is">What is a small business grant?</a></li>
+      <li><a href="#types">Types of small business grants</a></li>
+      <li><a href="#myths">Common grant myths, debunked</a></li>
+      <li><a href="#how-to-find">How to find grants you actually qualify for</a></li>
+      <li><a href="#how-to-apply">How to apply</a></li>
+      <li><a href="#pitfalls">Mistakes to avoid</a></li>
+      <li><a href="#grants-vs-loans">Grants vs. loans: what's the difference?</a></li>
+
+    </ol>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- WHAT IS A GRANT -->
+    <div class="section" id="what-is">
+      <h2>What is a small business grant?</h2>
+      <p>A grant is money given to a business — by a government agency, a corporation, or a private foundation — that does not need to be repaid. That's the part that makes grants genuinely exciting: unlike a loan, there's no interest, no monthly payment, and no collateral. If you win a grant and use it correctly, it's yours to keep.</p>
+      <p>Grants exist at every level of government — federal, state, county, and municipal — and also through private companies, industry associations, and nonprofits. Some are worth millions of dollars; others are $500 microgrants. Some require a lengthy application and business plan; others take five minutes to complete online.</p>
+
+      <div class="callout">
+        <p><strong>One important note:</strong> The federal government does not give grants to start a business. Federal grants are almost exclusively reserved for research, technology development, agriculture, and nonprofit work. If you're looking to launch a business, focus on state, local, and private grant programs instead.</p>
+      </div>
+
+      <p>Grants can target businesses based on a wide range of factors: industry, location, business stage, owner demographics (women-owned, minority-owned, veteran-owned), and even the size of the grant itself. That specificity cuts both ways — it can limit what you qualify for, but it also means less competition for niche programs that fit your exact situation.</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- TYPES -->
+    <div class="section" id="types">
+      <h2>Types of small business grants</h2>
+      <p>Grants generally fall into a few categories. Understanding where a grant comes from helps you understand what they want in return.</p>
+
+      <div class="type-grid">
+        <div class="type-card">
+          <div class="type-icon">🏛️</div>
+          <h4>Government Grants</h4>
+          <p>Federal, state, county, and municipal programs. Often the most rigorous to apply for, but among the most reliable and substantial.</p>
+        </div>
+        <div class="type-card">
+          <div class="type-icon">🏢</div>
+          <h4>Corporate Grants</h4>
+          <p>Companies like FedEx, Visa, and Amazon run competitive grant programs — often with a pitch or narrative component. Deadlines are strict.</p>
+        </div>
+        <div class="type-card">
+          <div class="type-icon">🤝</div>
+          <h4>Foundation Grants</h4>
+          <p>Private foundations — many focused on demographics like women or minority owners. Range from $500 microgrants to six-figure awards.</p>
+        </div>
+        <div class="type-card">
+          <div class="type-icon">🏙️</div>
+          <h4>Local Programs</h4>
+          <p>Your city, BID, or chamber of commerce may run grants for downtown businesses. Often the most overlooked — and least competitive.</p>
+        </div>
+        <div class="type-card">
+          <div class="type-icon">💡</div>
+          <h4>Industry-Specific</h4>
+          <p>Grants for restaurants, manufacturers, retailers, creatives, and more. Industry associations often run these, but they are easy to miss if you aren't actively looking.</p>
+        </div>
+        <div class="type-card">
+          <div class="type-icon">⚡</div>
+          <h4>Utility & Energy</h4>
+          <p>Rebates and grants for energy-efficient equipment upgrades — often through your utility company.</p>
+        </div>
+      </div>
+
+
+    </div>
+
+    <!-- FUNDBUG PLUG 1 -->
+    <div class="fundbug-plug">
+      <div class="plug-label">How FundBug helps</div>
+      <div class="plug-title">Stop hunting. Start applying.</div>
+      <div class="plug-body">
+        <p>Tracking down grants from all these different sources — government portals, corporate websites, local BID pages, utility programs — takes hours every week. FundBug does it for you. We scan hundreds of programs and send you a personalized digest of the ones that actually match your business — every two weeks, straight to your inbox. No aggregator noise. No generic lists. Just the programs you qualify for.</p>
+      </div>
+      <a href="/signup" class="plug-cta">See My Matches →</a>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- MYTHS -->
+    <div class="section" id="myths">
+      <h2>Common grant myths, debunked</h2>
+      <p>A lot of misinformation floats around about business grants. Here's what's actually true.</p>
+
+      <div class="myth-grid">
+        <div class="myth-card">
+          <div class="myth-label">Myth</div>
+          <div class="myth-title">"If I don't win, applying was a waste of time."</div>
+          <p>Applying forces you to articulate your business clearly and build documentation you'll reuse. Many business owners say the grant writing process itself was valuable — and second attempts often succeed once you know what reviewers are looking for.</p>
+        </div>
+        <div class="myth-card">
+          <div class="myth-label">Myth</div>
+          <div class="myth-title">"Grants go to the businesses that need them most."</div>
+          <p>Grant committees evaluate credibility, a clear plan for the funds, and alignment with the grant's goals — not financial need. A well-run business that articulates a compelling use of funds will nearly always beat a struggling business with a vague application.</p>
+        </div>
+        <div class="myth-card">
+          <div class="myth-label">Myth</div>
+          <div class="myth-title">"Grant applications are quick and simple."</div>
+          <p>A competitive grant application can take weeks to prepare. Most require a business plan, financial statements, a narrative about how you'll use the funds, and sometimes a video pitch. Start early and treat it like a serious project.</p>
+        </div>
+        <div class="myth-card">
+          <div class="myth-label">Myth</div>
+          <div class="myth-title">"Grant money is yours to spend however you want."</div>
+          <p>Most grants come with restrictions on how funds can be used — and reporting requirements to prove it. Using grant money incorrectly can result in fines or, in serious cases with federal programs, legal consequences. Always read the terms before you apply.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- HOW TO FIND -->
+    <div class="section" id="how-to-find">
+      <h2>How to find grants you actually qualify for</h2>
+      <p>The challenge with small business grants isn't that they don't exist — it's that they're scattered across hundreds of different websites, portals, and programs with little coordination between them. Here's where to look.</p>
+
+      <h3>Start local</h3>
+      <p>Check your city or town's economic development office, your Business Improvement District (BID), your regional chamber of commerce, and your state's small business development agency. These programs are often funded annually and get almost no visibility outside their immediate area.</p>
+
+      <h3>Your state's main portal</h3>
+      <p>Every state has an office of economic development or a similar agency that lists available funding programs. In Massachusetts, that's MassDevelopment and the EOED. In Rhode Island, it's RI Commerce. In Pennsylvania, it's the DCED. These pages are worth bookmarking and checking monthly.</p>
+
+      <h3>Industry associations</h3>
+      <p>If you're in food service, retail, manufacturing, beauty, or any other specific industry, the national and regional associations for that industry often run grant programs for their members that fly under the radar for anyone not already plugged into the industry.</p>
+
+      <h3>Utility companies</h3>
+      <p>If you're in Massachusetts, Mass Save offers rebates and free energy assessments for commercial equipment upgrades that most business owners don't know exist. Similar programs run through National Grid, Eversource, and regional utilities in RI and PA.</p>
+
+      <!-- FUNDBUG PLUG 2 -->
+      <div class="fundbug-plug" style="margin-top: 32px;">
+        <div class="plug-label">Let FundBug do the searching</div>
+        <div class="plug-title">Matched to your business. Delivered every two weeks.</div>
+        <div class="plug-body">
+          <p>You tell us about your business, and we surface programs worth your time and keep you informed of new opportunities. $25/month, cancel anytime.</p>
+        </div>
+        <a href="/signup" class="plug-cta">Start Finding Grants →</a>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- HOW TO APPLY -->
+    <div class="section" id="how-to-apply">
+      <h2>How to apply for a small business grant</h2>
+      <p>The smartest approach is to build a reusable "grant resume" for your business — a document with your standard answers to the questions most grant applications ask. Once you have this, individual applications go much faster.</p>
+
+      <p>Here's what most grant applications ask for:</p>
+
+      <ul class="checklist">
+        <li>Your business's elevator pitch — what you do, who you serve, and why it matters</li>
+        <li>Time in business and number of employees</li>
+        <li>Annual or monthly revenue</li>
+        <li>How you plan to use the grant funds specifically</li>
+        <li>Your Employer Identification Number (EIN)</li>
+        <li>Your business's social media handles</li>
+        <li>A professional photo of you (and partners or your location, if applicable)</li>
+        <li>A current business plan or financial summary</li>
+        <li>Any relevant certifications (woman-owned, minority-owned, veteran-owned, etc.)</li>
+      </ul>
+
+      <div class="callout">
+        <p><strong>Tip:</strong> Tailor the "how you'll use the funds" section specifically to each grant's stated goals. A grant focused on hiring should hear about your workforce plans. A grant focused on community impact should hear about your customers and neighborhood. Generic answers rarely win.</p>
+      </div>
+
+      <p>The businesses that win grants consistently aren't necessarily the best businesses — they're the ones that put the most care into their applications. That's a gap worth closing.</p>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- PITFALLS -->
+    <div class="section" id="pitfalls">
+      <h2>Grant application mistakes to avoid</h2>
+      <p>Most rejected grant applications fall into the same predictable traps.</p>
+
+      <ul class="pitfall-list">
+        <li>Not reading the eligibility requirements carefully before applying — it's easy to spend hours on an application for a program you don't actually qualify for.</li>
+        <li>Submitting a generic narrative that doesn't speak to what the grantor specifically cares about.</li>
+        <li>Missing the deadline. Many programs close at midnight on the due date and do not accept late submissions under any circumstances.</li>
+        <li>Spelling errors or poor grammar. Grant reviewers read hundreds of applications — sloppy writing signals a sloppy business.</li>
+        <li>Asking for a vague amount or failing to explain how the money will be spent. Be specific: "We will use $8,000 to purchase a commercial espresso machine and $2,000 for staff training" beats "we'll invest in growth."</li>
+        <li>Underestimating how much work a strong application takes — and starting too late to do it well.</li>
+      </ul>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- GRANTS VS LOANS -->
+    <div class="section" id="grants-vs-loans">
+      <h2>Grants vs. loans: what's the difference?</h2>
+      <p>Both put money in your hands. Beyond that, they're quite different.</p>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Factor</th>
+            <th>Grant</th>
+            <th>Loan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Repayment</td>
+            <td>Not required</td>
+            <td>Required, with interest</td>
+          </tr>
+          <tr>
+            <td>Competition</td>
+            <td>Direct — limited winners</td>
+            <td>Credit-based approval, not competitive</td>
+          </tr>
+          <tr>
+            <td>Speed</td>
+            <td>Weeks to months</td>
+            <td>Days to weeks</td>
+          </tr>
+          <tr>
+            <td>Credit impact</td>
+            <td>None — doesn't build credit</td>
+            <td>Builds business credit history</td>
+          </tr>
+          <tr>
+            <td>Tax treatment</td>
+            <td>Taxable income</td>
+            <td>Not income; interest may be deductible</td>
+          </tr>
+          <tr>
+            <td>Use restrictions</td>
+            <td>Often restricted to stated purpose</td>
+            <td>Generally more flexible</td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <p>Grants and loans aren't mutually exclusive. Many business owners pursue grants for capital improvements or equipment while maintaining a line of credit for cash flow. Think of them as different tools in the same toolkit.</p>
+    </div>
+
+
+
+    <div class="divider"></div>
+
+          <div class="callout">
+        <p><strong>Bottom line:</strong> Any money you don't have to repay is worth pursuing — if the effort is proportional to the reward. A $1,000 microgrant with a 5-minute application is a no-brainer. A $500 grant with a 40-hour application probably isn't. Know your time's value and apply accordingly.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <h2>Ready to find grants for your business?</h2>
+    <p>FundBug scans hundreds of grants, tax credits, rebates, free resources, and other funding programs across MA, RI, PA, and Nationwide — and sends you the ones that match your business every two weeks.</p>
+    <a href="/signup" class="cta-btn">Get My First Digest Free →</a>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2026 FundBug &nbsp;·&nbsp; <a href="/signup">Sign Up</a> &nbsp;·&nbsp; <a href="/">Home</a> &nbsp;·&nbsp; Questions? <a href="mailto:hello@fundbug.net">hello@fundbug.net</a></p>
+  </footer>
+
+</body>
+</html>
