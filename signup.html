@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/fundbug_logo.png">
+  <link rel="apple-touch-icon" href="/fundbug_logo.png">
   <title>Sign Up — FundBug</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Jost:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --ink: #1a1a14; --ink2: #2d2d24; --green: #5a9e52; --green-lt: #7ab870;
@@ -23,6 +25,13 @@
 
     .container { display: grid; grid-template-columns: 1fr 380px; gap: 48px; max-width: 1200px; margin: 0 auto; padding: 60px 40px; min-height: 100vh; }
     @media (max-width: 1024px) { .container { grid-template-columns: 1fr; gap: 32px; padding: 40px 24px; } .summary-panel { display: none !important; } }
+    .signup-header { background: var(--ink); padding: 14px 40px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .signup-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .signup-brand img { width: 28px; height: 28px; object-fit: contain; }
+    .signup-brand span { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: var(--green); }
+    .signup-back { font-family: 'Jost', sans-serif; font-size: 13px; color: var(--cream2); text-decoration: none; transition: color 0.15s; }
+    .signup-back:hover { color: var(--white); }
+    @media (max-width: 640px) { .signup-header { padding: 12px 20px; } .signup-back { font-size: 12px; } }
     .form-section { max-width: 540px; }
 
     .privacy-banner { background: #eef4fb; border: 1px solid #b8d0e8; border-radius: 6px; padding: 14px 16px; margin-bottom: 28px; display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #3a5a7a; line-height: 1.55; }
@@ -120,8 +129,25 @@
     .tag-count-hint{font-size:12px;color:#999;margin-top:6px}
     .tag-count-hint.maxed{color:#c44b2a}
   </style>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Sign Up — FundBug">
+  <meta property="og:description" content="Start your FundBug subscription. Tell us about your business and get a personalized funding digest delivered every two weeks.">
+  <meta property="og:url" content="https://fundbug.net/signup.html">
+  <meta property="og:image" content="https://fundbug.net/fundbug_logo.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Sign Up — FundBug">
+  <meta name="twitter:description" content="Start your FundBug subscription. Tell us about your business and get a personalized funding digest delivered every two weeks.">
+  <meta name="twitter:image" content="https://fundbug.net/fundbug_logo.png">
 </head>
 <body>
+
+<header class="signup-header">
+  <a href="index.html" class="signup-brand">
+    <img src="fundbug_logo.png" alt="FundBug">
+    <span>FundBug</span>
+  </a>
+  <a href="index.html" class="signup-back">← Back to home</a>
+</header>
 
 <div class="container">
   <div class="form-section">
