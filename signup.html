@@ -32,6 +32,13 @@
     .signup-back { font-family: 'Jost', sans-serif; font-size: 13px; color: var(--cream2); text-decoration: none; transition: color 0.15s; }
     .signup-back:hover { color: var(--white); }
     @media (max-width: 640px) { .signup-header { padding: 12px 20px; } .signup-back { font-size: 12px; } }
+    .comp-banner { background: linear-gradient(90deg, #e8f4e6 0%, #f0f9ee 100%); border: 1px solid #b8d8b1; border-radius: 8px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 14px; }
+    .comp-banner-icon { font-size: 22px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+    .comp-banner-body { flex: 1; }
+    .comp-banner-title { font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 600; color: var(--ink); margin: 0 0 4px; }
+    .comp-banner-text { font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 300; color: var(--ink2); line-height: 1.5; margin: 0; }
+    .comp-notice { background: #fdf6e3; border: 1px solid #e8d59c; border-radius: 6px; padding: 10px 14px; margin-bottom: 20px; font-family: 'Jost', sans-serif; font-size: 13px; color: var(--ink2); }
+    .comp-notice strong { font-weight: 600; }
     .form-section { max-width: 540px; }
 
     .privacy-banner { background: #eef4fb; border: 1px solid #b8d0e8; border-radius: 6px; padding: 14px 16px; margin-bottom: 28px; display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #3a5a7a; line-height: 1.55; }
@@ -151,6 +158,20 @@
 
 <div class="container">
   <div class="form-section">
+
+    <!-- Comp signup banner (shown when ?comp=CODE is valid) -->
+    <div id="comp-banner" class="comp-banner" style="display:none">
+      <div class="comp-banner-icon">🎁</div>
+      <div class="comp-banner-body">
+        <p class="comp-banner-title">Beta tester access — no payment required</p>
+        <p class="comp-banner-text">You're getting FundBug free as part of our beta program. Just complete signup below.</p>
+      </div>
+    </div>
+
+    <!-- Comp invalid notice (shown when ?comp=CODE is bad) -->
+    <div id="comp-notice" class="comp-notice" style="display:none">
+      <strong>Comp code not recognized.</strong> Continuing with regular signup. If you think this is a mistake, email us at hello@fundbug.net.
+    </div>
 
     <div class="step-indicator">
       <div class="step-dot active" id="dot-1">1</div>
@@ -574,6 +595,41 @@
 <script>
 const API = 'https://fundbug-production.up.railway.app';
 let stripe = null, cardElement = null, cardMounted = false, currentStep = 1;
+// Comp code: when set (after server validation), signup skips Stripe payment.
+let compCodeValue = null;
+
+function applyCompMode() {
+  // Hide comp-notice if it was shown, show comp-banner instead
+  document.getElementById('comp-notice').style.display = 'none';
+  document.getElementById('comp-banner').style.display = 'flex';
+
+  // Hide payment-related UI in step 3
+  const planSelector = document.querySelector('.plan-selector');
+  const planLabel = planSelector ? planSelector.previousElementSibling : null;
+  const trialNotice = document.querySelector('.trial-notice');
+  const cardFormGroup = document.getElementById('card-element')?.closest('.form-group');
+  const trustLine = document.querySelector('.trust-line');
+  const submitBtn = document.getElementById('submit-btn');
+  const planHeader = document.querySelector('#step-3 h2');
+
+  if (planLabel && planLabel.tagName === 'LABEL') planLabel.style.display = 'none';
+  if (planSelector) planSelector.style.display = 'none';
+  if (trialNotice) trialNotice.style.display = 'none';
+  if (cardFormGroup) cardFormGroup.style.display = 'none';
+  if (trustLine) trustLine.style.display = 'none';
+  if (planHeader) planHeader.textContent = 'Confirm and start';
+  if (submitBtn) submitBtn.textContent = 'Start receiving digests →';
+
+  // Update step 3 indicator label too
+  const stepLabel = document.querySelector('.step-label');
+  if (stepLabel) stepLabel.textContent = 'Confirm';
+
+  // Update summary panel badges to reflect free status
+  const badges = document.querySelectorAll('.summary-badges .badge');
+  if (badges.length > 0) {
+    badges[0].innerHTML = '<span class="badge-icon">🎁</span><span>Free for beta testers</span>';
+  }
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Tag selector init — industry (max 3)
@@ -605,6 +661,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       refField.value = refParam;
       refField.readOnly = true;
       refField.style.background = 'var(--cream2)';
+    }
+  }
+
+  // Detect ?comp=CODE for free beta-tester signup
+  const compParam = new URLSearchParams(window.location.search).get('comp');
+  if (compParam) {
+    try {
+      const r = await fetch(API + '/api/comp-code/' + encodeURIComponent(compParam));
+      const data = await r.json();
+      if (data.valid) {
+        compCodeValue = compParam;
+        applyCompMode();
+      } else {
+        document.getElementById('comp-notice').style.display = 'block';
+      }
+    } catch (e) {
+      console.error('Comp code check failed:', e);
+      document.getElementById('comp-notice').style.display = 'block';
     }
   }
 
@@ -691,11 +765,16 @@ async function handleSubmit(e) {
   const btn = document.getElementById('submit-btn');
   btn.disabled = true; btn.textContent = 'Processing…';
   try {
-    const { paymentMethod, error } = await stripe.createPaymentMethod({
-      type: 'card', card: cardElement,
-      billing_details: { name: document.getElementById('first-name').value + ' ' + document.getElementById('last-name').value, email: document.getElementById('email').value }
-    });
-    if (error) throw new Error(error.message);
+    // Stripe payment method creation — skipped for comp signups
+    let paymentMethodId = null;
+    if (!compCodeValue) {
+      const { paymentMethod, error } = await stripe.createPaymentMethod({
+        type: 'card', card: cardElement,
+        billing_details: { name: document.getElementById('first-name').value + ' ' + document.getElementById('last-name').value, email: document.getElementById('email').value }
+      });
+      if (error) throw new Error(error.message);
+      paymentMethodId = paymentMethod.id;
+    }
 
     const get = id => document.getElementById(id);
     const checked = name => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el => el.value);
@@ -747,9 +826,10 @@ async function handleSubmit(e) {
       funding_purpose: checked('funding_purpose'),
       funding_purpose_other: get('other-funding-text').value || null,
       owner_demographics: demographics,
-      payment_method_id: paymentMethod.id,
+      payment_method_id: paymentMethodId,
       plan: document.querySelector('input[name="plan"]:checked').value,
-      referral_code: get('referral').value || null
+      referral_code: get('referral').value || null,
+      comp_code: compCodeValue
     };
 
     const res = await fetch(API + '/api/subscribe', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
