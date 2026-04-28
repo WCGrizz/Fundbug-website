@@ -431,6 +431,7 @@
             <label class="checkbox-label"><input type="checkbox" name="owner_demographics" value="woman-owned"><span>Woman-owned business</span></label>
             <label class="checkbox-label"><input type="checkbox" name="owner_demographics" value="minority-owned"><span>Minority-owned business</span></label>
             <label class="checkbox-label"><input type="checkbox" name="owner_demographics" value="veteran-owned"><span>Veteran-owned business</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="owner_demographics" value="military-affiliated"><span>Military-affiliated (veteran, spouse, or active duty)</span></label>
             <label class="checkbox-label"><input type="checkbox" name="owner_demographics" value="disability-owned"><span>Disability-owned business</span></label>
             <label class="checkbox-label"><input type="checkbox" name="owner_demographics" value="lgbtq-owned"><span>LGBTQ+-owned business</span></label>
             <label class="checkbox-label"><input type="checkbox" name="owner_demographics" value="immigrant-owned"><span>Immigrant-owned business</span></label>
@@ -725,8 +726,6 @@ async function handleSubmit(e) {
       referral_code: get('referral').value || null
     };
 
-    console.log('FundBug payload:', JSON.stringify(payload, null, 2));
-    console.log('FundBug payload:', JSON.stringify(payload, null, 2));
     const res = await fetch(API + '/api/subscribe', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Signup failed');
