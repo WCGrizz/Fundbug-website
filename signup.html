@@ -37,8 +37,23 @@
     .comp-banner-body { flex: 1; }
     .comp-banner-title { font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 600; color: var(--ink); margin: 0 0 4px; }
     .comp-banner-text { font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 300; color: var(--ink2); line-height: 1.5; margin: 0; }
-    .comp-notice { background: #fdf6e3; border: 1px solid #e8d59c; border-radius: 6px; padding: 10px 14px; margin-bottom: 20px; font-family: 'Jost', sans-serif; font-size: 13px; color: var(--ink2); }
-    .comp-notice strong { font-weight: 600; }
+    /* Full-page error for invalid comp codes — matches verified.html / feedback.html */
+    .comp-error-overlay { position: fixed; inset: 0; z-index: 200; background: var(--ink); display: none; align-items: center; justify-content: center; padding: 40px 24px; font-family: 'Jost', sans-serif; }
+    .comp-error-overlay.show { display: flex; }
+    .comp-error-overlay::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; }
+    .comp-error-card { position: relative; z-index: 1; background: var(--cream); color: var(--ink); border-radius: 12px; padding: 52px 48px; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 32px 80px rgba(0,0,0,.4); animation: comp-rise 0.4s cubic-bezier(.22,.9,.36,1) both; }
+    @keyframes comp-rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .comp-error-logo { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: var(--green); margin-bottom: 32px; letter-spacing: -0.01em; }
+    .comp-error-icon { font-size: 52px; line-height: 1; margin-bottom: 20px; filter: grayscale(1); }
+    .comp-error-h1 { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; color: var(--ink); line-height: 1.2; margin: 0 0 12px; }
+    .comp-error-sub { font-size: 16px; font-weight: 300; color: var(--ink2); line-height: 1.65; margin: 0 0 28px; }
+    .comp-error-divider { height: 1px; background: var(--cream3, #e2ddd4); margin: 28px 0; }
+    .comp-error-actions { display: flex; flex-direction: column; gap: 10px; }
+    .comp-error-btn { display: inline-block; padding: 11px 24px; background: var(--green); color: var(--white); font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 500; border-radius: 6px; text-decoration: none; transition: background 0.15s; border: none; cursor: pointer; }
+    .comp-error-btn:hover { background: var(--green-dk); }
+    .comp-error-btn.secondary { background: var(--white); color: var(--ink); border: 1px solid var(--border); }
+    .comp-error-btn.secondary:hover { background: var(--cream2); }
+    .comp-error-tip { font-size: 13px; font-weight: 300; color: var(--ink2); line-height: 1.6; margin-top: 20px; }
     .form-section { max-width: 540px; }
 
     .privacy-banner { background: #eef4fb; border: 1px solid #b8d0e8; border-radius: 6px; padding: 14px 16px; margin-bottom: 28px; display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #3a5a7a; line-height: 1.55; }
@@ -148,6 +163,22 @@
 </head>
 <body>
 
+<!-- Full-page error for invalid comp codes -->
+<div id="comp-error-overlay" class="comp-error-overlay">
+  <div class="comp-error-card">
+    <div class="comp-error-logo">FundBug</div>
+    <div class="comp-error-icon">🔗</div>
+    <h1 class="comp-error-h1">This comp code isn't valid</h1>
+    <p class="comp-error-sub">The beta code in your link wasn't recognized. It may have expired, been revoked, or had a typo.</p>
+    <div class="comp-error-actions">
+      <a href="index.html" class="comp-error-btn">← Back to FundBug</a>
+      <button type="button" class="comp-error-btn secondary" onclick="continueWithPaidSignup()">Sign up at regular price instead</button>
+    </div>
+    <div class="comp-error-divider"></div>
+    <p class="comp-error-tip">Think this is a mistake? Email <a href="mailto:hello@fundbug.net" style="color:var(--green-dk);text-decoration:none;border-bottom:1px solid var(--green-dk);">hello@fundbug.net</a> with the code you were given.</p>
+  </div>
+</div>
+
 <header class="signup-header">
   <a href="index.html" class="signup-brand">
     <img src="fundbug_logo.png" alt="FundBug">
@@ -166,11 +197,6 @@
         <p class="comp-banner-title">Beta tester access — no payment required</p>
         <p class="comp-banner-text">You're getting FundBug free as part of our beta program. Just complete signup below.</p>
       </div>
-    </div>
-
-    <!-- Comp invalid notice (shown when ?comp=CODE is bad) -->
-    <div id="comp-notice" class="comp-notice" style="display:none">
-      <strong>Comp code not recognized.</strong> Continuing with regular signup. If you think this is a mistake, email us at hello@fundbug.net.
     </div>
 
     <div class="step-indicator">
@@ -599,8 +625,6 @@ let stripe = null, cardElement = null, cardMounted = false, currentStep = 1;
 let compCodeValue = null;
 
 function applyCompMode() {
-  // Hide comp-notice if it was shown, show comp-banner instead
-  document.getElementById('comp-notice').style.display = 'none';
   document.getElementById('comp-banner').style.display = 'flex';
 
   // Hide payment-related UI in step 3
@@ -629,6 +653,17 @@ function applyCompMode() {
   if (badges.length > 0) {
     badges[0].innerHTML = '<span class="badge-icon">🎁</span><span>Free for beta testers</span>';
   }
+}
+
+function showCompError() {
+  // Hide all the regular signup chrome and show the error overlay
+  document.getElementById('comp-error-overlay').classList.add('show');
+  document.body.style.overflow = 'hidden';  // prevent scroll behind overlay
+}
+
+function continueWithPaidSignup() {
+  // User chose to sign up at regular price — strip the comp param and reload
+  window.location.replace('/signup.html');
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -674,11 +709,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         compCodeValue = compParam;
         applyCompMode();
       } else {
-        document.getElementById('comp-notice').style.display = 'block';
+        // Invalid code — show full-page error overlay matching verified.html style
+        showCompError();
+        return;  // halt the rest of init; nothing else needs to load
       }
     } catch (e) {
       console.error('Comp code check failed:', e);
-      document.getElementById('comp-notice').style.display = 'block';
+      // Network error checking the code — same fallback as invalid code
+      showCompError();
+      return;
     }
   }
 
