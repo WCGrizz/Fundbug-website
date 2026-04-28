@@ -3,10 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sign in to your FundBug subscriber portal to update your profile, manage your subscription, and view your referral link.">
+  <link rel="icon" type="image/png" href="/fundbug_logo.png">
+  <link rel="apple-touch-icon" href="/fundbug_logo.png">
 <title>My Portal — FundBug</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Jost:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#1a1a14;--green:#5a9e52;--green-lt:#7ab870;--green-dk:#3d7a38;--cream:#f7f5f0;--cream2:#ede9e0;--muted:#8a8578;--muted2:#b5b0a5;--border:#d8d3c8;--white:#fff;--red:#c44b2a}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -98,6 +101,17 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
 .btn-sm.danger:hover{background:#fdf0ec}
 .btn-sm.primary{background:var(--green);border-color:var(--green);color:#fff}
 .btn-sm.primary:hover{background:var(--green-lt)}
+
+/* SUBSCRIPTION STATE BANNERS */
+.sub-banner{border-radius:8px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:flex-start;gap:14px;font-family:'Jost',sans-serif}
+.sub-banner.warning{background:#fdf6e3;border:1px solid #e8d59c}
+.sub-banner.danger{background:#fdf0ec;border:1px solid #f0c8c0}
+.sub-banner-icon{font-size:18px;line-height:1;flex-shrink:0;margin-top:2px}
+.sub-banner-body{flex:1;font-size:13px;line-height:1.55;color:var(--ink)}
+.sub-banner-body strong{font-weight:600}
+.sub-banner-body p{margin:0 0 10px}
+.sub-banner-body p:last-child{margin-bottom:0}
+.sub-banner-actions{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
 
 /* PROFILE FORM */
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -440,16 +454,42 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
       <div class="page" id="page-subscription">
         <div class="page-title">Subscription</div>
         <div class="page-sub">Manage your plan, billing, and account status.</div>
+
+        <!-- Banner: payment failed (past_due) -->
+        <div id="banner-past-due" class="sub-banner danger" style="display:none">
+          <div class="sub-banner-icon">⚠️</div>
+          <div class="sub-banner-body">
+            <p><strong>Your last payment was declined.</strong></p>
+            <p>You'll keep getting your digests for the next 7 days. After that we'll pause your account until your card is updated.</p>
+            <div class="sub-banner-actions">
+              <button class="btn-sm primary" onclick="openBillingPortal()">Update payment method →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Banner: cancel scheduled (cancel_pending) -->
+        <div id="banner-cancel-pending" class="sub-banner warning" style="display:none">
+          <div class="sub-banner-icon">📅</div>
+          <div class="sub-banner-body">
+            <p><strong>Your subscription is scheduled to end on <span id="banner-cancel-date">—</span>.</strong></p>
+            <p>You'll keep getting your digests until then. Changed your mind?</p>
+            <div class="sub-banner-actions">
+              <button class="btn-sm primary" onclick="resumeSubscription()">Resume subscription</button>
+            </div>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-title">Current plan <span id="planBadge" class="plan-badge">Annual</span></div>
           <div class="sub-detail-row"><span class="sub-detail-lbl">Plan</span><span class="sub-detail-val" id="sub-plan">Annual — $250/year</span></div>
           <div class="sub-detail-row"><span class="sub-detail-lbl">Status</span><span class="sub-detail-val" style="color:var(--green)" id="sub-status">Active</span></div>
           <div class="sub-detail-row"><span class="sub-detail-lbl">Next billing date</span><span class="sub-detail-val" id="sub-next-bill">—</span></div>
           <div class="sub-detail-row"><span class="sub-detail-lbl">Credits</span><span class="sub-detail-val" id="sub-credits">$0.00</span></div>
-          <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn-sm primary" onclick="switchPlan()">Switch to Monthly</button>
+          <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap" id="sub-actions">
+            <button class="btn-sm primary" id="btn-switch-plan" onclick="switchPlan()">Switch to Monthly</button>
             <button class="btn-sm" onclick="pauseSubscription()">Pause for 30 days</button>
-            <button class="btn-sm danger" onclick="cancelSubscription()">Cancel subscription</button>
+            <button class="btn-sm" onclick="openBillingPortal()">Manage billing in Stripe</button>
+            <button class="btn-sm danger" id="btn-cancel-sub" onclick="cancelSubscription()">Cancel subscription</button>
           </div>
         </div>
         <div class="card">
@@ -599,6 +639,19 @@ function showApp() {
   document.getElementById('greetTime').textContent = greetTime + ',';
   document.getElementById('greetName').textContent = name + ' 👋';
   loadOverview(); loadProfile(); loadReferral(); loadSubscription();
+
+  // Honor URL hash for direct deep-link (e.g., from email: /portal.html#subscription)
+  const hash = (window.location.hash || '').replace('#','');
+  if (hash && ['overview','profile','referral','subscription','account'].includes(hash)) {
+    const link = document.querySelector(`.sidebar-nav a[onclick*="'${hash}'"]`);
+    if (link) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+      document.getElementById('page-' + hash).classList.add('active');
+      link.classList.add('active');
+      if (hash === 'account') loadAccountEmail();
+    }
+  }
 }
 
 async function apiFetch(path, method='GET', body=null) {
@@ -805,15 +858,80 @@ function copyRefLink() {
 async function loadSubscription() {
   try {
     const data = await apiFetch('/api/portal/subscription');
-    const planLabel = data.plan === 'annual' ? 'Annual — $250/year' : data.plan === 'trial' ? 'Monthly — $25/month' : 'Monthly — $25/month';
+    const planLabel = data.plan === 'annual' ? 'Annual — $250/year' : data.plan === 'trial' ? 'Free trial — converts to monthly' : 'Monthly — $25/month';
     document.getElementById('sub-plan').textContent = planLabel;
     document.getElementById('planBadge').textContent = data.plan === 'annual' ? 'Annual' : 'Monthly';
-    document.getElementById('sub-status').textContent = data.status === 'active' ? 'Active' : data.status === 'trialing' ? 'Free trial active' : data.status;
+
+    // Status label uses Supabase local_status when it's a "FundBug-managed"
+    // state (cancel_pending, past_due) since Stripe's view may lag.
+    const statusEl = document.getElementById('sub-status');
+    const localStatus = data.local_status;
+    if (localStatus === 'cancel_pending') {
+      statusEl.textContent = 'Cancel scheduled';
+      statusEl.style.color = '#b8860b'; // warning amber
+    } else if (localStatus === 'past_due') {
+      statusEl.textContent = 'Payment past due';
+      statusEl.style.color = 'var(--red)';
+    } else if (data.status === 'active') {
+      statusEl.textContent = 'Active';
+      statusEl.style.color = 'var(--green)';
+    } else if (data.status === 'trialing') {
+      statusEl.textContent = 'Free trial active';
+      statusEl.style.color = 'var(--green)';
+    } else {
+      statusEl.textContent = data.status;
+      statusEl.style.color = 'var(--muted)';
+    }
+
     if (data.next_billing_date) document.getElementById('sub-next-bill').textContent = new Date(data.next_billing_date).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
     document.getElementById('sub-credits').textContent = '$' + (data.credit_balance || 0).toFixed(2);
-    const switchBtn = document.querySelector('.btn-sm.primary');
+    const switchBtn = document.getElementById('btn-switch-plan');
     if (switchBtn) switchBtn.textContent = data.plan === 'annual' ? 'Switch to Monthly' : 'Switch to Annual — Save $50';
+
+    // Render state banners
+    const bannerCancel = document.getElementById('banner-cancel-pending');
+    const bannerPastDue = document.getElementById('banner-past-due');
+    const cancelBtn = document.getElementById('btn-cancel-sub');
+
+    bannerCancel.style.display = 'none';
+    bannerPastDue.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = '';  // default: visible
+
+    if (localStatus === 'cancel_pending') {
+      const dateStr = data.cancel_at
+        ? new Date(data.cancel_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})
+        : 'the end of your billing period';
+      document.getElementById('banner-cancel-date').textContent = dateStr;
+      bannerCancel.style.display = 'flex';
+      if (cancelBtn) cancelBtn.style.display = 'none';
+    } else if (localStatus === 'past_due') {
+      bannerPastDue.style.display = 'flex';
+    }
   } catch(e) { console.log('Sub load error:', e.message); }
+}
+
+async function openBillingPortal() {
+  try {
+    const r = await apiFetch('/api/portal/billing-portal-session', 'POST');
+    if (r && r.url) {
+      window.location.href = r.url;
+    } else {
+      alert('Could not open billing portal. Please try again.');
+    }
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+async function resumeSubscription() {
+  if (!confirm('Resume your subscription? Your billing will continue normally.')) return;
+  try {
+    const r = await apiFetch('/api/portal/subscription/resume', 'POST');
+    loadSubscription();
+    alert(r && r.message ? r.message : 'Subscription resumed.');
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
 }
 
 function switchPlan() {
@@ -854,10 +972,8 @@ async function confirmCancel() {
   try {
     await apiFetch('/api/portal/subscription/cancel', 'POST', { cancel_reason: reason });
     closeCancelModal();
+    // loadSubscription will render the cancel_pending banner and hide the cancel button
     loadSubscription();
-    // Show a friendly confirmation
-    const sub = document.getElementById('sub-status');
-    if (sub) sub.textContent = 'Cancelled — active until end of billing period';
   } catch(e) {
     alert('Error: ' + e.message);
     btn.disabled = false;
