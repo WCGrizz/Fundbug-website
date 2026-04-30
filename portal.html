@@ -158,6 +158,33 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
 .modal-btn-keep:hover{opacity:.85}
 .modal-btn-secondary{padding:11px 24px;background:none;border:1px solid var(--border);border-radius:5px;font-family:'Jost',sans-serif;font-size:14px;font-weight:400;color:var(--muted);cursor:pointer}
 .modal-btn-secondary:hover{color:var(--ink)}
+
+/* TRACKER */
+.tracker-section-title{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--ink);margin:0 0 4px}
+.tracker-section-sub{font-size:13px;font-weight:300;color:var(--muted);margin-bottom:16px}
+.tracker-empty{font-size:13px;color:var(--muted);font-weight:300;padding:20px 0;text-align:center}
+.tracker-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-bottom:10px;display:flex;align-items:flex-start;gap:16px;transition:border-color .12s}
+.tracker-card:hover{border-color:var(--green)}
+.tracker-card.favorite{border-left:3px solid var(--green)}
+.tracker-star{font-size:20px;cursor:pointer;flex-shrink:0;margin-top:1px;opacity:.4;transition:opacity .12s}
+.tracker-star:hover,.tracker-star.on{opacity:1}
+.tracker-body{flex:1;min-width:0}
+.tracker-title{font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tracker-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.tracker-badge{display:inline-block;padding:2px 9px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.04em;color:#fff}
+.tracker-amount{font-size:12px;color:var(--muted);font-weight:400}
+.tracker-deadline{font-size:12px;color:var(--muted);font-weight:400}
+.tracker-deadline.urgent{color:var(--red);font-weight:600}
+.tracker-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tracker-status-select{font-family:'Jost',sans-serif;font-size:12px;color:var(--ink);background:var(--cream);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;outline:none}
+.tracker-status-select:focus{border-color:var(--green)}
+.tracker-link{font-size:12px;color:var(--green-dk);text-decoration:none;font-weight:500;border-bottom:1px solid transparent;transition:border-color .12s}
+.tracker-link:hover{border-color:var(--green-dk)}
+.tracker-dismiss{font-size:11px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:0;transition:color .12s}
+.tracker-dismiss:hover{color:var(--red)}
+.tracker-divider{height:1px;background:var(--cream2);margin:24px 0}
+.tracker-toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;padding:10px 18px;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;transform:translateY(8px);transition:all .25s;z-index:500;pointer-events:none}
+.tracker-toast.show{opacity:1;transform:none}
 </style>
 </head>
 <body>
@@ -219,6 +246,7 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
     <aside class="sidebar">
       <ul class="sidebar-nav">
         <li><a href="#" class="active" onclick="showPage('overview',this)"><span class="nav-icon">📊</span> Overview</a></li>
+        <li><a href="#" onclick="showPage('tracker',this)" id="nav-tracker"><span class="nav-icon">📋</span> My Tracker</a></li>
 
         <div class="sidebar-section">Resources</div>
         <li><a href="grants-guide.html" target="_blank"><span class="nav-icon">📖</span> Grants 101</a></li>
@@ -253,6 +281,31 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
       </div>
 
 
+
+      <!-- TRACKER -->
+      <div class="page" id="page-tracker">
+        <div class="page-title">My Tracker</div>
+        <div class="page-sub">Keep tabs on every opportunity — star the ones you're serious about and track your progress.</div>
+
+        <!-- FAVORITES -->
+        <div class="tracker-section-title">Favorites</div>
+        <div class="tracker-section-sub">Programs you're actively pursuing. Update the status as you move forward.</div>
+        <div id="tracker-favorites-list">
+          <div class="tracker-empty" id="tracker-favorites-empty">Star a program below to add it here.</div>
+        </div>
+
+        <div class="tracker-divider"></div>
+
+        <!-- ALL PROGRAMS -->
+        <div class="tracker-section-title">All Programs</div>
+        <div class="tracker-section-sub">Every program from your FundBug digests — auto-populated each time a digest is sent.</div>
+        <div id="tracker-all-list">
+          <div class="tracker-empty" id="tracker-all-empty">Your matched programs will appear here after your first digest.</div>
+        </div>
+      </div>
+
+      <!-- TRACKER TOAST -->
+      <div class="tracker-toast" id="trackerToast"></div>
 
       <!-- PROFILE -->
       <div class="page" id="page-profile">
@@ -653,6 +706,9 @@ function showApp() {
       if (hash === 'account') loadAccountEmail();
     }
   }
+
+  // Handle ?track=program_id deep link from digest email
+  handleTrackDeepLink();
 }
 
 async function apiFetch(path, method='GET', body=null) {
@@ -996,6 +1052,7 @@ function showPage(id, el) {
   document.getElementById('page-' + id).classList.add('active');
   el.classList.add('active');
   if (id === 'account') loadAccountEmail();
+  if (id === 'tracker') loadTracker();
 }
 
 async function loadAccountEmail() {
@@ -1043,6 +1100,196 @@ async function saveFundingNote() {
   } catch(e) { alert('Error: ' + e.message); }
   btn.disabled = false; btn.textContent = 'Save funding note';
 }
+
+// ── TRACKER ───────────────────────────────────────────────────────────────────
+
+const BADGE_COLORS = {
+  'Grant':'#3a7a32','Matching Grant':'#2a6a8a','Tax Credit':'#6a3a7a',
+  'Rebate':'#5a7a3a','Loan':'#7a6f66','SBA Loan':'#7a6f66','CDFI Loan':'#7a6f66',
+  'Microloan':'#1a5c3a','Free Resource':'#7a6a2a','Technical Assistance':'#2a6099',
+  'Pitch Competition':'#8a4a2a','Training':'#8a5a00',
+};
+
+const STATUS_LABELS = {
+  'not_started':'Not started','in_progress':'In progress',
+  'applied':'Applied','won':'Won','passed':'Passed',
+};
+
+let trackerData = [];   // full list, fetched once per session
+
+function showTrackerToast(msg) {
+  const el = document.getElementById('trackerToast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function trackerBadgeColor(type) {
+  return BADGE_COLORS[type] || '#3a7a32';
+}
+
+function buildTrackerCard(prog, isFav) {
+  const deadlineText = prog.deadline_display || prog.deadline || '';
+  const isUrgent = prog.days_until_deadline != null && prog.days_until_deadline >= 0 && prog.days_until_deadline <= 7;
+  const statusOptions = Object.entries(STATUS_LABELS).map(([v,l]) =>
+    `<option value="${v}" ${prog.status === v ? 'selected' : ''}>${l}</option>`
+  ).join('');
+
+  const card = document.createElement('div');
+  card.className = 'tracker-card' + (isFav ? ' favorite' : '');
+  card.id = 'tcard-' + prog.program_id;
+  card.innerHTML = `
+    <div class="tracker-star ${isFav ? 'on' : ''}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}"
+         onclick="toggleFavorite('${prog.program_id}', ${isFav})">★</div>
+    <div class="tracker-body">
+      <div class="tracker-title" title="${esc(prog.title)}">${esc(prog.title || '—')}</div>
+      <div class="tracker-meta">
+        ${prog.capital_type ? `<span class="tracker-badge" style="background:${trackerBadgeColor(prog.capital_type)}">${esc(prog.capital_type)}</span>` : ''}
+        ${prog.amount ? `<span class="tracker-amount">${esc(prog.amount)}</span>` : ''}
+        ${deadlineText ? `<span class="tracker-deadline ${isUrgent ? 'urgent' : ''}">Deadline: ${esc(deadlineText)}</span>` : ''}
+      </div>
+      <div class="tracker-actions">
+        ${isFav ? `<select class="tracker-status-select" onchange="updateStatus('${prog.program_id}', this.value)">${statusOptions}</select>` : ''}
+        ${prog.source_url ? `<a href="${esc(prog.source_url)}" target="_blank" rel="noopener" class="tracker-link">View program →</a>` : ''}
+        ${!isFav ? `<button class="tracker-dismiss" onclick="dismissProgram('${prog.program_id}')" title="Remove from list">✕ dismiss</button>` : ''}
+      </div>
+    </div>`;
+  return card;
+}
+
+function renderTracker() {
+  const favList  = document.getElementById('tracker-favorites-list');
+  const allList  = document.getElementById('tracker-all-list');
+  const favEmpty = document.getElementById('tracker-favorites-empty');
+  const allEmpty = document.getElementById('tracker-all-empty');
+
+  const favs = trackerData.filter(p => p.is_favorite);
+  const rest = trackerData.filter(p => !p.is_favorite && !p.dismissed);
+
+  // Favorites
+  favList.innerHTML = '';
+  if (favs.length) {
+    favEmpty.style.display = 'none';
+    favs.forEach(p => favList.appendChild(buildTrackerCard(p, true)));
+  } else {
+    favList.appendChild(favEmpty);
+    favEmpty.style.display = 'block';
+  }
+
+  // All programs
+  allList.innerHTML = '';
+  if (rest.length) {
+    allEmpty.style.display = 'none';
+    rest.forEach(p => allList.appendChild(buildTrackerCard(p, false)));
+  } else {
+    allList.appendChild(allEmpty);
+    allEmpty.style.display = 'block';
+  }
+}
+
+async function loadTracker() {
+  try {
+    const data = await apiFetch('/api/portal/tracker');
+    trackerData = data.programs || [];
+    renderTracker();
+  } catch(e) {
+    console.log('Tracker load error:', e.message);
+  }
+}
+
+async function toggleFavorite(programId, currentlyFav) {
+  const prog = trackerData.find(p => p.program_id === programId);
+  if (!prog) return;
+  const newFav = !currentlyFav;
+  prog.is_favorite = newFav;
+  if (newFav && prog.status === 'not_started') prog.status = 'not_started';
+  renderTracker();
+  try {
+    await apiFetch('/api/portal/tracker/' + programId, 'PATCH', {
+      is_favorite: newFav,
+      status: prog.status,
+    });
+    showTrackerToast(newFav ? '★ Added to Favorites' : 'Removed from Favorites');
+  } catch(e) {
+    // Revert on error
+    prog.is_favorite = currentlyFav;
+    renderTracker();
+    showTrackerToast('Error — please try again');
+  }
+}
+
+async function updateStatus(programId, newStatus) {
+  const prog = trackerData.find(p => p.program_id === programId);
+  if (!prog) return;
+  const oldStatus = prog.status;
+  prog.status = newStatus;
+  try {
+    await apiFetch('/api/portal/tracker/' + programId, 'PATCH', { status: newStatus });
+    showTrackerToast('Status updated: ' + (STATUS_LABELS[newStatus] || newStatus));
+  } catch(e) {
+    prog.status = oldStatus;
+    renderTracker();
+    showTrackerToast('Error — please try again');
+  }
+}
+
+async function dismissProgram(programId) {
+  const prog = trackerData.find(p => p.program_id === programId);
+  if (!prog) return;
+  prog.dismissed = true;
+  renderTracker();
+  try {
+    await apiFetch('/api/portal/tracker/' + programId, 'PATCH', { dismissed: true });
+  } catch(e) {
+    prog.dismissed = false;
+    renderTracker();
+  }
+}
+
+// Deep-link handler: portal.html?track=program_id
+// Fired from "Track This" links in the digest email
+async function handleTrackDeepLink() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const trackId = urlParams.get('track');
+  if (!trackId) return;
+
+  // Clean the URL without reloading
+  window.history.replaceState({}, '', 'portal.html');
+
+  // Navigate to tracker
+  const trackerLink = document.getElementById('nav-tracker');
+  if (trackerLink) showPage('tracker', trackerLink);
+
+  // Check if program is already tracked
+  const existing = trackerData.find(p => p.program_id === trackId);
+  if (existing) {
+    if (!existing.is_favorite) {
+      await toggleFavorite(trackId, false);
+    } else {
+      showTrackerToast('Already in your Favorites');
+    }
+    return;
+  }
+
+  // Fetch program details and add to tracker as favorite
+  try {
+    await apiFetch('/api/portal/tracker', 'POST', {
+      program_id: trackId,
+      is_favorite: true,
+      status: 'not_started',
+    });
+    await loadTracker();
+    showTrackerToast('★ Added to Favorites');
+  } catch(e) {
+    showTrackerToast('Could not track this program');
+  }
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── END TRACKER ───────────────────────────────────────────────────────────────
 
 // Load existing profile values into profile tab when switched to
 const _origSwitchTab = typeof switchTab === 'function' ? switchTab : null;
