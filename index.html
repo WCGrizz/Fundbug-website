@@ -984,7 +984,7 @@ footer { background: var(--ink); padding: 60px 80px; }
     <div class="how-step">
       <div class="step-num">03</div>
       <div class="step-title" style="color:var(--green);">Your digest arrives</div>
-      <div class="step-body" style="color:var(--ink2);">On the 1st and 3rd Tuesday, a ranked digest lands in your inbox — each opportunity explained from your perspective. Why you qualify, how competitive it is, and what to keep in mind if you apply. We do the research. You make the call.</div>
+      <div class="step-body" style="color:var(--ink2);">On the 1st and 3rd Tuesday, a ranked digest lands in your inbox — each opportunity explained from your perspective. Why you qualify, how competitive it is, and what to keep in mind if you apply. One click tracks it in your portal. We do the research. You make the call.</div>
     </div>
   </div>
 </section>
@@ -1032,15 +1032,14 @@ footer { background: var(--ink); padding: 60px 80px; }
       </div>
       <div class="feat-content">
         <div class="feat-title">Human-vetted programs</div>
-        <div class="feat-body">Every program in our database is reviewed and verified by a real person. No expired listings, no AI-hallucinated grants, no programs that closed in February still showing up in March.</div>
+        <div class="feat-body">We search through thousands of funding programs and filter out the ones that don't apply — nonprofit-only grants, government agency programs, healthcare and science-specific funding. Every program that makes it into our database has been reviewed by a real person for accuracy, current status, and relevance to for-profit small businesses.</div>
       </div>
     </div>
 
     <div class="feat-row">
       <div class="feat-icon-wrap">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 15l4-4 3 3 5-6"/>
-          <path d="M2 17h16"/>
+          <path d="M4 15l4-4 3 3 5-6"/><path d="M2 17h16"/>
         </svg>
       </div>
       <div class="feat-content">
@@ -1052,9 +1051,44 @@ footer { background: var(--ink); padding: 60px 80px; }
     <div class="feat-row">
       <div class="feat-icon-wrap">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 2"/>
+        </svg>
+      </div>
+      <div class="feat-content">
+        <div class="feat-title">Eligibility confidence score</div>
+        <div class="feat-body">Each match in your digest shows whether you likely qualify, partially match, or need to verify a key requirement — so you know before you click which programs are worth your time.</div>
+      </div>
+    </div>
+
+    <div class="feat-row">
+      <div class="feat-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 8h6M7 11h4"/>
+        </svg>
+      </div>
+      <div class="feat-content">
+        <div class="feat-title">Application prep</div>
+        <div class="feat-body">For any program you're pursuing, FundBug generates tailored draft answers to the standard grant application questions — business description, use of funds, expected impact — based on your profile. A head start, not a finished product. Yours to refine and submit.</div>
+      </div>
+    </div>
+
+    <div class="feat-row">
+      <div class="feat-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l-4 4 4 4"/><path d="M5 15h8a4 4 0 000-8h-1"/>
+        </svg>
+      </div>
+      <div class="feat-content">
+        <div class="feat-title">My Tracker</div>
+        <div class="feat-body">Every program from your digests lives in your subscriber portal. Star the ones you're pursuing, update your status from Not Started to Applied to Won, and keep your pipeline in one place between digests.</div>
+      </div>
+    </div>
+
+    <div class="feat-row">
+      <div class="feat-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <rect x="2" y="5" width="16" height="12" rx="2"/>
-          <path d="M6 5V4a2 2 0 014 0v1M10 5V4a2 2 0 014 0v1"/>
-          <path d="M6 11h8M6 14h5"/>
+          <path d="M6 5V4a2 2 0 014 0v1M10 5V4a2 2 0 014 0v1"/><path d="M6 11h8M6 14h5"/>
         </svg>
       </div>
       <div class="feat-content">
@@ -1066,9 +1100,7 @@ footer { background: var(--ink); padding: 60px 80px; }
     <div class="feat-row">
       <div class="feat-icon-wrap">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 10a6 6 0 0112 0"/>
-          <path d="M16 10a6 6 0 01-12 0"/>
-          <path d="M13 7l3 3-3 3"/>
+          <path d="M4 10a6 6 0 0112 0"/><path d="M16 10a6 6 0 01-12 0"/><path d="M13 7l3 3-3 3"/>
         </svg>
       </div>
       <div class="feat-content">
@@ -1108,7 +1140,7 @@ footer { background: var(--ink); padding: 60px 80px; }
           How is FundBug different from Google, AI tools, or other grant databases?
           <span class="faq-icon">+</span>
         </button>
-        <div class="faq-a"><p>Every program in FundBug's database is manually vetted and continuously maintained — which means no expired listings, no AI-hallucinated programs, and none of the stale information you get from a search engine. We also do the matching work for you. Your digest isn't a generic list; it's ranked and explained specifically for your business. You see why each program is relevant to you, how competitive it is, and what to keep in mind before applying.</p></div>
+        <div class="faq-a"><p>We search through thousands of funding programs and filter out the ones that don't apply — nonprofit-only grants, government agency programs, science and healthcare-specific funding, expired listings. Every program that makes it into our database has been reviewed by a real person before it reaches a subscriber. We also do the matching work for you. Your digest isn't a generic list; it's ranked and explained specifically for your business. You see why each program is relevant to you, how competitive it is, and whether you're likely to qualify — before you spend time on it.</p></div>
       </div>
 
       <div class="faq-item">
@@ -1116,7 +1148,7 @@ footer { background: var(--ink); padding: 60px 80px; }
           Is there a free trial?
           <span class="faq-icon">+</span>
         </button>
-        <div class="faq-a"><p>Yes — all new subscribers get a 7-day free trial. Your card is saved at signup but not charged until your trial ends. If you cancel before 7 days, you won't be charged anything.</p></div>
+        <div class="faq-a"><p>Yes — all new subscribers get a 14-day free trial. Your card is saved at signup but not charged until your trial ends. If you cancel before 14 days, you won't be charged anything.</p></div>
       </div>
 
       <div class="faq-item">
@@ -1152,7 +1184,7 @@ footer { background: var(--ink); padding: 60px 80px; }
   <div style="text-align:center">
     <div class="section-eyebrow" style="justify-content:center">Simple pricing</div>
     <h2 class="section-title">One service. Two ways to pay.</h2>
-    <p class="section-subtitle" style="margin:0 auto">Try it free for 7 days — no charge until your trial ends. If it surfaces one program worth applying for, it pays for itself many times over.</p>
+    <p class="section-subtitle" style="margin:0 auto">Try it free for 14 days — no charge until your trial ends. If it surfaces one program worth applying for, it pays for itself many times over.</p>
   </div>
   <div class="pricing-wrapper">
     <div class="pricing-card">
@@ -1162,12 +1194,14 @@ footer { background: var(--ink); padding: 60px 80px; }
       <ul class="pricing-features">
         <li>Digest on the 1st and 3rd Tuesday</li>
         <li>Personalized match scoring</li>
+        <li>Eligibility confidence score per match</li>
         <li>Human-vetted, continuously updated programs</li>
         <li>Competition level ratings</li>
-        <li>Subscriber portal</li>
+        <li>My Tracker — manage your pipeline</li>
+        <li>Application prep — AI-drafted answers</li>
       </ul>
       <a href="signup.html?plan=monthly" class="btn-primary" style="width:100%;text-align:center;display:block;">Start free trial</a>
-      <div class="pricing-trial">7-day free trial · No charge until your trial ends</div>
+      <div class="pricing-trial">14-day free trial · No charge until your trial ends</div>
     </div>
     <div class="pricing-card featured">
       <div class="pricing-badge">Best value — save $50/year</div>
@@ -1182,7 +1216,7 @@ footer { background: var(--ink); padding: 60px 80px; }
         <li>Referral bonus: 1 free month per paying referral</li>
       </ul>
       <a href="signup.html?plan=annual" class="btn-primary" style="width:100%;text-align:center;display:block;">Start free trial</a>
-      <div class="pricing-trial">7-day free trial · No charge until your trial ends</div>
+      <div class="pricing-trial">14-day free trial · No charge until your trial ends</div>
     </div>
   </div>
 </section>
