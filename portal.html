@@ -185,6 +185,33 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
 .tracker-divider{height:1px;background:var(--cream2);margin:24px 0}
 .tracker-toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;padding:10px 18px;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;transform:translateY(8px);transition:all .25s;z-index:500;pointer-events:none}
 .tracker-toast.show{opacity:1;transform:none}
+
+/* PREP APPLICATION PANEL */
+.prep-overlay{display:none;position:fixed;inset:0;background:rgba(26,26,20,.5);z-index:300;align-items:flex-start;justify-content:flex-end;}
+.prep-overlay.open{display:flex;}
+.prep-panel{background:var(--white);width:620px;height:100vh;overflow-y:auto;box-shadow:-8px 0 40px rgba(0,0,0,.2);display:flex;flex-direction:column;}
+.prep-header{background:var(--ink);padding:18px 24px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:10;}
+.prep-title{font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:var(--white);line-height:1.3;flex:1;}
+.prep-close{background:none;border:none;color:var(--muted2);font-size:20px;cursor:pointer;padding:0;flex-shrink:0;line-height:1;}
+.prep-close:hover{color:var(--white);}
+.prep-body{padding:24px;flex:1;}
+.prep-intro{font-size:13px;font-weight:300;color:var(--muted);line-height:1.65;margin-bottom:20px;padding:12px 16px;background:var(--cream);border-radius:6px;border-left:3px solid var(--green);}
+.prep-question{margin-bottom:24px;}
+.prep-question-label{font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.prep-question-hint{font-size:12px;color:var(--muted);margin-bottom:8px;font-style:italic;}
+.prep-textarea{width:100%;min-height:100px;padding:10px 13px;background:var(--cream);border:1px solid var(--border);border-radius:5px;font-family:'Jost',sans-serif;font-size:13px;color:var(--ink);line-height:1.65;resize:vertical;outline:none;transition:border-color .15s;}
+.prep-textarea:focus{border-color:var(--green);background:var(--white);}
+.prep-textarea.edited{border-color:var(--green-lt);background:#f8fff8;}
+.prep-actions{position:sticky;bottom:0;background:var(--white);border-top:1px solid var(--border);padding:16px 24px;display:flex;gap:10px;flex-wrap:wrap;}
+.prep-btn{padding:10px 20px;border-radius:5px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .12s;}
+.prep-btn-save{background:var(--green);color:#fff;border:none;}
+.prep-btn-save:hover{background:var(--green-lt);}
+.prep-btn-copy{background:var(--cream2);color:var(--ink);border:1px solid var(--border);}
+.prep-btn-copy:hover{background:var(--cream3);}
+.prep-btn-download{background:var(--cream2);color:var(--ink);border:1px solid var(--border);}
+.prep-btn-download:hover{background:var(--cream3);}
+.prep-loading{text-align:center;padding:48px 24px;color:var(--muted);font-size:14px;}
+.prep-memory-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:#e8f5e9;color:var(--green-dk);padding:2px 8px;border-radius:10px;margin-left:8px;vertical-align:middle;}
 </style>
 </head>
 <body>
@@ -266,17 +293,24 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
         <div class="page-sub">Here's your FundBug dashboard.</div>
         <div class="stat-grid">
           <div class="stat-tile"><div class="stat-num green" id="ov-digests">—</div><div class="stat-lbl">Digests received</div></div>
-          <div class="stat-tile"><div class="stat-num green" id="ov-opportunities">—</div><div class="stat-lbl">Opportunities found</div></div>
-          <div class="stat-tile"><div class="stat-num" id="ov-alerts">—</div><div class="stat-lbl">Alerts sent</div></div>
+          <div class="stat-tile"><div class="stat-num green" id="ov-tracked">—</div><div class="stat-lbl">Programs tracked</div></div>
+          <div class="stat-tile"><div class="stat-num" id="ov-favorites">—</div><div class="stat-lbl">Favorites starred</div></div>
           <div class="stat-tile"><div class="stat-num" id="ov-referrals">—</div><div class="stat-lbl">Referrals made</div></div>
         </div>
+
+        <div class="card" style="background:var(--ink);border-color:var(--ink);padding:20px 24px;margin-bottom:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div>
+              <div style="font-family:'Jost',sans-serif;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:6px">Next digest</div>
+              <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--white)" id="nextDigestDate">Calculating…</div>
+            </div>
+            <a href="#" onclick="showPage('tracker',document.getElementById('nav-tracker'));return false;" style="display:inline-block;padding:9px 18px;background:var(--green);color:#fff;border-radius:5px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap;">View my tracker →</a>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-title">Recent digests</div>
           <div id="recentDigests"><div style="font-size:13px;color:var(--muted);font-weight:300">Your digests will appear here once sent.</div></div>
-        </div>
-        <div class="card" style="padding:16px 20px">
-          <div class="card-title" style="margin-bottom:8px">Next digest</div>
-          <div style="font-family:'Jost',sans-serif;font-size:15px;font-weight:500;color:var(--ink)" id="nextDigestDate">Calculating…</div>
         </div>
       </div>
 
@@ -724,15 +758,13 @@ async function loadOverview() {
   try {
     const data = await apiFetch('/api/portal/overview');
     document.getElementById('ov-digests').textContent = data.digest_count ?? '0';
-    document.getElementById('ov-opportunities').textContent = data.total_opportunities ?? '0';
-    document.getElementById('ov-alerts').textContent = data.alert_count ?? '0';
     document.getElementById('ov-referrals').textContent = data.referral_count ?? '0';
     if (data.next_digest_date) {
       const d = new Date(data.next_digest_date + 'T13:00:00Z');
       const diff = Math.ceil((d - new Date()) / (1000*60*60*24));
       const dateStr = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
       const daysStr = diff > 1 ? `in ${diff} days` : diff === 1 ? 'tomorrow' : 'today';
-      document.getElementById('nextDigestDate').textContent = `Your next digest is ${daysStr} — ${dateStr}`;
+      document.getElementById('nextDigestDate').textContent = `${dateStr} — ${daysStr}`;
     } else {
       document.getElementById('nextDigestDate').textContent = 'Your next digest is coming soon.';
     }
@@ -744,6 +776,16 @@ async function loadOverview() {
           <div class="digest-count">${d.match_count} matches</div>
           <div class="digest-arrow">→</div>
         </div>`).join('');
+    }
+    // Load tracker stats separately — non-blocking
+    try {
+      const tracker = await apiFetch('/api/portal/tracker');
+      const programs = tracker.programs || [];
+      document.getElementById('ov-tracked').textContent = programs.length;
+      document.getElementById('ov-favorites').textContent = programs.filter(p => p.is_favorite).length;
+    } catch(_) {
+      document.getElementById('ov-tracked').textContent = '0';
+      document.getElementById('ov-favorites').textContent = '0';
     }
   } catch(e) { console.log('Overview load error:', e.message); }
 }
@@ -1151,6 +1193,7 @@ function buildTrackerCard(prog, isFav) {
       <div class="tracker-actions">
         ${isFav ? `<select class="tracker-status-select" onchange="updateStatus('${prog.program_id}', this.value)">${statusOptions}</select>` : ''}
         ${prog.source_url ? `<a href="${esc(prog.source_url)}" target="_blank" rel="noopener" class="tracker-link">View program →</a>` : ''}
+        ${isFav ? `<button class="tracker-link" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;font-weight:500;color:var(--green-dk);" onclick="openPrepPanel('${prog.program_id}', '${esc(prog.title)}')">Prep application</button>` : ''}
         ${!isFav ? `<button class="tracker-dismiss" onclick="dismissProgram('${prog.program_id}')" title="Remove from list">✕ dismiss</button>` : ''}
       </div>
     </div>`;
@@ -1291,9 +1334,155 @@ function esc(str) {
 
 // ── END TRACKER ───────────────────────────────────────────────────────────────
 
+// ── PREP APPLICATION ──────────────────────────────────────────────────────────
+
+let currentPrepProgramId = null;
+let currentPrepData = null;
+
+async function openPrepPanel(programId, programTitle) {
+  currentPrepProgramId = programId;
+  currentPrepData = null;
+
+  // Show overlay
+  document.getElementById('prepOverlay').classList.add('open');
+  document.getElementById('prepPanelTitle').textContent = `Application Prep — ${programTitle}`;
+  document.getElementById('prepBody').innerHTML = '<div class="prep-loading">Generating your draft answers…</div>';
+  document.getElementById('prepActions').style.display = 'none';
+
+  try {
+    const data = await apiFetch(`/api/portal/tracker/${programId}/prep`, 'POST');
+    currentPrepData = data;
+    renderPrepPanel(data);
+  } catch(e) {
+    document.getElementById('prepBody').innerHTML =
+      `<div class="prep-loading" style="color:var(--red)">Could not generate answers: ${e.message}</div>`;
+  }
+}
+
+function closePrepPanel() {
+  document.getElementById('prepOverlay').classList.remove('open');
+  currentPrepProgramId = null;
+  currentPrepData = null;
+}
+
+function renderPrepPanel(data) {
+  const body = document.getElementById('prepBody');
+  const hasPriorAnswers = data.questions.some(q => q.saved);
+
+  let html = `<div class="prep-intro">
+    These are draft answers based on your business profile.
+    Edit them to add your personal touch before submitting — the more specific you make them, the stronger your application.
+    ${hasPriorAnswers ? '<br><br><strong>Note:</strong> Answers marked <span class="prep-memory-badge">Remembered</span> have been improved from your previous applications.' : ''}
+  </div>`;
+
+  for (const q of data.questions) {
+    const hasMemory = q.saved && q.saved !== q.draft;
+    // Use saved (subscriber-edited) text if available, otherwise use fresh draft
+    const displayText = q.saved || q.draft;
+    html += `
+      <div class="prep-question">
+        <div class="prep-question-label">
+          ${esc(q.label)}
+          ${hasMemory ? '<span class="prep-memory-badge">Remembered</span>' : ''}
+        </div>
+        <div class="prep-question-hint">${esc(q.prompt)}</div>
+        <textarea class="prep-textarea${hasMemory ? ' edited' : ''}"
+          id="prep-${q.question_type}"
+          data-qt="${q.question_type}"
+          rows="5"
+          oninput="this.classList.add('edited')">${esc(displayText)}</textarea>
+      </div>`;
+  }
+
+  body.innerHTML = html;
+  document.getElementById('prepActions').style.display = 'flex';
+}
+
+async function savePrepAnswers() {
+  if (!currentPrepProgramId) return;
+  const answers = {};
+  document.querySelectorAll('.prep-textarea').forEach(el => {
+    const qt = el.dataset.qt;
+    const val = el.value.trim();
+    if (qt && val) answers[qt] = val;
+  });
+
+  try {
+    await apiFetch(`/api/portal/tracker/${currentPrepProgramId}/prep`, 'PATCH', { answers });
+    showTrackerToast('✓ Answers saved — they\'ll improve your next prep too');
+    // Update local data
+    if (currentPrepData) {
+      currentPrepData.questions.forEach(q => {
+        if (answers[q.question_type]) q.saved = answers[q.question_type];
+      });
+    }
+  } catch(e) {
+    showTrackerToast('Error saving — please try again');
+  }
+}
+
+function copyAllAnswers() {
+  const lines = [];
+  if (currentPrepData) {
+    for (const q of currentPrepData.questions) {
+      const el = document.getElementById(`prep-${q.question_type}`);
+      const text = el ? el.value.trim() : (q.saved || q.draft);
+      if (text) {
+        lines.push(`${q.label.toUpperCase()}\n${text}`);
+      }
+    }
+  }
+  const fullText = lines.join('\n\n---\n\n');
+  navigator.clipboard.writeText(fullText).then(() => {
+    showTrackerToast('✓ All answers copied to clipboard');
+  }).catch(() => {
+    showTrackerToast('Copy failed — try selecting and copying manually');
+  });
+}
+
+function downloadAnswers() {
+  if (!currentPrepData) return;
+  const title = currentPrepData.program_title || 'Grant Application';
+  const lines = [`GRANT APPLICATION PREP\n${title}\nGenerated by FundBug\n${'='.repeat(50)}\n`];
+  for (const q of currentPrepData.questions) {
+    const el = document.getElementById(`prep-${q.question_type}`);
+    const text = el ? el.value.trim() : (q.saved || q.draft);
+    if (text) lines.push(`${q.label.toUpperCase()}\n${'─'.repeat(30)}\n${text}`);
+  }
+  const content = lines.join('\n\n');
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `${title.replace(/[^a-z0-9]/gi,'_').toLowerCase()}_prep.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showTrackerToast('✓ Downloaded');
+}
+
+// ── END PREP APPLICATION ──────────────────────────────────────────────────────
+
 // Load existing profile values into profile tab when switched to
 const _origSwitchTab = typeof switchTab === 'function' ? switchTab : null;
 
 </script>
+<!-- PREP APPLICATION PANEL -->
+<div class="prep-overlay" id="prepOverlay" onclick="if(event.target===this)closePrepPanel()">
+  <div class="prep-panel" id="prepPanel">
+    <div class="prep-header">
+      <div class="prep-title" id="prepPanelTitle">Application Prep</div>
+      <button class="prep-close" onclick="closePrepPanel()">✕</button>
+    </div>
+    <div class="prep-body" id="prepBody">
+      <div class="prep-loading">Generating your draft answers…</div>
+    </div>
+    <div class="prep-actions" id="prepActions" style="display:none">
+      <button class="prep-btn prep-btn-save" onclick="savePrepAnswers()">Save answers</button>
+      <button class="prep-btn prep-btn-copy" onclick="copyAllAnswers()">Copy all</button>
+      <button class="prep-btn prep-btn-download" onclick="downloadAnswers()">Download</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

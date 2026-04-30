@@ -1116,7 +1116,7 @@ footer { background: var(--ink); padding: 60px 80px; }
           Is there a free trial?
           <span class="faq-icon">+</span>
         </button>
-        <div class="faq-a"><p>Yes — all new subscribers get a 14-day free trial. Your card is saved at signup but not charged until your trial ends. If you cancel before 14 days, you won't be charged anything.</p></div>
+        <div class="faq-a"><p>Yes — all new subscribers get a 7-day free trial. Your card is saved at signup but not charged until your trial ends. If you cancel before 7 days, you won't be charged anything.</p></div>
       </div>
 
       <div class="faq-item">
@@ -1152,7 +1152,7 @@ footer { background: var(--ink); padding: 60px 80px; }
   <div style="text-align:center">
     <div class="section-eyebrow" style="justify-content:center">Simple pricing</div>
     <h2 class="section-title">One service. Two ways to pay.</h2>
-    <p class="section-subtitle" style="margin:0 auto">Try it free for 14 days — no charge until your trial ends. If it surfaces one program worth applying for, it pays for itself many times over.</p>
+    <p class="section-subtitle" style="margin:0 auto">Try it free for 7 days — no charge until your trial ends. If it surfaces one program worth applying for, it pays for itself many times over.</p>
   </div>
   <div class="pricing-wrapper">
     <div class="pricing-card">
@@ -1167,7 +1167,7 @@ footer { background: var(--ink); padding: 60px 80px; }
         <li>Subscriber portal</li>
       </ul>
       <a href="signup.html?plan=monthly" class="btn-primary" style="width:100%;text-align:center;display:block;">Start free trial</a>
-      <div class="pricing-trial">14-day free trial · No charge until your trial ends</div>
+      <div class="pricing-trial">7-day free trial · No charge until your trial ends</div>
     </div>
     <div class="pricing-card featured">
       <div class="pricing-badge">Best value — save $50/year</div>
@@ -1182,7 +1182,7 @@ footer { background: var(--ink); padding: 60px 80px; }
         <li>Referral bonus: 1 free month per paying referral</li>
       </ul>
       <a href="signup.html?plan=annual" class="btn-primary" style="width:100%;text-align:center;display:block;">Start free trial</a>
-      <div class="pricing-trial">14-day free trial · No charge until your trial ends</div>
+      <div class="pricing-trial">7-day free trial · No charge until your trial ends</div>
     </div>
   </div>
 </section>
@@ -1230,6 +1230,19 @@ function toggleMenu() {
 function closeMenu() {
   document.querySelector('.nav-hamburger').classList.remove('open');
   document.getElementById('mobileMenu').classList.remove('open');
+}
+function toggleFaq(btn) {
+  const isOpen = btn.getAttribute('aria-expanded') === 'true';
+  // Close all others
+  document.querySelectorAll('.faq-q').forEach(b => {
+    b.setAttribute('aria-expanded', 'false');
+    b.nextElementSibling.style.maxHeight = '0';
+  });
+  // Toggle this one
+  if (!isOpen) {
+    btn.setAttribute('aria-expanded', 'true');
+    btn.nextElementSibling.style.maxHeight = btn.nextElementSibling.scrollHeight + 'px';
+  }
 }
 // Close menu on outside click
 document.addEventListener('click', e => {
