@@ -59,7 +59,7 @@
       align-items: center;
       gap: 10px;
     }
-    .nav-logo img { width: 32px; height: 32px; object-fit: contain; }
+    .nav-logo img { width: 52px; height: 52px; object-fit: contain; }
     .nav-cta {
       background: var(--green);
       color: #fff;
@@ -460,8 +460,13 @@
 
   <!-- NAV -->
   <nav>
-    <a href="/" class="nav-logo"><img src="fundbug_logo.png" alt="FundBug">FundBug</a>
-    <a href="signup.html" class="nav-cta">Get My Digest →</a>
+    <a href="/" class="nav-logo"><img src="fundbug_logo.png" alt="FundBug"><span style="font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--green);">FundBug</span></a>
+    <ul style="list-style:none;display:flex;align-items:center;gap:32px;">
+      <li><a href="/#how" style="color:#b5b0a5;text-decoration:none;font-size:13px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;transition:color .15s;" onmouseover="this.style.color='#f7f5f0'" onmouseout="this.style.color='#b5b0a5'">How it works</a></li>
+      <li><a href="/#pricing" style="color:#b5b0a5;text-decoration:none;font-size:13px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;transition:color .15s;" onmouseover="this.style.color='#f7f5f0'" onmouseout="this.style.color='#b5b0a5'">Pricing</a></li>
+      <li><a href="portal.html" style="color:#b5b0a5;text-decoration:none;font-size:13px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;transition:color .15s;" onmouseover="this.style.color='#f7f5f0'" onmouseout="this.style.color='#b5b0a5'">Sign in</a></li>
+      <li><a href="signup.html" class="nav-cta">Get started</a></li>
+    </ul>
   </nav>
 
   <!-- HERO -->
@@ -550,7 +555,7 @@
       <div class="plug-label">How FundBug helps</div>
       <div class="plug-title">Stop hunting. Start applying.</div>
       <div class="plug-body">
-        <p>Tracking down grants from all these different sources — government portals, corporate websites, local BID pages, utility programs — takes hours every week. FundBug does it for you. We scan hundreds of programs and send you a personalized digest of the ones that actually match your business — every two weeks, straight to your inbox. No aggregator noise. No generic lists. Just the programs you qualify for.</p>
+        <p>Tracking down grants from all these different sources — government portals, corporate websites, local BID pages, utility programs — takes hours every week. FundBug does it for you. We scan hundreds of programs and send you a personalized digest of the ones that actually match your business — on the 1st and 3rd Tuesday of every month, straight to your inbox. No aggregator noise. No generic lists. Just the programs you qualify for.</p>
       </div>
       <a href="signup.html" class="plug-cta">See My Matches →</a>
     </div>
@@ -608,7 +613,7 @@
       <!-- FUNDBUG PLUG 2 -->
       <div class="fundbug-plug" style="margin-top: 32px;">
         <div class="plug-label">Let FundBug do the searching</div>
-        <div class="plug-title">Matched to your business. Delivered every two weeks.</div>
+        <div class="plug-title">Matched to your business. Delivered on the 1st and 3rd Tuesday.</div>
         <div class="plug-body">
           <p>You tell us about your business, and we surface programs worth your time and keep you informed of new opportunities. $25/month, cancel anytime.</p>
         </div>
@@ -729,7 +734,7 @@
   <!-- CTA -->
   <div class="cta-section">
     <h2>Ready to find grants for your business?</h2>
-    <p>FundBug scans hundreds of grants, tax credits, rebates, free resources, and other funding programs across MA, RI, PA, and Nationwide — and sends you the ones that match your business every two weeks.</p>
+    <p>FundBug scans hundreds of grants, tax credits, rebates, free resources, and other funding programs across MA, RI, PA, and Nationwide — and sends you the ones that match your business on the 1st and 3rd Tuesday of every month.</p>
     <a href="signup.html" class="cta-btn">Get My First Digest Free →</a>
   </div>
 

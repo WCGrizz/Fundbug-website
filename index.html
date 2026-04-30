@@ -491,156 +491,82 @@ section { padding: 100px 80px; }
 /* ── FEATURES ── */
 .features-section { background: var(--cream); }
 
-.features-grid {
+.feat-list {
+  margin-top: 64px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2px;
-  margin-top: 64px;
+  gap: 0;
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
 }
 
-.feature-card {
+.feat-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 32px 36px;
   background: var(--white);
-  padding: 40px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   transition: background .15s;
 }
 
-.feature-card:hover { background: var(--cream2); }
+.feat-row:nth-child(even) { border-right: none; }
+.feat-row:nth-last-child(-n+2) { border-bottom: none; }
+.feat-row:hover { background: var(--cream2); }
 
-.feature-icon {
-  width: 40px;
-  height: 40px;
+.feat-icon-wrap {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
   background: var(--cream2);
-  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 18px;
-  font-size: 18px;
+  margin-top: 2px;
 }
 
-.feature-title {
+.feat-title {
   font-family: 'Fraunces', serif;
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--ink);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  line-height: 1.2;
 }
 
-.feature-body {
-  font-size: 16px;
+.feat-body {
+  font-size: 15px;
   color: var(--ink2);
   line-height: 1.75;
   font-weight: 300;
 }
 
-/* ── PROGRAMS DIRECTORY ── */
-.directory-section { background: var(--ink); color: var(--cream); }
-.directory-section .section-title { color: var(--cream); }
-.directory-section .section-subtitle { color: var(--cream2); }
-
-.directory-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-top: 56px;
+/* ── FAQ ── */
+.faq-section { background: var(--cream); }
+.faq-inner { max-width: 720px; margin: 0 auto; }
+.faq-list { margin-top: 48px; }
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-item:first-child { border-top: 1px solid var(--border); }
+.faq-q {
+  width: 100%; background: none; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 0; gap: 24px; text-align: left;
+  font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700;
+  color: var(--ink); transition: color .15s;
 }
-
-.program-card {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 8px;
-  padding: 24px;
-  transition: border-color .15s, background .15s;
-  position: relative;
-  overflow: hidden;
+.faq-q:hover { color: var(--green-dk); }
+.faq-icon {
+  font-family: 'Jost', sans-serif; font-size: 22px; font-weight: 300;
+  color: var(--green); flex-shrink: 0; transition: transform .2s; line-height: 1;
 }
-
-.program-card:hover {
-  border-color: rgba(90,158,82,.4);
-  background: rgba(90,158,82,.06);
-}
-
-.program-card.blurred .program-why {
-  filter: blur(4px);
-  user-select: none;
-  pointer-events: none;
-}
-
-.program-type-badge {
-  display: inline-block;
-  font-family: 'Jost', sans-serif;
-  font-size: 8px;
-  font-weight: 600;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 3px;
-  background: rgba(90,158,82,.15);
-  color: var(--green-lt);
-  margin-bottom: 12px;
-}
-
-.program-title {
-  font-family: 'Fraunces', serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--white);
-  margin-bottom: 8px;
-  line-height: 1.3;
-}
-
-.program-meta {
-  font-family: 'Jost', sans-serif;
-  font-size: 10px;
-  font-weight: 400;
-  color: var(--muted);
-  margin-bottom: 14px;
-  line-height: 1.8;
-}
-
-.program-why {
-  font-size: 13px;
-  color: rgba(255,255,255,.4);
-  font-style: italic;
-  line-height: 1.6;
-  font-weight: 300;
-}
-
-.program-lock {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: rgba(26,26,20,.7);
-  gap: 8px;
-  opacity: 0;
-  transition: opacity .2s;
-}
-
-.program-card.blurred:hover .program-lock { opacity: 1; }
-
-.program-lock-text {
-  font-family: 'Jost', sans-serif;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--green);
-}
-
-.directory-cta { margin-top: 40px; text-align: center; }
-
-.directory-note {
-  font-family: 'Jost', sans-serif;
-  font-size: 13px;
-  color: var(--ink2);
-  letter-spacing: .06em;
-  margin-top: 16px;
+.faq-q[aria-expanded="true"] .faq-icon { transform: rotate(45deg); }
+.faq-a { overflow: hidden; max-height: 0; transition: max-height .3s ease; }
+.faq-a p {
+  font-size: 16px; font-weight: 300; color: var(--ink2);
+  line-height: 1.8; padding-bottom: 22px;
 }
 
 /* ── PRICING ── */
@@ -750,60 +676,6 @@ section { padding: 100px 80px; }
   letter-spacing: .04em;
 }
 
-/* ── REFERRAL ── */
-.referral-section { background: var(--green-dk); padding: 80px; }
-
-.referral-inner { max-width: 700px; margin: 0 auto; text-align: center; }
-.referral-inner .section-title { color: var(--white); }
-.referral-inner .section-eyebrow { color: #a0d898; justify-content: center; }
-.referral-inner .section-eyebrow::before { background: #a0d898; }
-
-.referral-body {
-  font-size: 17px;
-  color: rgba(255,255,255,.75);
-  line-height: 1.7;
-  margin: 20px 0 40px;
-  font-weight: 300;
-}
-
-.referral-body strong { color: var(--white); }
-
-.referral-card {
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.15);
-  border-radius: 8px;
-  padding: 28px 32px;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  text-align: left;
-}
-
-.referral-num {
-  font-family: 'Fraunces', serif;
-  font-size: 56px;
-  font-weight: 700;
-  color: var(--white);
-  line-height: 1;
-  flex-shrink: 0;
-  letter-spacing: -.04em;
-}
-
-.referral-detail-title {
-  font-family: 'Fraunces', serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--white);
-  margin-bottom: 6px;
-}
-
-.referral-detail-body {
-  font-size: 14px;
-  color: rgba(255,255,255,.65);
-  font-weight: 300;
-  line-height: 1.6;
-}
-
 /* ── FOOTER ── */
 footer { background: var(--ink); padding: 60px 80px; }
 
@@ -898,15 +770,16 @@ footer { background: var(--ink); padding: 60px 80px; }
   section { padding: 70px 32px; }
   .how-grid { grid-template-columns: 1fr; gap: 40px; }
   .step-connector { display: none; }
-  .features-grid { grid-template-columns: 1fr; }
-  .directory-grid { grid-template-columns: 1fr; }
+  .feat-list { grid-template-columns: 1fr; }
+  .feat-row { border-right: none; }
+  .feat-row:nth-last-child(-n+2) { border-bottom: 1px solid var(--border); }
+  .feat-row:last-child { border-bottom: none; }
   .pricing-wrapper { grid-template-columns: 1fr; max-width: 400px; }
   .footer-inner { grid-template-columns: 1fr; gap: 40px; }
   .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
   .footer-disclaimer { text-align: center; }
   nav { padding: 0 20px; }
   .nav-links { gap: 20px; }
-  .referral-section { padding: 60px 32px; }
   footer { padding: 60px 32px; }
 }
 </style>
@@ -960,7 +833,7 @@ footer { background: var(--ink); padding: 60px 80px; }
           <span style="font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:#ffffff;">FundBug</span>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:8px;color:#b8b8b8;letter-spacing:1px;text-transform:uppercase;line-height:1.4;">Your bi-weekly digest</div>
+          <div style="font-size:8px;color:#b8b8b8;letter-spacing:1px;text-transform:uppercase;line-height:1.4;">Your funding digest</div>
           <div style="font-size:8px;color:#e0e0e0;letter-spacing:1px;text-transform:uppercase;">April 9, 2026</div>
         </div>
       </div>
@@ -1037,7 +910,7 @@ footer { background: var(--ink); padding: 60px 80px; }
     <div class="how-step">
       <div class="step-num">03</div>
       <div class="step-title" style="color:var(--green);">Your digest arrives</div>
-      <div class="step-body" style="color:var(--ink2);">Every two weeks, a ranked digest lands in your inbox — each opportunity explained from your perspective. Why you qualify, how competitive it is, and what to keep in mind if you apply. We do the research. You make the call.</div>
+      <div class="step-body" style="color:var(--ink2);">On the 1st and 3rd Tuesday, a ranked digest lands in your inbox — each opportunity explained from your perspective. Why you qualify, how competitive it is, and what to keep in mind if you apply. We do the research. You make the call.</div>
     </div>
   </div>
 </section>
@@ -1047,106 +920,156 @@ footer { background: var(--ink); padding: 60px 80px; }
   <div class="section-eyebrow">What you get</div>
   <h2 class="section-title">Built around your business</h2>
   <p class="section-subtitle">Every part of FundBug is designed around one question: what funding programs fit this specific business, right now?</p>
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon">🔍</div>
-      <div class="feature-title">Bi-weekly digest</div>
-      <div class="feature-body">Your best matches, ranked and explained, on the 1st and 3rd Tuesday of every month. Your top opportunity is always first.</div>
+
+  <div class="feat-list">
+
+    <div class="feat-row">
+      <div class="feat-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="14" height="13" rx="2"/>
+          <path d="M3 8h14M7 2v4M13 2v4"/>
+        </svg>
+      </div>
+      <div class="feat-content">
+        <div class="feat-title">Digest on the 1st and 3rd Tuesday</div>
+        <div class="feat-body">Your best matches, ranked and explained, twice a month on a predictable schedule. Your top grant opportunity is always first — everything else ordered by fit and odds.</div>
+      </div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">⚡</div>
-      <div class="feature-title">Urgent alerts</div>
-      <div class="feature-body">When a high-match program has a deadline closing fast, or a new grant appears that fits you perfectly — you hear about it right away, not in two weeks.</div>
+
+    <div class="feat-row">
+      <div class="feat-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="10" cy="10" r="3"/>
+          <path d="M10 3v2M10 15v2M3 10h2M15 10h2M5.05 5.05l1.41 1.41M13.54 13.54l1.41 1.41M5.05 14.95l1.41-1.41M13.54 6.46l1.41-1.41"/>
+        </svg>
+      </div>
+      <div class="feat-content">
+        <div class="feat-title">Personalized matching</div>
+        <div class="feat-body">Every match includes a plain-English explanation written specifically for your business — why you qualify, what to emphasize in your application, and what to watch out for.</div>
+      </div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🎯</div>
-      <div class="feature-title">Personalized matching</div>
-      <div class="feature-body">Every match comes with a plain-English explanation written for your business specifically — why you qualify, what to emphasize, and what to watch out for.</div>
+
+    <div class="feat-row">
+      <div class="feat-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 2a6 6 0 016 6c0 4-6 10-6 10S4 12 4 8a6 6 0 016-6z"/>
+          <circle cx="10" cy="8" r="2"/>
+        </svg>
+      </div>
+      <div class="feat-content">
+        <div class="feat-title">Human-vetted programs</div>
+        <div class="feat-body">Every program in our database is reviewed and verified by a real person. No expired listings, no AI-hallucinated grants, no programs that closed in February still showing up in March.</div>
+      </div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">📊</div>
-      <div class="feature-title">Competition scoring</div>
-      <div class="feature-body">Every program is rated Low, Medium, High, or Lottery competition. Your digest is sorted so your best odds always come first — no wasted afternoons on long shots.</div>
+
+    <div class="feat-row">
+      <div class="feat-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 15l4-4 3 3 5-6"/>
+          <path d="M2 17h16"/>
+        </svg>
+      </div>
+      <div class="feat-content">
+        <div class="feat-title">Competition scoring</div>
+        <div class="feat-body">Every program is rated Low, Medium, High, or Lottery. Your digest is sorted so your best odds come first — no wasted afternoons chasing programs that get thousands of applicants for five awards.</div>
+      </div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">💰</div>
-      <div class="feature-title">Beyond grants</div>
-      <div class="feature-body">Grants, matching grants, SBA loans, CDFIs, pitch competitions, tax credits, corporate programs, state loans. The full spectrum of capital — not just the headline stuff.</div>
+
+    <div class="feat-row">
+      <div class="feat-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="16" height="12" rx="2"/>
+          <path d="M6 5V4a2 2 0 014 0v1M10 5V4a2 2 0 014 0v1"/>
+          <path d="M6 11h8M6 14h5"/>
+        </svg>
+      </div>
+      <div class="feat-content">
+        <div class="feat-title">Beyond grants</div>
+        <div class="feat-body">Grants, matching grants, SBA loans, CDFIs, tax credits, corporate programs, state loans. The full spectrum of capital — not just the headline stuff that everyone already knows about.</div>
+      </div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🗂</div>
-      <div class="feature-title">Curated database</div>
-      <div class="feature-body">The funding landscape shifts constantly — programs open, deadlines pass, new money gets announced. We track those changes continuously so your digest always reflects what's actually available right now.</div>
+
+    <div class="feat-row">
+      <div class="feat-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 10a6 6 0 0112 0"/>
+          <path d="M16 10a6 6 0 01-12 0"/>
+          <path d="M13 7l3 3-3 3"/>
+        </svg>
+      </div>
+      <div class="feat-content">
+        <div class="feat-title">Continuously updated</div>
+        <div class="feat-body">Programs open and close throughout the year. We track those changes on an ongoing basis so your digest reflects what's actually available right now — not what was current last quarter.</div>
+      </div>
     </div>
+
   </div>
 </section>
 
-<!-- PROGRAMS DIRECTORY TEASER -->
-<section class="directory-section" id="programs">
-  <div class="section-eyebrow">Program directory</div>
-  <h2 class="section-title">See what we're tracking</h2>
-  <p class="section-subtitle">A sample of programs in our database. Subscribe to see which ones fit your business and why.</p>
-  <div class="directory-grid">
-    <div class="program-card">
-      <div class="program-type-badge">Matching Grant · MA Only</div>
-      <div class="program-title">Biz-M-Power Crowdfunding Match Grant</div>
-      <div class="program-meta">Up to $10,000 · Free money · Rolling deadline</div>
-      <div class="program-why">Massachusetts program that matches crowdfunding raises — ideal for businesses with capital equipment or expansion needs.</div>
-    </div>
-    <div class="program-card blurred">
-      <div class="program-type-badge">Grant · National</div>
-      <div class="program-title">Amber Grant Foundation Monthly Grant</div>
-      <div class="program-meta">Up to $10,000 · Monthly · Low competition</div>
-      <div class="program-why">Subscribe to see why this fits your business specifically and how competitive your application would be.</div>
-      <div class="program-lock">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="9" rx="2" stroke="#5a9e52" stroke-width="1.5"/><path d="M7 9V6a3 3 0 016 0v3" stroke="#5a9e52" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <div class="program-lock-text">Subscribe to see your fit</div>
+<!-- FAQ -->
+<section class="faq-section" id="faq">
+  <div class="faq-inner">
+    <div class="section-eyebrow">FAQ</div>
+    <h2 class="section-title">Frequently asked questions</h2>
+    <div class="faq-list">
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          What is FundBug?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><p>FundBug is a funding intelligence service for small business owners. We track grants, loans, tax credits, matching grants, and corporate programs across Massachusetts, Rhode Island, Pennsylvania, and nationally — and send you a personalized digest of the programs that actually fit your business on the 1st and 3rd Tuesday of every month. Every program in our database is reviewed and kept current by a real person.</p></div>
       </div>
-    </div>
-    <div class="program-card blurred">
-      <div class="program-type-badge">CDFI Loan · MA</div>
-      <div class="program-title">MGCC Microloan Program</div>
-      <div class="program-meta">Up to $50,000 · 4.5% interest · Rolling</div>
-      <div class="program-why">Subscribe to see why this fits your business specifically and how to position your application.</div>
-      <div class="program-lock">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="9" rx="2" stroke="#5a9e52" stroke-width="1.5"/><path d="M7 9V6a3 3 0 016 0v3" stroke="#5a9e52" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <div class="program-lock-text">Subscribe to see your fit</div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          Who is FundBug for?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><p>FundBug is built for for-profit small business owners who want a simpler way to find funding without spending hours on government portals and grant databases. If you're running a business in MA, RI, or PA and want to know what money is available to you — without the noise — FundBug is built for you.</p></div>
       </div>
-    </div>
-    <div class="program-card blurred">
-      <div class="program-type-badge">Matching Grant · MA Only</div>
-      <div class="program-title">Empower Digital Grant Program</div>
-      <div class="program-meta">Varies · Free money · Rolling deadline</div>
-      <div class="program-why">Subscribe to see your personalized fit score and application strategy for this program.</div>
-      <div class="program-lock">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="9" rx="2" stroke="#5a9e52" stroke-width="1.5"/><path d="M7 9V6a3 3 0 016 0v3" stroke="#5a9e52" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <div class="program-lock-text">Subscribe to see your fit</div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          How is FundBug different from Google, AI tools, or other grant databases?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><p>Every program in FundBug's database is manually vetted and continuously maintained — which means no expired listings, no AI-hallucinated programs, and none of the stale information you get from a search engine. We also do the matching work for you. Your digest isn't a generic list; it's ranked and explained specifically for your business. You see why each program is relevant to you, how competitive it is, and what to keep in mind before applying.</p></div>
       </div>
-    </div>
-    <div class="program-card blurred">
-      <div class="program-type-badge">SBA Loan · National</div>
-      <div class="program-title">SBA Microloan Program</div>
-      <div class="program-meta">Up to $50,000 · Low interest · Rolling</div>
-      <div class="program-why">Subscribe to see your personalized fit score and application strategy for this program.</div>
-      <div class="program-lock">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="9" rx="2" stroke="#5a9e52" stroke-width="1.5"/><path d="M7 9V6a3 3 0 016 0v3" stroke="#5a9e52" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <div class="program-lock-text">Subscribe to see your fit</div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          Is there a free trial?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><p>Yes — all new subscribers get a 14-day free trial. Your card is saved at signup but not charged until your trial ends. If you cancel before 14 days, you won't be charged anything.</p></div>
       </div>
-    </div>
-    <div class="program-card blurred">
-      <div class="program-type-badge">Corporate Program · National</div>
-      <div class="program-title">Comcast RISE Equipment Grant</div>
-      <div class="program-meta">Up to $10,000 · Equipment only · Deadline varies</div>
-      <div class="program-why">Subscribe to see your personalized fit score and application strategy for this program.</div>
-      <div class="program-lock">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="9" rx="2" stroke="#5a9e52" stroke-width="1.5"/><path d="M7 9V6a3 3 0 016 0v3" stroke="#5a9e52" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <div class="program-lock-text">Subscribe to see your fit</div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          Why isn't FundBug free?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><p>Finding and maintaining accurate funding information is real work. We don't scrape links and call it a database — every program is tracked, verified, and updated by hand. That takes time, and we charge for it. At $25/month, if FundBug surfaces one grant worth applying for, it pays for itself many times over.</p></div>
       </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          Can I cancel anytime?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><p>Yes. Cancel anytime from your subscriber portal. Your access stays active through the end of your billing period — no proration, no hassle.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          Do you guarantee I'll get funded?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><p>No — and you should be skeptical of any service that does. Grants are competitive, and the final decision rests entirely with the program administrator. What we guarantee is that the programs we surface are real, current, and matched to your business. What you do with that information is up to you.</p></div>
+      </div>
+
     </div>
-  </div>
-  <div class="directory-cta">
-    <a href="signup.html" class="btn-primary">Subscribe to see your matches →</a>
-    <div class="directory-note">First digest free · Start matching today</div>
   </div>
 </section>
 
@@ -1155,7 +1078,7 @@ footer { background: var(--ink); padding: 60px 80px; }
   <div style="text-align:center">
     <div class="section-eyebrow" style="justify-content:center">Simple pricing</div>
     <h2 class="section-title">One service. Two ways to pay.</h2>
-    <p class="section-subtitle" style="margin:0 auto">Your first digest is free — no charge until you've seen what we find. If it surfaces one program worth applying for, it pays for itself many times over.</p>
+    <p class="section-subtitle" style="margin:0 auto">Try it free for 14 days — no charge until your trial ends. If it surfaces one program worth applying for, it pays for itself many times over.</p>
   </div>
   <div class="pricing-wrapper">
     <div class="pricing-card">
@@ -1163,14 +1086,14 @@ footer { background: var(--ink); padding: 60px 80px; }
       <div class="pricing-price"><sup>$</sup>25</div>
       <div class="pricing-period">per month · cancel anytime</div>
       <ul class="pricing-features">
-        <li>Bi-weekly funding digest</li>
-        <li>Urgent deadline alerts</li>
+        <li>Digest on the 1st and 3rd Tuesday</li>
         <li>Personalized match scoring</li>
+        <li>Human-vetted, continuously updated programs</li>
         <li>Competition level ratings</li>
         <li>Subscriber portal</li>
       </ul>
       <a href="signup.html?plan=monthly" class="btn-primary" style="width:100%;text-align:center;display:block;">Start free trial</a>
-      <div class="pricing-trial">First digest free · Card saved, not charged today</div>
+      <div class="pricing-trial">14-day free trial · No charge until your trial ends</div>
     </div>
     <div class="pricing-card featured">
       <div class="pricing-badge">Best value — save $50/year</div>
@@ -1181,45 +1104,14 @@ footer { background: var(--ink); padding: 60px 80px; }
       <ul class="pricing-features">
         <li>Everything in monthly</li>
         <li>Priority match processing</li>
-        <li>Annual funding strategy review</li>
         <li>Early access to new features</li>
         <li>Referral bonus: 1 free month per paying referral</li>
       </ul>
       <a href="signup.html?plan=annual" class="btn-primary" style="width:100%;text-align:center;display:block;">Start free trial</a>
-      <div class="pricing-trial">First digest free · Card saved, not charged today</div>
+      <div class="pricing-trial">14-day free trial · No charge until your trial ends</div>
     </div>
   </div>
 </section>
-
-<!-- REFERRAL -->
-<section class="referral-section">
-  <div class="referral-inner">
-    <div class="section-eyebrow">Referral program</div>
-    <h2 class="section-title">Know another business owner?</h2>
-    <p class="referral-body">
-      Every subscriber gets a unique referral link. When someone you refer becomes a paying subscriber, <strong>you get one month free</strong> — automatically credited to your next billing cycle. No limits.
-    </p>
-    <div class="referral-card">
-      <div class="referral-num">$25</div>
-      <div>
-        <div class="referral-detail-title">Free for every paying referral</div>
-        <div class="referral-detail-body">Your referral link is in your subscriber portal. Share it with other business owners in your area — every paying subscriber you refer puts a free month back in your pocket.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-
-  <!-- GRANTS 101 CALLOUT -->
-  <section style="background:var(--cream2);padding:64px 40px;text-align:center;">
-    <div style="max-width:640px;margin:0 auto;">
-      <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--green-dk);margin-bottom:12px;">Learn the basics</div>
-      <h2 style="font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:var(--ink);margin-bottom:12px;line-height:1.2;">New to small business grants?</h2>
-      <p style="font-size:16px;font-weight:300;color:var(--ink2);margin-bottom:24px;line-height:1.7;">Not sure what grants are, how to apply, or what to avoid? We wrote a plain-English guide covering everything you need to know before you start applying.</p>
-      <a href="grants-guide.html" style="display:inline-block;background:var(--ink);color:var(--white);font-family:'Jost',sans-serif;font-size:14px;font-weight:500;padding:12px 28px;border-radius:6px;text-decoration:none;transition:opacity .15s;">Read Grants 101 →</a>
-    </div>
-  </section>
 
 <footer>
   <div class="footer-inner">
@@ -1248,7 +1140,7 @@ footer { background: var(--ink); padding: 60px 80px; }
     </div>
   </div>
   <div class="footer-bottom">
-    <div class="footer-legal">© 2026 FundBug · fundbug.net · 82 Wendell Ave, Suite 100, Pittsfield, MA 01201</div>
+    <div class="footer-legal">© 2026 FundBug LLC · fundbug.net · 82 Wendell Ave, Suite 100, Pittsfield, MA 01201</div>
     <div class="footer-disclaimer">FundBug surfaces funding opportunities for informational purposes only. Always verify eligibility and terms directly with the program provider before applying.</div>
   </div>
 </footer>
