@@ -41,6 +41,63 @@ body {
 
 h1, h2, h3, h4 { font-family: 'Fraunces', serif; line-height: 1.15; }
 
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  z-index: 200;
+}
+.nav-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--cream2);
+  border-radius: 2px;
+  transition: all .25s;
+}
+.nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 56px;
+  left: 0; right: 0;
+  background: var(--ink);
+  border-top: 1px solid rgba(255,255,255,.08);
+  z-index: 99;
+  flex-direction: column;
+  padding: 8px 0 20px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.4);
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  padding: 14px 24px;
+  font-family: 'Jost', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--cream2);
+  text-decoration: none;
+  transition: color .15s, background .15s;
+}
+.mobile-menu a:hover { color: var(--white); background: rgba(255,255,255,.04); }
+.mobile-menu-cta {
+  margin: 12px 24px 0;
+  padding: 12px 20px !important;
+  background: var(--green) !important;
+  color: var(--white) !important;
+  border-radius: 6px;
+  font-weight: 500 !important;
+  text-align: center;
+}
+.mobile-menu-cta:hover { background: var(--green-lt) !important; }
+
 /* ── NAV ── */
 nav {
   position: sticky;
@@ -778,8 +835,11 @@ footer { background: var(--ink); padding: 60px 80px; }
   .footer-inner { grid-template-columns: 1fr; gap: 40px; }
   .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
   .footer-disclaimer { text-align: center; }
-  nav { padding: 0 20px; }
-  .nav-links { gap: 20px; }
+  nav { padding: 0 16px; height: 56px; }
+  .nav-logo-icon { width: 36px !important; height: 36px !important; }
+  .nav-logo-text { font-size: 17px; }
+  .nav-links { display: none; }
+  .nav-hamburger { display: flex; }
   footer { padding: 60px 32px; }
 }
 </style>
@@ -808,7 +868,21 @@ footer { background: var(--ink); padding: 60px 80px; }
     <li><a href="portal.html">Sign in</a></li>
     <li><a href="signup.html" class="nav-cta">Get started</a></li>
   </ul>
+  <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Open menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#how" onclick="closeMenu()">How it works</a>
+  <a href="#pricing" onclick="closeMenu()">Pricing</a>
+  <a href="grants-guide.html" onclick="closeMenu()">Grants 101</a>
+  <a href="about.html" onclick="closeMenu()">About</a>
+  <a href="contact.html" onclick="closeMenu()">Contact</a>
+  <a href="portal.html" onclick="closeMenu()">Sign in</a>
+  <a href="signup.html" class="mobile-menu-cta" onclick="closeMenu()">Get started →</a>
+</div>
 
 <!-- HERO -->
 <section class="hero">
@@ -1145,5 +1219,22 @@ footer { background: var(--ink); padding: 60px 80px; }
   </div>
 </footer>
 
+<script>
+function toggleMenu() {
+  const btn = document.querySelector('.nav-hamburger');
+  const menu = document.getElementById('mobileMenu');
+  const open = menu.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+}
+function closeMenu() {
+  document.querySelector('.nav-hamburger').classList.remove('open');
+  document.getElementById('mobileMenu').classList.remove('open');
+}
+// Close menu on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('nav') && !e.target.closest('.mobile-menu')) closeMenu();
+});
+</script>
 </body>
 </html>
