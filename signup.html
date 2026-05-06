@@ -611,9 +611,9 @@
 
 <div class="success-container" id="success-container">
   <div class="success-icon">✓</div>
-  <h1 id="success-name" style="font-family:'Fraunces',serif;margin-bottom:12px;">You're in.</h1>
-  <p style="color:var(--ink2);font-weight:400;font-size:16px;margin-bottom:8px;">Check your email — a verification link is on its way.</p>
-  <p style="color:var(--muted);font-weight:300;font-size:14px;margin-bottom:24px;">Your first digest will be in your inbox shortly after you verify.</p>
+  <h1 id="success-name" style="font-family:'Fraunces',serif;margin-bottom:12px;">You're all set!</h1>
+  <p style="color:var(--ink2);font-weight:400;font-size:16px;margin-bottom:8px;">We've sent you an email — please verify your email address to receive your first digest.</p>
+  <p style="color:var(--muted);font-weight:300;font-size:14px;margin-bottom:24px;">Check your inbox (and spam folder, just in case).</p>
   <button class="btn-primary" onclick="window.location.href='portal.html'" style="width:100%;margin-top:8px;">Go to your portal →</button>
 </div>
 
@@ -878,7 +878,7 @@ async function handleSubmit(e) {
     get('signup-form').style.display = 'none';
     document.getElementById('summary-panel').style.display = 'none';
     document.getElementById('success-container').classList.add('show');
-    document.getElementById('success-name').textContent = `Welcome to FundBug, ${payload.business_name}!`;
+    document.getElementById('success-name').textContent = `You're all set, ${payload.first_name}!`;
     localStorage.setItem('fundbug_token', data.token);
   } catch (err) {
     alert('Signup failed: ' + err.message);
