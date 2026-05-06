@@ -295,7 +295,6 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
           <div class="stat-tile"><div class="stat-num green" id="ov-digests">—</div><div class="stat-lbl">Digests received</div></div>
           <div class="stat-tile"><div class="stat-num green" id="ov-tracked">—</div><div class="stat-lbl">Programs tracked</div></div>
           <div class="stat-tile"><div class="stat-num" id="ov-favorites">—</div><div class="stat-lbl">Favorites starred</div></div>
-          <div class="stat-tile"><div class="stat-num" id="ov-referrals">—</div><div class="stat-lbl">Referrals made</div></div>
         </div>
 
         <div class="card" style="background:var(--ink);border-color:var(--ink);padding:20px 24px;margin-bottom:20px">
@@ -758,7 +757,6 @@ async function loadOverview() {
   try {
     const data = await apiFetch('/api/portal/overview');
     document.getElementById('ov-digests').textContent = data.digest_count ?? '0';
-    document.getElementById('ov-referrals').textContent = data.referral_count ?? '0';
     if (data.next_digest_date) {
       const d = new Date(data.next_digest_date + 'T13:00:00Z');
       const diff = Math.ceil((d - new Date()) / (1000*60*60*24));
@@ -799,15 +797,39 @@ async function loadProfile() {
     document.getElementById('prof-email').value = data.email || '';
     document.getElementById('prof-description').value = data.description || '';
     if (document.getElementById('prof-funding-note')) document.getElementById('prof-funding-note').value = data.funding_note || '';
-    // Load industry tags (supports both old string and new array)
-    const indVals = Array.isArray(data.industry) ? data.industry : (data.industry ? [data.industry] : []);
+    // Load industry tags (handle three possible storage shapes from upstream:
+    //   1. Array of strings (preferred — column is JSONB)
+    //   2. JSON-encoded string like "[\"apparel\",\"retail\"]" (column is TEXT)
+    //   3. Bare string single value (legacy)
+    let indVals = [];
+    if (Array.isArray(data.industry)) {
+      indVals = data.industry;
+    } else if (typeof data.industry === 'string') {
+      const trimmed = data.industry.trim();
+      if (trimmed.startsWith('[')) {
+        try { indVals = JSON.parse(trimmed); } catch(_) { indVals = [trimmed]; }
+      } else if (trimmed) {
+        indVals = [trimmed];
+      }
+    }
     document.querySelectorAll('#prof-industry-tags .tag-option').forEach(t => {
       t.classList.toggle('selected', indVals.includes(t.dataset.value));
     });
     const indCount = document.getElementById('prof-industry-count');
     if (indCount) indCount.textContent = indVals.length ? `${indVals.length} of 3 selected` : 'Select up to 3';
-    if (data.employee_count) document.getElementById('prof-employees').value = data.employee_count;
-    if (data.annual_revenue) document.getElementById('prof-revenue').value = data.annual_revenue;
+    // Employee count and revenue come back as ints from the API (signup
+    // collapses ranges to representative values). Map back to the dropdown
+    // bucket so the UI shows the right option.
+    const empReverseMap = {1: '1', 3: '2-5', 8: '6-10', 15: '11-25', 35: '26-50', 60: '50+'};
+    const revReverseMap = {50000: 'under_100k', 100000: '100k_500k', 500000: '500k_1m', 1000000: '1m_5m', 5000000: 'over_5m'};
+    if (data.employee_count != null) {
+      const empBucket = empReverseMap[data.employee_count];
+      if (empBucket) document.getElementById('prof-employees').value = empBucket;
+    }
+    if (data.annual_revenue != null) {
+      const revBucket = revReverseMap[data.annual_revenue];
+      if (revBucket) document.getElementById('prof-revenue').value = revBucket;
+    }
     loadPreferencesUI(data);
   } catch(e) { console.log('Profile load error:', e.message); }
 }
@@ -1233,8 +1255,11 @@ function buildTrackerCard(prog, isFav) {
 function renderTracker() {
   const favList  = document.getElementById('tracker-favorites-list');
   const allList  = document.getElementById('tracker-all-list');
-  const favEmpty = document.getElementById('tracker-favorites-empty');
-  const allEmpty = document.getElementById('tracker-all-empty');
+
+  if (!favList || !allList) {
+    console.log('renderTracker: tracker list containers not in DOM');
+    return;
+  }
 
   const favs = trackerData.filter(p => p.is_favorite);
   const rest = trackerData.filter(p => !p.is_favorite && !p.dismissed);
@@ -1242,21 +1267,25 @@ function renderTracker() {
   // Favorites
   favList.innerHTML = '';
   if (favs.length) {
-    favEmpty.style.display = 'none';
     favs.forEach(p => favList.appendChild(buildTrackerCard(p, true)));
   } else {
-    favList.appendChild(favEmpty);
-    favEmpty.style.display = 'block';
+    const emptyMsg = document.createElement('div');
+    emptyMsg.className = 'tracker-empty';
+    emptyMsg.id = 'tracker-favorites-empty';
+    emptyMsg.textContent = 'Star a program below to add it here.';
+    favList.appendChild(emptyMsg);
   }
 
   // All programs
   allList.innerHTML = '';
   if (rest.length) {
-    allEmpty.style.display = 'none';
     rest.forEach(p => allList.appendChild(buildTrackerCard(p, false)));
   } else {
-    allList.appendChild(allEmpty);
-    allEmpty.style.display = 'block';
+    const emptyMsg = document.createElement('div');
+    emptyMsg.className = 'tracker-empty';
+    emptyMsg.id = 'tracker-all-empty';
+    emptyMsg.textContent = 'Your matched programs will appear here after your first digest.';
+    allList.appendChild(emptyMsg);
   }
 }
 
