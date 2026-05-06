@@ -21,8 +21,9 @@ body{background:var(--cream);color:var(--ink);font-family:'Jost',sans-serif;font
 .login-logo{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:var(--green);margin-bottom:4px}
 .login-sub{font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:32px}
 label{display:block;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;color:var(--ink);margin-bottom:6px}
-input,select,textarea{width:100%;padding:10px 13px;background:var(--cream);border:1px solid var(--border);border-radius:5px;font-family:'Jost',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color .15s;appearance:none;margin-bottom:16px}
-input:focus,select:focus,textarea:focus{border-color:var(--green);background:var(--white)}
+input:not([type="radio"]):not([type="checkbox"]),select,textarea{width:100%;padding:10px 13px;background:var(--cream);border:1px solid var(--border);border-radius:5px;font-family:'Jost',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color .15s;appearance:none;margin-bottom:16px}
+input[type="radio"],input[type="checkbox"]{width:auto;margin:0;accent-color:var(--green);cursor:pointer}
+input:not([type="radio"]):not([type="checkbox"]):focus,select:focus,textarea:focus{border-color:var(--green);background:var(--white)}
 textarea{height:100px;resize:vertical;line-height:1.6}
 select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a8578' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;cursor:pointer}
 .btn{display:block;width:100%;background:var(--green);color:#fff;font-family:'Jost',sans-serif;font-size:15px;font-weight:500;padding:13px;border-radius:5px;border:none;cursor:pointer;transition:background .15s;text-align:center}
