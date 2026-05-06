@@ -405,6 +405,7 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
             <div class="form-group">
               <label>Annual revenue</label>
               <select id="prof-revenue">
+                <option value="">Prefer not to say</option>
                 <option value="under_100k">Under $100K</option>
                 <option value="100k_500k">$100K – $500K</option>
                 <option value="500k_1m">$500K – $1M</option>
@@ -582,11 +583,6 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
         <div class="card">
           <div class="card-title">Billing history</div>
           <div id="billingHistory" style="font-size:13px;color:var(--muted);font-weight:300">No charges yet — your trial is active.</div>
-        </div>
-        <div class="card" style="border-color:#f0c8c0">
-          <div class="card-title" style="color:var(--red)">Danger zone</div>
-          <p style="font-size:13px;font-weight:300;color:var(--muted);margin-bottom:16px;line-height:1.6">Permanently delete your account and all associated data. This cannot be undone.</p>
-          <button class="btn-sm danger" onclick="deleteAccount()">Delete my account</button>
         </div>
 
         <div class="card">
@@ -767,13 +763,18 @@ async function loadOverview() {
       document.getElementById('nextDigestDate').textContent = 'Your next digest is coming soon.';
     }
     if (data.recent_digests?.length) {
-      document.getElementById('recentDigests').innerHTML = data.recent_digests.slice(0,3).map(d => `
+      document.getElementById('recentDigests').innerHTML = data.recent_digests.slice(0,3).map(d => {
+        const matchCount = d.slot_count ?? d.match_count ?? 0;
+        const sentDate = d.sent_at ? new Date(d.sent_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+        const businessName = subscriber?.business_name || 'your business';
+        return `
         <div class="digest-item">
-          <div class="digest-date">${new Date(d.sent_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
-          <div class="digest-title">${d.match_count} matches for ${subscriber?.business_name || 'your business'}</div>
-          <div class="digest-count">${d.match_count} matches</div>
+          <div class="digest-date">${sentDate}</div>
+          <div class="digest-title">${matchCount} matches for ${businessName}</div>
+          <div class="digest-count">${matchCount} matches</div>
           <div class="digest-arrow">→</div>
-        </div>`).join('');
+        </div>`;
+      }).join('');
     }
     // Load tracker stats separately — non-blocking
     try {
@@ -826,9 +827,15 @@ async function loadProfile() {
       const empBucket = empReverseMap[data.employee_count];
       if (empBucket) document.getElementById('prof-employees').value = empBucket;
     }
+    // Annual revenue: explicitly set to empty when null so the
+    // "Prefer not to say" option is selected rather than the dropdown
+    // defaulting to its first listed bucket.
     if (data.annual_revenue != null) {
       const revBucket = revReverseMap[data.annual_revenue];
       if (revBucket) document.getElementById('prof-revenue').value = revBucket;
+      else document.getElementById('prof-revenue').value = '';
+    } else {
+      document.getElementById('prof-revenue').value = '';
     }
     loadPreferencesUI(data);
   } catch(e) { console.log('Profile load error:', e.message); }
