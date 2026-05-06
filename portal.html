@@ -957,6 +957,36 @@ function copyRefLink() {
 async function loadSubscription() {
   try {
     const data = await apiFetch('/api/portal/subscription');
+
+    // Comp subscribers (beta tester access) get a tailored view — no Stripe
+    // billing details, no plan switching, no cancel/pause. The Subscription
+    // page becomes a "Beta access" status card.
+    if (data.plan === 'comp') {
+      document.getElementById('sub-plan').textContent = 'Beta access — no payment required';
+      document.getElementById('planBadge').textContent = 'Beta';
+      const statusEl = document.getElementById('sub-status');
+      statusEl.textContent = 'Active';
+      statusEl.style.color = 'var(--green)';
+      document.getElementById('sub-next-bill').textContent = '—';
+      document.getElementById('sub-credits').textContent = '$0.00';
+
+      // Hide all paid-only actions (switch plan, pause, manage billing in Stripe, cancel)
+      const subActions = document.getElementById('sub-actions');
+      if (subActions) subActions.style.display = 'none';
+
+      // Hide banners that only apply to paid users
+      const bannerCancel = document.getElementById('banner-cancel-pending');
+      const bannerPastDue = document.getElementById('banner-past-due');
+      if (bannerCancel) bannerCancel.style.display = 'none';
+      if (bannerPastDue) bannerPastDue.style.display = 'none';
+
+      // Update billing history blurb
+      const billingEl = document.getElementById('billingHistory');
+      if (billingEl) billingEl.textContent = "You're a FundBug beta tester — no billing history.";
+
+      return;
+    }
+
     const planLabel = data.plan === 'annual' ? 'Annual — $250/year' : data.plan === 'trial' ? 'Free trial — converts to monthly' : 'Monthly — $25/month';
     document.getElementById('sub-plan').textContent = planLabel;
     document.getElementById('planBadge').textContent = data.plan === 'annual' ? 'Annual' : 'Monthly';
