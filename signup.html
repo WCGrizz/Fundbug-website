@@ -390,6 +390,24 @@
         </div>
 
         <div class="form-group">
+          <label>Do you own the property where your business operates?</label>
+          <p class="field-explanation">Some grants and loans are specifically for property owners (facade, energy, accessibility upgrades). Others are for tenants. We use this to filter your matches accurately.</p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <label class="checkbox-label"><input type="radio" name="property_ownership" value="own"><span>Yes, I own it</span></label>
+            <label class="checkbox-label"><input type="radio" name="property_ownership" value="rent"><span>No, I rent or lease</span></label>
+            <label class="checkbox-label"><input type="radio" name="property_ownership" value="na"><span>Doesn't apply (home-based or fully online)</span></label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label" style="margin-bottom:6px;">
+            <input type="checkbox" id="is-home-based" name="is_home_based">
+            <span>My business is operated from my home</span>
+          </label>
+          <p class="field-explanation">Some programs require a brick-and-mortar location and aren't open to home-based businesses. This flag is independent of selling online — many home-based businesses (manufacturing, services, repair) have physical operations.</p>
+        </div>
+
+        <div class="form-group">
           <label>Do you sell products or services online?</label>
           <p class="field-explanation">Several programs — including state e-commerce grants and digital adoption programs — are specifically for businesses that sell online. This helps us match or filter a meaningful slice of your opportunities.</p>
           <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
@@ -471,6 +489,19 @@
           </div>
           <div class="other-funding-wrap" id="other-funding-wrap" style="display:none;margin-top:8px;">
             <input type="text" id="other-funding-text" name="funding_purpose_other" placeholder="Tell us more about what you're looking to fund…" style="padding:9px 12px;font-size:14px;">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>What's the most daunting part of finding and applying for grants? (select all that apply)</label>
+          <p class="field-explanation">Helps us understand where to invest in product features that actually save you time. Optional.</p>
+          <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" name="daunting_factors" value="finding"><span>Finding the right ones</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="daunting_factors" value="time"><span>Time required to apply</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="daunting_factors" value="eligibility"><span>Eligibility uncertainty</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="daunting_factors" value="complexity"><span>Application complexity</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="daunting_factors" value="deadlines"><span>Tracking deadlines</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="daunting_factors" value="other"><span>Other</span></label>
           </div>
         </div>
 
@@ -574,6 +605,12 @@
           <label>Card details <span class="req">*</span></label>
           <div id="card-element"></div>
           <div id="card-errors"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="checkbox-label" style="align-items:flex-start;gap:10px;">
+            <input type="checkbox" id="certified-adult" required style="margin-top:3px;width:17px;height:17px;flex-shrink:0;accent-color:var(--green);">
+            <span style="font-size:14px;font-weight:300;color:var(--ink2);line-height:1.6;">I confirm I am 18 years of age or older.</span>
+          </label>
         </div>
         <div class="form-group" style="margin-bottom:20px;">
           <label class="checkbox-label" style="align-items:flex-start;gap:10px;">
@@ -801,6 +838,18 @@ function validateStep(step) {
 async function handleSubmit(e) {
   e.preventDefault();
   if (!validateStep(currentStep)) return;
+  // Explicit checkbox validation — `required` attribute alone doesn't catch
+  // unchecked checkboxes when the form uses a JS submit handler.
+  if (!document.getElementById('certified-adult').checked) {
+    alert('Please confirm you are 18 years of age or older.');
+    document.getElementById('certified-adult').focus();
+    return;
+  }
+  if (!document.getElementById('terms-consent').checked) {
+    alert('Please agree to the Terms of Service and Privacy Policy.');
+    document.getElementById('terms-consent').focus();
+    return;
+  }
   const btn = document.getElementById('submit-btn');
   btn.disabled = true; btn.textContent = 'Processing…';
   try {
@@ -849,6 +898,8 @@ async function handleSubmit(e) {
       location_type: get('location-type').value || 'physical',
       is_seasonal: get('is-seasonal').checked,
       peak_season_months: checked('peak_season_months'),
+      property_ownership: (document.querySelector('input[name="property_ownership"]:checked') || {}).value || null,
+      is_home_based: get('is-home-based').checked,
       sells_online: !!(document.querySelector('input[name="sells_online"]:checked') || {}).value,
       online_via_own_site: get('own-site').checked,
       online_via_third_party: get('third-party').checked,
@@ -864,6 +915,8 @@ async function handleSubmit(e) {
       immigrant_owned: demographics.includes('immigrant-owned'),
       funding_purpose: checked('funding_purpose'),
       funding_purpose_other: get('other-funding-text').value || null,
+      daunting_factors: checked('daunting_factors'),
+      certified_adult: get('certified-adult').checked,
       owner_demographics: demographics,
       payment_method_id: paymentMethodId,
       plan: document.querySelector('input[name="plan"]:checked').value,
