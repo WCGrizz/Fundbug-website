@@ -236,6 +236,9 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
     <div style="text-align:center;margin-top:10px">
       <a href="#" onclick="showForgotPassword()" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;">Forgot your password?</a>
     </div>
+    <div style="text-align:center;margin-top:6px">
+      <a href="#" onclick="showResendVerify()" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;">Didn't get your verification email? Resend it</a>
+    </div>
     <div class="login-toggle" onclick="window.location.href='signup.html'">Not a subscriber? <span>Get started →</span></div>
   </div>
 </div>
@@ -253,6 +256,26 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
         <input type="email" id="forgotEmail" placeholder="you@yourbusiness.com">
       </div>
       <button class="btn" onclick="doForgotPassword()">Send reset link</button>
+    </div>
+    <div style="text-align:center;margin-top:16px">
+      <a href="#" onclick="showLogin()" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;">← Back to sign in</a>
+    </div>
+  </div>
+</div>
+
+<!-- RESEND VERIFICATION -->
+<div id="resendVerifyWrap" class="login-wrap" style="display:none">
+  <div class="login-card">
+    <div class="login-logo">FundBug</div>
+    <div class="login-sub">Resend verification email</div>
+    <div id="resendVerifyMsg" class="login-err" style="color:var(--green)"></div>
+    <div id="resendVerifyErr" class="login-err"></div>
+    <div id="resendVerifyForm">
+      <div class="form-group">
+        <label>Email address</label>
+        <input type="email" id="resendVerifyEmail" placeholder="you@yourbusiness.com" onkeydown="if(event.key==='Enter')doResendVerify()">
+      </div>
+      <button class="btn" onclick="doResendVerify()">Send verification email</button>
     </div>
     <div style="text-align:center;margin-top:16px">
       <a href="#" onclick="showLogin()" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;">← Back to sign in</a>
@@ -490,8 +513,38 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
             </select>
           </div>
           <div class="form-group" style="display:flex;align-items:center;gap:10px;">
-            <input type="checkbox" id="prof-is-seasonal" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
+            <input type="checkbox" id="prof-is-seasonal" onchange="toggleProfPeakMonths()" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
             <label style="margin:0;font-weight:400;">My business is seasonal</label>
+          </div>
+          <div class="form-group" id="prof-peak-months-wrap" style="display:none;margin-top:-8px;margin-left:27px;">
+            <label style="margin-bottom:8px;font-size:13px;color:var(--ink2);">Which months are your peak season?</label>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="January" style="accent-color:var(--green);">Jan</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="February" style="accent-color:var(--green);">Feb</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="March" style="accent-color:var(--green);">Mar</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="April" style="accent-color:var(--green);">Apr</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="May" style="accent-color:var(--green);">May</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="June" style="accent-color:var(--green);">Jun</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="July" style="accent-color:var(--green);">Jul</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="August" style="accent-color:var(--green);">Aug</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="September" style="accent-color:var(--green);">Sep</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="October" style="accent-color:var(--green);">Oct</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="November" style="accent-color:var(--green);">Nov</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="December" style="accent-color:var(--green);">Dec</label>
+            </div>
+          </div>
+          <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="prof-is-home-based" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
+            <label style="margin:0;font-weight:400;">My business is operated from my home</label>
+          </div>
+          <div class="form-group">
+            <label>Do you own the property where your business operates?</label>
+            <select id="prof-property-ownership">
+              <option value="">Select…</option>
+              <option value="own">Yes, I own it</option>
+              <option value="rent">No, I rent or lease</option>
+              <option value="na">Doesn't apply (home-based or fully online)</option>
+            </select>
           </div>
           <div class="form-group" style="display:flex;align-items:center;gap:10px;">
             <input type="checkbox" id="prof-is-startup" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
@@ -655,15 +708,53 @@ let subscriber = JSON.parse(localStorage.getItem('fb_sub') || 'null');
 
 function showForgotPassword() {
   document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('resendVerifyWrap').style.display = 'none';
   document.getElementById('forgotWrap').style.display = 'flex';
   document.getElementById('forgotEmail').value = document.getElementById('loginEmail').value || '';
   document.getElementById('forgotMsg').textContent = '';
   document.getElementById('forgotErr').textContent = '';
 }
 
+function showResendVerify() {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('forgotWrap').style.display = 'none';
+  document.getElementById('resendVerifyWrap').style.display = 'flex';
+  // Pre-fill from login email if present, for convenience
+  document.getElementById('resendVerifyEmail').value = document.getElementById('loginEmail').value || '';
+  document.getElementById('resendVerifyMsg').textContent = '';
+  document.getElementById('resendVerifyErr').textContent = '';
+  document.getElementById('resendVerifyForm').style.display = 'block';
+}
+
 function showLogin() {
   document.getElementById('forgotWrap').style.display = 'none';
+  document.getElementById('resendVerifyWrap').style.display = 'none';
   document.getElementById('loginWrap').style.display = 'flex';
+}
+
+async function doResendVerify() {
+  const email = document.getElementById('resendVerifyEmail').value.trim();
+  document.getElementById('resendVerifyErr').textContent = '';
+  document.getElementById('resendVerifyMsg').textContent = '';
+  if (!email) {
+    document.getElementById('resendVerifyErr').textContent = 'Please enter your email address.';
+    return;
+  }
+  try {
+    const r = await fetch(API + '/api/public-resend-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    // Backend returns the same generic message for every outcome (anti-enumeration).
+    // Frontend mirrors that — show a single generic confirmation regardless of
+    // whether the email exists, is verified, or is rate-limited.
+    document.getElementById('resendVerifyForm').style.display = 'none';
+    document.getElementById('resendVerifyMsg').textContent =
+      "If that email is registered and unverified, we've sent a new verification link. Please check your inbox.";
+  } catch (e) {
+    document.getElementById('resendVerifyErr').textContent = 'Something went wrong. Please try again.';
+  }
 }
 
 async function doForgotPassword() {
@@ -913,6 +1004,23 @@ function loadPreferencesUI(data) {
   if (data.grant_experience) document.getElementById('prof-grant-experience').value = data.grant_experience;
   document.getElementById('prof-is-seasonal').checked = data.is_seasonal || false;
   document.getElementById('prof-is-startup').checked = data.is_startup || false;
+  document.getElementById('prof-is-home-based').checked = data.is_home_based || false;
+  if (data.property_ownership) document.getElementById('prof-property-ownership').value = data.property_ownership;
+  // Restore peak season month checkboxes from saved value
+  const savedPeak = Array.isArray(data.peak_season_months) ? data.peak_season_months : [];
+  document.querySelectorAll('input[name="prof-peak-month"]').forEach(cb => {
+    cb.checked = savedPeak.includes(cb.value);
+  });
+  toggleProfPeakMonths();
+}
+
+// Show/hide peak-season month grid based on is_seasonal checkbox state.
+function toggleProfPeakMonths() {
+  const checked = document.getElementById('prof-is-seasonal').checked;
+  document.getElementById('prof-peak-months-wrap').style.display = checked ? '' : 'none';
+  if (!checked) {
+    document.querySelectorAll('input[name="prof-peak-month"]').forEach(cb => cb.checked = false);
+  }
 }
 
 async function saveProfile() {
@@ -961,7 +1069,12 @@ async function savePreferences() {
       government_contracting: document.querySelector('input[name="prof-govt-contracting"]:checked')?.value === 'true',
       grant_experience: document.getElementById('prof-grant-experience').value || null,
       is_seasonal: document.getElementById('prof-is-seasonal').checked,
+      peak_season_months: document.getElementById('prof-is-seasonal').checked
+        ? Array.from(document.querySelectorAll('input[name="prof-peak-month"]:checked')).map(cb => cb.value)
+        : [],
       is_startup: document.getElementById('prof-is-startup').checked,
+      is_home_based: document.getElementById('prof-is-home-based').checked,
+      property_ownership: document.getElementById('prof-property-ownership').value || null,
     });
     const conf = document.getElementById('prefConfirm');
     conf.classList.add('show'); setTimeout(() => conf.classList.remove('show'), 2500);

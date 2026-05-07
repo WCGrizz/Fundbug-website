@@ -227,9 +227,20 @@
   } else if (status === 'invalid') {
     icon.textContent     = '🔗';
     headline.textContent = 'That link didn\'t work.';
-    subtext.textContent  = 'This verification link may have expired or already been used. Log in to your portal to request a new one.';
-    actions.innerHTML    = '<a href="https://fundbug.net/portal.html" class="btn">Go to your portal →</a>';
-    tip.textContent      = 'Questions? Reach us at hello@fundbug.net.';
+    subtext.textContent  = 'This verification link may have expired or already been used. Enter your email and we\'ll send you a fresh one.';
+    actions.innerHTML    =
+      '<div id="vResendWrap" style="margin-top:8px;text-align:left;max-width:320px;margin-left:auto;margin-right:auto;">' +
+        '<input type="email" id="vResendEmail" placeholder="you@yourbusiness.com" ' +
+          'style="width:100%;padding:10px 14px;border:1px solid #d8d3c8;border-radius:6px;font-family:Jost,sans-serif;font-size:14px;color:#1a1a14;background:#ffffff;outline:none;margin-bottom:8px;" ' +
+          'onkeydown="if(event.key===\'Enter\')vResend()">' +
+        '<button onclick="vResend()" id="vResendBtn" ' +
+          'style="width:100%;padding:11px;background:#5a9e52;color:#ffffff;border:none;border-radius:6px;font-family:Jost,sans-serif;font-size:14px;font-weight:600;cursor:pointer;">' +
+          'Send a new verification email' +
+        '</button>' +
+        '<div id="vResendMsg" style="font-size:13px;color:#5a9e52;margin-top:10px;line-height:1.5;"></div>' +
+        '<div id="vResendErr" style="font-size:13px;color:#c44b2a;margin-top:10px;"></div>' +
+      '</div>';
+    tip.textContent      = 'Already verified? Sign in at fundbug.net/portal — questions: hello@fundbug.net.';
   } else if (status === 'error') {
     icon.textContent     = '⚠';
     headline.textContent = 'Something went wrong.';
@@ -242,6 +253,39 @@
     subtext.textContent  = 'Your email address has been confirmed.';
     actions.innerHTML    = '<a href="https://fundbug.net/portal.html" class="btn">Go to your portal →</a>';
     tip.textContent      = 'Your digests are on the way.';
+  }
+
+  // Inline resend handler used by the status=invalid branch.
+  // Backend returns the same generic message for every outcome (anti-enumeration),
+  // and the frontend mirrors that — no detail leakage.
+  async function vResend() {
+    const emailInput = document.getElementById('vResendEmail');
+    const btn        = document.getElementById('vResendBtn');
+    const msg        = document.getElementById('vResendMsg');
+    const err        = document.getElementById('vResendErr');
+    if (!emailInput) return;
+    const email = emailInput.value.trim();
+    err.textContent = '';
+    msg.textContent = '';
+    if (!email) { err.textContent = 'Please enter your email address.'; return; }
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    try {
+      await fetch('https://fundbug-production.up.railway.app/api/public-resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      // Hide the form, show generic confirmation.
+      document.getElementById('vResendWrap').innerHTML =
+        '<div style="font-size:14px;color:#3d7a38;line-height:1.6;">' +
+          'If that email is registered and unverified, we\'ve sent a new verification link. Please check your inbox.' +
+        '</div>';
+    } catch (e) {
+      err.textContent = 'Something went wrong. Please try again.';
+      btn.disabled = false;
+      btn.textContent = 'Send a new verification email';
+    }
   }
 </script>
 </body>
