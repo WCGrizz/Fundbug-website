@@ -164,19 +164,19 @@
     icon.style.color     = '#5a9e52';
     headline.textContent = 'Email verified.';
     subtext.textContent  = 'You\'re all set. Your FundBug digest will be in your inbox within a few minutes.';
-    actions.innerHTML    = '<div style="font-size:13px;color:#8a8578;font-style:italic;margin-top:8px">Taking you to your portal…</div>';
+    actions.innerHTML    = '<a href="https://fundbug.net/portal.html" class="btn" id="continueBtn">Continue to your portal →</a>';
     tip.innerHTML        = '<strong>One more thing:</strong> Add digests@fundbug.net to your contacts so future digests come through cleanly.';
 
-    // Auto-login redirect: if a short-lived JWT is in the URL fragment,
-    // store it and bounce to the portal. Fragment is read on the client
-    // only — never sent to servers in referer headers or logs.
+    // Auto-login: store the short-lived JWT from the URL fragment so the
+    // user lands in the portal already logged in. Fragment is read on the
+    // client only — never sent to servers in referer headers or logs.
     (async function autoLogin() {
       try {
         const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
         const loginToken = hashParams.get('token');
         if (!loginToken) {
-          // No token (older email or edge case) — fall back to manual button
-          actions.innerHTML = '<a href="https://fundbug.net/portal.html" class="btn">Go to your portal →</a>';
+          // No token (older email or edge case). Button still works — it
+          // just sends them to the login screen instead of auto-logging in.
           return;
         }
 
@@ -187,7 +187,7 @@
 
         // Pre-fetch profile so the portal lands fully populated rather than
         // showing a flash of the login screen while the token-only state is
-        // resolved. If the fetch fails, portal.html will retry on its own.
+        // resolved. If the fetch fails, portal.html will recover on its own.
         try {
           const r = await fetch('https://fundbug-production.up.railway.app/api/portal/profile', {
             headers: { 'Authorization': 'Bearer ' + loginToken }
@@ -206,14 +206,15 @@
         } catch (e) { /* portal.html will recover */ }
 
         // Clear the token from the URL fragment so it doesn't sit in browser
-        // history. Then redirect to the portal after a brief moment so the
-        // ✓ confirmation registers consciously.
+        // history. Then auto-redirect to the portal after 5 seconds — long
+        // enough to read the verified message comfortably without feeling
+        // rushed. The Continue button above lets users skip ahead.
         history.replaceState(null, '', window.location.pathname + '?status=success');
         setTimeout(() => {
           window.location.href = 'https://fundbug.net/portal.html';
-        }, 1500);
+        }, 5000);
       } catch (e) {
-        actions.innerHTML = '<a href="https://fundbug.net/portal.html" class="btn">Go to your portal →</a>';
+        // Fall through — Continue button still works
       }
     })();
   } else if (status === 'already') {
