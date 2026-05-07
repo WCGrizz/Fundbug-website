@@ -879,7 +879,17 @@ async function handleSubmit(e) {
     document.getElementById('summary-panel').style.display = 'none';
     document.getElementById('success-container').classList.add('show');
     document.getElementById('success-name').textContent = `You're all set, ${payload.first_name}!`;
-    localStorage.setItem('fundbug_token', data.token);
+    // Store auth state under the key portal.html actually reads (fb_token + fb_sub).
+    // Earlier signups wrote 'fundbug_token' which the portal ignored, forcing users
+    // to log in again after signup. Now post-signup → "Go to portal" works seamlessly.
+    localStorage.setItem('fb_token', data.token);
+    localStorage.setItem('fb_sub', JSON.stringify({
+      id:                   data.subscriber_id,
+      email:                data.email,
+      first_name:           payload.first_name || '',
+      business_name:        payload.business_name || '',
+      subscription_status:  'trial',
+    }));
   } catch (err) {
     alert('Signup failed: ' + err.message);
     btn.disabled = false; btn.textContent = 'Start free trial →';

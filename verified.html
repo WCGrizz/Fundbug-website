@@ -163,9 +163,59 @@
     icon.textContent     = '✓';
     icon.style.color     = '#5a9e52';
     headline.textContent = 'Email verified.';
-    subtext.textContent  = 'You\'re all set. Your FundBug digest will be in your inbox within 24 hours.';
-    actions.innerHTML    = '<a href="https://fundbug.net/portal.html" class="btn">Go to your portal →</a>';
-    tip.innerHTML        = '<strong>One more thing:</strong> Add digests@fundbug.net to your contacts so your digest always lands in Primary.';
+    subtext.textContent  = 'You\'re all set. Your FundBug digest will be in your inbox within a few minutes.';
+    actions.innerHTML    = '<div style="font-size:13px;color:#8a8578;font-style:italic;margin-top:8px">Taking you to your portal…</div>';
+    tip.innerHTML        = '<strong>One more thing:</strong> Add digests@fundbug.net to your contacts so future digests come through cleanly.';
+
+    // Auto-login redirect: if a short-lived JWT is in the URL fragment,
+    // store it and bounce to the portal. Fragment is read on the client
+    // only — never sent to servers in referer headers or logs.
+    (async function autoLogin() {
+      try {
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+        const loginToken = hashParams.get('token');
+        if (!loginToken) {
+          // No token (older email or edge case) — fall back to manual button
+          actions.innerHTML = '<a href="https://fundbug.net/portal.html" class="btn">Go to your portal →</a>';
+          return;
+        }
+
+        // Store token immediately so portal.html bootstrap finds it.
+        // portal.html will fetch /api/portal/profile to populate fb_sub
+        // when token is present but fb_sub is missing.
+        localStorage.setItem('fb_token', loginToken);
+
+        // Pre-fetch profile so the portal lands fully populated rather than
+        // showing a flash of the login screen while the token-only state is
+        // resolved. If the fetch fails, portal.html will retry on its own.
+        try {
+          const r = await fetch('https://fundbug-production.up.railway.app/api/portal/profile', {
+            headers: { 'Authorization': 'Bearer ' + loginToken }
+          });
+          if (r.ok) {
+            const p = await r.json();
+            const sub = {
+              id:                  p.subscriber_id,
+              email:                p.email,
+              first_name:           p.first_name || '',
+              business_name:        p.business_name || '',
+              subscription_status:  p.subscription_status || 'trial',
+            };
+            localStorage.setItem('fb_sub', JSON.stringify(sub));
+          }
+        } catch (e) { /* portal.html will recover */ }
+
+        // Clear the token from the URL fragment so it doesn't sit in browser
+        // history. Then redirect to the portal after a brief moment so the
+        // ✓ confirmation registers consciously.
+        history.replaceState(null, '', window.location.pathname + '?status=success');
+        setTimeout(() => {
+          window.location.href = 'https://fundbug.net/portal.html';
+        }, 1500);
+      } catch (e) {
+        actions.innerHTML = '<a href="https://fundbug.net/portal.html" class="btn">Go to your portal →</a>';
+      }
+    })();
   } else if (status === 'already') {
     icon.textContent     = '✓';
     icon.style.color     = '#5a9e52';

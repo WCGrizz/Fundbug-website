@@ -1164,8 +1164,42 @@ async function loadAccountEmail() {
   } catch(e) {}
 }
 
-if (token && subscriber) showApp();
-else document.getElementById('loginWrap').style.display = 'flex';
+async function bootstrapApp() {
+  // Three states:
+  //   1. token + fb_sub present  → show app immediately
+  //   2. token present, no fb_sub → fetch profile, populate fb_sub, show app
+  //                                  (covers post-verify auto-login + post-signup)
+  //   3. no token                 → show login screen
+  if (token && subscriber) {
+    showApp();
+    return;
+  }
+  if (token && !subscriber) {
+    try {
+      const r = await fetch(API + '/api/portal/profile', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (r.ok) {
+        const p = await r.json();
+        subscriber = {
+          id:                  p.subscriber_id,
+          email:                p.email,
+          first_name:           p.first_name || '',
+          business_name:        p.business_name || '',
+          subscription_status:  p.subscription_status || 'trial',
+        };
+        localStorage.setItem('fb_sub', JSON.stringify(subscriber));
+        showApp();
+        return;
+      }
+      // Token rejected — clear it and fall through to login
+      localStorage.removeItem('fb_token');
+      token = null;
+    } catch (e) { /* network — fall through to login */ }
+  }
+  document.getElementById('loginWrap').style.display = 'flex';
+}
+bootstrapApp();
 
 async function saveDescription() {
   const btn = document.getElementById('save-desc-btn');
