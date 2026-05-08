@@ -465,6 +465,19 @@
         </div>
 
         <div class="form-group">
+          <label>Are you currently exporting your products or services internationally, or considering it?</label>
+          <div class="hint-text">This includes physical goods, digital services, and professional consulting sold to customers outside the U.S. STEP and similar programs only fund businesses with active or planned export activity.</div>
+          <div class="toggle-row" style="margin-top:10px;">
+            <label class="toggle-option">
+              <input type="radio" name="exports" value="false" checked> No
+            </label>
+            <label class="toggle-option" style="margin-left:24px;">
+              <input type="radio" name="exports" value="true"> Yes
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
           <label>Grant experience</label>
           <select id="grant-experience" name="grant_experience">
             <option value="">Select…</option>
@@ -911,6 +924,7 @@ async function handleSubmit(e) {
       third_party_platforms: checked('third_party_platforms'),
       bank_financing_access: get('bank-access').value || null,
       government_contracting: document.querySelector('input[name="government_contracting"]:checked')?.value === 'true',
+      exports: document.querySelector('input[name="exports"]:checked')?.value === 'true',
       grant_experience: get('grant-experience').value || null,
       women_owned: demographics.includes('woman-owned'),
       minority_owned: demographics.includes('minority-owned'),

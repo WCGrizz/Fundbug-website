@@ -509,6 +509,17 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
             </div>
           </div>
           <div class="form-group">
+            <label>Are you currently exporting, or considering exporting, internationally?</label>
+            <div style="display:flex;gap:24px;margin-top:8px;">
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;">
+                <input type="radio" name="prof-exports" id="prof-exports-no" value="false" style="accent-color:var(--green);"> No
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;">
+                <input type="radio" name="prof-exports" id="prof-exports-yes" value="true" style="accent-color:var(--green);"> Yes
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
             <label>Grant experience</label>
             <select id="prof-grant-experience">
               <option value="">Select…</option>
@@ -1006,6 +1017,10 @@ function loadPreferencesUI(data) {
   const govtRadio = document.querySelector(`input[name="prof-govt-contracting"][value="${govtVal}"]`);
   if (govtRadio) govtRadio.checked = true;
   else document.getElementById('prof-govt-contracting-no').checked = true;
+  const exportsVal = data.exports === true ? 'true' : 'false';
+  const exportsRadio = document.querySelector(`input[name="prof-exports"][value="${exportsVal}"]`);
+  if (exportsRadio) exportsRadio.checked = true;
+  else document.getElementById('prof-exports-no').checked = true;
   if (data.grant_experience) document.getElementById('prof-grant-experience').value = data.grant_experience;
   document.getElementById('prof-is-seasonal').checked = data.is_seasonal || false;
   document.getElementById('prof-is-startup').checked = data.is_startup || false;
@@ -1072,6 +1087,7 @@ async function savePreferences() {
       location_type: document.getElementById('prof-location-type').value || null,
       bank_financing_access: document.getElementById('prof-bank-access').value || null,
       government_contracting: document.querySelector('input[name="prof-govt-contracting"]:checked')?.value === 'true',
+      exports: document.querySelector('input[name="prof-exports"]:checked')?.value === 'true',
       grant_experience: document.getElementById('prof-grant-experience').value || null,
       is_seasonal: document.getElementById('prof-is-seasonal').checked,
       peak_season_months: document.getElementById('prof-is-seasonal').checked
