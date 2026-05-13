@@ -562,6 +562,38 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
               <option value="na">Doesn't apply (home-based or fully online)</option>
             </select>
           </div>
+          <div class="form-group">
+            <label>Do you sell products or services online?</label>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;">
+                <input type="radio" name="prof-sells-online" id="prof-sells-online-yes" value="yes" onchange="toggleProfOnlineDetails()" style="accent-color:var(--green);"> Yes, I sell online
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;">
+                <input type="radio" name="prof-sells-online" id="prof-sells-online-no" value="no" onchange="toggleProfOnlineDetails()" style="accent-color:var(--green);"> No, I don't sell online
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;">
+                <input type="radio" name="prof-sells-online" id="prof-sells-online-want-to" value="want_to" onchange="toggleProfOnlineDetails()" style="accent-color:var(--green);"> Not currently, but I'd like to
+              </label>
+            </div>
+            <div id="prof-online-details" style="display:none;margin-top:12px;padding:12px;background:var(--cream);border-radius:5px;border:1px solid var(--border);">
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;margin-bottom:8px;">
+                <input type="checkbox" id="prof-own-site" style="accent-color:var(--green);"> Through my own website
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;margin-bottom:0;">
+                <input type="checkbox" id="prof-third-party" onchange="toggleProfPlatforms()" style="accent-color:var(--green);"> Through third-party platforms (Amazon, Etsy, eBay, etc.)
+              </label>
+              <div id="prof-platform-list" style="display:none;margin-top:10px;padding-left:24px;">
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px;"><input type="checkbox" name="prof-third-party-platforms" value="amazon" style="accent-color:var(--green);"> Amazon</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px;"><input type="checkbox" name="prof-third-party-platforms" value="etsy" style="accent-color:var(--green);"> Etsy</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px;"><input type="checkbox" name="prof-third-party-platforms" value="ebay" style="accent-color:var(--green);"> eBay</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px;"><input type="checkbox" name="prof-third-party-platforms" value="shopify" style="accent-color:var(--green);"> Shopify</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px;"><input type="checkbox" name="prof-third-party-platforms" value="faire" style="accent-color:var(--green);"> Faire</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px;"><input type="checkbox" name="prof-third-party-platforms" value="other" style="accent-color:var(--green);"> Other</label>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="form-group" style="display:flex;align-items:center;gap:10px;">
             <input type="checkbox" id="prof-is-startup" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
             <label style="margin:0;font-weight:400;">My business is a start-up</label>
@@ -1026,6 +1058,21 @@ function loadPreferencesUI(data) {
   document.getElementById('prof-is-startup').checked = data.is_startup || false;
   document.getElementById('prof-is-home-based').checked = data.is_home_based || false;
   if (data.property_ownership) document.getElementById('prof-property-ownership').value = data.property_ownership;
+  // Sells online — restore the radio selection (yes / no / want_to); leave all unchecked if null
+  if (data.sells_online) {
+    const sellsRadio = document.querySelector(`input[name="prof-sells-online"][value="${data.sells_online}"]`);
+    if (sellsRadio) sellsRadio.checked = true;
+  }
+  // Sub-flags only relevant when sells_online === 'yes', but restore them regardless so they're
+  // preserved across edits. toggleProfOnlineDetails() then handles show/hide.
+  document.getElementById('prof-own-site').checked = data.online_via_own_site || false;
+  document.getElementById('prof-third-party').checked = data.online_via_third_party || false;
+  const savedPlatforms = Array.isArray(data.third_party_platforms) ? data.third_party_platforms : [];
+  document.querySelectorAll('input[name="prof-third-party-platforms"]').forEach(cb => {
+    cb.checked = savedPlatforms.includes(cb.value);
+  });
+  toggleProfOnlineDetails();
+  toggleProfPlatforms();
   // Restore peak season month checkboxes from saved value
   const savedPeak = Array.isArray(data.peak_season_months) ? data.peak_season_months : [];
   document.querySelectorAll('input[name="prof-peak-month"]').forEach(cb => {
@@ -1040,6 +1087,28 @@ function toggleProfPeakMonths() {
   document.getElementById('prof-peak-months-wrap').style.display = checked ? '' : 'none';
   if (!checked) {
     document.querySelectorAll('input[name="prof-peak-month"]').forEach(cb => cb.checked = false);
+  }
+}
+
+// Show/hide online-sales sub-flag checkboxes based on the sells_online radio.
+// Only shows when "Yes, I sell online" is selected — matches signup behavior.
+function toggleProfOnlineDetails() {
+  const selected = document.querySelector('input[name="prof-sells-online"]:checked');
+  const showDetails = selected && selected.value === 'yes';
+  document.getElementById('prof-online-details').style.display = showDetails ? 'block' : 'none';
+  if (!showDetails) {
+    document.getElementById('prof-own-site').checked = false;
+    document.getElementById('prof-third-party').checked = false;
+    toggleProfPlatforms();
+  }
+}
+
+// Show/hide third-party platform grid based on the third-party checkbox state.
+function toggleProfPlatforms() {
+  const checked = document.getElementById('prof-third-party').checked;
+  document.getElementById('prof-platform-list').style.display = checked ? 'block' : 'none';
+  if (!checked) {
+    document.querySelectorAll('input[name="prof-third-party-platforms"]').forEach(cb => cb.checked = false);
   }
 }
 
@@ -1096,6 +1165,12 @@ async function savePreferences() {
       is_startup: document.getElementById('prof-is-startup').checked,
       is_home_based: document.getElementById('prof-is-home-based').checked,
       property_ownership: document.getElementById('prof-property-ownership').value || null,
+      sells_online: document.querySelector('input[name="prof-sells-online"]:checked')?.value || null,
+      online_via_own_site: document.getElementById('prof-own-site').checked,
+      online_via_third_party: document.getElementById('prof-third-party').checked,
+      third_party_platforms: document.getElementById('prof-third-party').checked
+        ? Array.from(document.querySelectorAll('input[name="prof-third-party-platforms"]:checked')).map(cb => cb.value)
+        : [],
     });
     const conf = document.getElementById('prefConfirm');
     conf.classList.add('show'); setTimeout(() => conf.classList.remove('show'), 2500);
