@@ -627,15 +627,15 @@
           <label class="plan-option selected">
             <input type="radio" name="plan" value="annual" checked>
             <div class="plan-name">Annual</div>
-            <div class="plan-price">$250</div>
+            <div class="plan-price">$200</div>
             <div class="plan-period">per year</div>
             <div class="plan-cadence">Two digests a month</div>
-            <div class="plan-save">Save $50/year</div>
+            <div class="plan-save">Save $40/year</div>
           </label>
           <label class="plan-option">
             <input type="radio" name="plan" value="monthly">
             <div class="plan-name">Monthly</div>
-            <div class="plan-price">$25</div>
+            <div class="plan-price">$20</div>
             <div class="plan-period">per month</div>
             <div class="plan-cadence">Two digests a month</div>
           </label>
@@ -1023,7 +1023,7 @@ function updateSummary() {
   const city = document.getElementById('city').value, state = document.getElementById('state').value, zip = document.getElementById('zip-code') ? document.getElementById('zip-code').value : '';
   document.getElementById('summary-location').textContent = (city && state) ? `${city}, ${state}${zip ? ' ' + zip : ''}` : '—';
   const plan = document.querySelector('input[name="plan"]:checked')?.value;
-  document.getElementById('summary-plan').textContent = plan === 'annual' ? 'Annual – $250/yr' : 'Monthly – $25/mo';
+  document.getElementById('summary-plan').textContent = plan === 'annual' ? 'Annual – $200/yr' : 'Monthly – $20/mo';
 }
 
 function toggleSeasonalMonths() {

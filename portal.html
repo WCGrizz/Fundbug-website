@@ -669,7 +669,7 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
             </div>
             <div style="display:flex;gap:14px;align-items:flex-start">
               <div style="width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:13px;font-weight:600;flex-shrink:0">3</div>
-              <div><div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px">You get a free month</div><div style="font-size:13px;color:var(--muted);font-weight:300">$25 credit applied to your next billing cycle automatically. No limit on referrals.</div></div>
+              <div><div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px">You get a free month</div><div style="font-size:13px;color:var(--muted);font-weight:300">$20 credit applied to your next billing cycle automatically. No limit on referrals.</div></div>
             </div>
           </div>
         </div>
@@ -706,7 +706,7 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
 
         <div class="card">
           <div class="card-title">Current plan <span id="planBadge" class="plan-badge">Annual</span></div>
-          <div class="sub-detail-row"><span class="sub-detail-lbl">Plan</span><span class="sub-detail-val" id="sub-plan">Annual — $250/year</span></div>
+          <div class="sub-detail-row"><span class="sub-detail-lbl">Plan</span><span class="sub-detail-val" id="sub-plan">Annual — $200/year</span></div>
           <div class="sub-detail-row"><span class="sub-detail-lbl">Status</span><span class="sub-detail-val" style="color:var(--green)" id="sub-status">Active</span></div>
           <div class="sub-detail-row"><span class="sub-detail-lbl">Next billing date</span><span class="sub-detail-val" id="sub-next-bill">—</span></div>
           <div class="sub-detail-row"><span class="sub-detail-lbl">Credits</span><span class="sub-detail-val" id="sub-credits">$0.00</span></div>
@@ -1228,7 +1228,7 @@ async function loadReferral() {
     const data = await apiFetch('/api/portal/referral');
     document.getElementById('refLink').textContent = data.referral_url || 'fundbug.net/ref/' + (data.referral_code || '...');
     document.getElementById('refCount').textContent = data.referral_count ?? '0';
-    document.getElementById('refCredits').textContent = '$' + ((data.credits_earned || 0) * 25);
+    document.getElementById('refCredits').textContent = '$' + ((data.credits_earned || 0) * 20);
   } catch(e) { document.getElementById('refLink').textContent = 'fundbug.net/ref/YOUR-CODE'; }
 }
 
@@ -1272,7 +1272,7 @@ async function loadSubscription() {
       return;
     }
 
-    const planLabel = data.plan === 'annual' ? 'Annual — $250/year' : data.plan === 'trial' ? 'Free trial — converts to monthly' : 'Monthly — $25/month';
+    const planLabel = data.plan === 'annual' ? 'Annual — $200/year' : data.plan === 'trial' ? 'Free trial — converts to monthly' : 'Monthly — $20/month';
     document.getElementById('sub-plan').textContent = planLabel;
     document.getElementById('planBadge').textContent = data.plan === 'annual' ? 'Annual' : 'Monthly';
 
@@ -1300,7 +1300,7 @@ async function loadSubscription() {
     if (data.next_billing_date) document.getElementById('sub-next-bill').textContent = new Date(data.next_billing_date).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
     document.getElementById('sub-credits').textContent = '$' + (data.credit_balance || 0).toFixed(2);
     const switchBtn = document.getElementById('btn-switch-plan');
-    if (switchBtn) switchBtn.textContent = data.plan === 'annual' ? 'Switch to Monthly' : 'Switch to Annual — Save $50';
+    if (switchBtn) switchBtn.textContent = data.plan === 'annual' ? 'Switch to Monthly' : 'Switch to Annual — Save $40';
 
     // Render state banners
     const bannerCancel = document.getElementById('banner-cancel-pending');
