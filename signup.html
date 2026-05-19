@@ -392,19 +392,6 @@
         </div>
 
         <div class="form-group">
-          <label>Where do you operate? <span class="req">*</span></label>
-          <select id="location-type" name="location_type" required>
-            <option value="">Select…</option>
-            <option value="physical_own">Physical location — I own the space</option>
-            <option value="physical_rent">Physical location — I rent the space</option>
-            <option value="home_based">Home-based business</option>
-            <option value="mobile">Mobile (food truck, landscaping, etc.)</option>
-          </select>
-          <div class="hint-text">Affects eligibility for real estate grants and location-based programs.</div>
-          <div class="error-message"></div>
-        </div>
-
-        <div class="form-group">
           <label class="checkbox-label" style="margin-bottom:6px;">
             <input type="checkbox" id="is-seasonal" name="is_seasonal" onchange="toggleSeasonalMonths()">
             <span>My business is seasonal</span>
@@ -430,21 +417,21 @@
         </div>
 
         <div class="form-group">
+          <label class="checkbox-label" style="margin-bottom:6px;">
+            <input type="checkbox" id="is-home-based" name="is_home_based">
+            <span>My business is operated from my home</span>
+          </label>
+          <p class="field-explanation">Some programs require a brick-and-mortar location and aren't open to home-based businesses. This is independent of selling online — many home-based businesses (manufacturing, services, repair) have physical operations.</p>
+        </div>
+
+        <div class="form-group">
           <label>Do you own the property where your business operates?</label>
-          <p class="field-explanation">Some grants and loans are specifically for property owners (facade, energy, accessibility upgrades). Others are for tenants. We use this to filter your matches accurately.</p>
+          <p class="field-explanation">Some grants and loans are specifically for property owners (facade, energy, accessibility upgrades). Others are for tenants. If you work from home or fully online, choose "Doesn't apply."</p>
           <div style="display:flex;flex-direction:column;gap:8px;">
             <label class="checkbox-label"><input type="radio" name="property_ownership" value="own"><span>Yes, I own it</span></label>
             <label class="checkbox-label"><input type="radio" name="property_ownership" value="rent"><span>No, I rent or lease</span></label>
             <label class="checkbox-label"><input type="radio" name="property_ownership" value="na"><span>Doesn't apply (home-based or fully online)</span></label>
           </div>
-        </div>
-
-        <div class="form-group">
-          <label class="checkbox-label" style="margin-bottom:6px;">
-            <input type="checkbox" id="is-home-based" name="is_home_based">
-            <span>My business is operated from my home</span>
-          </label>
-          <p class="field-explanation">Some programs require a brick-and-mortar location and aren't open to home-based businesses. This flag is independent of selling online — many home-based businesses (manufacturing, services, repair) have physical operations.</p>
         </div>
 
         <div class="form-group">
@@ -947,7 +934,18 @@ async function handleSubmit(e) {
       business_stage: !yr ? 'any' : parseInt(yr) < 2 ? 'startup' : parseInt(yr) < 6 ? 'growth' : 'established',
       is_startup: get('is-startup').checked,
       description: get('description').value || null,
-      location_type: get('location-type').value || 'physical',
+      location_type: (function() {
+        // Derived, not asked — the standalone "Where do you operate?" question
+        // was removed because it duplicated (and could contradict) the
+        // home-based checkbox and property-ownership radio below. location_type
+        // is stored for the portal/profile but is not used in match filtering;
+        // the hard filter reads is_home_based and property_ownership directly.
+        if (get('is-home-based').checked) return 'home_based';
+        const po = (document.querySelector('input[name="property_ownership"]:checked') || {}).value;
+        if (po === 'own')  return 'physical_own';
+        if (po === 'rent') return 'physical_rent';
+        return 'physical';
+      })(),
       is_seasonal: get('is-seasonal').checked,
       peak_season_months: checked('peak_season_months'),
       property_ownership: (document.querySelector('input[name="property_ownership"]:checked') || {}).value || null,
