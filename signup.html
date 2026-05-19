@@ -145,7 +145,12 @@
 
     .other-funding-wrap { display: none; margin-top: 8px; padding-left: 28px; }  
     .tag-selector{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-    .tag-option{display:inline-flex;align-items:center;padding:6px 14px;border-radius:20px;border:1px solid #ddd;background:#fff;font-size:13px;color:#666;cursor:pointer;transition:all .12s;user-select:none}
+    .tag-selector.grouped{display:block}
+    .tag-group{margin-top:14px}
+    .tag-group:first-child{margin-top:8px}
+    .tag-group-header{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:9px;letter-spacing:-0.01em}
+    .tag-group-options{display:flex;flex-wrap:wrap;gap:8px}
+    .tag-option{display:inline-flex;align-items:center;padding:6px 14px;border-radius:20px;border:1px solid #ddd;background:#fff;font-size:13px;color:var(--ink);cursor:pointer;transition:all .12s;user-select:none}
     .tag-option:hover{border-color:var(--green);color:var(--green)}
     .tag-option.selected{background:var(--green);border-color:var(--green);color:#fff;font-weight:500}
     .tag-count-hint{font-size:12px;color:#999;margin-top:6px}
@@ -244,42 +249,72 @@
         <div class="form-group">
           <label>Industry <span class="req">*</span></label>
           <p class="field-explanation">Select up to 3 industries that best describe your business. Many programs are industry-specific — the more accurate you are, the better your matches.</p>
-          <div class="tag-selector" id="industry-tags" data-max="3">
-            <div class="tag-option" data-value="agriculture">Agriculture / Farming</div>
-            <div class="tag-option" data-value="apparel">Apparel / Clothing</div>
-            <div class="tag-option" data-value="auto_marine">Auto / Marine Services</div>
-            <div class="tag-option" data-value="bakery">Bakery / Café</div>
-            <div class="tag-option" data-value="beauty">Beauty / Personal Care</div>
-            <div class="tag-option" data-value="biotech">Biotech / Life Sciences</div>
-            <div class="tag-option" data-value="brewery">Brewery / Distillery / Winery</div>
-            <div class="tag-option" data-value="childcare">Childcare / Early Education</div>
-            <div class="tag-option" data-value="cleaning">Cleaning / Maintenance Services</div>
-            <div class="tag-option" data-value="construction">Construction / Trades</div>
-            <div class="tag-option" data-value="crafts">Arts, Crafts &amp; Handmade Goods</div>
-            <div class="tag-option" data-value="event_planning">Event Planning / Catering</div>
-            <div class="tag-option" data-value="fishing">Fishing / Aquaculture</div>
-            <div class="tag-option" data-value="fitness">Fitness / Wellness Studio</div>
-            <div class="tag-option" data-value="floral">Floral / Florist</div>
-            <div class="tag-option" data-value="graphic_design">Graphic Design / Branding</div>
-            <div class="tag-option" data-value="healthcare">Healthcare / Wellness</div>
-            <div class="tag-option" data-value="home_decor">Home Decor / Furniture / Interiors</div>
-            <div class="tag-option" data-value="hospitality">Hospitality / Tourism</div>
-            <div class="tag-option" data-value="jewelry">Jewelry / Accessories</div>
-            <div class="tag-option" data-value="landscaping">Landscaping / Lawn Care</div>
-            <div class="tag-option" data-value="manufacturing">Manufacturing</div>
-            <div class="tag-option" data-value="music">Music / Performing Arts</div>
-            <div class="tag-option" data-value="pet">Pet Products / Services</div>
-            <div class="tag-option" data-value="photography">Photography / Videography</div>
-            <div class="tag-option" data-value="professional">Professional Services</div>
-            <div class="tag-option" data-value="property">Property Services</div>
-            <div class="tag-option" data-value="real_estate">Real Estate / Property Investment</div>
-            <div class="tag-option" data-value="restaurant">Restaurant / Food Service</div>
-            <div class="tag-option" data-value="retail">Retail</div>
-            <div class="tag-option" data-value="specialty_food">Specialty Food Producer</div>
-            <div class="tag-option" data-value="technology">Technology</div>
-            <div class="tag-option" data-value="transportation">Transportation / Logistics</div>
-            <div class="tag-option" data-value="vintage">Vintage / Antiques / Consignment</div>
-            <div class="tag-option" data-value="writing">Writing / Publishing / Media</div>
+          <div class="tag-selector grouped" id="industry-tags" data-max="3">
+            <div class="tag-group">
+              <div class="tag-group-header">Food & Hospitality</div>
+              <div class="tag-group-options">
+                <div class="tag-option" data-value="bakery">Bakery / Caf&eacute;</div>
+                <div class="tag-option" data-value="brewery">Brewery / Distillery / Winery</div>
+                <div class="tag-option" data-value="event_planning">Event Planning / Catering</div>
+                <div class="tag-option" data-value="hospitality">Hospitality / Tourism</div>
+                <div class="tag-option" data-value="restaurant">Restaurant / Food Service</div>
+                <div class="tag-option" data-value="specialty_food">Specialty Food Producer</div>
+              </div>
+            </div>
+            <div class="tag-group">
+              <div class="tag-group-header">Trades & Services</div>
+              <div class="tag-group-options">
+                <div class="tag-option" data-value="auto_marine">Auto / Marine Services</div>
+                <div class="tag-option" data-value="cleaning">Cleaning / Maintenance Services</div>
+                <div class="tag-option" data-value="construction">Construction / Trades</div>
+                <div class="tag-option" data-value="landscaping">Landscaping / Lawn Care</div>
+                <div class="tag-option" data-value="professional">Professional Services</div>
+                <div class="tag-option" data-value="property">Property Services</div>
+                <div class="tag-option" data-value="transportation">Transportation / Logistics</div>
+              </div>
+            </div>
+            <div class="tag-group">
+              <div class="tag-group-header">Retail & Goods</div>
+              <div class="tag-group-options">
+                <div class="tag-option" data-value="apparel">Apparel / Clothing</div>
+                <div class="tag-option" data-value="home_decor">Home Decor / Furniture / Interiors</div>
+                <div class="tag-option" data-value="jewelry">Jewelry / Accessories</div>
+                <div class="tag-option" data-value="pet">Pet Products / Services</div>
+                <div class="tag-option" data-value="retail">Retail</div>
+                <div class="tag-option" data-value="vintage">Vintage / Antiques / Consignment</div>
+              </div>
+            </div>
+            <div class="tag-group">
+              <div class="tag-group-header">Creative & Media</div>
+              <div class="tag-group-options">
+                <div class="tag-option" data-value="crafts">Arts, Crafts &amp; Handmade Goods</div>
+                <div class="tag-option" data-value="floral">Floral / Florist</div>
+                <div class="tag-option" data-value="graphic_design">Graphic Design / Branding</div>
+                <div class="tag-option" data-value="music">Music / Performing Arts</div>
+                <div class="tag-option" data-value="photography">Photography / Videography</div>
+                <div class="tag-option" data-value="writing">Writing / Publishing / Media</div>
+              </div>
+            </div>
+            <div class="tag-group">
+              <div class="tag-group-header">Health, Tech & Industry</div>
+              <div class="tag-group-options">
+                <div class="tag-option" data-value="beauty">Beauty / Personal Care</div>
+                <div class="tag-option" data-value="biotech">Biotech / Life Sciences</div>
+                <div class="tag-option" data-value="childcare">Childcare / Early Education</div>
+                <div class="tag-option" data-value="fitness">Fitness / Wellness Studio</div>
+                <div class="tag-option" data-value="healthcare">Healthcare / Wellness</div>
+                <div class="tag-option" data-value="manufacturing">Manufacturing</div>
+                <div class="tag-option" data-value="technology">Technology</div>
+              </div>
+            </div>
+            <div class="tag-group">
+              <div class="tag-group-header">Land & Property</div>
+              <div class="tag-group-options">
+                <div class="tag-option" data-value="agriculture">Agriculture / Farming</div>
+                <div class="tag-option" data-value="fishing">Fishing / Aquaculture</div>
+                <div class="tag-option" data-value="real_estate">Real Estate / Property Investment</div>
+              </div>
+            </div>
           </div>
           <div class="tag-count-hint" id="industry-count">Select up to 3</div>
           <div class="error-message" id="industry-error"></div>
@@ -918,7 +953,12 @@ async function handleSubmit(e) {
       peak_season_months: checked('peak_season_months'),
       property_ownership: (document.querySelector('input[name="property_ownership"]:checked') || {}).value || null,
       is_home_based: get('is-home-based').checked,
-      sells_online: !!(document.querySelector('input[name="sells_online"]:checked') || {}).value,
+      sells_online: (function() {
+        const v = (document.querySelector('input[name="sells_online"]:checked') || {}).value;
+        if (v === 'yes' || v === 'want_to') return true;
+        if (v === 'no') return false;
+        return null;
+      })(),
       online_via_own_site: get('own-site').checked,
       online_via_third_party: get('third-party').checked,
       third_party_platforms: checked('third_party_platforms'),

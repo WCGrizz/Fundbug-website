@@ -124,7 +124,12 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
 
 @media(max-width:860px){.portal-wrap{grid-template-columns:1fr}.sidebar{display:none}.main{padding:24px 20px}.stat-grid{grid-template-columns:repeat(2,1fr)}}
 .tag-selector{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.tag-option{display:inline-flex;align-items:center;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--white);font-family:'Jost',sans-serif;font-size:13px;color:var(--muted);cursor:pointer;transition:all .12s;user-select:none}
+.tag-selector.grouped{display:block}
+.tag-group{margin-top:14px}
+.tag-group:first-child{margin-top:8px}
+.tag-group-header{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:9px;letter-spacing:-0.01em}
+.tag-group-options{display:flex;flex-wrap:wrap;gap:8px}
+.tag-option{display:inline-flex;align-items:center;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--white);font-family:'Jost',sans-serif;font-size:13px;color:var(--ink);cursor:pointer;transition:all .12s;user-select:none}
 .tag-option:hover{border-color:var(--green);color:var(--green)}
 .tag-option.selected{background:var(--green);border-color:var(--green);color:#fff;font-weight:500}.tag-count-hint{font-size:12px;color:#999;margin-top:6px}.tag-count-hint.maxed{color:#c44b2a}
 
@@ -378,42 +383,72 @@ nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:ce
           <div class="form-row">
             <div class="form-group">
               <label>Industry <span style="font-size:11px;color:#999;font-weight:400">(up to 3)</span></label>
-              <div class="tag-selector" id="prof-industry-tags" data-max="3">
-                <div class="tag-option" data-value="agriculture">Agriculture / Farming</div>
-                <div class="tag-option" data-value="apparel">Apparel / Clothing</div>
-                <div class="tag-option" data-value="auto_marine">Auto / Marine Services</div>
-                <div class="tag-option" data-value="bakery">Bakery / Caf&eacute;</div>
-                <div class="tag-option" data-value="beauty">Beauty / Personal Care</div>
-                <div class="tag-option" data-value="biotech">Biotech / Life Sciences</div>
-                <div class="tag-option" data-value="brewery">Brewery / Distillery / Winery</div>
-                <div class="tag-option" data-value="childcare">Childcare / Early Education</div>
-                <div class="tag-option" data-value="cleaning">Cleaning / Maintenance Services</div>
-                <div class="tag-option" data-value="construction">Construction / Trades</div>
-                <div class="tag-option" data-value="crafts">Arts, Crafts &amp; Handmade Goods</div>
-                <div class="tag-option" data-value="event_planning">Event Planning / Catering</div>
-                <div class="tag-option" data-value="fishing">Fishing / Aquaculture</div>
-                <div class="tag-option" data-value="fitness">Fitness / Wellness Studio</div>
-                <div class="tag-option" data-value="floral">Floral / Florist</div>
-                <div class="tag-option" data-value="graphic_design">Graphic Design / Branding</div>
-                <div class="tag-option" data-value="healthcare">Healthcare / Wellness</div>
-                <div class="tag-option" data-value="home_decor">Home Decor / Furniture / Interiors</div>
-                <div class="tag-option" data-value="hospitality">Hospitality / Tourism</div>
-                <div class="tag-option" data-value="jewelry">Jewelry / Accessories</div>
-                <div class="tag-option" data-value="landscaping">Landscaping / Lawn Care</div>
-                <div class="tag-option" data-value="manufacturing">Manufacturing</div>
-                <div class="tag-option" data-value="music">Music / Performing Arts</div>
-                <div class="tag-option" data-value="pet">Pet Products / Services</div>
-                <div class="tag-option" data-value="photography">Photography / Videography</div>
-                <div class="tag-option" data-value="professional">Professional Services</div>
-                <div class="tag-option" data-value="property">Property Services</div>
-                <div class="tag-option" data-value="real_estate">Real Estate / Property Investment</div>
-                <div class="tag-option" data-value="restaurant">Restaurant / Food Service</div>
-                <div class="tag-option" data-value="retail">Retail</div>
-                <div class="tag-option" data-value="specialty_food">Specialty Food Producer</div>
-                <div class="tag-option" data-value="technology">Technology</div>
-                <div class="tag-option" data-value="transportation">Transportation / Logistics</div>
-                <div class="tag-option" data-value="vintage">Vintage / Antiques / Consignment</div>
-                <div class="tag-option" data-value="writing">Writing / Publishing / Media</div>
+              <div class="tag-selector grouped" id="prof-industry-tags" data-max="3">
+                <div class="tag-group">
+                  <div class="tag-group-header">Food & Hospitality</div>
+                  <div class="tag-group-options">
+                    <div class="tag-option" data-value="bakery">Bakery / Caf&eacute;</div>
+                    <div class="tag-option" data-value="brewery">Brewery / Distillery / Winery</div>
+                    <div class="tag-option" data-value="event_planning">Event Planning / Catering</div>
+                    <div class="tag-option" data-value="hospitality">Hospitality / Tourism</div>
+                    <div class="tag-option" data-value="restaurant">Restaurant / Food Service</div>
+                    <div class="tag-option" data-value="specialty_food">Specialty Food Producer</div>
+                  </div>
+                </div>
+                <div class="tag-group">
+                  <div class="tag-group-header">Trades & Services</div>
+                  <div class="tag-group-options">
+                    <div class="tag-option" data-value="auto_marine">Auto / Marine Services</div>
+                    <div class="tag-option" data-value="cleaning">Cleaning / Maintenance Services</div>
+                    <div class="tag-option" data-value="construction">Construction / Trades</div>
+                    <div class="tag-option" data-value="landscaping">Landscaping / Lawn Care</div>
+                    <div class="tag-option" data-value="professional">Professional Services</div>
+                    <div class="tag-option" data-value="property">Property Services</div>
+                    <div class="tag-option" data-value="transportation">Transportation / Logistics</div>
+                  </div>
+                </div>
+                <div class="tag-group">
+                  <div class="tag-group-header">Retail & Goods</div>
+                  <div class="tag-group-options">
+                    <div class="tag-option" data-value="apparel">Apparel / Clothing</div>
+                    <div class="tag-option" data-value="home_decor">Home Decor / Furniture / Interiors</div>
+                    <div class="tag-option" data-value="jewelry">Jewelry / Accessories</div>
+                    <div class="tag-option" data-value="pet">Pet Products / Services</div>
+                    <div class="tag-option" data-value="retail">Retail</div>
+                    <div class="tag-option" data-value="vintage">Vintage / Antiques / Consignment</div>
+                  </div>
+                </div>
+                <div class="tag-group">
+                  <div class="tag-group-header">Creative & Media</div>
+                  <div class="tag-group-options">
+                    <div class="tag-option" data-value="crafts">Arts, Crafts &amp; Handmade Goods</div>
+                    <div class="tag-option" data-value="floral">Floral / Florist</div>
+                    <div class="tag-option" data-value="graphic_design">Graphic Design / Branding</div>
+                    <div class="tag-option" data-value="music">Music / Performing Arts</div>
+                    <div class="tag-option" data-value="photography">Photography / Videography</div>
+                    <div class="tag-option" data-value="writing">Writing / Publishing / Media</div>
+                  </div>
+                </div>
+                <div class="tag-group">
+                  <div class="tag-group-header">Health, Tech & Industry</div>
+                  <div class="tag-group-options">
+                    <div class="tag-option" data-value="beauty">Beauty / Personal Care</div>
+                    <div class="tag-option" data-value="biotech">Biotech / Life Sciences</div>
+                    <div class="tag-option" data-value="childcare">Childcare / Early Education</div>
+                    <div class="tag-option" data-value="fitness">Fitness / Wellness Studio</div>
+                    <div class="tag-option" data-value="healthcare">Healthcare / Wellness</div>
+                    <div class="tag-option" data-value="manufacturing">Manufacturing</div>
+                    <div class="tag-option" data-value="technology">Technology</div>
+                  </div>
+                </div>
+                <div class="tag-group">
+                  <div class="tag-group-header">Land & Property</div>
+                  <div class="tag-group-options">
+                    <div class="tag-option" data-value="agriculture">Agriculture / Farming</div>
+                    <div class="tag-option" data-value="fishing">Fishing / Aquaculture</div>
+                    <div class="tag-option" data-value="real_estate">Real Estate / Property Investment</div>
+                  </div>
+                </div>
               </div>
               <div class="tag-count-hint" id="prof-industry-count">Select up to 3</div>
             </div>
@@ -1058,11 +1093,17 @@ function loadPreferencesUI(data) {
   document.getElementById('prof-is-startup').checked = data.is_startup || false;
   document.getElementById('prof-is-home-based').checked = data.is_home_based || false;
   if (data.property_ownership) document.getElementById('prof-property-ownership').value = data.property_ownership;
-  // Sells online — restore the radio selection (yes / no / want_to); leave all unchecked if null
-  if (data.sells_online) {
-    const sellsRadio = document.querySelector(`input[name="prof-sells-online"][value="${data.sells_online}"]`);
-    if (sellsRadio) sellsRadio.checked = true;
+  // Sells online — sells_online is BOOLEAN in the DB. true → "yes" radio,
+  // false → "no" radio, null/undefined → none selected. The "want_to" option
+  // is preserved in the UI for new signups but collapses to TRUE on save, so
+  // we cannot distinguish it from "yes" on subsequent loads. User can re-pick
+  // "want_to" if they want; it'll save as true the same way.
+  if (data.sells_online === true) {
+    document.getElementById('prof-sells-online-yes').checked = true;
+  } else if (data.sells_online === false) {
+    document.getElementById('prof-sells-online-no').checked = true;
   }
+  // (leave all unchecked if null/undefined)
   // Sub-flags only relevant when sells_online === 'yes', but restore them regardless so they're
   // preserved across edits. toggleProfOnlineDetails() then handles show/hide.
   document.getElementById('prof-own-site').checked = data.online_via_own_site || false;
@@ -1165,7 +1206,12 @@ async function savePreferences() {
       is_startup: document.getElementById('prof-is-startup').checked,
       is_home_based: document.getElementById('prof-is-home-based').checked,
       property_ownership: document.getElementById('prof-property-ownership').value || null,
-      sells_online: document.querySelector('input[name="prof-sells-online"]:checked')?.value || null,
+      sells_online: (function() {
+        const v = document.querySelector('input[name="prof-sells-online"]:checked')?.value;
+        if (v === 'yes' || v === 'want_to') return true;
+        if (v === 'no') return false;
+        return null;
+      })(),
       online_via_own_site: document.getElementById('prof-own-site').checked,
       online_via_third_party: document.getElementById('prof-third-party').checked,
       third_party_platforms: document.getElementById('prof-third-party').checked
