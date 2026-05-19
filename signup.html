@@ -919,7 +919,6 @@ async function handleSubmit(e) {
 
     const get = id => document.getElementById(id);
     const checked = name => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el => el.value);
-    const getSelectedTags = id => Array.from(document.querySelectorAll(`#${id} .tag-option.selected`)).map(el => el.dataset.value);
     const yr = get('years-in-business').value;
 
     const empMap = {'1':1,'2-5':3,'6-10':8,'11-25':15,'26-50':35,'50+':60};
@@ -1006,6 +1005,13 @@ async function handleSubmit(e) {
     alert('Signup failed: ' + err.message);
     btn.disabled = false; btn.textContent = 'Start free trial →';
   }
+}
+
+// Top-level helper — used by both handleSubmit and updateSummary. Declared at
+// script scope (not const inside a function) so every function can see it.
+// A block-scoped const previously caused a ReferenceError in updateSummary.
+function getSelectedTags(id) {
+  return Array.from(document.querySelectorAll(`#${id} .tag-option.selected`)).map(el => el.dataset.value);
 }
 
 function updateSummary() {
