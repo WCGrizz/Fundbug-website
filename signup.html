@@ -684,14 +684,19 @@
       <div class="badge"><span class="badge-icon">✓</span><span>Your data is never sold</span></div>
     </div>
   </div>
-</div>
 
-<div class="success-container" id="success-container">
-  <div class="success-icon">✓</div>
-  <h1 id="success-name" style="font-family:'Fraunces',serif;margin-bottom:12px;">You're all set!</h1>
-  <p style="color:var(--ink2);font-weight:400;font-size:16px;margin-bottom:8px;">We've sent you an email — please verify your email address to receive your first digest.</p>
-  <p style="color:var(--muted);font-weight:300;font-size:14px;margin-bottom:24px;">Check your inbox (and spam folder, just in case).</p>
-  <button class="btn-primary" onclick="window.location.href='portal.html'" style="width:100%;margin-top:8px;">Go to your portal →</button>
+  <!-- Success message shown after a successful subscribe POST. Lives inside
+       .form-section so it inherits the same column width and centering as
+       the form. Previously this sat OUTSIDE .container and the comp-banner
+       + step-indicator weren't hidden, so a successful signup showed the
+       wizard chrome with empty content below. -->
+  <div class="success-container" id="success-container">
+    <div class="success-icon">✓</div>
+    <h1 id="success-name" style="font-family:'Fraunces',serif;margin-bottom:12px;">You're all set!</h1>
+    <p style="color:var(--ink2);font-weight:400;font-size:16px;margin-bottom:8px;">We've sent you an email — please verify your email address to receive your first digest.</p>
+    <p style="color:var(--muted);font-weight:300;font-size:14px;margin-bottom:24px;">Check your inbox (and spam folder, just in case).</p>
+    <button class="btn-primary" onclick="window.location.href='portal.html'" style="width:100%;margin-top:8px;">Go to your portal →</button>
+  </div>
 </div>
 
 <script src="https://js.stripe.com/v3/"></script>
@@ -1008,8 +1013,19 @@ async function handleSubmit(e) {
 
     get('signup-form').style.display = 'none';
     document.getElementById('summary-panel').style.display = 'none';
+    // Hide the wizard chrome too (comp banner + step indicator). These are
+    // siblings of #signup-form inside .form-section — if we only hide the
+    // form, the user sees the progress bar with no content under it and
+    // has to scroll to find the success message.
+    const compBanner = document.getElementById('comp-banner');
+    if (compBanner) compBanner.style.display = 'none';
+    const stepInd = document.querySelector('.step-indicator');
+    if (stepInd) stepInd.style.display = 'none';
     document.getElementById('success-container').classList.add('show');
     document.getElementById('success-name').textContent = `You're all set, ${payload.first_name}!`;
+    // Scroll to the top so the success message is visible regardless of how
+    // far the user had scrolled in the form.
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     // Store auth state under the key portal.html actually reads (fb_token + fb_sub).
     // Earlier signups wrote 'fundbug_token' which the portal ignored, forcing users
     // to log in again after signup. Now post-signup → "Go to portal" works seamlessly.
