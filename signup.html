@@ -117,6 +117,10 @@
 
     .success-container { display: none; text-align: center; padding: 60px 40px; max-width: 500px; margin: 0 auto; }
     .success-container.show { display: block; }
+    /* When success shows, drop the form-section's narrow left-column constraint
+       so the centered success block sits centered on the whole page rather than
+       in the now-empty left half of the 2-column grid. */
+    .form-section.success-mode { max-width: none; grid-column: 1 / -1; }
     .success-icon { font-size: 64px; color: var(--green); margin-bottom: 24px; }
 
     .trial-notice { background: rgba(90,158,82,.1); border: 1px solid var(--green); border-radius: 6px; padding: 14px 16px; margin-bottom: 24px; color: var(--ink); font-size: 14px; }
@@ -1021,6 +1025,10 @@ async function handleSubmit(e) {
     if (compBanner) compBanner.style.display = 'none';
     const stepInd = document.querySelector('.step-indicator');
     if (stepInd) stepInd.style.display = 'none';
+    // Drop the 2-column grid's left-column constraint so the centered success
+    // block sits centered on the page, not in the empty left half.
+    const formSection = document.querySelector('.form-section');
+    if (formSection) formSection.classList.add('success-mode');
     document.getElementById('success-container').classList.add('show');
     document.getElementById('success-name').textContent = `You're all set, ${payload.first_name}!`;
     // Scroll to the top so the success message is visible regardless of how
