@@ -951,10 +951,12 @@ async function handleSubmit(e) {
       property_ownership: (document.querySelector('input[name="property_ownership"]:checked') || {}).value || null,
       is_home_based: get('is-home-based').checked,
       sells_online: (function() {
+        // Backend expects bool (not Optional[bool]). If the user skipped the
+        // sells_online question, default to false rather than null, which
+        // would 422 against the Pydantic model.
         const v = (document.querySelector('input[name="sells_online"]:checked') || {}).value;
         if (v === 'yes' || v === 'want_to') return true;
-        if (v === 'no') return false;
-        return null;
+        return false;
       })(),
       online_via_own_site: get('own-site').checked,
       online_via_third_party: get('third-party').checked,
@@ -982,7 +984,27 @@ async function handleSubmit(e) {
 
     const res = await fetch(API + '/api/subscribe', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Signup failed');
+    if (!res.ok) {
+      // FastAPI returns different shapes depending on the failure mode:
+      //   - HTTPException(detail="text")      → { detail: "text" }
+      //   - Pydantic validation error (422)   → { detail: [{loc, msg, type}, ...] }
+      // The previous `data.detail || 'Signup failed'` stringified the array
+      // case to "[object Object]" and we lost the actual error every time.
+      // Build a human-readable summary so the next signup failure is
+      // diagnosable without opening the Network tab.
+      let msg = 'Unknown error';
+      if (typeof data.detail === 'string') {
+        msg = data.detail;
+      } else if (Array.isArray(data.detail)) {
+        msg = data.detail.map(e => {
+          const field = Array.isArray(e.loc) ? e.loc.filter(p => p !== 'body').join('.') : '?';
+          return `${field}: ${e.msg}`;
+        }).join('\n');
+      } else if (data.detail) {
+        msg = JSON.stringify(data.detail);
+      }
+      throw new Error(msg);
+    }
 
     get('signup-form').style.display = 'none';
     document.getElementById('summary-panel').style.display = 'none';
