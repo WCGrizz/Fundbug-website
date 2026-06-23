@@ -406,6 +406,9 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
       <input type="password" id="loginPassword" placeholder="••••••••">
     </div>
     <button class="btn" onclick="doLogin()">Sign in</button>
+    <div style="text-align:center;margin-top:12px">
+      <a href="#" onclick="showMagicLink()" style="font-family:'Jost',sans-serif;font-size:13px;color:var(--green);text-decoration:underline;">Email me a login link instead</a>
+    </div>
     <div style="text-align:center;margin-top:10px">
       <a href="#" onclick="showForgotPassword()" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;">Forgot your password?</a>
     </div>
@@ -413,6 +416,26 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
       <a href="#" onclick="showResendVerify()" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;">Didn't get your verification email? Resend it</a>
     </div>
     <div class="login-toggle" onclick="window.location.href='signup.html'">Not a subscriber? <span>Get started →</span></div>
+  </div>
+</div>
+
+<!-- MAGIC LINK LOGIN -->
+<div id="magicWrap" class="login-wrap" style="display:none">
+  <div class="login-card">
+    <div class="login-logo">FundBug</div>
+    <div class="login-sub">Email me a login link</div>
+    <div id="magicMsg" class="login-err" style="color:var(--green)"></div>
+    <div id="magicErr" class="login-err"></div>
+    <div id="magicForm">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="magicEmail" placeholder="you@yourbusiness.com">
+      </div>
+      <button class="btn" onclick="doRequestMagicLink()">Send me a login link</button>
+    </div>
+    <div style="text-align:center;margin-top:16px">
+      <a href="#" onclick="showLogin()" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;">← Back to sign in</a>
+    </div>
   </div>
 </div>
 
@@ -979,15 +1002,56 @@ let subscriber = JSON.parse(localStorage.getItem('fb_sub') || 'null');
 function showForgotPassword() {
   document.getElementById('loginWrap').style.display = 'none';
   document.getElementById('resendVerifyWrap').style.display = 'none';
+  document.getElementById('magicWrap').style.display = 'none';
   document.getElementById('forgotWrap').style.display = 'flex';
   document.getElementById('forgotEmail').value = document.getElementById('loginEmail').value || '';
   document.getElementById('forgotMsg').textContent = '';
   document.getElementById('forgotErr').textContent = '';
 }
 
+function showMagicLink() {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('forgotWrap').style.display = 'none';
+  document.getElementById('resendVerifyWrap').style.display = 'none';
+  document.getElementById('magicWrap').style.display = 'flex';
+  document.getElementById('magicEmail').value = document.getElementById('loginEmail').value || '';
+  document.getElementById('magicMsg').textContent = '';
+  document.getElementById('magicErr').textContent = '';
+  document.getElementById('magicForm').style.display = 'block';
+}
+
+async function doRequestMagicLink() {
+  const email = document.getElementById('magicEmail').value.trim();
+  document.getElementById('magicErr').textContent = '';
+  document.getElementById('magicMsg').textContent = '';
+  if (!email) {
+    document.getElementById('magicErr').textContent = 'Please enter your email address.';
+    return;
+  }
+  try {
+    const r = await fetch(API + '/api/portal/request-login-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!r.ok) {
+      const data = await r.json().catch(() => ({}));
+      throw new Error(data.detail || 'Something went wrong. Please try again.');
+    }
+    // Response is intentionally identical whether or not the email is
+    // registered, so the message can't be used to probe for accounts.
+    document.getElementById('magicForm').style.display = 'none';
+    document.getElementById('magicMsg').textContent =
+      'If that email has a FundBug account, a login link is on its way. It expires in 30 minutes.';
+  } catch (e) {
+    document.getElementById('magicErr').textContent = e.message;
+  }
+}
+
 function showResendVerify() {
   document.getElementById('loginWrap').style.display = 'none';
   document.getElementById('forgotWrap').style.display = 'none';
+  document.getElementById('magicWrap').style.display = 'none';
   document.getElementById('resendVerifyWrap').style.display = 'flex';
   // Pre-fill from login email if present, for convenience
   document.getElementById('resendVerifyEmail').value = document.getElementById('loginEmail').value || '';
@@ -999,6 +1063,7 @@ function showResendVerify() {
 function showLogin() {
   document.getElementById('forgotWrap').style.display = 'none';
   document.getElementById('resendVerifyWrap').style.display = 'none';
+  document.getElementById('magicWrap').style.display = 'none';
   document.getElementById('loginWrap').style.display = 'flex';
 }
 
@@ -1606,12 +1671,62 @@ async function loadAccountEmail() {
   } catch(e) {}
 }
 
+async function consumeMagicLinkIfPresent() {
+  // Accept the token from either the query string (?login_token=) or the URL
+  // hash (#login_token=). Hash is preferred for new links because it's never
+  // sent to servers in referer headers; query is supported for robustness.
+  const qs = new URLSearchParams(window.location.search);
+  const hs = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+  const loginToken = qs.get('login_token') || hs.get('login_token');
+  if (!loginToken) return false;
+
+  // Strip the token from the URL immediately so it isn't left in history,
+  // bookmarks, or copy-pasted links. Done before the await so a slow network
+  // can't leave the token sitting in the address bar.
+  history.replaceState(null, '', window.location.pathname);
+
+  try {
+    const r = await fetch(API + '/api/portal/consume-login-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: loginToken }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || 'This login link is invalid or expired.');
+    token = data.token;
+    subscriber = {
+      id: data.subscriber_id,
+      email: data.email,
+      first_name: data.first_name || '',
+      business_name: data.business_name || '',
+      subscription_status: data.subscription_status || 'trial',
+    };
+    localStorage.setItem('fb_token', token);
+    localStorage.setItem('fb_sub', JSON.stringify(subscriber));
+    showApp();
+    return true;
+  } catch (e) {
+    // Invalid or expired link → drop the user on the login screen with a note
+    // and a one-tap way to get a fresh link.
+    document.getElementById('loginWrap').style.display = 'flex';
+    const err = document.getElementById('loginErr');
+    if (err) err.textContent = e.message + ' Enter your email below to get a new one.';
+    return true;
+  }
+}
+
 async function bootstrapApp() {
   // Three states:
   //   1. token + fb_sub present  → show app immediately
   //   2. token present, no fb_sub → fetch profile, populate fb_sub, show app
   //                                  (covers post-verify auto-login + post-signup)
   //   3. no token                 → show login screen
+  //
+  // Before any of that: if the URL carries a magic-link token (?login_token=…),
+  // exchange it for a session and log in. Runs first so an email link always
+  // wins over whatever happens to be in localStorage.
+  if (await consumeMagicLinkIfPresent()) return;
+
   if (token && subscriber) {
     showApp();
     return;
