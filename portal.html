@@ -495,6 +495,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
   <div class="mobile-menu" id="mobileMenu" role="dialog" aria-label="Navigation menu">
     <div class="mobile-menu-user" id="mobileMenuUser">—</div>
     <a href="#" data-page="overview" onclick="showPageFromMobile('overview', this); return false;">📊 Overview</a>
+    <a href="#" data-page="complete" onclick="showPageFromMobile('complete', this); return false;">✨ Complete profile</a>
     <a href="#" data-page="tracker" onclick="showPageFromMobile('tracker', this); return false;">📋 My Tracker</a>
     <div class="mobile-menu-section">Resources</div>
     <a href="grants-guide.html" target="_blank" rel="noopener" onclick="closeMenu()">📖 Grants 101</a>
@@ -512,6 +513,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
     <aside class="sidebar">
       <ul class="sidebar-nav">
         <li><a href="#" class="active" onclick="showPage('overview',this)"><span class="nav-icon">📊</span> Overview</a></li>
+        <li><a href="#" onclick="showPage('complete',this)" id="nav-complete"><span class="nav-icon">✨</span> Complete profile</a></li>
         <li><a href="#" onclick="showPage('tracker',this)" id="nav-tracker"><span class="nav-icon">📋</span> My Tracker</a></li>
 
         <div class="sidebar-section">Resources</div>
@@ -536,6 +538,19 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
           <div class="stat-tile"><div class="stat-num" id="ov-favorites">—</div><div class="stat-lbl">Favorites starred</div></div>
         </div>
 
+        <div id="completeNudge" class="card" style="display:none;background:rgba(90,158,82,.07);border-color:rgba(90,158,82,.3);padding:18px 22px;margin-bottom:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div style="flex:1;min-width:220px">
+              <div style="font-family:'Fraunces',serif;font-size:17px;font-weight:700;color:var(--ink);margin-bottom:4px">Sharpen your matches</div>
+              <div style="font-size:13px;font-weight:300;color:var(--ink2);line-height:1.5">Add a few details about your business to unlock programs the basics can't reach, including grants reserved for specific owners.</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <a href="#" onclick="showPage('complete',document.getElementById('nav-complete'));return false;" style="display:inline-block;padding:9px 18px;background:var(--green);color:#fff;border-radius:5px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap">Complete profile →</a>
+              <a href="#" onclick="dismissNudge();return false;" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap">Dismiss</a>
+            </div>
+          </div>
+        </div>
+
         <div class="card" style="background:var(--ink);border-color:var(--ink);padding:20px 24px;margin-bottom:20px">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
             <div>
@@ -553,6 +568,135 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
       </div>
 
 
+
+      <!-- COMPLETE PROFILE -->
+      <div class="page" id="page-complete">
+        <div class="page-title">Complete your profile</div>
+        <div class="page-sub">The more we know, the sharper your matches. Everything here is optional, but each answer can unlock programs you'd otherwise never see.</div>
+
+        <div class="card">
+          <div class="form-group">
+            <label>Do any of these describe your business?</label>
+            <p style="font-size:13px;font-weight:300;color:var(--muted);margin:2px 0 4px">Many grants are reserved specifically for these owners. Selecting what applies unlocks programs set aside for them.</p>
+            <div class="tag-selector" id="cp-demographics">
+              <div class="tag-option" data-value="woman-owned">Woman-owned</div>
+              <div class="tag-option" data-value="minority-owned">Minority-owned</div>
+              <div class="tag-option" data-value="veteran-owned">Veteran-owned</div>
+              <div class="tag-option" data-value="military-affiliated">Military-affiliated</div>
+              <div class="tag-option" data-value="disability-owned">Disability-owned</div>
+              <div class="tag-option" data-value="lgbtq-owned">LGBTQ+-owned</div>
+              <div class="tag-option" data-value="immigrant-owned">Immigrant-owned</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>What would funding help you do?</label>
+            <div class="tag-selector" id="cp-funding">
+              <div class="tag-option" data-value="hiring">Hiring &amp; training</div>
+              <div class="tag-option" data-value="equipment">Equipment or vehicles</div>
+              <div class="tag-option" data-value="storefront">Storefront / facility improvements</div>
+              <div class="tag-option" data-value="real_estate">Real estate or expansion</div>
+              <div class="tag-option" data-value="inventory">Inventory expansion</div>
+              <div class="tag-option" data-value="marketing">Marketing &amp; advertising</div>
+              <div class="tag-option" data-value="technology">Technology or software</div>
+              <div class="tag-option" data-value="energy">Energy efficiency / clean energy</div>
+              <div class="tag-option" data-value="accessibility">Accessibility (ADA)</div>
+              <div class="tag-option" data-value="export">Export / international growth</div>
+              <div class="tag-option" data-value="research">Research &amp; development</div>
+              <div class="tag-option" data-value="working_capital">Working capital / cash flow</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="cp-property">Do you own or rent your place of business?</label>
+            <select id="cp-property">
+              <option value="">Select…</option>
+              <option value="own">We own it</option>
+              <option value="rent">We rent / lease it</option>
+              <option value="na">Not applicable</option>
+            </select>
+            <p style="font-size:13px;font-weight:300;color:var(--muted);margin:6px 0 0">Owning unlocks facade, building, and real-estate improvement grants.</p>
+          </div>
+
+          <div class="form-group">
+            <label>Is your business home-based?</label>
+            <div style="display:flex;gap:20px;margin-top:4px">
+              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-homebased" value="true" style="accent-color:var(--green)"> Yes</label>
+              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-homebased" value="false" style="accent-color:var(--green)"> No</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Is your business seasonal?</label>
+            <div style="display:flex;gap:20px;margin-top:4px">
+              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-seasonal" value="true" style="accent-color:var(--green)"> Yes</label>
+              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-seasonal" value="false" style="accent-color:var(--green)"> No</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="cp-employees">How many people work there?</label>
+            <input type="number" id="cp-employees" min="0" max="10000" placeholder="e.g. 4" style="max-width:160px">
+          </div>
+
+          <div class="form-group">
+            <label for="cp-years">Years in business</label>
+            <input type="number" id="cp-years" min="0" max="200" placeholder="e.g. 6" style="max-width:160px">
+          </div>
+
+          <div class="form-group">
+            <label for="cp-revenue">Approximate annual revenue (optional)</label>
+            <input type="number" id="cp-revenue" min="0" placeholder="e.g. 250000" style="max-width:220px">
+          </div>
+
+          <div class="form-group">
+            <label for="cp-grant-exp">Have you applied for grants before?</label>
+            <select id="cp-grant-exp">
+              <option value="">Select…</option>
+              <option value="never">Never</option>
+              <option value="applied">Applied, but haven't won</option>
+              <option value="won">Won at least one</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="cp-bank">How's your access to bank financing?</label>
+            <select id="cp-bank">
+              <option value="">Select…</option>
+              <option value="good_standing">Good — established banking relationship</option>
+              <option value="yes">Have access</option>
+              <option value="limited">Limited</option>
+              <option value="no">No access</option>
+              <option value="not_looking">Not looking for financing</option>
+              <option value="unsure">Unsure</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Do you sell to the government, or want to?</label>
+            <div style="display:flex;gap:20px;margin-top:4px">
+              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-govt" value="true" style="accent-color:var(--green)"> Yes</label>
+              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-govt" value="false" style="accent-color:var(--green)"> No</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Do you export, or plan to?</label>
+            <div style="display:flex;gap:20px;margin-top:4px">
+              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-exports" value="true" style="accent-color:var(--green)"> Yes</label>
+              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-exports" value="false" style="accent-color:var(--green)"> No</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="cp-description">Anything else about your business?</label>
+            <textarea id="cp-description" placeholder="A sentence or two about what you do. This helps us write better explanations of why each program fits you." style="min-height:90px"></textarea>
+          </div>
+
+          <button class="save-btn" onclick="saveComplete()">Save and finish</button>
+          <span id="cp-confirm" class="save-confirm" style="margin-left:12px;color:var(--green);font-size:14px;display:none">Saved ✓</span>
+        </div>
+      </div>
 
       <!-- TRACKER -->
       <div class="page" id="page-tracker">
@@ -974,6 +1118,24 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 </div>
 
 <!-- CANCEL MODAL -->
+<div class="modal-overlay" id="digestModal" style="display:none">
+  <div class="modal-box" style="max-width:640px;max-height:85vh;overflow-y:auto;text-align:left">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px">
+      <div>
+        <div class="modal-title" id="digestModalTitle" style="margin-bottom:2px">Digest</div>
+        <div id="digestModalDate" style="font-size:13px;font-weight:300;color:var(--muted)"></div>
+      </div>
+      <a href="#" onclick="closeDigest();return false;" style="font-size:22px;line-height:1;color:var(--muted);text-decoration:none;flex-shrink:0">&times;</a>
+    </div>
+    <div id="digestModalBody" style="margin-top:16px">
+      <div style="font-size:14px;color:var(--muted);font-weight:300">Loading…</div>
+    </div>
+    <div style="margin-top:20px;text-align:right">
+      <a href="#" onclick="closeDigest();showPage('tracker',document.getElementById('nav-tracker'));return false;" style="font-family:'Jost',sans-serif;font-size:13px;color:var(--green-dk);text-decoration:underline">Open full tracker →</a>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="cancelModal">
   <div class="modal-box">
     <div class="modal-title">Before you go...</div>
@@ -1148,7 +1310,7 @@ function showApp() {
   const greetTime = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   document.getElementById('greetTime').textContent = greetTime + ',';
   document.getElementById('greetName').textContent = name + ' 👋';
-  loadOverview(); loadProfile(); loadReferral(); loadSubscription();
+  loadOverview(); loadProfile(); loadReferral(); loadSubscription(); refreshCompletionState();
 
   // Honor URL hash for direct deep-link (e.g., from email: /portal.html#subscription)
   const hash = (window.location.hash || '').replace('#','');
@@ -1195,7 +1357,7 @@ async function loadOverview() {
         const sentDate = d.sent_at ? new Date(d.sent_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
         const businessName = subscriber?.business_name || 'your business';
         return `
-        <div class="digest-item">
+        <div class="digest-item" style="cursor:pointer" onclick="openDigest('${d.id}')" title="View this digest's matches">
           <div class="digest-date">${sentDate}</div>
           <div class="digest-title">${matchCount} matches for ${businessName}</div>
           <div class="digest-count">${matchCount} matches</div>
@@ -1655,13 +1817,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function showPage(id, el) {
-  event.preventDefault();
+  if (typeof event !== 'undefined' && event && event.preventDefault) event.preventDefault();
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   el.classList.add('active');
   if (id === 'account') loadAccountEmail();
   if (id === 'tracker') loadTracker();
+  if (id === 'complete') refreshCompletionState();
 }
 
 async function loadAccountEmail() {
@@ -2205,6 +2368,162 @@ document.addEventListener('keydown', e => {
 window.addEventListener('resize', () => {
   if (window.innerWidth > 900) closeMenu();
 });
+
+// ─── DIGEST DETAIL (archive of a past send) ──────────────────────────────────
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function openDigest(logId) {
+  const modal = document.getElementById('digestModal');
+  document.getElementById('digestModalBody').innerHTML = '<div style="font-size:14px;color:var(--muted);font-weight:300">Loading…</div>';
+  document.getElementById('digestModalTitle').textContent = 'Digest';
+  document.getElementById('digestModalDate').textContent = '';
+  modal.style.display = 'flex';
+  try {
+    const data = await apiFetch('/api/portal/digest/' + encodeURIComponent(logId));
+    const d = data.digest || {};
+    const progs = data.programs || [];
+    const sent = d.sent_at ? new Date(d.sent_at).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}) : '';
+    document.getElementById('digestModalTitle').textContent = (progs.length || d.slot_count || 0) + ' matches';
+    document.getElementById('digestModalDate').textContent = sent;
+    if (!progs.length) {
+      document.getElementById('digestModalBody').innerHTML = '<div style="font-size:14px;color:var(--muted);font-weight:300">No program details are available for this digest.</div>';
+      return;
+    }
+    document.getElementById('digestModalBody').innerHTML = progs.map(p => {
+      const cap = p.capital_type ? `<span style="display:inline-block;padding:2px 9px;border-radius:11px;background:rgba(90,158,82,.12);color:var(--green-dk);font-size:11px;font-weight:500;margin-right:6px">${escapeHtml(p.capital_type)}</span>` : '';
+      const amt = p.amount ? `<span style="font-size:12px;color:var(--muted)">${escapeHtml(p.amount)}</span>` : '';
+      const near = (p.days_until_deadline!=null && p.days_until_deadline<=30 && p.days_until_deadline>=0);
+      const dl = p.deadline_display ? `<div style="font-size:12px;color:${near?'var(--red)':'var(--muted)'};margin-top:3px">Deadline: ${escapeHtml(p.deadline_display)}${(p.days_until_deadline!=null && p.days_until_deadline>=0)?` (${p.days_until_deadline} days)`:''}</div>` : '';
+      const link = p.source_url ? `<a href="${encodeURI(p.source_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:13px;color:var(--green-dk);text-decoration:underline;white-space:nowrap">View &amp; apply →</a>` : '';
+      return `<div onclick="jumpToTrackerProgram('${String(p.program_id).replace(/'/g,"\\'")}')" title="Open this program in your tracker" style="padding:14px 0;border-top:1px solid var(--border);cursor:pointer;transition:background .12s" onmouseover="this.style.background='rgba(90,158,82,.05)'" onmouseout="this.style.background='none'">
+        <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start">
+          <div style="flex:1;min-width:0">
+            <div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:5px">${escapeHtml(p.title)}</div>
+            <div>${cap}${amt}</div>
+            ${dl}
+          </div>
+          <div style="flex-shrink:0;padding-top:2px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;text-align:right">
+            <span style="font-size:12px;color:var(--green-dk);white-space:nowrap">Open in tracker →</span>
+            ${link}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('digestModalBody').innerHTML = `<div style="font-size:14px;color:var(--red)">Couldn't load this digest: ${escapeHtml(e.message)}</div>`;
+  }
+}
+function closeDigest(){ document.getElementById('digestModal').style.display='none'; }
+document.getElementById('digestModal').addEventListener('click', function(e){ if(e.target===this) closeDigest(); });
+
+// Option 1: clicking a program in a past digest jumps to that program in the
+// tracker (programs from digests are auto-populated there). Closes the modal,
+// switches to the tracker page, then scrolls to and briefly highlights the card.
+async function jumpToTrackerProgram(programId){
+  closeDigest();
+  const navT = document.getElementById('nav-tracker');
+  if (navT) showPage('tracker', navT);
+  try { await loadTracker(); } catch(_){}
+  setTimeout(() => {
+    const card = document.getElementById('tcard-' + programId);
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const prev = card.style.boxShadow;
+      card.style.transition = 'box-shadow .25s';
+      card.style.boxShadow = '0 0 0 2px var(--green)';
+      setTimeout(() => { card.style.boxShadow = prev || ''; }, 1800);
+    }
+  }, 140);
+}
+
+// ─── COMPLETE PROFILE + NUDGE ────────────────────────────────────────────────
+function dismissNudge(){
+  try { localStorage.setItem('fb_nudge_dismissed','1'); } catch(_){}
+  const n=document.getElementById('completeNudge'); if(n) n.style.display='none';
+}
+function profileLooksIncomplete(p){
+  if(!p) return false;
+  // employee_count is null only for thin signups (it was required on the old
+  // full form), so it's a clean "hasn't finished setup" signal. Fall back to a
+  // broader sparseness check for older partial profiles.
+  if (p.employee_count == null) return true;
+  const demo=(p.owner_demographics||[]).filter(x=>x&&x!=='any');
+  return (demo.length===0) && !p.description && ((p.funding_purpose||[]).length===0);
+}
+let _cpWired=false;
+function wireCompleteTags(){
+  if(_cpWired) return; _cpWired=true;
+  ['cp-demographics','cp-funding'].forEach(id=>{
+    document.querySelectorAll('#'+id+' .tag-option').forEach(t=>{
+      t.addEventListener('click',()=>t.classList.toggle('selected'));
+    });
+  });
+}
+function setTags(containerId, values){
+  const set=new Set((values||[]).map(String));
+  document.querySelectorAll('#'+containerId+' .tag-option').forEach(t=>{
+    t.classList.toggle('selected', set.has(t.dataset.value));
+  });
+}
+function setRadioBool(name, val){
+  if(val===null||val===undefined) return;
+  const el=document.querySelector(`input[name="${name}"][value="${val?'true':'false'}"]`);
+  if(el) el.checked=true;
+}
+async function refreshCompletionState(){
+  wireCompleteTags();
+  try {
+    const p = await apiFetch('/api/portal/profile');
+    setTags('cp-demographics', (p.owner_demographics||[]).filter(x=>x!=='any'));
+    setTags('cp-funding', p.funding_purpose||[]);
+    if(p.property_ownership) document.getElementById('cp-property').value=p.property_ownership;
+    setRadioBool('cp-homebased', p.is_home_based);
+    setRadioBool('cp-seasonal', p.is_seasonal);
+    if(p.employee_count!=null) document.getElementById('cp-employees').value=p.employee_count;
+    if(p.years_in_business!=null) document.getElementById('cp-years').value=p.years_in_business;
+    if(p.annual_revenue!=null) document.getElementById('cp-revenue').value=p.annual_revenue;
+    if(p.grant_experience) document.getElementById('cp-grant-exp').value=p.grant_experience;
+    if(p.bank_financing_access) document.getElementById('cp-bank').value=p.bank_financing_access;
+    setRadioBool('cp-govt', p.government_contracting);
+    setRadioBool('cp-exports', p.exports);
+    if(p.description) document.getElementById('cp-description').value=p.description;
+    let dismissed=false; try{ dismissed=localStorage.getItem('fb_nudge_dismissed')==='1'; }catch(_){}
+    const nudge=document.getElementById('completeNudge');
+    if(nudge) nudge.style.display = (!dismissed && profileLooksIncomplete(p)) ? 'block' : 'none';
+  } catch(e){ /* non-fatal */ }
+}
+async function saveComplete(){
+  const tagVals=id=>Array.from(document.querySelectorAll('#'+id+' .tag-option.selected')).map(t=>t.dataset.value);
+  const num=id=>{ const v=document.getElementById(id).value.trim(); return v===''?null:parseInt(v,10); };
+  const radio=name=>{ const el=document.querySelector(`input[name="${name}"]:checked`); return el?el.value==='true':null; };
+  const sel=id=>{ const v=document.getElementById(id).value; return v||null; };
+  const payload={
+    owner_demographics: tagVals('cp-demographics'),
+    funding_purpose: tagVals('cp-funding'),
+    property_ownership: sel('cp-property'),
+    is_home_based: radio('cp-homebased'),
+    is_seasonal: radio('cp-seasonal'),
+    employee_count: num('cp-employees'),
+    years_in_business: num('cp-years'),
+    annual_revenue: num('cp-revenue'),
+    grant_experience: sel('cp-grant-exp'),
+    bank_financing_access: sel('cp-bank'),
+    government_contracting: radio('cp-govt'),
+    exports: radio('cp-exports'),
+    description: document.getElementById('cp-description').value.trim() || null,
+  };
+  // Drop nulls so untouched fields don't overwrite existing values with blanks.
+  // Demographics and funding are arrays we always send (empty = cleared on purpose).
+  Object.keys(payload).forEach(k=>{
+    if(payload[k]===null && k!=='owner_demographics' && k!=='funding_purpose') delete payload[k];
+  });
+  try {
+    await apiFetch('/api/portal/profile','PATCH',payload);
+    const c=document.getElementById('cp-confirm'); c.style.display='inline'; setTimeout(()=>c.style.display='none',3000);
+    refreshCompletionState();
+  } catch(e){ alert('Save failed: '+e.message); }
+}
+
 </script>
 </body>
 </html>
