@@ -102,9 +102,9 @@
 
   <!-- FORM STATE -->
   <div id="formState">
-    <div class="intro-eyebrow">Free during beta</div>
+    <div class="intro-eyebrow">14-day free trial</div>
     <h1 class="intro-title">Get your first funding digest</h1>
-    <p class="intro-sub">Four quick questions and we'll email you grants, loans, tax credits, and rebates matched to your business. No credit card. Takes under a minute.</p>
+    <p class="intro-sub">A few quick questions and we'll email you grants, loans, tax credits, and rebates matched to your business. Start your 14-day free trial, cancel anytime. Takes under a minute.</p>
 
     <div class="card">
       <div class="field">
@@ -212,14 +212,34 @@
         </div>
       </div>
 
+      <div class="field">
+        <label for="comp-code">Comp code <span style="font-weight:300;color:var(--muted);">Optional</span></label>
+        <p class="field-explanation">Have a code? Enter it to skip payment and get FundBug free.</p>
+        <input type="text" id="comp-code" autocomplete="off" placeholder="e.g. BETA2026" style="max-width:220px;">
+        <div class="comp-status" id="comp-status"></div>
+      </div>
+
+      <div class="field" id="payment-section">
+        <label>Payment details <span class="req">*</span></label>
+        <p class="field-explanation">Free for 14 days, then $20/month. Cancel anytime, and we'll remind you before the trial ends.</p>
+        <div id="card-element" class="card-input"></div>
+        <div class="card-errors" id="card-errors"></div>
+      </div>
+
+      <div class="field">
+        <label for="referral-code">Referral code <span style="font-weight:300;color:var(--muted);">Optional</span></label>
+        <p class="field-explanation">Were you referred by a partner or chamber? Enter their code here.</p>
+        <input type="text" id="referral-code" autocomplete="off" placeholder="Referral code" style="max-width:220px;">
+      </div>
+
       <label class="legal">
         <input type="checkbox" id="certified-adult">
         <span>I confirm I am 18 years of age or older.</span>
       </label>
 
-      <button class="btn" id="submitBtn" onclick="submitThin()">Get my digest →</button>
+      <button class="btn" id="submitBtn" onclick="submitThin()">Start free trial →</button>
       <div class="form-error" id="formError"></div>
-      <p class="footnote">Free during beta. No credit card. We'll email your first digest and a link to your portal.</p>
+      <p class="footnote">14 days free, then $20/month. Cancel anytime. Have a comp code? Enter it above to skip payment. We'll email your first digest and a link to your portal.</p>
     </div>
   </div>
 
@@ -234,11 +254,65 @@
 
 </div>
 
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+  .card-input { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; background: var(--white); }
+  .card-errors { color: #c0392b; font-size: 13px; margin-top: 6px; min-height: 16px; }
+  .comp-status { font-size: 13px; margin-top: 6px; min-height: 16px; }
+  .comp-status.ok { color: #3a7a34; font-weight: 600; }
+  .comp-status.bad { color: #c0392b; }
+</style>
 <script>
 const API = 'https://fundbug-production.up.railway.app';
 
 // Carry an optional referral code from the URL (?ref=CODE).
 const REF = new URLSearchParams(window.location.search).get('ref') || null;
+
+// ── Stripe (paid path, the default) ──────────────────────────────────────────
+let stripe = null, cardEl = null, stripeReady = false;
+(async function initStripe() {
+  try {
+    const cfg = await fetch(API + '/api/config').then(r => r.json());
+    stripe = Stripe(cfg.stripe_publishable_key);
+    const elements = stripe.elements();
+    cardEl = elements.create('card', { style: { base: { fontSize: '15px', color: '#1a1a14', fontFamily: 'inherit', '::placeholder': { color: '#8a8578' } } } });
+    cardEl.mount('#card-element');
+    cardEl.on('change', e => { document.getElementById('card-errors').textContent = e.error ? e.error.message : ''; });
+    stripeReady = true;
+  } catch (e) {
+    document.getElementById('card-errors').textContent = 'Could not load the payment field. Refresh and try again.';
+  }
+})();
+
+// Prefill referral code from ?ref= (still editable).
+if (REF) { const ri = document.getElementById('referral-code'); if (ri) ri.value = REF; }
+
+// ── Comp code live check ─────────────────────────────────────────────────────
+let compValid = false, compTimer = null;
+(function initCompCheck() {
+  const input = document.getElementById('comp-code');
+  const status = document.getElementById('comp-status');
+  const pay = document.getElementById('payment-section');
+  input.addEventListener('input', () => {
+    clearTimeout(compTimer);
+    const code = input.value.trim();
+    if (!code) { compValid = false; status.textContent = ''; status.className = 'comp-status'; pay.style.display = ''; updateSubmitLabel(); return; }
+    compTimer = setTimeout(async () => {
+      try {
+        const r = await fetch(API + '/api/comp-code/' + encodeURIComponent(code)).then(r => r.json());
+        compValid = !!r.valid;
+        if (compValid) { status.textContent = '✓ Free access, no card needed'; status.className = 'comp-status ok'; pay.style.display = 'none'; }
+        else { status.textContent = 'Not a valid code'; status.className = 'comp-status bad'; pay.style.display = ''; }
+      } catch { compValid = false; }
+      updateSubmitLabel();
+    }, 400);
+  });
+})();
+
+function updateSubmitLabel() {
+  const btn = document.getElementById('submitBtn');
+  if (btn && !btn.disabled) btn.textContent = compValid ? 'Get my digest →' : 'Start free trial →';
+}
 
 // ── Industry tag picker (max 3) ──────────────────────────────────────────────
 (function initTags() {
@@ -280,9 +354,21 @@ async function submitThin() {
   if (industry.length === 0) { err.textContent = 'Please select at least one industry.'; return; }
   if (!adult) { err.textContent = 'Please confirm you are 18 years of age or older.'; return; }
 
+  const comp_code = document.getElementById('comp-code').value.trim() || null;
+  const referral_code = document.getElementById('referral-code').value.trim() || REF || null;
+
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
-  btn.textContent = 'Setting up your digest…';
+  btn.textContent = compValid ? 'Setting up your digest…' : 'Starting your trial…';
+
+  let payment_method_id = null;
+  if (!compValid) {
+    // Paid path (default): collect the card via Stripe before we submit.
+    if (!stripeReady) { btn.disabled = false; updateSubmitLabel(); err.textContent = 'Payment field is still loading. Try again in a moment.'; return; }
+    const { paymentMethod, error } = await stripe.createPaymentMethod({ type: 'card', card: cardEl, billing_details: { email } });
+    if (error) { btn.disabled = false; updateSubmitLabel(); err.textContent = error.message; return; }
+    payment_method_id = paymentMethod.id;
+  }
 
   const payload = {
     business_name,
@@ -291,7 +377,10 @@ async function submitThin() {
     industry,
     owner_demographics: selectedDemographics(),
     certified_adult: true,
-    referral_code: REF,
+    comp_code,
+    referral_code,
+    payment_method_id,
+    plan: 'monthly',
   };
 
   try {
@@ -308,7 +397,7 @@ async function submitThin() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (e) {
     btn.disabled = false;
-    btn.textContent = 'Get my digest →';
+    updateSubmitLabel();
     err.textContent = e.message;
   }
 }
