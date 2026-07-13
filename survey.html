@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FundBug · 2-Minute Trial Survey</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --ink:#1a1a1a; --paper:#f7f5f0; --card:#ffffff; --line:#e8e0d5;
+    --green:#5a9e52; --green-dark:#3d7a38; --amber:#c8955a; --muted:#555555; --faint:#8a8578;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);font-family:Verdana,Geneva,Tahoma,sans-serif;color:var(--ink);line-height:1.6}
+  .bar{background:var(--ink);border-bottom:3px solid var(--green);padding:18px 24px}
+  .bar .brand{font-family:Georgia,serif;font-size:21px;font-weight:bold;color:#fff;letter-spacing:-0.5px}
+  .bar .tag{font-size:10px;color:#b8b8b8;letter-spacing:1px;text-transform:uppercase;margin-top:4px}
+  main{max-width:640px;margin:0 auto;padding:36px 20px 64px}
+  h1{font-family:Georgia,serif;font-size:26px;line-height:1.3;margin-bottom:10px}
+  .lede{font-size:13px;color:var(--muted);margin-bottom:28px}
+  .lede strong{color:var(--green-dark)}
+  .deal{display:inline-block;background:#e8f0e0;color:var(--green-dark);padding:3px 10px;border-radius:3px;
+        font-size:10px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:14px}
+  .q{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:20px 22px;margin-bottom:14px}
+  .q .eyebrow{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--green);font-weight:bold;margin-bottom:8px}
+  .q label.head{display:block;font-family:Georgia,serif;font-size:15px;font-weight:bold;margin-bottom:12px;line-height:1.4}
+  .scale{display:flex;gap:8px;flex-wrap:wrap}
+  .scale input{position:absolute;opacity:0;width:0}
+  .scale span{display:inline-block;border:1px solid var(--line);border-radius:4px;padding:9px 0;width:52px;text-align:center;
+              font-size:13px;cursor:pointer;background:#fff;user-select:none}
+  .scale input:checked + span{background:var(--green);border-color:var(--green);color:#fff;font-weight:bold}
+  .scale input:focus-visible + span{outline:2px solid var(--green-dark);outline-offset:2px}
+  .scale-hint{display:flex;justify-content:space-between;font-size:10px;color:var(--faint);margin-top:6px;max-width:292px}
+  textarea,input[type=text]{width:100%;border:1px solid var(--line);border-radius:4px;padding:10px 12px;
+        font-family:Verdana,Geneva,Tahoma,sans-serif;font-size:13px;background:#fff;color:var(--ink)}
+  textarea{min-height:84px;resize:vertical}
+  textarea:focus,input[type=text]:focus{outline:2px solid var(--green);outline-offset:1px;border-color:var(--green)}
+  .yn{display:flex;gap:8px;margin-bottom:10px}
+  .yn input{position:absolute;opacity:0;width:0}
+  .yn span{display:inline-block;border:1px solid var(--line);border-radius:4px;padding:9px 22px;font-size:13px;cursor:pointer;background:#fff}
+  .yn input:checked + span{background:var(--green);border-color:var(--green);color:#fff;font-weight:bold}
+  .yn input:focus-visible + span{outline:2px solid var(--green-dark);outline-offset:2px}
+  .consent{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:var(--muted)}
+  .consent input[type=checkbox]{margin-top:3px;width:16px;height:16px;accent-color:var(--green)}
+  #tname{margin-top:10px;display:none}
+  .submit{display:block;width:100%;background:var(--green);color:#fff;border:none;border-radius:5px;
+          padding:14px;font-size:14px;font-weight:bold;font-family:Verdana,Geneva,Tahoma,sans-serif;cursor:pointer;margin-top:6px}
+  .submit:hover{background:var(--green-dark)}
+  .submit:focus-visible{outline:3px solid var(--green-dark);outline-offset:2px}
+  .submit[disabled]{opacity:.55;cursor:default}
+  .note{font-size:11px;color:var(--faint);text-align:center;margin-top:12px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:28px 24px;text-align:center}
+  .panel h2{font-family:Georgia,serif;font-size:22px;margin-bottom:10px}
+  .panel p{font-size:13px;color:var(--muted)}
+  .panel .big{font-size:15px;color:var(--ink);margin-bottom:8px}
+  .err{background:#fdf1ec;border:1px solid #e8c4b0;color:#a53d1e;border-radius:5px;padding:12px 14px;font-size:12px;margin-bottom:14px;display:none}
+  #form{display:none}
+  footer{max-width:640px;margin:0 auto;padding:0 20px 40px;font-size:10px;color:var(--faint)}
+  @media (prefers-reduced-motion: no-preference){
+    .q{transition:border-color .15s}
+    .q:focus-within{border-color:var(--green)}
+  }
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="brand">FundBug</div>
+  <div class="tag">Trial feedback survey</div>
+</div>
+
+<main>
+  <div id="loading" class="panel"><p>Loading your survey…</p></div>
+
+  <div id="ineligible" class="panel" style="display:none">
+    <h2 id="inel-title">This link isn't active</h2>
+    <p id="inel-msg">This survey link is invalid or has expired. Reply to any FundBug email and we'll send you a fresh one.</p>
+  </div>
+
+  <div id="done" class="panel" style="display:none">
+    <h2>Two free weeks, added.</h2>
+    <p class="big">Your trial now runs through <strong id="newend"></strong>.</p>
+    <p>Thank you. Your answers go straight into how FundBug hunts for programs. A confirmation is on its way to your inbox, and your digests keep arriving on the usual schedule.</p>
+  </div>
+
+  <form id="form" novalidate>
+    <span class="deal">2 minutes = 2 extra free weeks</span>
+    <h1 id="headline">How's FundBug working for you?</h1>
+    <p class="lede">Five quick questions. When you hit submit, <strong>two more free weeks are added to your trial instantly</strong>, no strings.</p>
+
+    <div class="err" id="err"></div>
+
+    <div class="q">
+      <div class="eyebrow">Question 1 · Usefulness</div>
+      <label class="head" id="q1label">So far, how useful have your funding digests been?</label>
+      <div class="scale" role="radiogroup" aria-labelledby="q1label">
+        <label><input type="radio" name="usefulness" value="1"><span>1</span></label>
+        <label><input type="radio" name="usefulness" value="2"><span>2</span></label>
+        <label><input type="radio" name="usefulness" value="3"><span>3</span></label>
+        <label><input type="radio" name="usefulness" value="4"><span>4</span></label>
+        <label><input type="radio" name="usefulness" value="5"><span>5</span></label>
+      </div>
+      <div class="scale-hint"><span>Not useful</span><span>Extremely useful</span></div>
+    </div>
+
+    <div class="q">
+      <div class="eyebrow">Question 2 · Best match</div>
+      <label class="head" for="best_match">Which matched program has been the most interesting or relevant to your business?</label>
+      <textarea id="best_match" name="best_match" placeholder="Name the program, or describe it if you don't remember the exact title"></textarea>
+    </div>
+
+    <div class="q">
+      <div class="eyebrow">Question 3 · Action taken</div>
+      <label class="head" id="q3label">Have you pursued any of your recommended programs yet?</label>
+      <div class="yn" role="radiogroup" aria-labelledby="q3label">
+        <label><input type="radio" name="pursued" value="yes"><span>Yes</span></label>
+        <label><input type="radio" name="pursued" value="not_yet"><span>Not yet</span></label>
+      </div>
+      <textarea id="pursued_which" name="pursued_which" placeholder="If yes: which ones, and how far did you get? (started an application, contacted the administrator, bookmarked it for later…)" style="display:none"></textarea>
+    </div>
+
+    <div class="q">
+      <div class="eyebrow">Question 4 · What's missing</div>
+      <label class="head" for="missing">What's missing? Types of funding, kinds of programs, or anything you expected to see and haven't.</label>
+      <textarea id="missing" name="missing" placeholder="Be blunt, this is the most useful question on the page"></textarea>
+    </div>
+
+    <div class="q">
+      <div class="eyebrow">Question 5 · Recommendation</div>
+      <label class="head" id="q5label">How likely are you to recommend FundBug to another business owner?</label>
+      <div class="scale" role="radiogroup" aria-labelledby="q5label">
+        <label><input type="radio" name="recommend" value="1"><span>1</span></label>
+        <label><input type="radio" name="recommend" value="2"><span>2</span></label>
+        <label><input type="radio" name="recommend" value="3"><span>3</span></label>
+        <label><input type="radio" name="recommend" value="4"><span>4</span></label>
+        <label><input type="radio" name="recommend" value="5"><span>5</span></label>
+      </div>
+      <div class="scale-hint"><span>Wouldn't</span><span>Already have</span></div>
+    </div>
+
+    <div class="q">
+      <div class="eyebrow">Anything else</div>
+      <label class="head" for="comments">Anything else you'd tell us, good or bad?</label>
+      <textarea id="comments" name="comments"></textarea>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)">
+        <label class="consent">
+          <input type="checkbox" id="testimonial_ok" name="testimonial_ok">
+          <span>You may quote my feedback publicly (on fundbug.net or in FundBug materials), attributed to me and my business.</span>
+        </label>
+        <input type="text" id="tname" name="testimonial_name" placeholder="How should we credit you? e.g. Jane Smith, Owner, Smith's Hardware, Pittsfield MA">
+      </div>
+    </div>
+
+    <button class="submit" id="submitBtn" type="submit">Submit and add my 2 free weeks →</button>
+    <p class="note">One extension per account. Applied to your card's trial period instantly; nothing is charged today.</p>
+  </form>
+</main>
+
+<footer>FundBug LLC · 82 Wendell Ave, Suite 100, Pittsfield, MA 01201 · <a href="https://fundbug.net" style="color:var(--faint)">fundbug.net</a></footer>
+
+<script>
+(function(){
+  var API = "https://api.fundbug.net";
+  var token = new URLSearchParams(location.search).get("t") || "";
+  var $ = function(id){ return document.getElementById(id); };
+
+  function show(id){
+    ["loading","ineligible","done","form"].forEach(function(x){ $(x).style.display = (x===id) ? (x==="form"?"block":"block") : "none"; });
+  }
+  function fail(title, msg){
+    $("inel-title").textContent = title;
+    if (msg) $("inel-msg").textContent = msg;
+    show("ineligible");
+  }
+
+  if (!token) { fail("This link isn't active"); return; }
+
+  fetch(API + "/api/portal/trial-survey/status?t=" + encodeURIComponent(token))
+    .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+    .then(function(res){
+      if (!res.ok) { fail("This link isn't active", res.j.detail || undefined); return; }
+      if (!res.j.eligible) {
+        if (res.j.reason === "already_submitted")
+          fail("Already done, and thank you", "You've submitted this survey and the two extra weeks are on your account.");
+        else if (res.j.reason === "not_in_trial")
+          fail("Your trial has already converted", "The extension only applies during an active trial, but we'd still love feedback: just reply to any FundBug email.");
+        else fail("This link isn't active");
+        return;
+      }
+      if (res.j.business_name) $("headline").textContent = "How's FundBug working for " + res.j.business_name + "?";
+      show("form");
+    })
+    .catch(function(){ fail("Couldn't load the survey", "Please check your connection and reload this page."); });
+
+  // Reveal the "which ones" box when pursued = yes
+  document.addEventListener("change", function(e){
+    if (e.target.name === "pursued")
+      $("pursued_which").style.display = (e.target.value === "yes") ? "block" : "none";
+    if (e.target.id === "testimonial_ok")
+      $("tname").style.display = e.target.checked ? "block" : "none";
+  });
+
+  $("form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var f = e.target;
+    var answers = {
+      usefulness:    (f.usefulness.value || ""),
+      best_match:    f.best_match.value.trim(),
+      pursued:       (f.pursued.value || ""),
+      pursued_which: f.pursued_which.value.trim(),
+      missing:       f.missing.value.trim(),
+      recommend:     (f.recommend.value || ""),
+      comments:      f.comments.value.trim()
+    };
+    var any = Object.keys(answers).some(function(k){ return answers[k]; });
+    var errEl = $("err");
+    if (!any) { errEl.textContent = "Answer at least one question to claim the extension."; errEl.style.display = "block"; return; }
+    errEl.style.display = "none";
+    var btn = $("submitBtn"); btn.disabled = true; btn.textContent = "Submitting…";
+
+    fetch(API + "/api/portal/trial-survey", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        token: token,
+        answers: answers,
+        testimonial_ok: $("testimonial_ok").checked,
+        testimonial_name: $("tname").value.trim()
+      })
+    })
+    .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+    .then(function(res){
+      if (!res.ok) {
+        errEl.textContent = res.j.detail || "Something went wrong, please try again.";
+        errEl.style.display = "block";
+        btn.disabled = false; btn.textContent = "Submit and add my 2 free weeks →";
+        window.scrollTo({top: 0});
+        return;
+      }
+      $("newend").textContent = res.j.new_trial_end || "";
+      show("done");
+      window.scrollTo({top: 0});
+    })
+    .catch(function(){
+      errEl.textContent = "Network error, your answers were not sent. Please try again.";
+      errEl.style.display = "block";
+      btn.disabled = false; btn.textContent = "Submit and add my 2 free weeks →";
+    });
+  });
+})();
+</script>
+</body>
+</html>

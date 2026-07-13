@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FundBug Berkshire Giveaway · Win a Year of FundBug</title>
+<meta name="description" content="Win 12 months of FundBug free: personalized grant, rebate, and financing digests for your small business. No purchase necessary. Entries close September 6, 2026.">
+<style>
+  :root{
+    --ink:#1a1a1a; --paper:#f7f5f0; --card:#ffffff; --line:#e8e0d5;
+    --green:#5a9e52; --green-dark:#3d7a38; --amber:#b07d3a; --muted:#555555; --faint:#8a8578;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);font-family:Verdana,Geneva,Tahoma,sans-serif;color:var(--ink);line-height:1.65}
+  .bar{background:var(--ink);border-bottom:3px solid var(--green);padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
+  .bar .brand{font-family:Georgia,serif;font-size:21px;font-weight:bold;color:#fff;letter-spacing:-0.5px;text-decoration:none}
+  .bar .tag{font-size:10px;color:#b8b8b8;letter-spacing:1px;text-transform:uppercase}
+  main{max-width:640px;margin:0 auto;padding:36px 20px 64px}
+  .eyebrow{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);font-weight:bold;margin-bottom:8px}
+  h1{font-family:Georgia,serif;font-size:28px;line-height:1.25;margin-bottom:12px}
+  .lede{font-size:13px;color:var(--muted);margin-bottom:26px}
+
+  /* The prize, presented as a FundBug program card, the same card format
+     subscribers see in every digest. */
+  .program{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:22px 24px;margin-bottom:28px}
+  .program .title{font-family:Georgia,serif;font-size:18px;font-weight:bold;margin-bottom:10px;line-height:1.3}
+  .badges{margin-bottom:10px}
+  .badge{display:inline-block;padding:3px 10px;border-radius:3px;font-size:10px;font-weight:bold;letter-spacing:0.5px;margin:0 6px 6px 0;vertical-align:middle}
+  .badge.type{background:var(--green);color:#fff}
+  .badge.geo{background:var(--line);color:var(--muted);font-weight:normal}
+  .badge.value{background:transparent;color:var(--muted);font-size:11px;padding-left:0}
+  .deadline{font-size:11px;font-weight:bold;color:#c44b2a;margin-bottom:12px}
+  .why{font-size:13px;color:#222;line-height:1.75;margin-bottom:12px}
+  .headsup{font-size:12px;color:#c8955a;font-style:italic;margin-bottom:14px}
+  .cta{display:inline-block;background:var(--green);color:#fff;border-radius:5px;padding:12px 22px;font-size:13px;font-weight:bold;text-decoration:none;margin-right:12px;margin-bottom:6px}
+  .cta:hover{background:var(--green-dark)}
+  .cta:focus-visible{outline:3px solid var(--green-dark);outline-offset:2px}
+  .cta.secondary{background:transparent;color:var(--green);border:1px solid var(--green)}
+
+  h2{font-family:Georgia,serif;font-size:19px;margin:34px 0 10px}
+  .how{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px 22px;margin-bottom:8px;font-size:13px}
+  .how strong{color:var(--green-dark)}
+
+  form{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:22px 24px;margin-top:10px}
+  form .fhead{font-family:Georgia,serif;font-size:16px;font-weight:bold;margin-bottom:4px}
+  form .fsub{font-size:12px;color:var(--muted);margin-bottom:16px}
+  label{display:block;font-size:12px;font-weight:bold;margin-bottom:5px}
+  input[type=text],input[type=email]{width:100%;border:1px solid var(--line);border-radius:4px;padding:10px 12px;font-size:13px;font-family:inherit;margin-bottom:14px;background:#fff}
+  input:focus{outline:2px solid var(--green);outline-offset:1px;border-color:var(--green)}
+  .hp{position:absolute;left:-9999px;opacity:0;height:0;width:0}
+  button{background:var(--green);color:#fff;border:none;border-radius:5px;padding:12px 22px;font-size:13px;font-weight:bold;font-family:inherit;cursor:pointer}
+  button:hover{background:var(--green-dark)}
+  button:focus-visible{outline:3px solid var(--green-dark);outline-offset:2px}
+  button[disabled]{opacity:.55;cursor:default}
+  .msg{font-size:12px;border-radius:5px;padding:11px 13px;margin-top:12px;display:none}
+  .msg.ok{background:#e8f0e0;border:1px solid #bcd8b2;color:var(--green-dark)}
+  .msg.bad{background:#fdf1ec;border:1px solid #e8c4b0;color:#a53d1e}
+
+  .rules{margin-top:36px;border-top:2px solid var(--line);padding-top:22px}
+  .rules h2{margin-top:0}
+  .rules p, .rules li{font-size:11px;color:var(--muted);margin-bottom:8px}
+  .rules ol{padding-left:18px}
+  footer{max-width:640px;margin:0 auto;padding:0 20px 40px;font-size:10px;color:var(--faint)}
+</style>
+</head>
+<body>
+<div class="bar">
+  <a class="brand" href="https://fundbug.net">FundBug</a>
+  <span class="tag">Berkshire Giveaway · 2026</span>
+</div>
+
+<main>
+  <div class="eyebrow">A special entry in your funding digest</div>
+  <h1>Win a full year of FundBug, free!</h1>
+  <p class="lede">Every two weeks, FundBug scans hundreds of grants, rebates, tax credits, and financing programs and sends the ones that actually fit your business. One winner gets twelve months of it on us. Here's the prize, presented the way our subscribers see every program:</p>
+
+  <div class="program">
+    <div class="title">FundBug Annual Subscription Giveaway</div>
+    <div class="badges">
+      <span class="badge type">Giveaway</span>
+      <span class="badge geo">Open to US small businesses</span>
+      <span class="badge value">$200 value</span>
+    </div>
+    <div class="deadline">&#9888; Entries close: September 6, 2026, 11:59 PM ET</div>
+    <div class="why">Twelve months of personalized bi-weekly funding digests: grants, rebates, tax credits, and financing matched to your industry, location, and business profile, plus a tracker portal for the programs you pursue. One winner, drawn at random on September 7, 2026, and announced the same week.</div>
+    <div class="headsup">Starting a free trial automatically enters you. No purchase necessary; the form below enters you with equal odds.</div>
+    <a class="cta" href="https://fundbug.net/signup.html?src=berkshire2026">Start a free trial &amp; enter &rarr;</a>
+    <a class="cta secondary" href="#enter">Enter without signing up</a>
+  </div>
+
+  <h2>Two ways to enter, equal odds</h2>
+  <div class="how"><strong>1. Start a free trial.</strong> Any new FundBug trial started between August 25 and September 6, 2026 is automatically entered. The 14-day trial is free, and you'll see your first personalized digest within minutes.</div>
+  <div class="how"><strong>2. Enter free, no signup.</strong> Fill out the form below. No purchase or trial necessary, and form entries have exactly the same odds as trial entries.</div>
+
+  <form id="entry" name="entry" autocomplete="on">
+    <a id="enter"></a>
+    <div class="fhead">Free entry</div>
+    <div class="fsub">One entry per person or business. We'll only email you if you win.</div>
+    <label for="name">Your name</label>
+    <input type="text" id="name" name="name" required maxlength="120" autocomplete="name">
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required maxlength="200" autocomplete="email">
+    <label for="business_name">Business name (optional)</label>
+    <input type="text" id="business_name" name="business_name" maxlength="160" autocomplete="organization">
+    <div class="hp" aria-hidden="true">
+      <label for="website">Website</label>
+      <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+    </div>
+    <button type="submit" id="btn">Enter the giveaway</button>
+    <div class="msg ok" id="ok">You're in! One entry recorded, and we'll email you if you win. Good luck!</div>
+    <div class="msg bad" id="bad"></div>
+  </form>
+
+  <div class="rules">
+    <h2>Official Rules</h2>
+    <p><strong>NO PURCHASE NECESSARY. A PURCHASE WILL NOT INCREASE YOUR CHANCES OF WINNING.</strong></p>
+    <ol>
+      <li><strong>Sponsor.</strong> FundBug LLC, 82 Wendell Ave, Suite 100, Pittsfield, MA 01201. This giveaway is sponsored solely by FundBug LLC. 1Berkshire is not a sponsor of, and is not responsible for, this promotion.</li>
+      <li><strong>Eligibility.</strong> Open to legal residents of the United States, 18 years or older, who own or operate a business or are considering starting one. Employees of FundBug LLC and their immediate families are not eligible. Existing FundBug subscribers as of August 24, 2026 are not eligible; this giveaway is for new entrants. Void where prohibited.</li>
+      <li><strong>Entry period.</strong> August 25, 2026, 12:00 AM ET through September 6, 2026, 11:59 PM ET.</li>
+      <li><strong>How to enter.</strong> (a) Start a FundBug free trial at fundbug.net during the entry period, or (b) submit the free entry form on this page. Both methods receive one entry with equal odds. Limit one entry per person or business regardless of method.</li>
+      <li><strong>Prize.</strong> One (1) winner receives a twelve (12) month FundBug subscription, approximate retail value $200. Prize is non-transferable, carries no cash value, and may not be substituted. If the winner is a current trial or paid subscriber, the prize is applied as twelve months of free service on their existing account.</li>
+      <li><strong>Winner selection and notification.</strong> One winner will be selected at random from all eligible entries on or about September 7, 2026, before any entrant’s free trial period has ended, and notified by email within three business days. If a winner does not respond within seven days, an alternate winner may be selected.</li>
+      <li><strong>Odds.</strong> Odds of winning depend on the number of eligible entries received.</li>
+      <li><strong>Publicity.</strong> Except where prohibited, acceptance of the prize constitutes permission for the Sponsor to announce the winner's first name and business name in FundBug and 1Berkshire communications, without additional compensation. Any further use of the winner's feedback or likeness requires separate written consent.</li>
+      <li><strong>General.</strong> By entering, entrants agree to these rules and the Sponsor's decisions, which are final. The Sponsor may disqualify entries it reasonably believes are automated, duplicative, or fraudulent. This promotion is not sponsored, endorsed, or administered by any email provider or social platform.</li>
+      <li><strong>Questions.</strong> hello@fundbug.net</li>
+    </ol>
+  </div>
+</main>
+
+<footer>FundBug LLC · 82 Wendell Ave, Suite 100, Pittsfield, MA 01201 · <a href="https://fundbug.net" style="color:var(--faint)">fundbug.net</a> · <a href="https://fundbug.net/privacy.html" style="color:var(--faint)">Privacy</a></footer>
+
+<script>
+(function(){
+  var API = "https://api.fundbug.net";
+  document.getElementById("entry").addEventListener("submit", function(e){
+    e.preventDefault();
+    var f = e.target, ok = document.getElementById("ok"), bad = document.getElementById("bad"), btn = document.getElementById("btn");
+    ok.style.display = "none"; bad.style.display = "none";
+    if (!f.name.value.trim() || !f.email.value.trim()) {
+      bad.textContent = "Name and email are required to enter."; bad.style.display = "block"; return;
+    }
+    btn.disabled = true; btn.textContent = "Entering…";
+    fetch(API + "/api/giveaway/enter", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        name: f.name.value.trim(),
+        email: f.email.value.trim(),
+        business_name: f.business_name.value.trim(),
+        website: f.website.value
+      })
+    })
+    .then(function(r){ return r.json().then(function(j){ return {okr:r.ok, j:j}; }); })
+    .then(function(res){
+      if (!res.okr) {
+        bad.textContent = res.j.detail || "Could not record your entry, please try again.";
+        bad.style.display = "block";
+        btn.disabled = false; btn.textContent = "Enter the giveaway";
+        return;
+      }
+      ok.textContent = res.j.already_entered
+        ? "You're already entered, one entry per person, and yours is recorded."
+        : "You're in! One entry recorded, and we'll email you if you win. Good luck!";
+      ok.style.display = "block";
+      btn.textContent = "Entered ✓";
+    })
+    .catch(function(){
+      bad.textContent = "Network error, your entry was not recorded. Please try again.";
+      bad.style.display = "block";
+      btn.disabled = false; btn.textContent = "Enter the giveaway";
+    });
+  });
+})();
+</script>
+</body>
+</html>
