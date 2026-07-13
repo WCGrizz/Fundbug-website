@@ -12,9 +12,9 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--paper);font-family:Verdana,Geneva,Tahoma,sans-serif;color:var(--ink);line-height:1.6}
-  .bar{background:var(--ink);border-bottom:3px solid var(--green);padding:18px 24px}
+  .bar{background:var(--ink);border-bottom:3px solid var(--green);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .bar .brand{font-family:Georgia,serif;font-size:21px;font-weight:bold;color:#fff;letter-spacing:-0.5px}
-  .bar .tag{font-size:10px;color:#b8b8b8;letter-spacing:1px;text-transform:uppercase;margin-top:4px}
+  .bar .tag{font-size:10px;color:#b8b8b8;letter-spacing:1px;text-transform:uppercase}
   main{max-width:640px;margin:0 auto;padding:36px 20px 64px}
   h1{font-family:Georgia,serif;font-size:26px;line-height:1.3;margin-bottom:10px}
   .lede{font-size:13px;color:var(--muted);margin-bottom:28px}
@@ -64,7 +64,10 @@
 </head>
 <body>
 <div class="bar">
-  <div class="brand">FundBug</div>
+  <a href="https://fundbug.net" style="display:flex;align-items:center;gap:11px;text-decoration:none;" aria-label="FundBug home">
+    <img src="https://cdn.mcauto-images-production.sendgrid.net/1499ecb87c930b7b/abb1d7fd-9306-4df3-8c0f-4ee60cdf0e60/873x906.png" alt="" height="34" style="display:block">
+    <span class="brand">FundBug</span>
+  </a>
   <div class="tag">Trial feedback survey</div>
 </div>
 
@@ -159,7 +162,7 @@
 
 <script>
 (function(){
-  var API = "https://api.fundbug.net";
+  var API = "https://fundbug-production.up.railway.app";
   var token = new URLSearchParams(location.search).get("t") || "";
   var $ = function(id){ return document.getElementById(id); };
 

@@ -65,7 +65,9 @@
 </head>
 <body>
 <div class="bar">
-  <a class="brand" href="https://fundbug.net">FundBug</a>
+  <a class="brand" href="https://fundbug.net" style="display:flex;align-items:center;gap:11px;" aria-label="FundBug home">
+    <img src="https://cdn.mcauto-images-production.sendgrid.net/1499ecb87c930b7b/abb1d7fd-9306-4df3-8c0f-4ee60cdf0e60/873x906.png" alt="" height="34" style="display:block"><span>FundBug</span>
+  </a>
   <span class="tag">Berkshire Giveaway · 2026</span>
 </div>
 
@@ -133,7 +135,7 @@
 
 <script>
 (function(){
-  var API = "https://api.fundbug.net";
+  var API = "https://fundbug-production.up.railway.app";
   document.getElementById("entry").addEventListener("submit", function(e){
     e.preventDefault();
     var f = e.target, ok = document.getElementById("ok"), bad = document.getElementById("bad"), btn = document.getElementById("btn");
