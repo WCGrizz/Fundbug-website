@@ -25,6 +25,14 @@
   .signup-back:hover { color: var(--white); }
 
   .wrap { max-width: 540px; margin: 0 auto; padding: 40px 24px 64px; }
+  /* Desktop: wider canvas, side-by-side fields, two-column checklists —
+     everything at or below 560px is untouched, so mobile keeps its layout. */
+  @media (min-width: 720px) {
+    .wrap { max-width: 720px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+    .check-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; }
+    .tag-group-options { gap: 8px 10px; }
+  }
   .intro-eyebrow { font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--green-dk); margin-bottom: 12px; }
   .intro-title { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 12px; }
   .intro-sub { font-size: 16px; font-weight: 300; color: var(--ink2); margin-bottom: 32px; }
@@ -108,6 +116,7 @@
     <p class="footnote" style="text-align:left; margin-top:-16px; margin-bottom:24px;">We'll never sell or rent your email or business information. We use it only to match you with funding and send your digests.</p>
 
     <div class="card">
+      <div class="two-col">
       <div class="field">
         <label for="business-name">Business name <span class="req">*</span></label>
         <input type="text" id="business-name" autocomplete="organization" placeholder="Your business">
@@ -116,6 +125,7 @@
       <div class="field">
         <label for="email">Email <span class="req">*</span></label>
         <input type="email" id="email" autocomplete="email" placeholder="you@yourbusiness.com">
+      </div>
       </div>
 
       <div class="field">
