@@ -28,10 +28,14 @@
   /* Desktop: wider canvas, side-by-side fields, two-column checklists —
      everything at or below 560px is untouched, so mobile keeps its layout. */
   @media (min-width: 720px) {
-    .wrap { max-width: 720px; }
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+    /* Fluid width: scale with the window up to a readable ceiling. */
+    .wrap { max-width: min(1100px, 92vw); }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
     .check-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; }
     .tag-group-options { gap: 8px 10px; }
+  }
+  @media (min-width: 1040px) {
+    .check-list { grid-template-columns: 1fr 1fr 1fr; }
   }
   .intro-eyebrow { font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--green-dk); margin-bottom: 12px; }
   .intro-title { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 12px; }
@@ -95,6 +99,23 @@
     .intro-title { font-size: 27px; }
   }
 </style>
+<script>
+// Channel attribution: captures ?src= (preferred) or utm_source/utm_campaign
+// from the URL on load and keeps it for the session, so homepage -> signup
+// and mid-form refreshes don't lose the source. Sent as acquisition_source.
+(function () {
+  try {
+    var p = new URLSearchParams(window.location.search);
+    var src = p.get('src') || p.get('utm_source') || '';
+    var camp = p.get('utm_campaign') || '';
+    var val = (src && camp && src !== camp) ? (src + '-' + camp) : (src || camp);
+    if (val) sessionStorage.setItem('fb_src', val.toLowerCase().slice(0, 60));
+  } catch (e) { /* attribution must never break the page */ }
+})();
+function getAcquisitionSource() {
+  try { return sessionStorage.getItem('fb_src') || null; } catch (e) { return null; }
+}
+</script>
 </head>
 <body>
 
@@ -390,6 +411,7 @@ async function submitThin() {
     certified_adult: true,
     comp_code,
     referral_code,
+    acquisition_source: getAcquisitionSource(),
     payment_method_id,
     plan: 'monthly',
   };
