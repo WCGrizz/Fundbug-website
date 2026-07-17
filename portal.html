@@ -690,6 +690,23 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 
           <div class="form-group">
             <label for="cp-description">Anything else about your business?</label>
+            <div style="margin:26px 0 22px">
+              <label style="display:block;font-weight:bold;margin-bottom:4px">Certifications you hold</label>
+              <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">Some set-aside grants and most government contracting preferences require formal certification, not just ownership. Check any you already have. Not certified? Each link explains the certification and where to start. <a href="https://fundbug.net/certifications-guide.html" target="_blank" style="color:var(--green-dk)">Full guide &#8599;</a></p>
+              <div id="cp-certs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 18px">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_wosb"> SBA Women-Owned (WOSB / EDWOSB) <a href="https://fundbug.net/certifications-guide.html#wosb" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="wbenc"> WBENC (Women's Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#wbenc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="ma_sdo"> Massachusetts SDO (WBE/MBE/VBE) <a href="https://fundbug.net/certifications-guide.html#ma-sdo" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_vetcert"> SBA VetCert (VOSB / SDVOSB) <a href="https://fundbug.net/certifications-guide.html#vetcert" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_8a"> SBA 8(a) Business Development <a href="https://fundbug.net/certifications-guide.html#8a" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="hubzone"> SBA HUBZone <a href="https://fundbug.net/certifications-guide.html#hubzone" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="nmsdc_mbe"> NMSDC (Minority Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#nmsdc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="nglcc_lgbtbe"> NGLCC (LGBT Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#nglcc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="disabilityin_dobe"> Disability:IN (DOBE) <a href="https://fundbug.net/certifications-guide.html#disabilityin" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="dot_dbe"> DBE (Disadvantaged Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#dbe" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              </div>
+            </div>
+
             <textarea id="cp-description" placeholder="A sentence or two about what you do. This helps us write better explanations of why each program fits you." style="min-height:90px"></textarea>
           </div>
 
@@ -2485,6 +2502,7 @@ async function refreshCompletionState(){
     if(p.grant_experience) document.getElementById('cp-grant-exp').value=p.grant_experience;
     if(p.bank_financing_access) document.getElementById('cp-bank').value=p.bank_financing_access;
     setRadioBool('cp-govt', p.government_contracting);
+    (p.certifications||[]).forEach(v=>{const el=document.querySelector('input[name="cp-cert"][value="'+v+'"]'); if(el) el.checked=true;});
     setRadioBool('cp-exports', p.exports);
     if(p.description) document.getElementById('cp-description').value=p.description;
     let dismissed=false; try{ dismissed=localStorage.getItem('fb_nudge_dismissed')==='1'; }catch(_){}
@@ -2510,12 +2528,13 @@ async function saveComplete(){
     bank_financing_access: sel('cp-bank'),
     government_contracting: radio('cp-govt'),
     exports: radio('cp-exports'),
+    certifications: Array.from(document.querySelectorAll('input[name="cp-cert"]:checked')).map(cb=>cb.value),
     description: document.getElementById('cp-description').value.trim() || null,
   };
   // Drop nulls so untouched fields don't overwrite existing values with blanks.
   // Demographics and funding are arrays we always send (empty = cleared on purpose).
   Object.keys(payload).forEach(k=>{
-    if(payload[k]===null && k!=='owner_demographics' && k!=='funding_purpose') delete payload[k];
+    if(payload[k]===null && k!=='owner_demographics' && k!=='funding_purpose' && k!=='certifications') delete payload[k];
   });
   try {
     await apiFetch('/api/portal/profile','PATCH',payload);
