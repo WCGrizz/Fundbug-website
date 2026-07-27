@@ -137,6 +137,16 @@ function getAcquisitionSource() {
     <p class="footnote" style="text-align:left; margin-top:-16px; margin-bottom:24px;">We'll never sell or rent your email or business information. We use it only to match you with funding and send your digests.</p>
 
     <div class="card">
+      <div class="field" style="background:#f0faf0;border:1px solid rgba(90,158,82,.35);border-radius:8px;padding:16px 18px">
+        <label for="scan-url" style="margin-bottom:2px">✨ Have a website? Let it do the typing</label>
+        <p class="field-explanation">Paste your site and we'll suggest your business details below. Only empty fields are filled, and you can edit everything before you submit.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <input type="url" id="scan-url" placeholder="https://yourbusiness.com" style="max-width:300px;flex:1;min-width:200px;margin-bottom:0">
+          <button type="button" id="scanBtn" onclick="signupScan()" style="background:var(--green);border:none;color:#fff;border-radius:6px;padding:12px 18px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;min-height:44px">Fill it in</button>
+        </div>
+        <div id="scan-status" style="font-size:13px;margin-top:8px;min-height:16px"></div>
+      </div>
+
       <div class="two-col">
       <div class="field">
         <label for="business-name">Business name <span class="req">*</span></label>
@@ -369,6 +379,64 @@ function selectedIndustries() {
 }
 function selectedDemographics() {
   return Array.from(document.querySelectorAll('#demographics input:checked')).map(el => el.value);
+}
+
+// ── Website prefill (suggest-only: fills EMPTY fields, never overwrites) ─────
+async function signupScan() {
+  const status = document.getElementById('scan-status');
+  const btn = document.getElementById('scanBtn');
+  const url = document.getElementById('scan-url').value.trim();
+  if (!url) { status.textContent = 'Paste your website URL first.'; status.style.color = '#c0392b'; return; }
+  btn.disabled = true; btn.textContent = 'Reading your site…';
+  status.textContent = 'This usually takes 10–20 seconds.'; status.style.color = 'var(--muted)';
+  try {
+    const res = await fetch(API + '/api/scan-website', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'We could not read that website.');
+    const p = data.proposals || {};
+    const filled = [];
+    const bn = document.getElementById('business-name');
+    if (p.business_name && !bn.value.trim()) { bn.value = p.business_name; filled.push('business name'); }
+    const zc = document.getElementById('zip-code');
+    if (p.zip_code && !zc.value.trim()) { zc.value = p.zip_code; filled.push('ZIP code'); }
+    if (Array.isArray(p.industry) && p.industry.length && selectedIndustries().length === 0) {
+      p.industry.slice(0, 3).forEach(slug => {
+        const el = document.querySelector('#industry-tags .tag-option[data-value="' + slug + '"]');
+        if (el) el.classList.add('selected');
+      });
+      const now = selectedIndustries().length;
+      if (now) {
+        filled.push('industry');
+        const hint = document.getElementById('industry-count');
+        hint.textContent = now >= 3 ? 'Maximum of 3 selected' : 'Select up to 3';
+        hint.classList.toggle('maxed', now >= 3);
+      }
+    }
+    if (Array.isArray(p.owner_demographics) && p.owner_demographics.length && selectedDemographics().length === 0) {
+      let hit = false;
+      p.owner_demographics.forEach(v => {
+        const cb = document.querySelector('#demographics input[value="' + v + '"]');
+        if (cb) { cb.checked = true; hit = true; }
+      });
+      if (hit) filled.push('ownership');
+    }
+    if (filled.length) {
+      status.textContent = '✓ Filled in: ' + filled.join(', ') + '. Double-check everything looks right.';
+      status.style.color = '#3a7a34';
+    } else {
+      status.textContent = "We read your site but couldn't confidently fill anything new. No harm done.";
+      status.style.color = 'var(--muted)';
+    }
+  } catch (e) {
+    status.textContent = e.message;
+    status.style.color = '#c0392b';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Fill it in';
+  }
 }
 
 async function submitThin() {

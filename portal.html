@@ -70,7 +70,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 /* ─── LAYOUT ─── */
 .portal-wrap{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 60px)}
 .sidebar{background:var(--ink);border-right:1px solid rgba(255,255,255,.06);padding:28px 0}
-.sidebar-nav{list-style:none}
+.sidebar-nav{list-style:none;position:sticky;top:20px}
 .sidebar-nav li a{display:flex;align-items:center;gap:10px;padding:12px 24px;font-family:'Jost',sans-serif;font-size:14px;font-weight:400;color:var(--muted2);text-decoration:none;transition:all .12s;border-left:2px solid transparent}
 .sidebar-nav li a:hover{color:var(--cream);background:rgba(255,255,255,.04);border-left-color:rgba(255,255,255,.15)}
 .sidebar-nav li a.active{color:var(--green-lt);background:rgba(90,158,82,.12);border-left-color:var(--green);font-weight:500}
@@ -122,8 +122,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .pp-section-label{font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--green-dk);margin:0 0 6px}
 .pp-section-sub{font-size:14.5px;font-weight:400;color:var(--ink);margin:0 0 18px;line-height:1.6}
 
-/* Unsaved-changes reminder: static note under the hero + sticky bar when dirty */
-.pp-save-note{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-family:'Jost',sans-serif;font-size:14px;color:var(--ink);line-height:1.55}
+/* Unsaved-changes reminder: sticky bar shown while the form is dirty */
 .pp-savebar{position:sticky;bottom:14px;background:var(--ink);border-radius:10px;padding:14px 20px;display:none;align-items:center;justify-content:space-between;gap:14px;box-shadow:0 8px 28px rgba(0,0,0,.25);z-index:50;margin-top:12px}
 .pp-savebar.show{display:flex}
 .pp-savebar-text{font-family:'Jost',sans-serif;font-size:14px;color:var(--cream);font-weight:400}
@@ -627,7 +626,15 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
           <div class="page-sub">One profile that powers everything: sharper digest matches today, pre-filled applications tomorrow. Everything here is optional, but each answer can unlock programs you'd otherwise never see.</div>
         </div>
 
-        <div class="pp-save-note">💾 <strong>Heads up:</strong> changes here aren't saved until you hit <strong>Save Funding Passport</strong> at the bottom of the page. If you edit anything, a save reminder will follow you down the page.</div>
+        <div class="card" style="border-left:4px solid var(--green)">
+          <div class="pp-section-label">✨ Skip the typing</div>
+          <p class="pp-section-sub" style="margin-bottom:12px">Have a website? We'll read it and suggest answers for the fields below. You review every suggestion before it's applied, and nothing saves until you hit Save.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <input type="url" id="scan-url" placeholder="https://yourbusiness.com" style="max-width:320px;flex:1;min-width:220px;margin-bottom:0">
+            <button type="button" onclick="scanWebsite()" style="background:var(--green);border:none;color:#fff;border-radius:6px;padding:12px 20px;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;cursor:pointer;min-height:44px">Fill my Passport</button>
+          </div>
+        </div>
+
 
         <div class="card">
           <div class="pp-section-label">The basics</div>
@@ -723,7 +730,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
             </div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>City</label><input type="text" id="prof-city"></div>
+            <div class="form-group"><label>Business ZIP code</label><input type="text" id="prof-zip" inputmode="numeric" maxlength="10" placeholder="01201" style="max-width:180px"></div>
             <div class="form-group">
               <label>Annual revenue</label>
               <select id="prof-revenue">
@@ -748,14 +755,14 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 
         <div class="card">
           <div class="pp-section-label">Your story</div>
-          <p class="pp-section-sub">This shapes the match explanations in your digest, and doubles as the starting point for application drafts, so write it the way you'd want a funder to read it.</p>
+          <p class="pp-section-sub">This shapes the match explanations in your digest, and doubles as the starting point for application drafts, so write it the way you'd want a funder to read it. Include the details that make you and your business unique, your story is often what sets an application apart.</p>
           <div class="form-group">
             <label for="cp-description">Your business, in your own words</label>
             <textarea id="cp-description" placeholder="e.g. We're a family-run bakery in Great Barrington entering our sixth year. Funding would let us add a second oven and finally keep up with our farmers market demand." style="min-height:110px"></textarea>
           </div>
           <div class="form-group">
             <label>What's new or changed recently? <span style="font-weight:400;font-size:12px;color:var(--muted)">(optional)</span></label>
-            <textarea id="prof-funding-note" placeholder="e.g. We just hired 2 people and are looking to expand our space. Also exploring export markets for the first time." style="min-height:90px"></textarea>
+            <textarea id="prof-funding-note" placeholder="e.g. We just hired 2 people and are looking to expand our space." style="min-height:90px"></textarea>
             <div style="font-size:12px;color:var(--ink);margin-top:4px;font-style:italic">Any recent changes to your business, goals, or capital needs that we should factor into your matches.</div>
           </div>
         </div>
@@ -827,7 +834,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
             </div>
           </div>
           <div class="form-group">
-            <label>Do you sell to the government, or want to?</label>
+            <label>Do you contract with the government to sell goods/services?</label>
             <div style="display:flex;gap:20px;margin-top:4px">
               <label style="font-weight:400;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-govt" value="true" style="accent-color:var(--green)"> Yes</label>
               <label style="font-weight:400;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-govt" value="false" style="accent-color:var(--green)"> No</label>
@@ -867,7 +874,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_vetcert"> SBA VetCert (VOSB / SDVOSB) <a href="https://fundbug.net/certifications-guide.html#vetcert" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_8a"> SBA 8(a) Business Development <a href="https://fundbug.net/certifications-guide.html#8a" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="hubzone"> SBA HUBZone <a href="https://fundbug.net/certifications-guide.html#hubzone" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="nmsdc_mbe"> NMSDC (Minority Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#nmsdc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="nmsdc_mbe"> NMSDC (Minority Business Enterprise) <a href="https://nmsdc.org/" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="nglcc_lgbtbe"> NGLCC (LGBT Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#nglcc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="disabilityin_dobe"> Disability:IN (DOBE) <a href="https://fundbug.net/certifications-guide.html#disabilityin" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="dot_dbe"> DBE (Disadvantaged Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#dbe" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
@@ -897,6 +904,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
               <div class="tag-option" data-value="marketing">Marketing &amp; advertising</div>
               <div class="tag-option" data-value="technology">Technology or software</div>
               <div class="tag-option" data-value="energy">Energy efficiency / clean energy</div>
+              <div class="tag-option" data-value="conservation">Conservation / Sustainability</div>
               <div class="tag-option" data-value="accessibility">Accessibility (ADA)</div>
               <div class="tag-option" data-value="export">Export / international growth</div>
               <div class="tag-option" data-value="research">Research &amp; development</div>
@@ -944,10 +952,6 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
             <div class="form-group">
               <label for="cp-website">Business website</label>
               <input type="url" id="cp-website" placeholder="https://yourbusiness.com" style="max-width:320px">
-              <div style="margin-top:2px">
-                <button type="button" onclick="scanWebsite()" style="background:none;border:1px solid var(--green);color:var(--green-dk);border-radius:6px;padding:8px 14px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;cursor:pointer">✨ Fill my Passport from this website</button>
-                <div style="font-size:12px;color:var(--muted);margin-top:5px;line-height:1.45">We'll read your site and suggest answers for you to review. Nothing is applied until you approve it.</div>
-              </div>
             </div>
             <div class="form-group">
               <label for="cp-formation-date">Date business was formed</label>
@@ -2289,6 +2293,12 @@ function eInValid(){
   errEl.style.display = 'none';
   return false;
 }
+function updateGreeting(p){
+  // Prefer the person's first name once the Passport has one; fall back to
+  // the business name for accounts that haven't added it yet.
+  const el=document.getElementById('greetName');
+  if(el) el.textContent=(p.first_name||p.business_name||'there')+' \ud83d\udc4b';
+}
 function parseIndustry(ind){
   // Handles the three storage shapes upstream: array (JSONB), JSON-encoded
   // string, or bare legacy string.
@@ -2309,7 +2319,7 @@ const PASSPORT_FIELDS=[
   {label:'business name',        group:'The basics',          filled:p=>!!(p.business_name||'').trim()},
   {label:'your name',            group:'The basics',          filled:p=>!!((p.first_name||'')+(p.last_name||'')).trim()},
   {label:'industry',             group:'The basics',          filled:p=>parseIndustry(p.industry).length>0},
-  {label:'city',                 group:'The basics',          filled:p=>!!(p.city||'').trim()},
+  {label:'ZIP code',             group:'The basics',          filled:p=>!!(p.zip_code||'').trim()},
   {label:'employee count',       group:'The basics',          filled:p=>p.employee_count!=null},
   {label:'annual revenue',       group:'The basics',          filled:p=>p.annual_revenue!=null},
   {label:'years in business',    group:'The basics',          filled:p=>p.years_in_business!=null},
@@ -2350,10 +2360,13 @@ async function loadPassport(){
   try{
     const p=await apiFetch('/api/portal/profile');
     renderSetupCard(p);
+    updateGreeting(p);
     // The basics
     document.getElementById('prof-businessName').value=p.business_name||'';
     document.getElementById('prof-ownerName').value=[p.first_name,p.last_name].filter(Boolean).join(' ')||'';
-    document.getElementById('prof-city').value=(p.city||'').replace(', MA','').replace(',MA','');
+    document.getElementById('prof-zip').value=p.zip_code||'';
+    const su=document.getElementById('scan-url');
+    if(su&&!su.value.trim()) su.value=p.website_url||'';
     const indVals=parseIndustry(p.industry);
     setTags('prof-industry-tags', indVals);
     const indCount=document.getElementById('prof-industry-count');
@@ -2428,7 +2441,7 @@ async function savePassport(){
     first_name: firstName||null,
     last_name: lastName||null,
     industry: tagVals('prof-industry-tags'),
-    city: txt('prof-city'),
+    zip_code: txt('prof-zip'),
     employee_count: sel('prof-employees'),
     annual_revenue: document.getElementById('prof-revenue').value||null,
     years_in_business: yr?parseInt(yr,10):null,
@@ -2468,6 +2481,7 @@ async function savePassport(){
     const c=document.getElementById('cp-confirm'); c.style.display='inline'; setTimeout(()=>c.style.display='none',3000);
     clearPassportDirty();
     renderSetupCard(updated);
+    updateGreeting(updated);
   }catch(e){ alert('Save failed: '+e.message); }
 }
 
@@ -2503,10 +2517,10 @@ const SCAN_FIELDS=[
       if(c) c.textContent=n?n+' of 3 selected':'Select up to 3';
     },
     format:v=>v.map(s=>tagLabel('prof-industry-tags',s)).join(', ')},
-  {key:'city', label:'City',
-    isEmpty:()=>!document.getElementById('prof-city').value.trim(),
-    current:()=>document.getElementById('prof-city').value.trim(),
-    apply:v=>{document.getElementById('prof-city').value=v;},
+  {key:'zip_code', label:'ZIP code',
+    isEmpty:()=>!document.getElementById('prof-zip').value.trim(),
+    current:()=>document.getElementById('prof-zip').value.trim(),
+    apply:v=>{document.getElementById('prof-zip').value=v;},
     format:v=>v},
   {key:'business_phone', label:'Business phone',
     isEmpty:()=>!document.getElementById('cp-phone').value.trim(),
@@ -2545,10 +2559,11 @@ const SCAN_FIELDS=[
 ];
 let _scanResult=null;
 async function scanWebsite(){
-  const url=document.getElementById('cp-website').value.trim();
+  const topEl=document.getElementById('scan-url');
+  const url=(topEl?topEl.value.trim():'')||document.getElementById('cp-website').value.trim();
   if(!url){
-    alert('Enter your website URL in the field above first, then hit the button.');
-    document.getElementById('cp-website').focus();
+    alert('Enter your website URL first, then hit the button.');
+    if(topEl) topEl.focus();
     return;
   }
   const modal=document.getElementById('scanModal');
@@ -2602,6 +2617,9 @@ function applyScanProposals(){
     const f=SCAN_FIELDS.find(x=>x.key===cb.dataset.scanKey);
     if(f&&p[f.key]!==null&&p[f.key]!==undefined){ f.apply(p[f.key]); applied++; }
   });
+  const web=document.getElementById('cp-website');
+  const topEl=document.getElementById('scan-url');
+  if(web&&!web.value.trim()&&topEl&&topEl.value.trim()) web.value=topEl.value.trim();
   toggleProfOnlineDetails();
   toggleProfPeakMonths();
   closeScanModal();
