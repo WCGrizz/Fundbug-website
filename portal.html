@@ -38,8 +38,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 button:focus,a:focus{outline:none}
 
 /* ─── LOGIN / FORGOT / RESEND VERIFY ─── */
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink);padding:24px;padding-top:max(24px,var(--safe-top));padding-bottom:max(24px,var(--safe-bottom))}
-.login-card{background:var(--white);border-radius:12px;padding:48px;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(0,0,0,.4)}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink);padding:24px;padding-top:max(24px,var(--safe-top));padding-bottom:max(24px,var(--safe-bottom));position:relative;overflow:hidden}
+.login-wrap::before{content:'';position:absolute;inset:0;background-image:radial-gradient(ellipse 60% 60% at 70% 40%,rgba(90,158,82,.10) 0%,transparent 70%);pointer-events:none}
+.login-wrap::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.035) 1px,transparent 1px);background-size:28px 28px;pointer-events:none}
+.login-card{background:var(--white);border-radius:12px;padding:48px;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(0,0,0,.4);position:relative;z-index:1}
 .login-logo{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:var(--green);margin-bottom:4px}
 .login-sub{font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:32px}
 
@@ -66,31 +68,59 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .nav-signout:hover{color:var(--cream)}
 
 /* ─── LAYOUT ─── */
-.portal-wrap{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px)}
-.sidebar{background:var(--white);border-right:1px solid var(--border);padding:28px 0}
+.portal-wrap{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 60px)}
+.sidebar{background:var(--ink);border-right:1px solid rgba(255,255,255,.06);padding:28px 0}
 .sidebar-nav{list-style:none}
-.sidebar-nav li a{display:flex;align-items:center;gap:10px;padding:11px 24px;font-family:'Jost',sans-serif;font-size:14px;font-weight:400;color:var(--ink);text-decoration:none;transition:all .12s;border-left:2px solid transparent}
-.sidebar-nav li a:hover{color:var(--ink);background:var(--cream);border-left-color:var(--border)}
-.sidebar-nav li a.active{color:var(--green-dk);background:#f0faf0;border-left-color:var(--green);font-weight:500}
+.sidebar-nav li a{display:flex;align-items:center;gap:10px;padding:12px 24px;font-family:'Jost',sans-serif;font-size:14px;font-weight:400;color:var(--muted2);text-decoration:none;transition:all .12s;border-left:2px solid transparent}
+.sidebar-nav li a:hover{color:var(--cream);background:rgba(255,255,255,.04);border-left-color:rgba(255,255,255,.15)}
+.sidebar-nav li a.active{color:var(--green-lt);background:rgba(90,158,82,.12);border-left-color:var(--green);font-weight:500}
 .sidebar-nav li a .nav-icon{font-size:15px;flex-shrink:0}
-.sidebar-section{font-family:'Jost',sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);padding:20px 24px 8px;margin-top:8px}
+.sidebar-section{font-family:'Jost',sans-serif;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:20px 24px 8px;margin-top:8px}
 
 /* ─── MAIN ─── */
 .main{padding:40px 48px;background:var(--cream)}
 .page{display:none}
 .page.active{display:block;animation:fi .25s ease-out}
 @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.page-title{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:var(--ink);margin-bottom:4px;letter-spacing:-.02em}
-.page-sub{font-family:'Jost',sans-serif;font-size:14px;font-weight:300;color:var(--ink);margin-bottom:32px}
+
+/* Hero-style page header — echoes the homepage hero: ink field, dot grid,
+   soft green radial glow, uppercase eyebrow above a Fraunces title. Bleeds
+   to the content edges via negative margins so .main padding stays intact. */
+.page-hero{background:var(--ink);position:relative;overflow:hidden;padding:34px 48px 30px;margin:-40px -48px 28px;border-bottom:3px solid var(--green)}
+.page-hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(ellipse 60% 80% at 80% 20%,rgba(90,158,82,.14) 0%,transparent 70%);pointer-events:none}
+.page-hero::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px);background-size:26px 26px;pointer-events:none}
+.page-hero>*{position:relative;z-index:1}
+.page-eyebrow{font-family:'Jost',sans-serif;font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--green-lt);margin-bottom:8px}
+.page-title{font-family:'Fraunces',serif;font-size:30px;font-weight:700;color:var(--white);margin-bottom:6px;letter-spacing:-.02em;line-height:1.15}
+.page-sub{font-family:'Jost',sans-serif;font-size:14px;font-weight:300;color:var(--muted2);max-width:640px;line-height:1.6}
 
 /* ─── CARDS / STATS ─── */
-.card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:28px;margin-bottom:20px}
-.card-title{font-family:'Jost',sans-serif;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:28px;margin-bottom:20px;box-shadow:0 1px 2px rgba(26,26,20,.04)}
+.card-title{font-family:'Jost',sans-serif;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--green-dk);margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-.stat-tile{background:var(--white);border:1px solid var(--border);border-radius:7px;padding:20px}
-.stat-num{font-family:'Fraunces',serif;font-size:32px;font-weight:700;color:var(--ink);line-height:1;letter-spacing:-.03em}
-.stat-num.green{color:var(--green)}
-.stat-lbl{font-family:'Jost',sans-serif;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.stat-tile{background:var(--white);border:1px solid var(--border);border-top:3px solid var(--green);border-radius:8px;padding:20px;box-shadow:0 1px 2px rgba(26,26,20,.04)}
+.stat-num{font-family:'Fraunces',serif;font-size:34px;font-weight:700;color:var(--ink);line-height:1;letter-spacing:-.03em}
+.stat-num.green{color:var(--green-dk)}
+.stat-lbl{font-family:'Jost',sans-serif;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+
+/* ─── FINISH SETTING UP ─── */
+.setup-card{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:10px;padding:24px 26px;margin-bottom:20px;box-shadow:0 1px 2px rgba(26,26,20,.04)}
+.setup-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.setup-title{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--ink)}
+.setup-pct{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:var(--green-dk);letter-spacing:-.02em}
+.setup-bar{height:8px;background:var(--cream2);border-radius:6px;overflow:hidden;margin-bottom:14px}
+.setup-bar-fill{height:100%;background:linear-gradient(90deg,var(--green-dk),var(--green-lt));border-radius:6px;width:0;transition:width .5s ease}
+.setup-missing{font-family:'Jost',sans-serif;font-size:13px;font-weight:300;color:var(--ink2);line-height:1.6;margin-bottom:14px}
+.setup-missing strong{font-weight:500}
+.setup-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.setup-cta{display:inline-block;padding:10px 20px;background:var(--green);color:#fff;border-radius:6px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap;transition:background .15s,transform .15s}
+.setup-cta:hover{background:var(--green-lt);transform:translateY(-1px)}
+.setup-dismiss{font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none}
+.setup-dismiss:hover{color:var(--ink)}
+
+/* ─── PASSPORT SECTIONS ─── */
+.pp-section-label{font-family:'Jost',sans-serif;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--green-dk);margin:0 0 4px}
+.pp-section-sub{font-size:13px;font-weight:300;color:var(--muted);margin:0 0 18px;line-height:1.55}
 
 /* ─── DIGEST HISTORY ─── */
 .digest-list{display:flex;flex-direction:column;gap:12px}
@@ -284,9 +314,9 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
   .stat-tile{padding:18px}
   .stat-num{font-size:28px}
 
-  /* Page header tweaks */
+  /* Page hero matches the tighter main padding */
+  .page-hero{padding:26px 20px 24px;margin:-24px -20px 22px}
   .page-title{font-size:24px}
-  .page-sub{margin-bottom:24px}
 
   /* Cards: lighter padding */
   .card{padding:22px;border-radius:8px}
@@ -299,6 +329,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
   /* Tighter card padding */
   .card{padding:20px 18px}
   .main{padding:20px 16px;padding-left:max(16px,var(--safe-left));padding-right:max(16px,var(--safe-right))}
+  .page-hero{padding:22px 16px 20px;margin:-20px -16px 20px}
 
   /* Stats stay 2-col but smaller */
   .stat-num{font-size:24px}
@@ -371,6 +402,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
   /* Cards even tighter */
   .card{padding:18px 16px}
   .main{padding:16px 14px;padding-left:max(14px,var(--safe-left));padding-right:max(14px,var(--safe-right))}
+  .page-hero{padding:20px 14px 18px;margin:-16px -14px 18px}
 
   /* Referral stats stay 2-col but smaller */
   .ref-stat-num{font-size:24px}
@@ -500,7 +532,6 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
     <div class="mobile-menu-section">Resources</div>
     <a href="grants-guide.html" target="_blank" rel="noopener" onclick="closeMenu()">📖 Grants 101</a>
     <div class="mobile-menu-section">Account</div>
-    <a href="#" data-page="profile" onclick="showPageFromMobile('profile', this); return false;">🏢 Business Profile</a>
     <a href="#" data-page="referral" onclick="showPageFromMobile('referral', this); return false;">🎁 Referrals</a>
     <a href="#" data-page="subscription" onclick="showPageFromMobile('subscription', this); return false;">💳 Subscription</a>
     <a href="#" data-page="account" onclick="showPageFromMobile('account', this); return false;">⚙️ Account Settings</a>
@@ -519,7 +550,6 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         <div class="sidebar-section">Resources</div>
         <li><a href="grants-guide.html" target="_blank"><span class="nav-icon">📖</span> Grants 101</a></li>
         <div class="sidebar-section">Account</div>
-        <li><a href="#" onclick="showPage('profile',this)"><span class="nav-icon">🏢</span> Business Profile</a></li>
         <li><a href="#" onclick="showPage('referral',this)"><span class="nav-icon">🎁</span> Referrals</a></li>
         <li><a href="#" onclick="showPage('subscription',this)"><span class="nav-icon">💳</span> Subscription</a></li>
         <li><a href="#" onclick="showPage('account',this)"><span class="nav-icon">⚙️</span> Account Settings</a></li>
@@ -530,24 +560,27 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 
       <!-- OVERVIEW -->
       <div class="page active" id="page-overview">
-        <div class="page-title"><span id="greetTime">Good morning,</span> <span id="greetName"></span></div>
-        <div class="page-sub">Here's your FundBug dashboard.</div>
+        <div class="page-hero">
+          <div class="page-eyebrow">Your Dashboard</div>
+          <div class="page-title"><span id="greetTime">Good morning,</span> <span id="greetName"></span></div>
+          <div class="page-sub">Here's where your funding search stands.</div>
+        </div>
         <div class="stat-grid">
           <div class="stat-tile"><div class="stat-num green" id="ov-digests">—</div><div class="stat-lbl">Digests received</div></div>
           <div class="stat-tile"><div class="stat-num green" id="ov-tracked">—</div><div class="stat-lbl">Programs tracked</div></div>
           <div class="stat-tile"><div class="stat-num" id="ov-favorites">—</div><div class="stat-lbl">Favorites starred</div></div>
         </div>
 
-        <div id="completeNudge" class="card" style="display:none;background:rgba(90,158,82,.07);border-color:rgba(90,158,82,.3);padding:18px 22px;margin-bottom:20px">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
-            <div style="flex:1;min-width:220px">
-              <div style="font-family:'Fraunces',serif;font-size:17px;font-weight:700;color:var(--ink);margin-bottom:4px">Sharpen your matches</div>
-              <div style="font-size:13px;font-weight:300;color:var(--ink2);line-height:1.5">Add a few details about your business to unlock programs the basics can't reach, including grants reserved for specific owners.</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <a href="#" onclick="showPage('complete',document.getElementById('nav-complete'));return false;" style="display:inline-block;padding:9px 18px;background:var(--green);color:#fff;border-radius:5px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap">Complete Funding Passport →</a>
-              <a href="#" onclick="dismissNudge();return false;" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap">Dismiss</a>
-            </div>
+        <div id="setupCard" class="setup-card" style="display:none">
+          <div class="setup-head">
+            <div class="setup-title">Finish setting up</div>
+            <div class="setup-pct"><span id="setupPct">0</span>%</div>
+          </div>
+          <div class="setup-bar"><div class="setup-bar-fill" id="setupBarFill"></div></div>
+          <div class="setup-missing" id="setupMissing"></div>
+          <div class="setup-actions">
+            <a href="#" onclick="showPage('complete',document.getElementById('nav-complete'));return false;" class="setup-cta">Complete your Funding Passport →</a>
+            <a href="#" onclick="dismissNudge();return false;" class="setup-dismiss">Dismiss</a>
           </div>
         </div>
 
@@ -569,212 +602,17 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 
 
 
-      <!-- COMPLETE PROFILE -->
+      <!-- FUNDING PASSPORT (merged: business profile + passport) -->
       <div class="page" id="page-complete">
-        <div class="page-title">Complete your Funding Passport</div>
-        <div class="page-sub">The more we know, the sharper your matches, and the more we can eventually pre-fill for you on real applications. Everything here is optional, but each answer can unlock programs you'd otherwise never see.</div>
+        <div class="page-hero">
+          <div class="page-eyebrow">Funding Passport</div>
+          <div class="page-title">Complete your Funding Passport</div>
+          <div class="page-sub">One profile that powers everything: sharper digest matches today, pre-filled applications tomorrow. Everything here is optional, but each answer can unlock programs you'd otherwise never see.</div>
+        </div>
 
         <div class="card">
-          <div class="form-group">
-            <label>Do any of these describe your business?</label>
-            <p style="font-size:13px;font-weight:300;color:var(--muted);margin:2px 0 4px">Many grants are reserved specifically for these owners. Selecting what applies unlocks programs set aside for them.</p>
-            <div class="tag-selector" id="cp-demographics">
-              <div class="tag-option" data-value="woman-owned">Woman-owned</div>
-              <div class="tag-option" data-value="minority-owned">Minority-owned</div>
-              <div class="tag-option" data-value="veteran-owned">Veteran-owned</div>
-              <div class="tag-option" data-value="military-affiliated">Military-affiliated</div>
-              <div class="tag-option" data-value="disability-owned">Disability-owned</div>
-              <div class="tag-option" data-value="lgbtq-owned">LGBTQ+-owned</div>
-              <div class="tag-option" data-value="immigrant-owned">Immigrant-owned</div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>What would funding help you do?</label>
-            <div class="tag-selector" id="cp-funding">
-              <div class="tag-option" data-value="hiring">Hiring &amp; training</div>
-              <div class="tag-option" data-value="equipment">Equipment or vehicles</div>
-              <div class="tag-option" data-value="storefront">Storefront / facility improvements</div>
-              <div class="tag-option" data-value="real_estate">Real estate or expansion</div>
-              <div class="tag-option" data-value="inventory">Inventory expansion</div>
-              <div class="tag-option" data-value="marketing">Marketing &amp; advertising</div>
-              <div class="tag-option" data-value="technology">Technology or software</div>
-              <div class="tag-option" data-value="energy">Energy efficiency / clean energy</div>
-              <div class="tag-option" data-value="accessibility">Accessibility (ADA)</div>
-              <div class="tag-option" data-value="export">Export / international growth</div>
-              <div class="tag-option" data-value="research">Research &amp; development</div>
-              <div class="tag-option" data-value="working_capital">Working capital / cash flow</div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="cp-property">Do you own or rent your place of business?</label>
-            <select id="cp-property">
-              <option value="">Select…</option>
-              <option value="own">We own it</option>
-              <option value="rent">We rent / lease it</option>
-              <option value="na">Not applicable</option>
-            </select>
-            <p style="font-size:13px;font-weight:300;color:var(--muted);margin:6px 0 0">Owning unlocks facade, building, and real-estate improvement grants.</p>
-          </div>
-
-          <div class="form-group">
-            <label>Is your business home-based?</label>
-            <div style="display:flex;gap:20px;margin-top:4px">
-              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-homebased" value="true" style="accent-color:var(--green)"> Yes</label>
-              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-homebased" value="false" style="accent-color:var(--green)"> No</label>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Is your business seasonal?</label>
-            <div style="display:flex;gap:20px;margin-top:4px">
-              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-seasonal" value="true" style="accent-color:var(--green)"> Yes</label>
-              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-seasonal" value="false" style="accent-color:var(--green)"> No</label>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="cp-employees">How many people work there?</label>
-            <input type="number" id="cp-employees" min="0" max="10000" placeholder="e.g. 4" style="max-width:160px">
-          </div>
-
-          <div class="form-group">
-            <label for="cp-years">Years in business</label>
-            <input type="number" id="cp-years" min="0" max="200" placeholder="e.g. 6" style="max-width:160px">
-          </div>
-
-          <div class="form-group">
-            <label for="cp-revenue">Approximate annual revenue (optional)</label>
-            <input type="number" id="cp-revenue" min="0" placeholder="e.g. 250000" style="max-width:220px">
-          </div>
-
-          <div class="form-group">
-            <label for="cp-grant-exp">Have you applied for grants before?</label>
-            <select id="cp-grant-exp">
-              <option value="">Select…</option>
-              <option value="never">Never</option>
-              <option value="applied">Applied, but haven't won</option>
-              <option value="won">Won at least one</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="cp-bank">How's your access to bank financing?</label>
-            <select id="cp-bank">
-              <option value="">Select…</option>
-              <option value="good_standing">Good — established banking relationship</option>
-              <option value="yes">Have access</option>
-              <option value="limited">Limited</option>
-              <option value="no">No access</option>
-              <option value="not_looking">Not looking for financing</option>
-              <option value="unsure">Unsure</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Do you sell to the government, or want to?</label>
-            <div style="display:flex;gap:20px;margin-top:4px">
-              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-govt" value="true" style="accent-color:var(--green)"> Yes</label>
-              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-govt" value="false" style="accent-color:var(--green)"> No</label>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Do you export, or plan to?</label>
-            <div style="display:flex;gap:20px;margin-top:4px">
-              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-exports" value="true" style="accent-color:var(--green)"> Yes</label>
-              <label style="font-weight:300;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-exports" value="false" style="accent-color:var(--green)"> No</label>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="cp-description">Anything else about your business?</label>
-            <div style="margin:26px 0 22px">
-              <label style="display:block;font-weight:bold;margin-bottom:4px">Certifications you hold</label>
-              <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">Some set-aside grants and most government contracting preferences require formal certification, not just ownership. Check any you already have. Not certified? Each link explains the certification and where to start. <a href="https://fundbug.net/certifications-guide.html" target="_blank" style="color:var(--green-dk)">Full guide &#8599;</a></p>
-              <div id="cp-certs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 18px">
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_wosb"> SBA Women-Owned (WOSB / EDWOSB) <a href="https://fundbug.net/certifications-guide.html#wosb" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="wbenc"> WBENC (Women's Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#wbenc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="ma_sdo"> Massachusetts SDO (WBE/MBE/VBE) <a href="https://fundbug.net/certifications-guide.html#ma-sdo" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_vetcert"> SBA VetCert (VOSB / SDVOSB) <a href="https://fundbug.net/certifications-guide.html#vetcert" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_8a"> SBA 8(a) Business Development <a href="https://fundbug.net/certifications-guide.html#8a" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="hubzone"> SBA HUBZone <a href="https://fundbug.net/certifications-guide.html#hubzone" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="nmsdc_mbe"> NMSDC (Minority Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#nmsdc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="nglcc_lgbtbe"> NGLCC (LGBT Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#nglcc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="disabilityin_dobe"> Disability:IN (DOBE) <a href="https://fundbug.net/certifications-guide.html#disabilityin" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="dot_dbe"> DBE (Disadvantaged Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#dbe" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-              </div>
-              <p style="font-size:12.5px;color:var(--muted);margin:14px 0 10px">Product and operating certifications. Some programs reimburse the cost of earning or renewing these, and others require one before you can apply.</p>
-              <div style="display:grid;grid-template-columns:1fr;gap:8px">
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="usda_organic"> USDA Organic (National Organic Program)</label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="usda_gap_ghp"> USDA GAP / GHP (produce food safety audit)</label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="ma_cqp"> Commonwealth Quality Program (Massachusetts)</label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="cng"> Certified Naturally Grown</label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="safe_qual_food"> SQF / GFSI-benchmarked food safety</label>
-              </div>
-            </div>
-
-            <label for="cp-description">Your business, in your own words</label>
-            <p style="font-size:12.5px;color:var(--muted);margin:2px 0 4px">A few sentences about what you do and why funding matters to you right now. This shapes the match explanations in your digest, and doubles as the starting point for application drafts, so write it the way you'd want a funder to read it.</p>
-            <textarea id="cp-description" placeholder="e.g. We're a family-run bakery in Great Barrington entering our sixth year. Funding would let us add a second oven and finally keep up with our farmers market demand." style="min-height:110px"></textarea>
-          </div>
-
-          <div class="form-group" style="margin-top:26px;padding-top:22px;border-top:1px solid var(--cream2)">
-            <label style="font-weight:bold;margin-bottom:4px">Application details</label>
-            <p style="font-size:12.5px;color:var(--muted);margin:0 0 14px">We'll use these to pre-fill real applications for you down the road. Nothing here is shared or submitted anywhere until you say so.</p>
-
-            <label for="cp-ein">Employer Identification Number (EIN)</label>
-            <input type="text" id="cp-ein" placeholder="12-3456789" maxlength="10" style="max-width:200px">
-            <div id="cp-ein-err" style="display:none;font-size:12.5px;color:var(--red);margin:-10px 0 16px">Please enter your EIN as XX-XXXXXXX.</div>
-
-            <label for="cp-phone">Business phone number</label>
-            <input type="tel" id="cp-phone" placeholder="(413) 555-0100" style="max-width:220px">
-
-            <label for="cp-website">Business website</label>
-            <input type="url" id="cp-website" placeholder="https://yourbusiness.com" style="max-width:320px">
-
-            <label for="cp-formation-date">Date business was formed</label>
-            <input type="date" id="cp-formation-date" style="max-width:200px">
-          </div>
-
-          <button class="save-btn" onclick="saveComplete()">Save and finish</button>
-          <span id="cp-confirm" class="save-confirm" style="margin-left:12px;color:var(--green);font-size:14px;display:none">Saved ✓</span>
-        </div>
-      </div>
-
-      <!-- TRACKER -->
-      <div class="page" id="page-tracker">
-        <div class="page-title">My Tracker</div>
-        <div class="page-sub">Keep tabs on every opportunity — star the ones you're serious about and track your progress.</div>
-
-        <!-- FAVORITES -->
-        <div class="tracker-section-title">Favorites</div>
-        <div class="tracker-section-sub">Programs you're actively pursuing. Update the status as you move forward.</div>
-        <div id="tracker-favorites-list">
-          <div class="tracker-empty" id="tracker-favorites-empty">Star a program below to add it here.</div>
-        </div>
-
-        <div class="tracker-divider"></div>
-
-        <!-- ALL PROGRAMS -->
-        <div class="tracker-section-title">All Programs</div>
-        <div class="tracker-section-sub">Every program from your FundBug digests — auto-populated each time a digest is sent.</div>
-        <div id="tracker-all-list">
-          <div class="tracker-empty" id="tracker-all-empty">Your matched programs will appear here after your first digest.</div>
-        </div>
-      </div>
-
-      <!-- TRACKER TOAST -->
-      <div class="tracker-toast" id="trackerToast"></div>
-
-      <!-- PROFILE -->
-      <div class="page" id="page-profile">
-        <div class="page-title">Business Profile</div>
-        <div class="page-sub">Keep this up to date — it directly affects the quality of your matches.</div>
-
-        <div class="card">
-          <div class="card-title">Business information</div>
+          <div class="pp-section-label">The basics</div>
+          <p class="pp-section-sub">Who you are and the shape of the business. These drive your core eligibility.</p>
           <div class="form-row">
             <div class="form-group"><label>Business name</label><input type="text" id="prof-businessName"></div>
             <div class="form-group"><label>Your name</label><input type="text" id="prof-ownerName"></div>
@@ -789,6 +627,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
                     <div class="tag-option" data-value="bakery">Bakery / Caf&eacute;</div>
                     <div class="tag-option" data-value="brewery">Brewery / Distillery / Winery</div>
                     <div class="tag-option" data-value="event_planning">Event Planning / Catering</div>
+                    <div class="tag-option" data-value="food_retail">Grocery / Food Retail</div>
                     <div class="tag-option" data-value="hospitality">Hospitality / Tourism</div>
                     <div class="tag-option" data-value="restaurant">Restaurant / Bar / Food Service</div>
                     <div class="tag-option" data-value="specialty_food">Specialty Food Producer</div>
@@ -854,6 +693,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
             <div class="form-group">
               <label>Employees</label>
               <select id="prof-employees">
+                <option value="">Select…</option>
                 <option value="1">Just me</option>
                 <option value="2-5">2–5</option>
                 <option value="6-10">6–10</option>
@@ -878,37 +718,73 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
             </div>
           </div>
           <div class="form-group">
-            <label>Business description</label>
-            <textarea id="prof-description" placeholder="Tell us what you do, who you serve, and what you're working toward. The more specific you are, the better your funding matches will be." style="min-height:130px"></textarea>
-            <div style="font-size:12px;color:var(--ink);margin-top:4px;font-style:italic">Update this whenever your business focus, goals, or situation changes — it directly drives your match quality.</div>
+            <label>Years in business</label>
+            <input type="number" id="prof-yearsInBusiness" min="0" max="150" placeholder="e.g. 6" style="max-width:180px">
+          </div>
+          <div class="form-group" style="display:flex;align-items:center;gap:10px">
+            <input type="checkbox" id="prof-is-startup" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0">
+            <label style="margin:0;font-weight:400">My business is a start-up</label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="pp-section-label">Your story</div>
+          <p class="pp-section-sub">This shapes the match explanations in your digest, and doubles as the starting point for application drafts, so write it the way you'd want a funder to read it.</p>
+          <div class="form-group">
+            <label for="cp-description">Your business, in your own words</label>
+            <textarea id="cp-description" placeholder="e.g. We're a family-run bakery in Great Barrington entering our sixth year. Funding would let us add a second oven and finally keep up with our farmers market demand." style="min-height:110px"></textarea>
           </div>
           <div class="form-group">
             <label>What's new or changed recently? <span style="font-weight:400;font-size:12px;color:var(--muted)">(optional)</span></label>
             <textarea id="prof-funding-note" placeholder="e.g. We just hired 2 people and are looking to expand our space. Also exploring export markets for the first time." style="min-height:90px"></textarea>
             <div style="font-size:12px;color:var(--ink);margin-top:4px;font-style:italic">Any recent changes to your business, goals, or capital needs that we should factor into your matches.</div>
           </div>
-          <div style="display:flex;align-items:center">
-            <button class="save-btn" onclick="saveProfile()">Save changes</button>
-            <span class="save-confirmation" id="saveConfirm">✓ Saved</span>
+        </div>
+
+        <div class="card">
+          <div class="pp-section-label">Ownership &amp; certifications</div>
+          <p class="pp-section-sub">Many grants are reserved specifically for these owners. Selecting what applies unlocks programs set aside for them.</p>
+          <div class="form-group">
+            <label>Do any of these describe your business?</label>
+            <div class="tag-selector" id="cp-demographics">
+              <div class="tag-option" data-value="woman-owned">Woman-owned</div>
+              <div class="tag-option" data-value="minority-owned">Minority-owned</div>
+              <div class="tag-option" data-value="veteran-owned">Veteran-owned</div>
+              <div class="tag-option" data-value="military-affiliated">Military-affiliated</div>
+              <div class="tag-option" data-value="disability-owned">Disability-owned</div>
+              <div class="tag-option" data-value="lgbtq-owned">LGBTQ+-owned</div>
+              <div class="tag-option" data-value="immigrant-owned">Immigrant-owned</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label style="display:block;font-weight:bold;margin-bottom:4px">Certifications you hold</label>
+            <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">Some set-aside grants and most government contracting preferences require formal certification, not just ownership. Check any you already have. Not certified? Each link explains the certification and where to start. <a href="https://fundbug.net/certifications-guide.html" target="_blank" style="color:var(--green-dk)">Full guide &#8599;</a></p>
+            <div id="cp-certs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 18px">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_wosb"> SBA Women-Owned (WOSB / EDWOSB) <a href="https://fundbug.net/certifications-guide.html#wosb" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="wbenc"> WBENC (Women's Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#wbenc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="ma_sdo"> Massachusetts SDO (WBE/MBE/VBE) <a href="https://fundbug.net/certifications-guide.html#ma-sdo" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_vetcert"> SBA VetCert (VOSB / SDVOSB) <a href="https://fundbug.net/certifications-guide.html#vetcert" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_8a"> SBA 8(a) Business Development <a href="https://fundbug.net/certifications-guide.html#8a" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="hubzone"> SBA HUBZone <a href="https://fundbug.net/certifications-guide.html#hubzone" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="nmsdc_mbe"> NMSDC (Minority Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#nmsdc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="nglcc_lgbtbe"> NGLCC (LGBT Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#nglcc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="disabilityin_dobe"> Disability:IN (DOBE) <a href="https://fundbug.net/certifications-guide.html#disabilityin" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="dot_dbe"> DBE (Disadvantaged Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#dbe" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+            </div>
+            <p style="font-size:12.5px;color:var(--muted);margin:14px 0 10px">Product and operating certifications. Some programs reimburse the cost of earning or renewing these, and others require one before you can apply.</p>
+            <div style="display:grid;grid-template-columns:1fr;gap:8px">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="usda_organic"> USDA Organic (National Organic Program)</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="usda_gap_ghp"> USDA GAP / GHP (produce food safety audit)</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="ma_cqp"> Commonwealth Quality Program (Massachusetts)</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="cng"> Certified Naturally Grown</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="safe_qual_food"> SQF / GFSI-benchmarked food safety</label>
+            </div>
           </div>
         </div>
 
-
-
         <div class="card">
-          <div class="card-title">Funding preferences</div>
-          <div style="margin-bottom:20px">
-            <label style="margin-bottom:12px;">What are you looking to fund?</label>
-            <div id="fundingPurposeList" class="tag-selector"></div>
-          </div>
-          <div style="margin-bottom:20px">
-            <label style="margin-bottom:12px;">Business ownership (optional)</label>
-            <div id="ownerDemographicsList" class="tag-selector"></div>
-          </div>
-          <div class="form-group">
-            <label>Years in business</label>
-            <input type="number" id="prof-yearsInBusiness" min="0" max="150" style="max-width:180px;">
-          </div>
+          <div class="pp-section-label">How you operate</div>
+          <p class="pp-section-sub">Where and how you run the business. Owning your space unlocks facade, building, and real-estate improvement grants; seasonal and online details surface the right specialty programs.</p>
           <div class="form-group">
             <label>Where do you operate?</label>
             <select id="prof-location-type">
@@ -919,130 +795,185 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
               <option value="mobile">Mobile (food truck, landscaping, etc.)</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Access to bank financing</label>
-            <select id="prof-bank-access">
-              <option value="">Prefer not to say</option>
-              <option value="yes">I have an established banking relationship and access to credit</option>
-              <option value="good_standing">I have a business bank account and good credit but haven't borrowed</option>
-              <option value="limited">My banking relationship is limited or I'm working on building credit</option>
-              <option value="no">I've been turned down for bank financing or don't qualify</option>
-              <option value="not_looking">I'm not looking for debt financing</option>
-              <option value="unsure">I haven't explored bank financing recently and am not sure</option>
-            </select>
+          <div class="form-group" style="display:flex;align-items:center;gap:10px">
+            <input type="checkbox" id="prof-is-seasonal" onchange="toggleProfPeakMonths()" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0">
+            <label style="margin:0;font-weight:400">My business is seasonal</label>
           </div>
-          <div class="form-group">
-            <label>Are you interested in government contracting opportunities?</label>
-            <div style="display:flex;gap:24px;margin-top:8px;">
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;">
-                <input type="radio" name="prof-govt-contracting" id="prof-govt-contracting-no" value="false" style="accent-color:var(--green);"> No
-              </label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;">
-                <input type="radio" name="prof-govt-contracting" id="prof-govt-contracting-yes" value="true" style="accent-color:var(--green);"> Yes
-              </label>
+          <div class="form-group" id="prof-peak-months-wrap" style="display:none;margin-top:-8px;margin-left:27px">
+            <label style="margin-bottom:8px;font-size:13px;color:var(--ink2)">Which months are your peak season?</label>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px"><input type="checkbox" name="prof-peak-month" value="January" style="accent-color:var(--green)">Jan</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px"><input type="checkbox" name="prof-peak-month" value="February" style="accent-color:var(--green)">Feb</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px"><input type="checkbox" name="prof-peak-month" value="March" style="accent-color:var(--green)">Mar</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px"><input type="checkbox" name="prof-peak-month" value="April" style="accent-color:var(--green)">Apr</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px"><input type="checkbox" name="prof-peak-month" value="May" style="accent-color:var(--green)">May</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px"><input type="checkbox" name="prof-peak-month" value="June" style="accent-color:var(--green)">Jun</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px"><input type="checkbox" name="prof-peak-month" value="July" style="accent-color:var(--green)">Jul</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px"><input type="checkbox" name="prof-peak-month" value="August" style="accent-color:var(--green)">Aug</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px"><input type="checkbox" name="prof-peak-month" value="September" style="accent-color:var(--green)">Sep</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px"><input type="checkbox" name="prof-peak-month" value="October" style="accent-color:var(--green)">Oct</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px"><input type="checkbox" name="prof-peak-month" value="November" style="accent-color:var(--green)">Nov</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px"><input type="checkbox" name="prof-peak-month" value="December" style="accent-color:var(--green)">Dec</label>
             </div>
-          </div>
-          <div class="form-group">
-            <label>Are you currently exporting, or considering exporting, internationally?</label>
-            <div style="display:flex;gap:24px;margin-top:8px;">
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;">
-                <input type="radio" name="prof-exports" id="prof-exports-no" value="false" style="accent-color:var(--green);"> No
-              </label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;">
-                <input type="radio" name="prof-exports" id="prof-exports-yes" value="true" style="accent-color:var(--green);"> Yes
-              </label>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Grant experience</label>
-            <select id="prof-grant-experience">
-              <option value="">Select…</option>
-              <option value="never">I have never applied for a grant</option>
-              <option value="applied">I have applied but never won</option>
-              <option value="won">I have won grants before</option>
-            </select>
-          </div>
-          <div class="form-group" style="display:flex;align-items:center;gap:10px;">
-            <input type="checkbox" id="prof-is-seasonal" onchange="toggleProfPeakMonths()" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
-            <label style="margin:0;font-weight:400;">My business is seasonal</label>
-          </div>
-          <div class="form-group" id="prof-peak-months-wrap" style="display:none;margin-top:-8px;margin-left:27px;">
-            <label style="margin-bottom:8px;font-size:13px;color:var(--ink2);">Which months are your peak season?</label>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="January" style="accent-color:var(--green);">Jan</label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="February" style="accent-color:var(--green);">Feb</label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="March" style="accent-color:var(--green);">Mar</label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="April" style="accent-color:var(--green);">Apr</label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="May" style="accent-color:var(--green);">May</label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="June" style="accent-color:var(--green);">Jun</label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="July" style="accent-color:var(--green);">Jul</label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="August" style="accent-color:var(--green);">Aug</label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="September" style="accent-color:var(--green);">Sep</label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="October" style="accent-color:var(--green);">Oct</label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="November" style="accent-color:var(--green);">Nov</label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" name="prof-peak-month" value="December" style="accent-color:var(--green);">Dec</label>
-            </div>
-          </div>
-          <div class="form-group" style="display:flex;align-items:center;gap:10px;">
-            <input type="checkbox" id="prof-is-home-based" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
-            <label style="margin:0;font-weight:400;">My business is operated from my home</label>
-          </div>
-          <div class="form-group">
-            <label>Do you own the property where your business operates?</label>
-            <select id="prof-property-ownership">
-              <option value="">Select…</option>
-              <option value="own">Yes, I own it</option>
-              <option value="rent">No, I rent or lease</option>
-              <option value="na">Doesn't apply (home-based or fully online)</option>
-            </select>
           </div>
           <div class="form-group">
             <label>Do you sell products or services online?</label>
-            <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;">
-                <input type="radio" name="prof-sells-online" id="prof-sells-online-yes" value="yes" onchange="toggleProfOnlineDetails()" style="accent-color:var(--green);"> Yes, I sell online
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer">
+                <input type="radio" name="prof-sells-online" id="prof-sells-online-yes" value="yes" onchange="toggleProfOnlineDetails()" style="accent-color:var(--green)"> Yes, I sell online
               </label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;">
-                <input type="radio" name="prof-sells-online" id="prof-sells-online-no" value="no" onchange="toggleProfOnlineDetails()" style="accent-color:var(--green);"> No, I don't sell online
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer">
+                <input type="radio" name="prof-sells-online" id="prof-sells-online-no" value="no" onchange="toggleProfOnlineDetails()" style="accent-color:var(--green)"> No, I don't sell online
               </label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;">
-                <input type="radio" name="prof-sells-online" id="prof-sells-online-want-to" value="want_to" onchange="toggleProfOnlineDetails()" style="accent-color:var(--green);"> Not currently, but I'd like to
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer">
+                <input type="radio" name="prof-sells-online" id="prof-sells-online-want-to" value="want_to" onchange="toggleProfOnlineDetails()" style="accent-color:var(--green)"> Not currently, but I'd like to
               </label>
             </div>
-            <div id="prof-online-details" style="display:none;margin-top:12px;padding:12px;background:var(--cream);border-radius:5px;border:1px solid var(--border);">
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;margin-bottom:8px;">
-                <input type="checkbox" id="prof-own-site" style="accent-color:var(--green);"> Through my own website
+            <div id="prof-online-details" style="display:none;margin-top:12px;padding:12px;background:var(--cream);border-radius:5px;border:1px solid var(--border)">
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;margin-bottom:8px">
+                <input type="checkbox" id="prof-own-site" style="accent-color:var(--green)"> Through my own website
               </label>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;margin-bottom:0;">
-                <input type="checkbox" id="prof-third-party" onchange="toggleProfPlatforms()" style="accent-color:var(--green);"> Through third-party platforms (Amazon, Etsy, eBay, etc.)
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;margin-bottom:0">
+                <input type="checkbox" id="prof-third-party" onchange="toggleProfPlatforms()" style="accent-color:var(--green)"> Through third-party platforms (Amazon, Etsy, eBay, etc.)
               </label>
-              <div id="prof-platform-list" style="display:none;margin-top:10px;padding-left:24px;">
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
-                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px;"><input type="checkbox" name="prof-third-party-platforms" value="amazon" style="accent-color:var(--green);"> Amazon</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px;"><input type="checkbox" name="prof-third-party-platforms" value="etsy" style="accent-color:var(--green);"> Etsy</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px;"><input type="checkbox" name="prof-third-party-platforms" value="ebay" style="accent-color:var(--green);"> eBay</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px;"><input type="checkbox" name="prof-third-party-platforms" value="shopify" style="accent-color:var(--green);"> Shopify</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px;"><input type="checkbox" name="prof-third-party-platforms" value="faire" style="accent-color:var(--green);"> Faire</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px;"><input type="checkbox" name="prof-third-party-platforms" value="other" style="accent-color:var(--green);"> Other</label>
+              <div id="prof-platform-list" style="display:none;margin-top:10px;padding-left:24px">
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px"><input type="checkbox" name="prof-third-party-platforms" value="amazon" style="accent-color:var(--green)"> Amazon</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px"><input type="checkbox" name="prof-third-party-platforms" value="etsy" style="accent-color:var(--green)"> Etsy</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px"><input type="checkbox" name="prof-third-party-platforms" value="ebay" style="accent-color:var(--green)"> eBay</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px"><input type="checkbox" name="prof-third-party-platforms" value="shopify" style="accent-color:var(--green)"> Shopify</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px"><input type="checkbox" name="prof-third-party-platforms" value="faire" style="accent-color:var(--green)"> Faire</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;font-size:13px"><input type="checkbox" name="prof-third-party-platforms" value="other" style="accent-color:var(--green)"> Other</label>
                 </div>
               </div>
             </div>
           </div>
-          <div class="form-group" style="display:flex;align-items:center;gap:10px;">
-            <input type="checkbox" id="prof-is-startup" style="width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin:0;">
-            <label style="margin:0;font-weight:400;">My business is a start-up</label>
+          <div class="form-group">
+            <label>Do you sell to the government, or want to?</label>
+            <div style="display:flex;gap:20px;margin-top:4px">
+              <label style="font-weight:400;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-govt" value="true" style="accent-color:var(--green)"> Yes</label>
+              <label style="font-weight:400;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-govt" value="false" style="accent-color:var(--green)"> No</label>
+            </div>
           </div>
-          <div style="display:flex;align-items:center;margin-top:8px;">
-            <button class="save-btn" onclick="savePreferences()">Save preferences</button>
-            <span class="save-confirmation" id="prefConfirm">✓ Saved</span>
+          <div class="form-group">
+            <label>Do you export, or plan to?</label>
+            <div style="display:flex;gap:20px;margin-top:4px">
+              <label style="font-weight:400;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-exports" value="true" style="accent-color:var(--green)"> Yes</label>
+              <label style="font-weight:400;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="radio" name="cp-exports" value="false" style="accent-color:var(--green)"> No</label>
+            </div>
           </div>
+        </div>
+
+        <div class="card">
+          <div class="pp-section-label">Funding intent</div>
+          <p class="pp-section-sub">What you'd do with the money and where you stand with lenders. This tunes which capital types lead your digest.</p>
+          <div class="form-group">
+            <label>What would funding help you do?</label>
+            <div class="tag-selector" id="cp-funding">
+              <div class="tag-option" data-value="hiring">Hiring &amp; training</div>
+              <div class="tag-option" data-value="equipment">Equipment or vehicles</div>
+              <div class="tag-option" data-value="storefront">Storefront / facility improvements</div>
+              <div class="tag-option" data-value="real_estate">Real estate or expansion</div>
+              <div class="tag-option" data-value="inventory">Inventory expansion</div>
+              <div class="tag-option" data-value="marketing">Marketing &amp; advertising</div>
+              <div class="tag-option" data-value="technology">Technology or software</div>
+              <div class="tag-option" data-value="energy">Energy efficiency / clean energy</div>
+              <div class="tag-option" data-value="accessibility">Accessibility (ADA)</div>
+              <div class="tag-option" data-value="export">Export / international growth</div>
+              <div class="tag-option" data-value="research">Research &amp; development</div>
+              <div class="tag-option" data-value="working_capital">Working capital / cash flow</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="cp-bank">How's your access to bank financing?</label>
+            <select id="cp-bank">
+              <option value="">Select…</option>
+              <option value="good_standing">Good — established banking relationship</option>
+              <option value="yes">Have access</option>
+              <option value="limited">Limited</option>
+              <option value="no">No access</option>
+              <option value="not_looking">Not looking for financing</option>
+              <option value="unsure">Unsure</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="cp-grant-exp">Have you applied for grants before?</label>
+            <select id="cp-grant-exp">
+              <option value="">Select…</option>
+              <option value="never">Never</option>
+              <option value="applied">Applied, but haven't won</option>
+              <option value="won">Won at least one</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="pp-section-label">Application details</div>
+          <p class="pp-section-sub">We'll use these to pre-fill real applications for you down the road. Nothing here is shared or submitted anywhere until you say so.</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cp-ein">Employer Identification Number (EIN)</label>
+              <input type="text" id="cp-ein" placeholder="12-3456789" maxlength="10" style="max-width:200px">
+              <div id="cp-ein-err" style="display:none;font-size:12.5px;color:var(--red);margin-top:-10px">Please enter your EIN as XX-XXXXXXX.</div>
+            </div>
+            <div class="form-group">
+              <label for="cp-phone">Business phone number</label>
+              <input type="tel" id="cp-phone" placeholder="(413) 555-0100" style="max-width:220px">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cp-website">Business website</label>
+              <input type="url" id="cp-website" placeholder="https://yourbusiness.com" style="max-width:320px">
+            </div>
+            <div class="form-group">
+              <label for="cp-formation-date">Date business was formed</label>
+              <input type="date" id="cp-formation-date" style="max-width:200px">
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;margin-bottom:8px">
+          <button class="save-btn" onclick="savePassport()">Save Funding Passport</button>
+          <span id="cp-confirm" class="save-confirm" style="margin-left:12px;color:var(--green);font-size:14px;display:none">Saved ✓</span>
         </div>
       </div>
 
+      <!-- TRACKER -->
+      <div class="page" id="page-tracker">
+        <div class="page-hero">
+          <div class="page-eyebrow">Programs</div>
+          <div class="page-title">My Tracker</div>
+          <div class="page-sub">Keep tabs on every opportunity — star the ones you're serious about and track your progress.</div>
+        </div>
+
+        <!-- FAVORITES -->
+        <div class="tracker-section-title">Favorites</div>
+        <div class="tracker-section-sub">Programs you're actively pursuing. Update the status as you move forward.</div>
+        <div id="tracker-favorites-list">
+          <div class="tracker-empty" id="tracker-favorites-empty">Star a program below to add it here.</div>
+        </div>
+
+        <div class="tracker-divider"></div>
+
+        <!-- ALL PROGRAMS -->
+        <div class="tracker-section-title">All Programs</div>
+        <div class="tracker-section-sub">Every program from your FundBug digests — auto-populated each time a digest is sent.</div>
+        <div id="tracker-all-list">
+          <div class="tracker-empty" id="tracker-all-empty">Your matched programs will appear here after your first digest.</div>
+        </div>
+      </div>
+
+      <!-- TRACKER TOAST -->
+      <div class="tracker-toast" id="trackerToast"></div>
+
       <!-- REFERRAL -->
       <div class="page" id="page-referral">
-        <div class="page-title">Referral Program</div>
-        <div class="page-sub">Earn a free month for every paying subscriber you refer — no limits.</div>
+        <div class="page-hero">
+          <div class="page-eyebrow">Share FundBug</div>
+          <div class="page-title">Referral Program</div>
+          <div class="page-sub">Earn a free month for every paying subscriber you refer — no limits.</div>
+        </div>
         <div class="referral-box">
           <div class="referral-title">Your referral link</div>
           <div class="referral-body">Share this link with other business owners. When they subscribe and complete their first billing cycle, you get one month free — automatically.</div>
@@ -1076,8 +1007,11 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 
       <!-- SUBSCRIPTION -->
       <div class="page" id="page-subscription">
-        <div class="page-title">Subscription</div>
-        <div class="page-sub">Manage your plan, billing, and account status.</div>
+        <div class="page-hero">
+          <div class="page-eyebrow">Billing</div>
+          <div class="page-title">Subscription</div>
+          <div class="page-sub">Manage your plan, billing, and account status.</div>
+        </div>
 
         <!-- Banner: payment failed (past_due) -->
         <div id="banner-past-due" class="sub-banner danger" style="display:none">
@@ -1131,8 +1065,11 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 
       <!-- ACCOUNT SETTINGS -->
       <div class="page" id="page-account">
-        <div class="page-title">Account Settings</div>
-        <div class="page-sub">Update your login email and password.</div>
+        <div class="page-hero">
+          <div class="page-eyebrow">Account</div>
+          <div class="page-title">Account Settings</div>
+          <div class="page-sub">Update your login email and password.</div>
+        </div>
 
         <div class="card">
           <div class="card-title">Email address</div>
@@ -1355,11 +1292,12 @@ function showApp() {
   const greetTime = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   document.getElementById('greetTime').textContent = greetTime + ',';
   document.getElementById('greetName').textContent = name + ' 👋';
-  loadOverview(); loadProfile(); loadReferral(); loadSubscription(); refreshCompletionState();
+  loadOverview(); loadPassport(); loadReferral(); loadSubscription();
 
   // Honor URL hash for direct deep-link (e.g., from email: /portal.html#subscription)
-  const hash = (window.location.hash || '').replace('#','');
-  if (hash && ['overview','profile','referral','subscription','account'].includes(hash)) {
+  const rawHash = (window.location.hash || '').replace('#','');
+  const hash = rawHash === 'profile' ? 'complete' : rawHash;  // legacy #profile links land on the Passport
+  if (hash && ['overview','complete','referral','subscription','account'].includes(hash)) {
     const link = document.querySelector(`.sidebar-nav a[onclick*="'${hash}'"]`);
     if (link) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1423,164 +1361,6 @@ async function loadOverview() {
   } catch(e) { console.log('Overview load error:', e.message); }
 }
 
-async function loadProfile() {
-  try {
-    const data = await apiFetch('/api/portal/profile');
-    document.getElementById('prof-businessName').value = data.business_name || '';
-    document.getElementById('prof-ownerName').value = [data.first_name, data.last_name].filter(Boolean).join(' ') || '';
-    document.getElementById('prof-city').value = (data.city || '').replace(', MA','').replace(',MA','');
-    document.getElementById('prof-email').value = data.email || '';
-    document.getElementById('prof-description').value = data.description || '';
-    if (document.getElementById('prof-funding-note')) document.getElementById('prof-funding-note').value = data.funding_note || '';
-    // Load industry tags (handle three possible storage shapes from upstream:
-    //   1. Array of strings (preferred — column is JSONB)
-    //   2. JSON-encoded string like "[\"apparel\",\"retail\"]" (column is TEXT)
-    //   3. Bare string single value (legacy)
-    let indVals = [];
-    if (Array.isArray(data.industry)) {
-      indVals = data.industry;
-    } else if (typeof data.industry === 'string') {
-      const trimmed = data.industry.trim();
-      if (trimmed.startsWith('[')) {
-        try { indVals = JSON.parse(trimmed); } catch(_) { indVals = [trimmed]; }
-      } else if (trimmed) {
-        indVals = [trimmed];
-      }
-    }
-    document.querySelectorAll('#prof-industry-tags .tag-option').forEach(t => {
-      t.classList.toggle('selected', indVals.includes(t.dataset.value));
-    });
-    const indCount = document.getElementById('prof-industry-count');
-    if (indCount) indCount.textContent = indVals.length ? `${indVals.length} of 3 selected` : 'Select up to 3';
-    // Employee count and revenue come back as ints from the API (signup
-    // collapses ranges to representative values). Map back to the dropdown
-    // bucket so the UI shows the right option.
-    const empReverseMap = {1: '1', 3: '2-5', 8: '6-10', 15: '11-25', 35: '26-50', 60: '50+'};
-    const revReverseMap = {50000: 'under_100k', 100000: '100k_500k', 500000: '500k_1m', 1000000: '1m_5m', 5000000: 'over_5m'};
-    if (data.employee_count != null) {
-      const empBucket = empReverseMap[data.employee_count];
-      if (empBucket) document.getElementById('prof-employees').value = empBucket;
-    }
-    // Annual revenue: explicitly set to empty when null so the
-    // "Prefer not to say" option is selected rather than the dropdown
-    // defaulting to its first listed bucket.
-    if (data.annual_revenue != null) {
-      const revBucket = revReverseMap[data.annual_revenue];
-      if (revBucket) document.getElementById('prof-revenue').value = revBucket;
-      else document.getElementById('prof-revenue').value = '';
-    } else {
-      document.getElementById('prof-revenue').value = '';
-    }
-    loadPreferencesUI(data);
-  } catch(e) { console.log('Profile load error:', e.message); }
-}
-
-function loadPreferencesUI(data) {
-  const fundingOpts = [
-    {value:'accessibility',label:'Accessibility (ADA)'},
-    {value:'energy',label:'Energy efficiency'},
-    {value:'equipment',label:'Equipment or vehicles'},
-    {value:'export',label:'Export / international'},
-    {value:'hiring',label:'Hiring and training'},
-    {value:'inventory',label:'Inventory expansion'},
-    {value:'marketing',label:'Marketing'},
-    {value:'real_estate',label:'Real estate or expansion'},
-    {value:'research',label:'Research and development'},
-    {value:'storefront',label:'Storefront improvements'},
-    {value:'technology',label:'Technology or software'},
-    {value:'working_capital',label:'Working capital'},
-  ];
-  const demoOpts = [
-    {value:'disability-owned',label:'Disability-owned'},
-    {value:'immigrant-owned',label:'Immigrant-owned'},
-    {value:'lgbtq-owned',label:'LGBTQ+-owned'},
-    {value:'military-affiliated',label:'Military-affiliated'},
-    {value:'minority-owned',label:'Minority-owned'},
-    {value:'veteran-owned',label:'Veteran-owned'},
-    {value:'woman-owned',label:'Woman-owned'},
-  ];
-  const selFunding = new Set((data.funding_purpose || []).filter(v => v !== 'any'));
-  const selDemo = new Set((data.owner_demographics || []).filter(v => v !== 'any'));
-
-  function renderTags(containerId, opts, selected) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
-    opts.forEach(o => {
-      const tag = document.createElement('div');
-      tag.className = 'tag-option' + (selected.has(o.value) ? ' selected' : '');
-      tag.dataset.value = o.value;
-      tag.textContent = o.label;
-      tag.onclick = () => tag.classList.toggle('selected');
-      container.appendChild(tag);
-    });
-  }
-
-  renderTags('fundingPurposeList', fundingOpts, selFunding);
-  renderTags('ownerDemographicsList', demoOpts, selDemo);
-
-  // Industry tag selector click handler (max 3)
-  document.querySelectorAll('#prof-industry-tags .tag-option').forEach(tag => {
-    tag.addEventListener('click', () => {
-      const sel = document.querySelectorAll('#prof-industry-tags .tag-option.selected');
-      if (tag.classList.contains('selected')) {
-        tag.classList.remove('selected');
-      } else if (sel.length < 3) {
-        tag.classList.add('selected');
-      }
-      const now = document.querySelectorAll('#prof-industry-tags .tag-option.selected').length;
-      const countEl = document.getElementById('prof-industry-count');
-      if (countEl) {
-        countEl.textContent = now === 0 ? 'Select up to 3' : `${now} of 3 selected`;
-        countEl.classList.toggle('maxed', now >= 3);
-      }
-    });
-  });
-
-  document.getElementById('prof-yearsInBusiness').value = data.years_in_business || '';
-  if (data.location_type) document.getElementById('prof-location-type').value = data.location_type;
-  if (data.bank_financing_access) document.getElementById('prof-bank-access').value = data.bank_financing_access;
-  const govtVal = data.government_contracting === true ? 'true' : 'false';
-  const govtRadio = document.querySelector(`input[name="prof-govt-contracting"][value="${govtVal}"]`);
-  if (govtRadio) govtRadio.checked = true;
-  else document.getElementById('prof-govt-contracting-no').checked = true;
-  const exportsVal = data.exports === true ? 'true' : 'false';
-  const exportsRadio = document.querySelector(`input[name="prof-exports"][value="${exportsVal}"]`);
-  if (exportsRadio) exportsRadio.checked = true;
-  else document.getElementById('prof-exports-no').checked = true;
-  if (data.grant_experience) document.getElementById('prof-grant-experience').value = data.grant_experience;
-  document.getElementById('prof-is-seasonal').checked = data.is_seasonal || false;
-  document.getElementById('prof-is-startup').checked = data.is_startup || false;
-  document.getElementById('prof-is-home-based').checked = data.is_home_based || false;
-  if (data.property_ownership) document.getElementById('prof-property-ownership').value = data.property_ownership;
-  // Sells online — sells_online is BOOLEAN in the DB. true → "yes" radio,
-  // false → "no" radio, null/undefined → none selected. The "want_to" option
-  // is preserved in the UI for new signups but collapses to TRUE on save, so
-  // we cannot distinguish it from "yes" on subsequent loads. User can re-pick
-  // "want_to" if they want; it'll save as true the same way.
-  if (data.sells_online === true) {
-    document.getElementById('prof-sells-online-yes').checked = true;
-  } else if (data.sells_online === false) {
-    document.getElementById('prof-sells-online-no').checked = true;
-  }
-  // (leave all unchecked if null/undefined)
-  // Sub-flags only relevant when sells_online === 'yes', but restore them regardless so they're
-  // preserved across edits. toggleProfOnlineDetails() then handles show/hide.
-  document.getElementById('prof-own-site').checked = data.online_via_own_site || false;
-  document.getElementById('prof-third-party').checked = data.online_via_third_party || false;
-  const savedPlatforms = Array.isArray(data.third_party_platforms) ? data.third_party_platforms : [];
-  document.querySelectorAll('input[name="prof-third-party-platforms"]').forEach(cb => {
-    cb.checked = savedPlatforms.includes(cb.value);
-  });
-  toggleProfOnlineDetails();
-  toggleProfPlatforms();
-  // Restore peak season month checkboxes from saved value
-  const savedPeak = Array.isArray(data.peak_season_months) ? data.peak_season_months : [];
-  document.querySelectorAll('input[name="prof-peak-month"]').forEach(cb => {
-    cb.checked = savedPeak.includes(cb.value);
-  });
-  toggleProfPeakMonths();
-}
-
 // Show/hide peak-season month grid based on is_seasonal checkbox state.
 function toggleProfPeakMonths() {
   const checked = document.getElementById('prof-is-seasonal').checked;
@@ -1612,23 +1392,6 @@ function toggleProfPlatforms() {
   }
 }
 
-async function saveProfile() {
-  try {
-    await apiFetch('/api/portal/profile','PATCH',{
-      business_name: document.getElementById('prof-businessName').value,
-      full_name: document.getElementById('prof-ownerName').value,
-      industry: Array.from(document.querySelectorAll('#prof-industry-tags .tag-option.selected')).map(t => t.dataset.value),
-      employee_count: document.getElementById('prof-employees').value,
-      city: document.getElementById('prof-city').value,
-      annual_revenue: document.getElementById('prof-revenue').value,
-      description: document.getElementById('prof-description').value,
-      funding_note: document.getElementById('prof-funding-note') ? document.getElementById('prof-funding-note').value : null,
-    });
-    const conf = document.getElementById('saveConfirm');
-    conf.classList.add('show'); setTimeout(() => conf.classList.remove('show'), 2500);
-  } catch(e) { alert('Save failed: ' + e.message); }
-}
-
 async function saveEmail() {
   try { await apiFetch('/api/portal/profile','PATCH',{email: document.getElementById('prof-email').value}); alert('Email updated.'); }
   catch(e) { alert('Update failed: ' + e.message); }
@@ -1642,44 +1405,6 @@ async function savePassword() {
     await apiFetch('/api/portal/change-password','POST',{new_password: pw});
     alert('Password updated.'); document.getElementById('prof-pw').value = ''; document.getElementById('prof-pw2').value = '';
   } catch(e) { alert('Update failed: ' + e.message); }
-}
-
-async function savePreferences() {
-  try {
-    const fp = Array.from(document.querySelectorAll('#fundingPurposeList .tag-option.selected')).map(el => el.dataset.value);
-    const od = Array.from(document.querySelectorAll('#ownerDemographicsList .tag-option.selected')).map(el => el.dataset.value);
-    const yr = document.getElementById('prof-yearsInBusiness').value;
-    await apiFetch('/api/portal/profile','PATCH',{
-      funding_purpose: fp,
-      owner_demographics: od,
-      years_in_business: yr ? parseInt(yr) : null,
-      location_type: document.getElementById('prof-location-type').value || null,
-      bank_financing_access: document.getElementById('prof-bank-access').value || null,
-      government_contracting: document.querySelector('input[name="prof-govt-contracting"]:checked')?.value === 'true',
-      exports: document.querySelector('input[name="prof-exports"]:checked')?.value === 'true',
-      grant_experience: document.getElementById('prof-grant-experience').value || null,
-      is_seasonal: document.getElementById('prof-is-seasonal').checked,
-      peak_season_months: document.getElementById('prof-is-seasonal').checked
-        ? Array.from(document.querySelectorAll('input[name="prof-peak-month"]:checked')).map(cb => cb.value)
-        : [],
-      is_startup: document.getElementById('prof-is-startup').checked,
-      is_home_based: document.getElementById('prof-is-home-based').checked,
-      property_ownership: document.getElementById('prof-property-ownership').value || null,
-      sells_online: (function() {
-        const v = document.querySelector('input[name="prof-sells-online"]:checked')?.value;
-        if (v === 'yes' || v === 'want_to') return true;
-        if (v === 'no') return false;
-        return null;
-      })(),
-      online_via_own_site: document.getElementById('prof-own-site').checked,
-      online_via_third_party: document.getElementById('prof-third-party').checked,
-      third_party_platforms: document.getElementById('prof-third-party').checked
-        ? Array.from(document.querySelectorAll('input[name="prof-third-party-platforms"]:checked')).map(cb => cb.value)
-        : [],
-    });
-    const conf = document.getElementById('prefConfirm');
-    conf.classList.add('show'); setTimeout(() => conf.classList.remove('show'), 2500);
-  } catch(e) { alert('Save failed: ' + e.message); }
 }
 
 async function loadReferral() {
@@ -1869,7 +1594,7 @@ function showPage(id, el) {
   el.classList.add('active');
   if (id === 'account') loadAccountEmail();
   if (id === 'tracker') loadTracker();
-  if (id === 'complete') refreshCompletionState();
+  if (id === 'complete') loadPassport();
 }
 
 async function loadAccountEmail() {
@@ -1965,42 +1690,6 @@ async function bootstrapApp() {
   document.getElementById('loginWrap').style.display = 'flex';
 }
 bootstrapApp();
-
-async function saveDescription() {
-  const btn = document.getElementById('save-desc-btn');
-  const val = document.getElementById('profile-description').value.trim();
-  if (!val) return;
-  btn.disabled = true; btn.textContent = 'Saving…';
-  try {
-    const res = await fetch(API + '/api/profile', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ description: val })
-    });
-    if (!res.ok) throw new Error('Save failed');
-    document.getElementById('desc-success').classList.add('show');
-    setTimeout(() => document.getElementById('desc-success').classList.remove('show'), 3000);
-  } catch(e) { alert('Error: ' + e.message); }
-  btn.disabled = false; btn.textContent = 'Save description';
-}
-
-async function saveFundingNote() {
-  const btn = document.getElementById('save-funding-btn');
-  const val = document.getElementById('profile-funding-note').value.trim();
-  if (!val) return;
-  btn.disabled = true; btn.textContent = 'Saving…';
-  try {
-    const res = await fetch(API + '/api/profile', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ funding_note: val })
-    });
-    if (!res.ok) throw new Error('Save failed');
-    document.getElementById('funding-success').classList.add('show');
-    setTimeout(() => document.getElementById('funding-success').classList.remove('show'), 3000);
-  } catch(e) { alert('Error: ' + e.message); }
-  btn.disabled = false; btn.textContent = 'Save funding note';
-}
 
 // ── TRACKER ───────────────────────────────────────────────────────────────────
 
@@ -2481,19 +2170,10 @@ async function jumpToTrackerProgram(programId){
   }, 140);
 }
 
-// ─── COMPLETE PROFILE + NUDGE ────────────────────────────────────────────────
+// ─── FUNDING PASSPORT (merged profile) + SETUP METER ────────────────────────
 function dismissNudge(){
   try { localStorage.setItem('fb_nudge_dismissed','1'); } catch(_){}
-  const n=document.getElementById('completeNudge'); if(n) n.style.display='none';
-}
-function profileLooksIncomplete(p){
-  if(!p) return false;
-  // employee_count is null only for thin signups (it was required on the old
-  // full form), so it's a clean "hasn't finished setup" signal. Fall back to a
-  // broader sparseness check for older partial profiles.
-  if (p.employee_count == null) return true;
-  const demo=(p.owner_demographics||[]).filter(x=>x&&x!=='any');
-  return (demo.length===0) && !p.description && ((p.funding_purpose||[]).length===0);
+  const n=document.getElementById('setupCard'); if(n) n.style.display='none';
 }
 let _cpWired=false;
 function wireCompleteTags(){
@@ -2501,6 +2181,20 @@ function wireCompleteTags(){
   ['cp-demographics','cp-funding'].forEach(id=>{
     document.querySelectorAll('#'+id+' .tag-option').forEach(t=>{
       t.addEventListener('click',()=>t.classList.toggle('selected'));
+    });
+  });
+  // Industry picker: max 3, live count
+  document.querySelectorAll('#prof-industry-tags .tag-option').forEach(tag=>{
+    tag.addEventListener('click',()=>{
+      const sel=document.querySelectorAll('#prof-industry-tags .tag-option.selected');
+      if(tag.classList.contains('selected')){ tag.classList.remove('selected'); }
+      else if(sel.length<3){ tag.classList.add('selected'); }
+      const now=document.querySelectorAll('#prof-industry-tags .tag-option.selected').length;
+      const countEl=document.getElementById('prof-industry-count');
+      if(countEl){
+        countEl.textContent = now===0 ? 'Select up to 3' : `${now} of 3 selected`;
+        countEl.classList.toggle('maxed', now>=3);
+      }
     });
   });
 }
@@ -2515,33 +2209,6 @@ function setRadioBool(name, val){
   const el=document.querySelector(`input[name="${name}"][value="${val?'true':'false'}"]`);
   if(el) el.checked=true;
 }
-async function refreshCompletionState(){
-  wireCompleteTags();
-  try {
-    const p = await apiFetch('/api/portal/profile');
-    setTags('cp-demographics', (p.owner_demographics||[]).filter(x=>x!=='any'));
-    setTags('cp-funding', p.funding_purpose||[]);
-    if(p.property_ownership) document.getElementById('cp-property').value=p.property_ownership;
-    setRadioBool('cp-homebased', p.is_home_based);
-    setRadioBool('cp-seasonal', p.is_seasonal);
-    if(p.employee_count!=null) document.getElementById('cp-employees').value=p.employee_count;
-    if(p.years_in_business!=null) document.getElementById('cp-years').value=p.years_in_business;
-    if(p.annual_revenue!=null) document.getElementById('cp-revenue').value=p.annual_revenue;
-    if(p.grant_experience) document.getElementById('cp-grant-exp').value=p.grant_experience;
-    if(p.bank_financing_access) document.getElementById('cp-bank').value=p.bank_financing_access;
-    setRadioBool('cp-govt', p.government_contracting);
-    (p.certifications||[]).forEach(v=>{const el=document.querySelector('input[name="cp-cert"][value="'+v+'"]'); if(el) el.checked=true;});
-    setRadioBool('cp-exports', p.exports);
-    if(p.description) document.getElementById('cp-description').value=p.description;
-    if(p.ein) document.getElementById('cp-ein').value=p.ein;
-    if(p.business_phone) document.getElementById('cp-phone').value=p.business_phone;
-    if(p.website_url) document.getElementById('cp-website').value=p.website_url;
-    if(p.formation_date) document.getElementById('cp-formation-date').value=p.formation_date;
-    let dismissed=false; try{ dismissed=localStorage.getItem('fb_nudge_dismissed')==='1'; }catch(_){}
-    const nudge=document.getElementById('completeNudge');
-    if(nudge) nudge.style.display = (!dismissed && profileLooksIncomplete(p)) ? 'block' : 'none';
-  } catch(e){ /* non-fatal */ }
-}
 function eInValid(){
   // Basic format check only — XX-XXXXXXX. Doesn't verify the EIN is real,
   // just that it's shaped like one before we store it.
@@ -2554,46 +2221,185 @@ function eInValid(){
   errEl.style.display = 'none';
   return false;
 }
-async function saveComplete(){
-  if (eInValid()) {
-    document.getElementById('cp-ein').scrollIntoView({behavior:'smooth', block:'center'});
+function parseIndustry(ind){
+  // Handles the three storage shapes upstream: array (JSONB), JSON-encoded
+  // string, or bare legacy string.
+  if(Array.isArray(ind)) return ind;
+  if(typeof ind==='string'){
+    const t=ind.trim();
+    if(t.startsWith('[')){ try{ return JSON.parse(t); }catch(_){ return [t]; } }
+    if(t) return [t];
+  }
+  return [];
+}
+
+// One unified completion metric across the whole Funding Passport. Booleans
+// that always hold a value and optional disclosures (demographics,
+// certifications, the what's-new note) are deliberately excluded so every
+// subscriber can reach 100% without being forced to disclose anything.
+const PASSPORT_FIELDS=[
+  {label:'business name',        group:'The basics',          filled:p=>!!(p.business_name||'').trim()},
+  {label:'your name',            group:'The basics',          filled:p=>!!((p.first_name||'')+(p.last_name||'')).trim()},
+  {label:'industry',             group:'The basics',          filled:p=>parseIndustry(p.industry).length>0},
+  {label:'city',                 group:'The basics',          filled:p=>!!(p.city||'').trim()},
+  {label:'employee count',       group:'The basics',          filled:p=>p.employee_count!=null},
+  {label:'annual revenue',       group:'The basics',          filled:p=>p.annual_revenue!=null},
+  {label:'years in business',    group:'The basics',          filled:p=>p.years_in_business!=null},
+  {label:'your business story',  group:'Your story',          filled:p=>!!(p.description||'').trim()},
+  {label:'where you operate',    group:'How you operate',     filled:p=>!!p.location_type},
+  {label:'online sales',         group:'How you operate',     filled:p=>p.sells_online===true||p.sells_online===false},
+  {label:'funding goals',        group:'Funding intent',      filled:p=>((p.funding_purpose||[]).filter(v=>v!=='any')).length>0},
+  {label:'bank financing access',group:'Funding intent',      filled:p=>!!p.bank_financing_access},
+  {label:'grant experience',     group:'Funding intent',      filled:p=>!!p.grant_experience},
+  {label:'EIN',                  group:'Application details', filled:p=>!!(p.ein||'').trim()},
+  {label:'business phone',       group:'Application details', filled:p=>!!(p.business_phone||'').trim()},
+  {label:'website',              group:'Application details', filled:p=>!!(p.website_url||'').trim()},
+  {label:'formation date',       group:'Application details', filled:p=>!!p.formation_date},
+];
+function computeCompletion(p){
+  const missing=PASSPORT_FIELDS.filter(f=>!f.filled(p));
+  const pct=Math.round(100*(PASSPORT_FIELDS.length-missing.length)/PASSPORT_FIELDS.length);
+  return {pct, missing};
+}
+function renderSetupCard(p){
+  const card=document.getElementById('setupCard');
+  if(!card) return;
+  let dismissed=false; try{ dismissed=localStorage.getItem('fb_nudge_dismissed')==='1'; }catch(_){}
+  const {pct, missing}=computeCompletion(p);
+  if(pct>=100||dismissed){ card.style.display='none'; return; }
+  document.getElementById('setupPct').textContent=pct;
+  document.getElementById('setupBarFill').style.width=pct+'%';
+  const names=missing.slice(0,3).map(f=>f.label);
+  const extra=missing.length-names.length;
+  document.getElementById('setupMissing').innerHTML =
+    '<strong>Still to add:</strong> '+names.join(', ')+(extra>0?', and '+extra+' more':'')+
+    '. A complete Funding Passport sharpens your matches and gives your application prep more to work with.';
+  card.style.display='block';
+}
+
+async function loadPassport(){
+  wireCompleteTags();
+  try{
+    const p=await apiFetch('/api/portal/profile');
+    // The basics
+    document.getElementById('prof-businessName').value=p.business_name||'';
+    document.getElementById('prof-ownerName').value=[p.first_name,p.last_name].filter(Boolean).join(' ')||'';
+    document.getElementById('prof-city').value=(p.city||'').replace(', MA','').replace(',MA','');
+    const indVals=parseIndustry(p.industry);
+    setTags('prof-industry-tags', indVals);
+    const indCount=document.getElementById('prof-industry-count');
+    if(indCount) indCount.textContent=indVals.length?indVals.length+' of 3 selected':'Select up to 3';
+    const empReverseMap={1:'1',3:'2-5',8:'6-10',15:'11-25',35:'26-50',60:'50+'};
+    const revReverseMap={50000:'under_100k',100000:'100k_500k',500000:'500k_1m',1000000:'1m_5m',5000000:'over_5m'};
+    document.getElementById('prof-employees').value = p.employee_count!=null ? (empReverseMap[p.employee_count]||'') : '';
+    document.getElementById('prof-revenue').value = p.annual_revenue!=null ? (revReverseMap[p.annual_revenue]||'') : '';
+    document.getElementById('prof-yearsInBusiness').value=(p.years_in_business??'');
+    document.getElementById('prof-is-startup').checked=p.is_startup||false;
+    // Your story
+    document.getElementById('cp-description').value=p.description||'';
+    document.getElementById('prof-funding-note').value=p.funding_note||'';
+    // Ownership & certifications
+    setTags('cp-demographics',(p.owner_demographics||[]).filter(x=>x!=='any'));
+    const certs=p.certifications||[];
+    document.querySelectorAll('input[name="cp-cert"]').forEach(cb=>{cb.checked=certs.includes(cb.value);});
+    // How you operate
+    document.getElementById('prof-location-type').value=p.location_type||'';
+    document.getElementById('prof-is-seasonal').checked=p.is_seasonal||false;
+    const savedPeak=Array.isArray(p.peak_season_months)?p.peak_season_months:[];
+    document.querySelectorAll('input[name="prof-peak-month"]').forEach(cb=>{cb.checked=savedPeak.includes(cb.value);});
+    toggleProfPeakMonths();
+    if(p.sells_online===true){document.getElementById('prof-sells-online-yes').checked=true;}
+    else if(p.sells_online===false){document.getElementById('prof-sells-online-no').checked=true;}
+    document.getElementById('prof-own-site').checked=p.online_via_own_site||false;
+    document.getElementById('prof-third-party').checked=p.online_via_third_party||false;
+    const savedPlatforms=Array.isArray(p.third_party_platforms)?p.third_party_platforms:[];
+    document.querySelectorAll('input[name="prof-third-party-platforms"]').forEach(cb=>{cb.checked=savedPlatforms.includes(cb.value);});
+    toggleProfOnlineDetails();
+    toggleProfPlatforms();
+    setRadioBool('cp-govt', p.government_contracting);
+    setRadioBool('cp-exports', p.exports);
+    // Funding intent
+    setTags('cp-funding',(p.funding_purpose||[]).filter(x=>x!=='any'));
+    document.getElementById('cp-bank').value=p.bank_financing_access||'';
+    document.getElementById('cp-grant-exp').value=p.grant_experience||'';
+    // Application details
+    document.getElementById('cp-ein').value=p.ein||'';
+    document.getElementById('cp-phone').value=p.business_phone||'';
+    document.getElementById('cp-website').value=p.website_url||'';
+    document.getElementById('cp-formation-date').value=p.formation_date||'';
+    renderSetupCard(p);
+  }catch(e){ console.log('Passport load error:', e.message); }
+}
+
+async function savePassport(){
+  if(eInValid()){
+    document.getElementById('cp-ein').scrollIntoView({behavior:'smooth',block:'center'});
     return;
   }
+  const txt=id=>{const v=document.getElementById(id).value.trim();return v||null;};
+  const sel=id=>{const v=document.getElementById(id).value;return v||null;};
+  const radio=name=>{const el=document.querySelector('input[name="'+name+'"]:checked');return el?el.value==='true':null;};
   const tagVals=id=>Array.from(document.querySelectorAll('#'+id+' .tag-option.selected')).map(t=>t.dataset.value);
-  const num=id=>{ const v=document.getElementById(id).value.trim(); return v===''?null:parseInt(v,10); };
-  const radio=name=>{ const el=document.querySelector(`input[name="${name}"]:checked`); return el?el.value==='true':null; };
-  const sel=id=>{ const v=document.getElementById(id).value; return v||null; };
-  const txt=id=>{ const v=document.getElementById(id).value.trim(); return v||null; };
+  // Owner name: one input, stored as first/last
+  const nameParts=document.getElementById('prof-ownerName').value.trim().split(/\s+/).filter(Boolean);
+  const firstName=nameParts.shift()||'';
+  const lastName=nameParts.join(' ');
+  // "Where do you operate?" is the single source of truth; ownership and
+  // home-based flags derive from it so all three columns stay in sync for
+  // the matcher (property_ownership gates real-estate/facade programs).
+  const locType=sel('prof-location-type');
+  const derived={
+    physical_own:  {property_ownership:'own',  is_home_based:false},
+    physical_rent: {property_ownership:'rent', is_home_based:false},
+    home_based:    {property_ownership:'na',   is_home_based:true},
+    mobile:        {property_ownership:'na',   is_home_based:false},
+  }[locType]||{};
+  const yr=document.getElementById('prof-yearsInBusiness').value;
   const payload={
+    business_name: txt('prof-businessName'),
+    first_name: firstName||null,
+    last_name: lastName||null,
+    industry: tagVals('prof-industry-tags'),
+    city: txt('prof-city'),
+    employee_count: sel('prof-employees'),
+    annual_revenue: document.getElementById('prof-revenue').value||null,
+    years_in_business: yr?parseInt(yr,10):null,
+    is_startup: document.getElementById('prof-is-startup').checked,
+    description: txt('cp-description'),
+    funding_note: txt('prof-funding-note'),
     owner_demographics: tagVals('cp-demographics'),
-    funding_purpose: tagVals('cp-funding'),
-    property_ownership: sel('cp-property'),
-    is_home_based: radio('cp-homebased'),
-    is_seasonal: radio('cp-seasonal'),
-    employee_count: num('cp-employees'),
-    years_in_business: num('cp-years'),
-    annual_revenue: num('cp-revenue'),
-    grant_experience: sel('cp-grant-exp'),
-    bank_financing_access: sel('cp-bank'),
+    certifications: Array.from(document.querySelectorAll('input[name="cp-cert"]:checked')).map(cb=>cb.value),
+    location_type: locType,
+    property_ownership: (derived.property_ownership!==undefined?derived.property_ownership:null),
+    is_home_based: (derived.is_home_based!==undefined?derived.is_home_based:null),
+    is_seasonal: document.getElementById('prof-is-seasonal').checked,
+    peak_season_months: document.getElementById('prof-is-seasonal').checked
+      ? Array.from(document.querySelectorAll('input[name="prof-peak-month"]:checked')).map(cb=>cb.value) : [],
+    sells_online:(function(){const v=document.querySelector('input[name="prof-sells-online"]:checked')?.value;
+      if(v==='yes'||v==='want_to')return true; if(v==='no')return false; return null;})(),
+    online_via_own_site: document.getElementById('prof-own-site').checked,
+    online_via_third_party: document.getElementById('prof-third-party').checked,
+    third_party_platforms: document.getElementById('prof-third-party').checked
+      ? Array.from(document.querySelectorAll('input[name="prof-third-party-platforms"]:checked')).map(cb=>cb.value) : [],
     government_contracting: radio('cp-govt'),
     exports: radio('cp-exports'),
-    certifications: Array.from(document.querySelectorAll('input[name="cp-cert"]:checked')).map(cb=>cb.value),
-    description: document.getElementById('cp-description').value.trim() || null,
+    funding_purpose: tagVals('cp-funding'),
+    bank_financing_access: sel('cp-bank'),
+    grant_experience: sel('cp-grant-exp'),
     ein: txt('cp-ein'),
     business_phone: txt('cp-phone'),
     website_url: txt('cp-website'),
     formation_date: sel('cp-formation-date'),
   };
-  // Drop nulls so untouched fields don't overwrite existing values with blanks.
-  // Demographics and funding are arrays we always send (empty = cleared on purpose).
-  Object.keys(payload).forEach(k=>{
-    if(payload[k]===null && k!=='owner_demographics' && k!=='funding_purpose' && k!=='certifications') delete payload[k];
-  });
-  try {
-    await apiFetch('/api/portal/profile','PATCH',payload);
+  // Drop nulls so untouched fields never blank existing values. Arrays always
+  // send (empty = cleared on purpose).
+  const alwaysSend=new Set(['owner_demographics','funding_purpose','certifications','industry','peak_season_months','third_party_platforms']);
+  Object.keys(payload).forEach(k=>{ if(payload[k]===null&&!alwaysSend.has(k)) delete payload[k]; });
+  try{
+    const updated=await apiFetch('/api/portal/profile','PATCH',payload);
     const c=document.getElementById('cp-confirm'); c.style.display='inline'; setTimeout(()=>c.style.display='none',3000);
-    refreshCompletionState();
-  } catch(e){ alert('Save failed: '+e.message); }
+    renderSetupCard(updated);
+  }catch(e){ alert('Save failed: '+e.message); }
 }
 
 </script>
