@@ -37,6 +37,11 @@ body{background:var(--cream);color:var(--ink);font-family:'Jost',sans-serif;font
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 button:focus,a:focus{outline:none}
 
+/* Corner brand on login screens — links back to the marketing site */
+.login-brand{position:absolute;top:max(20px,var(--safe-top));left:24px;display:flex;align-items:center;gap:9px;text-decoration:none;z-index:2}
+.login-brand img{width:34px;height:34px;object-fit:contain}
+.login-brand span{font-family:'Fraunces',serif;font-size:19px;font-weight:700;color:var(--cream)}
+
 /* ─── LOGIN / FORGOT / RESEND VERIFY ─── */
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink);padding:24px;padding-top:max(24px,var(--safe-top));padding-bottom:max(24px,var(--safe-bottom));position:relative;overflow:hidden}
 .login-wrap::before{content:'';position:absolute;inset:0;background-image:radial-gradient(ellipse 60% 60% at 70% 40%,rgba(90,158,82,.10) 0%,transparent 70%);pointer-events:none}
@@ -440,48 +445,50 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 
 <!-- LOGIN -->
 <div id="loginWrap" class="login-wrap">
+  <a class="login-brand" href="https://fundbug.net"><img src="fundbug_logo.png" alt="FundBug"><span>FundBug</span></a>
   <div class="login-card">
-    <img src="fundbug_logo.png" alt="FundBug" style="display:block;margin:0 auto 16px;width:56px;height:56px;object-fit:contain;">
     <div class="login-logo" style="text-align:center;">FundBug</div>
     <div class="login-sub" style="text-align:center;">Subscriber Portal</div>
+    <div id="loginMsg" class="login-err" style="color:var(--green)"></div>
     <div id="loginErr" class="login-err"></div>
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" id="loginEmail" placeholder="you@yourbusiness.com">
+    <div id="loginForm">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="you@yourbusiness.com" onkeydown="if(event.key==='Enter')doPrimaryMagic()">
+      </div>
+      <button class="btn" onclick="doPrimaryMagic()">Email me a login link</button>
+      <p style="font-family:'Jost',sans-serif;font-size:12.5px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5">No password needed. We'll email you a secure link that signs you in.</p>
     </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="loginPassword" placeholder="••••••••">
+    <div style="text-align:center;margin-top:14px">
+      <a href="#" onclick="showPwLogin()" style="font-family:'Jost',sans-serif;font-size:13px;color:var(--green);text-decoration:underline;">Sign in with a password instead</a>
     </div>
-    <button class="btn" onclick="doLogin()">Sign in</button>
-    <div style="text-align:center;margin-top:12px">
-      <a href="#" onclick="showMagicLink()" style="font-family:'Jost',sans-serif;font-size:13px;color:var(--green);text-decoration:underline;">Email me a login link instead</a>
-    </div>
-    <div style="text-align:center;margin-top:10px">
-      <a href="#" onclick="showForgotPassword()" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;">Forgot your password?</a>
-    </div>
-    <div style="text-align:center;margin-top:6px">
+    <div style="text-align:center;margin-top:8px">
       <a href="#" onclick="showResendVerify()" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;">Didn't get your verification email? Resend it</a>
     </div>
     <div class="login-toggle" onclick="window.location.href='signup.html'">Not a subscriber? <span>Get started →</span></div>
   </div>
 </div>
 
-<!-- MAGIC LINK LOGIN -->
-<div id="magicWrap" class="login-wrap" style="display:none">
+<!-- PASSWORD LOGIN (secondary) -->
+<div id="pwWrap" class="login-wrap" style="display:none">
+  <a class="login-brand" href="https://fundbug.net"><img src="fundbug_logo.png" alt="FundBug"><span>FundBug</span></a>
   <div class="login-card">
     <div class="login-logo">FundBug</div>
-    <div class="login-sub">Email me a login link</div>
-    <div id="magicMsg" class="login-err" style="color:var(--green)"></div>
-    <div id="magicErr" class="login-err"></div>
-    <div id="magicForm">
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="magicEmail" placeholder="you@yourbusiness.com">
-      </div>
-      <button class="btn" onclick="doRequestMagicLink()">Send me a login link</button>
+    <div class="login-sub">Sign in with password</div>
+    <div id="pwErr" class="login-err"></div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="pwEmail" placeholder="you@yourbusiness.com">
     </div>
-    <div style="text-align:center;margin-top:16px">
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn" onclick="doLogin()">Sign in</button>
+    <div style="text-align:center;margin-top:12px">
+      <a href="#" onclick="showForgotPassword()" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;">Forgot your password?</a>
+    </div>
+    <div style="text-align:center;margin-top:10px">
       <a href="#" onclick="showLogin()" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;">← Back to sign in</a>
     </div>
   </div>
@@ -489,6 +496,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 
 <!-- FORGOT PASSWORD -->
 <div id="forgotWrap" class="login-wrap" style="display:none">
+  <a class="login-brand" href="https://fundbug.net"><img src="fundbug_logo.png" alt="FundBug"><span>FundBug</span></a>
   <div class="login-card">
     <div class="login-logo">FundBug</div>
     <div class="login-sub">Reset your password</div>
@@ -509,6 +517,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 
 <!-- RESEND VERIFICATION -->
 <div id="resendVerifyWrap" class="login-wrap" style="display:none">
+  <a class="login-brand" href="https://fundbug.net"><img src="fundbug_logo.png" alt="FundBug"><span>FundBug</span></a>
   <div class="login-card">
     <div class="login-logo">FundBug</div>
     <div class="login-sub">Resend verification email</div>
@@ -1191,30 +1200,30 @@ let subscriber = JSON.parse(localStorage.getItem('fb_sub') || 'null');
 function showForgotPassword() {
   document.getElementById('loginWrap').style.display = 'none';
   document.getElementById('resendVerifyWrap').style.display = 'none';
-  document.getElementById('magicWrap').style.display = 'none';
+  document.getElementById('pwWrap').style.display = 'none';
   document.getElementById('forgotWrap').style.display = 'flex';
-  document.getElementById('forgotEmail').value = document.getElementById('loginEmail').value || '';
+  document.getElementById('forgotEmail').value = document.getElementById('pwEmail').value || document.getElementById('loginEmail').value || '';
   document.getElementById('forgotMsg').textContent = '';
   document.getElementById('forgotErr').textContent = '';
 }
 
-function showMagicLink() {
+function showPwLogin() {
   document.getElementById('loginWrap').style.display = 'none';
   document.getElementById('forgotWrap').style.display = 'none';
   document.getElementById('resendVerifyWrap').style.display = 'none';
-  document.getElementById('magicWrap').style.display = 'flex';
-  document.getElementById('magicEmail').value = document.getElementById('loginEmail').value || '';
-  document.getElementById('magicMsg').textContent = '';
-  document.getElementById('magicErr').textContent = '';
-  document.getElementById('magicForm').style.display = 'block';
+  document.getElementById('pwWrap').style.display = 'flex';
+  document.getElementById('pwEmail').value = document.getElementById('loginEmail').value || '';
+  document.getElementById('pwErr').textContent = '';
 }
 
-async function doRequestMagicLink() {
-  const email = document.getElementById('magicEmail').value.trim();
-  document.getElementById('magicErr').textContent = '';
-  document.getElementById('magicMsg').textContent = '';
+// Primary sign-in: passwordless. Same anti-enumeration behavior as before —
+// the response reads identically whether or not the email is registered.
+async function doPrimaryMagic() {
+  const email = document.getElementById('loginEmail').value.trim();
+  document.getElementById('loginErr').textContent = '';
+  document.getElementById('loginMsg').textContent = '';
   if (!email) {
-    document.getElementById('magicErr').textContent = 'Please enter your email address.';
+    document.getElementById('loginErr').textContent = 'Please enter your email address.';
     return;
   }
   try {
@@ -1227,20 +1236,18 @@ async function doRequestMagicLink() {
       const data = await r.json().catch(() => ({}));
       throw new Error(data.detail || 'Something went wrong. Please try again.');
     }
-    // Response is intentionally identical whether or not the email is
-    // registered, so the message can't be used to probe for accounts.
-    document.getElementById('magicForm').style.display = 'none';
-    document.getElementById('magicMsg').textContent =
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('loginMsg').textContent =
       'If that email has a FundBug account, a login link is on its way. It expires in 30 minutes.';
   } catch (e) {
-    document.getElementById('magicErr').textContent = e.message;
+    document.getElementById('loginErr').textContent = e.message;
   }
 }
 
 function showResendVerify() {
   document.getElementById('loginWrap').style.display = 'none';
   document.getElementById('forgotWrap').style.display = 'none';
-  document.getElementById('magicWrap').style.display = 'none';
+  document.getElementById('pwWrap').style.display = 'none';
   document.getElementById('resendVerifyWrap').style.display = 'flex';
   // Pre-fill from login email if present, for convenience
   document.getElementById('resendVerifyEmail').value = document.getElementById('loginEmail').value || '';
@@ -1252,8 +1259,10 @@ function showResendVerify() {
 function showLogin() {
   document.getElementById('forgotWrap').style.display = 'none';
   document.getElementById('resendVerifyWrap').style.display = 'none';
-  document.getElementById('magicWrap').style.display = 'none';
+  document.getElementById('pwWrap').style.display = 'none';
   document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('loginMsg').textContent = '';
 }
 
 async function doResendVerify() {
@@ -1301,9 +1310,9 @@ async function doForgotPassword() {
 }
 
 async function doLogin() {
-  const email = document.getElementById('loginEmail').value;
+  const email = document.getElementById('pwEmail').value;
   const password = document.getElementById('loginPassword').value;
-  document.getElementById('loginErr').textContent = '';
+  document.getElementById('pwErr').textContent = '';
   try {
     const r = await fetch(API + '/api/portal/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password}) });
     const data = await r.json();
@@ -1319,7 +1328,7 @@ async function doLogin() {
     localStorage.setItem('fb_token', token);
     localStorage.setItem('fb_sub', JSON.stringify(subscriber));
     showApp();
-  } catch(e) { document.getElementById('loginErr').textContent = e.message; }
+  } catch(e) { document.getElementById('pwErr').textContent = e.message; }
 }
 
 function doLogout() {
