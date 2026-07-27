@@ -195,7 +195,7 @@ nav {
 
 .hero-eyebrow {
   font-family: 'Jost', sans-serif;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: .18em;
   text-transform: uppercase;
@@ -455,7 +455,7 @@ section { padding: 100px 80px; }
 
 .section-eyebrow {
   font-family: 'Jost', sans-serif;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: .18em;
   text-transform: uppercase;
@@ -499,20 +499,18 @@ section { padding: 100px 80px; }
 .passport-copy p strong { font-weight: 600; color: var(--ink); }
 .passport-cta { display: inline-block; margin-top: 6px; padding: 13px 26px; background: var(--green); color: #fff; border-radius: 6px; font-family: 'Jost', sans-serif; font-size: 15px; font-weight: 500; text-decoration: none; transition: background .15s, transform .15s; }
 .passport-cta:hover { background: var(--green-lt); transform: translateY(-1px); }
-/* The passport card visual: pure CSS, no images */
-.pp-card { background: var(--ink); border-radius: 14px; padding: 26px 26px 22px; box-shadow: 0 24px 60px rgba(26,26,20,.28); position: relative; overflow: hidden; max-width: 380px; margin: 0 auto; }
-.pp-card::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,.05) 1px, transparent 1px); background-size: 22px 22px; pointer-events: none; }
-.pp-card > * { position: relative; z-index: 1; }
-.pp-card-eyebrow { font-family: 'Jost', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--green-lt); margin-bottom: 4px; }
-.pp-card-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--white); margin-bottom: 18px; }
-.pp-card-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.08); font-family: 'Jost', sans-serif; font-size: 13px; color: rgba(250,248,240,.85); }
+/* The passport card visual: pure CSS, styled like the real portal card */
+.pp-card { background: var(--white); border: 1px solid var(--border); border-top: 4px solid var(--green); border-radius: 12px; padding: 26px 26px 22px; box-shadow: 0 16px 44px rgba(26,26,20,.10); max-width: 380px; margin: 0 auto; }
+.pp-card-eyebrow { font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--green); margin-bottom: 4px; }
+.pp-card-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 16px; }
+.pp-card-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--cream2, #eee9dc); font-family: 'Jost', sans-serif; font-size: 13.5px; color: var(--ink2); }
 .pp-card-row:last-of-type { border-bottom: none; }
 .pp-check { width: 18px; height: 18px; border-radius: 50%; background: var(--green); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.pp-check.todo { background: transparent; border: 1.5px dashed rgba(250,248,240,.4); color: transparent; }
-.pp-card-meter { margin-top: 18px; }
-.pp-card-meter-label { display: flex; justify-content: space-between; font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: rgba(250,248,240,.7); margin-bottom: 7px; }
-.pp-card-meter-label strong { color: var(--green-lt); font-size: 13px; }
-.pp-card-bar { height: 7px; background: rgba(255,255,255,.12); border-radius: 5px; overflow: hidden; }
+.pp-check.todo { background: transparent; border: 1.5px dashed var(--muted, #8a8578); color: transparent; }
+.pp-card-meter { margin-top: 16px; }
+.pp-card-meter-label { display: flex; justify-content: space-between; font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted, #8a8578); margin-bottom: 7px; }
+.pp-card-meter-label strong { color: var(--green); font-size: 13px; }
+.pp-card-bar { height: 7px; background: var(--cream, #f5f1e6); border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
 .pp-card-bar-fill { height: 100%; width: 82%; background: linear-gradient(90deg, var(--green), var(--green-lt)); border-radius: 5px; }
 
 .how-grid {
@@ -918,7 +916,7 @@ footer { background: var(--ink); padding: 60px 80px; }
     <div class="hero-eyebrow">Funding intelligence for small business</div>
     <h1 class="hero-headline">The funding you qualify for<br>delivered to your inbox.</h1>
     <p class="hero-sub">
-      Thousands of grants, loans, tax credits, and corporate programs are open to small businesses in Massachusetts and Rhode Island, and most owners never hear about the ones meant for them. Tell us about your business once. Twice a month, we send the matches that fit, with enough context to know which ones to act on.
+      Thousands of grants, specialized loans, tax credits, and corporate programs are open to small businesses in Massachusetts and Rhode Island, and most owners never hear about the ones meant for them. Tell us about your business once. Twice a month, we send the matches that fit, with enough context to know which ones to act on.
     </p>
     <div class="hero-actions">
       <a href="signup.html" class="btn-primary">Get your first digest free →</a>
@@ -1032,7 +1030,7 @@ footer { background: var(--ink); padding: 60px 80px; }
     <div class="how-step">
       <div class="step-num">03</div>
       <div class="step-title" style="color:var(--green);">Your digest arrives</div>
-      <div class="step-body" style="color:var(--ink2);">On the 1st and 3rd Tuesday, a ranked digest lands in your inbox, each match paired with a short, personal read on where you stand and why. One click saves any of them to your portal to revisit later.</div>
+      <div class="step-body" style="color:var(--ink2);">On the 1st and 3rd Tuesday of every month, a ranked digest lands in your inbox, each match paired with a short, personal read on where you stand and why. One click saves any of them to your portal to revisit later.</div>
     </div>
   </div>
 </section>
@@ -1043,10 +1041,10 @@ footer { background: var(--ink); padding: 60px 80px; }
   <h2 class="section-title">Fill it out once. Use it everywhere.</h2>
   <div class="passport-grid" style="margin-top:40px">
     <div class="passport-copy">
-      <p>Think of FundBug like <strong>a cheap insurance policy and a lottery ticket rolled into one</strong>. The insurance part: for $20 a month you always know every grant, loan, rebate, and tax credit your business qualifies for, so the day you need capital, you're never starting from zero. The lottery part: grants are never guaranteed, but every application is a real shot at money you never pay back, and the only way to win one is to apply.</p>
+      <p>Think of FundBug like <strong>a cheap insurance policy and a lottery ticket rolled into one</strong>. The insurance part: for $20 a month you always know what grants, specialized loans, and rebates are on the table for your business, so the day you need capital, you're never starting from zero. The lottery part: grants are never guaranteed, but every application is a real shot at money you never pay back, and the only way to win one is to apply.</p>
       <p>Unlike a real lottery, though, <strong>your odds improve with effort</strong>. Every application you send is a ticket, and the better your fit and the more you apply, the better your chances of a win.</p>
       <p>Your Funding Passport is what makes applying to everything actually practical. Build your profile once (your website can even fill it in for you), and FundBug reuses it to sharpen every match and draft your application answers, so each additional application takes minutes, not weekends.</p>
-      <p><strong>Worst case, you walk away knowing exactly which programs can start, grow, protect, or save your business. Best case, it's a windfall.</strong></p>
+      <p><strong>Worst case, you learn about dozens of programs that can start, grow, protect, or save your business. Best case, you win grant money you never knew existed before using FundBug.</strong></p>
       <a href="signup.html" class="passport-cta">Start your Passport →</a>
     </div>
     <div>
@@ -1056,7 +1054,7 @@ footer { background: var(--ink); padding: 60px 80px; }
         <div class="pp-card-row"><span class="pp-check">✓</span> Industry &amp; location</div>
         <div class="pp-card-row"><span class="pp-check">✓</span> Your story, in your own words</div>
         <div class="pp-card-row"><span class="pp-check">✓</span> Ownership &amp; certifications</div>
-        <div class="pp-card-row"><span class="pp-check">✓</span> Filled from rosiesbakery.com ✨</div>
+        <div class="pp-card-row"><span class="pp-check">✓</span> How you operate</div>
         <div class="pp-card-row"><span class="pp-check todo">✓</span> Application details</div>
         <div class="pp-card-meter">
           <div class="pp-card-meter-label"><span>Passport complete</span><strong>82%</strong></div>
@@ -1083,7 +1081,7 @@ footer { background: var(--ink); padding: 60px 80px; }
         </svg>
       </div>
       <div class="feat-content">
-        <div class="feat-title">Digest on the 1st and 3rd Tuesday</div>
+        <div class="feat-title">Digest on the 1st and 3rd Tuesday of every month</div>
         <div class="feat-body">Your best matches, ranked and explained, twice a month on a predictable schedule. Your top grant opportunity always comes first, with everything else ordered by fit and odds.</div>
       </div>
     </div>
@@ -1185,7 +1183,7 @@ footer { background: var(--ink); padding: 60px 80px; }
       </div>
       <div class="feat-content">
         <div class="feat-title">Beyond grants</div>
-        <div class="feat-body">Grants, matching grants, SBA loans, CDFIs, tax credits, corporate programs, state loans. The full spectrum of capital, not just the headline programs everyone already knows about.</div>
+        <div class="feat-body">Grants, matching grants, SBA loans, CDFIs, tax credits, corporate programs, state loans. The full spectrum of capital, not just the headline programs everyone already knows about. And these aren't the loans your bank advertises: many are specialized products with below-market rates, credit enhancements, paired grants, or free advisory support alongside the money. And it's not all money: FundBug also surfaces free technical assistance, advisory services, training, and marketing opportunities that put your business in front of new customers.</div>
       </div>
     </div>
 
@@ -1291,7 +1289,7 @@ footer { background: var(--ink); padding: 60px 80px; }
       <div class="pricing-price"><sup>$</sup>20</div>
       <div class="pricing-period">per month · cancel anytime</div>
       <ul class="pricing-features">
-        <li>Digest on the 1st and 3rd Tuesday</li>
+        <li>Digest on the 1st and 3rd Tuesday of every month</li>
         <li>Personalized match scoring</li>
         <li>Eligibility confidence score per match</li>
         <li>Human-vetted, continuously updated programs</li>
