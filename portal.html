@@ -227,6 +227,15 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .modal-btn-keep{padding:13px 24px;background:var(--green);color:#fff;border:none;border-radius:5px;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s;min-height:48px}
 .modal-btn-keep:hover{opacity:.85}
 .modal-btn-secondary{padding:13px 24px;background:none;border:1px solid var(--border);border-radius:5px;font-family:'Jost',sans-serif;font-size:14px;font-weight:400;color:var(--muted);cursor:pointer;min-height:48px}
+
+/* Website-scan review rows */
+.scan-row{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--cream2)}
+.scan-row:last-child{border-bottom:none}
+.scan-row input[type=checkbox]{width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin-top:2px}
+.scan-row-label{font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--green-dk)}
+.scan-row-value{font-size:14px;color:var(--ink);line-height:1.5;margin-top:2px;word-break:break-word}
+.scan-row-note{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.45}
+.scan-row.skipped .scan-row-value{color:var(--muted)}
 .modal-btn-secondary:hover{color:var(--ink)}
 
 /* ─── TRACKER ─── */
@@ -935,6 +944,10 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
             <div class="form-group">
               <label for="cp-website">Business website</label>
               <input type="url" id="cp-website" placeholder="https://yourbusiness.com" style="max-width:320px">
+              <div style="margin-top:2px">
+                <button type="button" onclick="scanWebsite()" style="background:none;border:1px solid var(--green);color:var(--green-dk);border-radius:6px;padding:8px 14px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;cursor:pointer">✨ Fill my Passport from this website</button>
+                <div style="font-size:12px;color:var(--muted);margin-top:5px;line-height:1.45">We'll read your site and suggest answers for you to review. Nothing is applied until you approve it.</div>
+              </div>
             </div>
             <div class="form-group">
               <label for="cp-formation-date">Date business was formed</label>
@@ -951,6 +964,19 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         <div class="pp-savebar" id="ppSavebar">
           <span class="pp-savebar-text">You have unsaved changes.</span>
           <button class="pp-savebar-btn" onclick="savePassport()">Save Funding Passport</button>
+        </div>
+      </div>
+
+      <!-- WEBSITE SCAN REVIEW MODAL -->
+      <div class="modal-overlay" id="scanModal">
+        <div class="modal-box" style="max-width:560px">
+          <div class="modal-title">Suggestions from your website</div>
+          <div class="modal-sub" id="scanModalSub">Reading your site…</div>
+          <div id="scanModalBody"></div>
+          <div class="modal-actions" style="margin-top:20px">
+            <button class="modal-btn-keep" id="scanApplyBtn" onclick="applyScanProposals()" style="display:none">Apply selected</button>
+            <button class="modal-btn-secondary" onclick="closeScanModal()">Cancel</button>
+          </div>
         </div>
       </div>
 
@@ -2443,6 +2469,149 @@ async function savePassport(){
     clearPassportDirty();
     renderSetupCard(updated);
   }catch(e){ alert('Save failed: '+e.message); }
+}
+
+// ─── WEBSITE SCAN → PASSPORT SUGGESTIONS ────────────────────────────────────
+// Suggest-only: proposals are applied to the FORM (marking it dirty), never
+// saved directly. The user still reviews and hits Save Funding Passport.
+function tagLabel(containerId, value){
+  const el=document.querySelector('#'+containerId+' .tag-option[data-value="'+value+'"]');
+  return el?el.textContent.trim():value;
+}
+const SCAN_FIELDS=[
+  {key:'business_name', label:'Business name',
+    isEmpty:()=>!document.getElementById('prof-businessName').value.trim(),
+    current:()=>document.getElementById('prof-businessName').value.trim(),
+    apply:v=>{document.getElementById('prof-businessName').value=v;},
+    format:v=>v},
+  {key:'description', label:'Your business, in your own words',
+    isEmpty:()=>!document.getElementById('cp-description').value.trim(),
+    current:()=>document.getElementById('cp-description').value.trim(),
+    apply:v=>{document.getElementById('cp-description').value=v;},
+    format:v=>v},
+  {key:'industry', label:'Industry',
+    isEmpty:()=>document.querySelectorAll('#prof-industry-tags .tag-option.selected').length===0,
+    current:()=>Array.from(document.querySelectorAll('#prof-industry-tags .tag-option.selected')).map(t=>t.textContent.trim()).join(', '),
+    apply:v=>{
+      document.querySelectorAll('#prof-industry-tags .tag-option.selected').forEach(t=>t.classList.remove('selected'));
+      v.slice(0,3).forEach(slug=>{
+        const el=document.querySelector('#prof-industry-tags .tag-option[data-value="'+slug+'"]');
+        if(el) el.classList.add('selected');
+      });
+      const n=document.querySelectorAll('#prof-industry-tags .tag-option.selected').length;
+      const c=document.getElementById('prof-industry-count');
+      if(c) c.textContent=n?n+' of 3 selected':'Select up to 3';
+    },
+    format:v=>v.map(s=>tagLabel('prof-industry-tags',s)).join(', ')},
+  {key:'city', label:'City',
+    isEmpty:()=>!document.getElementById('prof-city').value.trim(),
+    current:()=>document.getElementById('prof-city').value.trim(),
+    apply:v=>{document.getElementById('prof-city').value=v;},
+    format:v=>v},
+  {key:'business_phone', label:'Business phone',
+    isEmpty:()=>!document.getElementById('cp-phone').value.trim(),
+    current:()=>document.getElementById('cp-phone').value.trim(),
+    apply:v=>{document.getElementById('cp-phone').value=v;},
+    format:v=>v},
+  {key:'years_in_business', label:'Years in business',
+    isEmpty:()=>!document.getElementById('prof-yearsInBusiness').value,
+    current:()=>document.getElementById('prof-yearsInBusiness').value,
+    apply:v=>{document.getElementById('prof-yearsInBusiness').value=v;},
+    format:v=>String(v)},
+  {key:'sells_online', label:'Sells online',
+    isEmpty:()=>!document.querySelector('input[name="prof-sells-online"]:checked'),
+    current:()=>{const r=document.querySelector('input[name="prof-sells-online"]:checked');
+      return r?(r.value==='no'?'No':'Yes'):'';},
+    apply:v=>{document.getElementById(v?'prof-sells-online-yes':'prof-sells-online-no').checked=true;},
+    format:v=>v?'Yes':'No'},
+  {key:'online_via_own_site', label:'Sells through own website',
+    isEmpty:()=>!document.getElementById('prof-own-site').checked,
+    current:()=>document.getElementById('prof-own-site').checked?'Yes':'',
+    apply:v=>{document.getElementById('prof-own-site').checked=!!v;},
+    format:v=>v?'Yes':'No'},
+  {key:'is_seasonal', label:'Seasonal business',
+    isEmpty:()=>!document.getElementById('prof-is-seasonal').checked,
+    current:()=>document.getElementById('prof-is-seasonal').checked?'Yes':'',
+    apply:v=>{document.getElementById('prof-is-seasonal').checked=!!v;},
+    format:v=>v?'Yes':'No'},
+  {key:'owner_demographics', label:'Ownership',
+    isEmpty:()=>document.querySelectorAll('#cp-demographics .tag-option.selected').length===0,
+    current:()=>Array.from(document.querySelectorAll('#cp-demographics .tag-option.selected')).map(t=>t.textContent.trim()).join(', '),
+    apply:v=>{v.forEach(slug=>{
+      const el=document.querySelector('#cp-demographics .tag-option[data-value="'+slug+'"]');
+      if(el) el.classList.add('selected');
+    });},
+    format:v=>v.map(s=>tagLabel('cp-demographics',s)).join(', ')},
+];
+let _scanResult=null;
+async function scanWebsite(){
+  const url=document.getElementById('cp-website').value.trim();
+  if(!url){
+    alert('Enter your website URL in the field above first, then hit the button.');
+    document.getElementById('cp-website').focus();
+    return;
+  }
+  const modal=document.getElementById('scanModal');
+  modal.classList.add('open');
+  document.getElementById('scanModalSub').textContent='Reading your site… this usually takes 10–20 seconds.';
+  document.getElementById('scanModalBody').innerHTML='';
+  document.getElementById('scanApplyBtn').style.display='none';
+  _scanResult=null;
+  try{
+    const res=await apiFetch('/api/scan-website','POST',{url});
+    _scanResult=res;
+    renderScanReview(res);
+  }catch(e){
+    document.getElementById('scanModalSub').textContent='Scan failed: '+e.message;
+  }
+}
+function renderScanReview(res){
+  const p=res.proposals||{};
+  const ev=res.evidence||{};
+  const rows=[];
+  SCAN_FIELDS.forEach(f=>{
+    const v=p[f.key];
+    const has=Array.isArray(v)?v.length>0:(v!==null&&v!==undefined&&v!=='');
+    if(!has) return;
+    const empty=f.isEmpty();
+    const cur=empty?'':f.current();
+    rows.push(
+      '<div class="scan-row'+(empty?'':' skipped')+'">'
+      +'<input type="checkbox" data-scan-key="'+f.key+'"'+(empty?' checked':'')+'>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div class="scan-row-label">'+esc(f.label)+'</div>'
+      +'<div class="scan-row-value">'+esc(f.format(v))+'</div>'
+      +(ev[f.key]?'<div class="scan-row-note">From your site: \u201c'+esc(ev[f.key])+'\u201d</div>':'')
+      +(empty?'':'<div class="scan-row-note">You already have: \u201c'+esc(cur)+'\u201d \u2014 checking this will replace it.</div>')
+      +'</div></div>'
+    );
+  });
+  if(!rows.length){
+    document.getElementById('scanModalSub').textContent="We read your site but couldn't confidently pull anything new from it. No harm done \u2014 nothing was changed.";
+    return;
+  }
+  document.getElementById('scanModalSub').textContent='Here\u2019s what we found. Fields you\u2019ve already filled are unchecked by default \u2014 nothing is applied until you approve it, and nothing saves until you hit Save.';
+  document.getElementById('scanModalBody').innerHTML=rows.join('');
+  document.getElementById('scanApplyBtn').style.display='inline-block';
+}
+function applyScanProposals(){
+  if(!_scanResult) return;
+  const p=_scanResult.proposals||{};
+  let applied=0;
+  document.querySelectorAll('#scanModalBody input[data-scan-key]:checked').forEach(cb=>{
+    const f=SCAN_FIELDS.find(x=>x.key===cb.dataset.scanKey);
+    if(f&&p[f.key]!==null&&p[f.key]!==undefined){ f.apply(p[f.key]); applied++; }
+  });
+  toggleProfOnlineDetails();
+  toggleProfPeakMonths();
+  closeScanModal();
+  if(applied>0){
+    markPassportDirty();
+    document.getElementById('prof-businessName').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+}
+function closeScanModal(){
+  document.getElementById('scanModal').classList.remove('open');
 }
 
 </script>
