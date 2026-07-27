@@ -119,8 +119,16 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .setup-dismiss:hover{color:var(--ink)}
 
 /* ─── PASSPORT SECTIONS ─── */
-.pp-section-label{font-family:'Jost',sans-serif;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--green-dk);margin:0 0 4px}
-.pp-section-sub{font-size:13px;font-weight:300;color:var(--muted);margin:0 0 18px;line-height:1.55}
+.pp-section-label{font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--green-dk);margin:0 0 6px}
+.pp-section-sub{font-size:14.5px;font-weight:400;color:var(--ink);margin:0 0 18px;line-height:1.6}
+
+/* Unsaved-changes reminder: static note under the hero + sticky bar when dirty */
+.pp-save-note{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-family:'Jost',sans-serif;font-size:14px;color:var(--ink);line-height:1.55}
+.pp-savebar{position:sticky;bottom:14px;background:var(--ink);border-radius:10px;padding:14px 20px;display:none;align-items:center;justify-content:space-between;gap:14px;box-shadow:0 8px 28px rgba(0,0,0,.25);z-index:50;margin-top:12px}
+.pp-savebar.show{display:flex}
+.pp-savebar-text{font-family:'Jost',sans-serif;font-size:14px;color:var(--cream);font-weight:400}
+.pp-savebar-btn{background:var(--green);color:#fff;border:none;border-radius:6px;padding:11px 22px;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:background .15s;min-height:44px;white-space:nowrap}
+.pp-savebar-btn:hover{background:var(--green-lt)}
 
 /* ─── DIGEST HISTORY ─── */
 .digest-list{display:flex;flex-direction:column;gap:12px}
@@ -610,6 +618,8 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
           <div class="page-sub">One profile that powers everything: sharper digest matches today, pre-filled applications tomorrow. Everything here is optional, but each answer can unlock programs you'd otherwise never see.</div>
         </div>
 
+        <div class="pp-save-note">💾 <strong>Heads up:</strong> changes here aren't saved until you hit <strong>Save Funding Passport</strong> at the bottom of the page. If you edit anything, a save reminder will follow you down the page.</div>
+
         <div class="card">
           <div class="pp-section-label">The basics</div>
           <p class="pp-section-sub">Who you are and the shape of the business. These drive your core eligibility.</p>
@@ -742,47 +752,6 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         </div>
 
         <div class="card">
-          <div class="pp-section-label">Ownership &amp; certifications</div>
-          <p class="pp-section-sub">Many grants are reserved specifically for these owners. Selecting what applies unlocks programs set aside for them.</p>
-          <div class="form-group">
-            <label>Do any of these describe your business?</label>
-            <div class="tag-selector" id="cp-demographics">
-              <div class="tag-option" data-value="woman-owned">Woman-owned</div>
-              <div class="tag-option" data-value="minority-owned">Minority-owned</div>
-              <div class="tag-option" data-value="veteran-owned">Veteran-owned</div>
-              <div class="tag-option" data-value="military-affiliated">Military-affiliated</div>
-              <div class="tag-option" data-value="disability-owned">Disability-owned</div>
-              <div class="tag-option" data-value="lgbtq-owned">LGBTQ+-owned</div>
-              <div class="tag-option" data-value="immigrant-owned">Immigrant-owned</div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label style="display:block;font-weight:bold;margin-bottom:4px">Certifications you hold</label>
-            <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">Some set-aside grants and most government contracting preferences require formal certification, not just ownership. Check any you already have. Not certified? Each link explains the certification and where to start. <a href="https://fundbug.net/certifications-guide.html" target="_blank" style="color:var(--green-dk)">Full guide &#8599;</a></p>
-            <div id="cp-certs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 18px">
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_wosb"> SBA Women-Owned (WOSB / EDWOSB) <a href="https://fundbug.net/certifications-guide.html#wosb" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="wbenc"> WBENC (Women's Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#wbenc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="ma_sdo"> Massachusetts SDO (WBE/MBE/VBE) <a href="https://fundbug.net/certifications-guide.html#ma-sdo" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_vetcert"> SBA VetCert (VOSB / SDVOSB) <a href="https://fundbug.net/certifications-guide.html#vetcert" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_8a"> SBA 8(a) Business Development <a href="https://fundbug.net/certifications-guide.html#8a" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="hubzone"> SBA HUBZone <a href="https://fundbug.net/certifications-guide.html#hubzone" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="nmsdc_mbe"> NMSDC (Minority Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#nmsdc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="nglcc_lgbtbe"> NGLCC (LGBT Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#nglcc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="disabilityin_dobe"> Disability:IN (DOBE) <a href="https://fundbug.net/certifications-guide.html#disabilityin" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="dot_dbe"> DBE (Disadvantaged Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#dbe" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
-            </div>
-            <p style="font-size:12.5px;color:var(--muted);margin:14px 0 10px">Product and operating certifications. Some programs reimburse the cost of earning or renewing these, and others require one before you can apply.</p>
-            <div style="display:grid;grid-template-columns:1fr;gap:8px">
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="usda_organic"> USDA Organic (National Organic Program)</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="usda_gap_ghp"> USDA GAP / GHP (produce food safety audit)</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="ma_cqp"> Commonwealth Quality Program (Massachusetts)</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="cng"> Certified Naturally Grown</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="safe_qual_food"> SQF / GFSI-benchmarked food safety</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
           <div class="pp-section-label">How you operate</div>
           <p class="pp-section-sub">Where and how you run the business. Owning your space unlocks facade, building, and real-estate improvement grants; seasonal and online details surface the right specialty programs.</p>
           <div class="form-group">
@@ -865,6 +834,47 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         </div>
 
         <div class="card">
+          <div class="pp-section-label">Ownership &amp; certifications</div>
+          <p class="pp-section-sub">Many grants are reserved specifically for these owners. Selecting what applies unlocks programs set aside for them.</p>
+          <div class="form-group">
+            <label>Do any of these describe your business?</label>
+            <div class="tag-selector" id="cp-demographics">
+              <div class="tag-option" data-value="woman-owned">Woman-owned</div>
+              <div class="tag-option" data-value="minority-owned">Minority-owned</div>
+              <div class="tag-option" data-value="veteran-owned">Veteran-owned</div>
+              <div class="tag-option" data-value="military-affiliated">Military-affiliated</div>
+              <div class="tag-option" data-value="disability-owned">Disability-owned</div>
+              <div class="tag-option" data-value="lgbtq-owned">LGBTQ+-owned</div>
+              <div class="tag-option" data-value="immigrant-owned">Immigrant-owned</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label style="display:block;font-weight:bold;margin-bottom:4px">Certifications you hold</label>
+            <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">Some set-aside grants and most government contracting preferences require formal certification, not just ownership. Check any you already have. Not certified? Each link explains the certification and where to start. <a href="https://fundbug.net/certifications-guide.html" target="_blank" style="color:var(--green-dk)">Full guide &#8599;</a></p>
+            <div id="cp-certs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 18px">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_wosb"> SBA Women-Owned (WOSB / EDWOSB) <a href="https://fundbug.net/certifications-guide.html#wosb" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="wbenc"> WBENC (Women's Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#wbenc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="ma_sdo"> Massachusetts SDO (WBE/MBE/VBE) <a href="https://fundbug.net/certifications-guide.html#ma-sdo" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_vetcert"> SBA VetCert (VOSB / SDVOSB) <a href="https://fundbug.net/certifications-guide.html#vetcert" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_8a"> SBA 8(a) Business Development <a href="https://fundbug.net/certifications-guide.html#8a" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="hubzone"> SBA HUBZone <a href="https://fundbug.net/certifications-guide.html#hubzone" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="nmsdc_mbe"> NMSDC (Minority Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#nmsdc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="nglcc_lgbtbe"> NGLCC (LGBT Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#nglcc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="disabilityin_dobe"> Disability:IN (DOBE) <a href="https://fundbug.net/certifications-guide.html#disabilityin" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="dot_dbe"> DBE (Disadvantaged Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#dbe" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
+            </div>
+            <p style="font-size:12.5px;color:var(--muted);margin:14px 0 10px">Product and operating certifications. Some programs reimburse the cost of earning or renewing these, and others require one before you can apply.</p>
+            <div style="display:grid;grid-template-columns:1fr;gap:8px">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="usda_organic"> USDA Organic (National Organic Program)</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="usda_gap_ghp"> USDA GAP / GHP (produce food safety audit)</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="ma_cqp"> Commonwealth Quality Program (Massachusetts)</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="cng"> Certified Naturally Grown</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="safe_qual_food"> SQF / GFSI-benchmarked food safety</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
           <div class="pp-section-label">Funding intent</div>
           <p class="pp-section-sub">What you'd do with the money and where you stand with lenders. This tunes which capital types lead your digest.</p>
           <div class="form-group">
@@ -936,6 +946,11 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         <div style="display:flex;align-items:center;margin-bottom:8px">
           <button class="save-btn" onclick="savePassport()">Save Funding Passport</button>
           <span id="cp-confirm" class="save-confirm" style="margin-left:12px;color:var(--green);font-size:14px;display:none">Saved ✓</span>
+        </div>
+
+        <div class="pp-savebar" id="ppSavebar">
+          <span class="pp-savebar-text">You have unsaved changes.</span>
+          <button class="pp-savebar-btn" onclick="savePassport()">Save Funding Passport</button>
         </div>
       </div>
 
@@ -2172,12 +2187,39 @@ async function jumpToTrackerProgram(programId){
 
 // ─── FUNDING PASSPORT (merged profile) + SETUP METER ────────────────────────
 function dismissNudge(){
-  try { localStorage.setItem('fb_nudge_dismissed','1'); } catch(_){}
+  try { localStorage.setItem('fb_setup_dismissed','1'); } catch(_){}
   const n=document.getElementById('setupCard'); if(n) n.style.display='none';
 }
 let _cpWired=false;
+let _ppDirty=false;
+function markPassportDirty(){
+  _ppDirty=true;
+  const bar=document.getElementById('ppSavebar');
+  if(bar) bar.classList.add('show');
+}
+function clearPassportDirty(){
+  _ppDirty=false;
+  const bar=document.getElementById('ppSavebar');
+  if(bar) bar.classList.remove('show');
+}
+// Warn on actual page close/reload with unsaved edits (browsers show their
+// own generic message; ours just opts in).
+window.addEventListener('beforeunload',e=>{
+  if(_ppDirty){ e.preventDefault(); e.returnValue=''; }
+});
 function wireCompleteTags(){
   if(_cpWired) return; _cpWired=true;
+  // Dirty tracking: any edit anywhere on the Passport page shows the sticky
+  // save bar. Programmatic population in loadPassport fires no input/change
+  // events, so loading never counts as an edit.
+  const pg=document.getElementById('page-complete');
+  if(pg){
+    pg.addEventListener('input', markPassportDirty);
+    pg.addEventListener('change', markPassportDirty);
+    pg.addEventListener('click', e=>{
+      if(e.target && e.target.classList && e.target.classList.contains('tag-option')) markPassportDirty();
+    });
+  }
   ['cp-demographics','cp-funding'].forEach(id=>{
     document.querySelectorAll('#'+id+' .tag-option').forEach(t=>{
       t.addEventListener('click',()=>t.classList.toggle('selected'));
@@ -2264,7 +2306,7 @@ function computeCompletion(p){
 function renderSetupCard(p){
   const card=document.getElementById('setupCard');
   if(!card) return;
-  let dismissed=false; try{ dismissed=localStorage.getItem('fb_nudge_dismissed')==='1'; }catch(_){}
+  let dismissed=false; try{ dismissed=localStorage.getItem('fb_setup_dismissed')==='1'; }catch(_){}
   const {pct, missing}=computeCompletion(p);
   if(pct>=100||dismissed){ card.style.display='none'; return; }
   document.getElementById('setupPct').textContent=pct;
@@ -2281,6 +2323,7 @@ async function loadPassport(){
   wireCompleteTags();
   try{
     const p=await apiFetch('/api/portal/profile');
+    renderSetupCard(p);
     // The basics
     document.getElementById('prof-businessName').value=p.business_name||'';
     document.getElementById('prof-ownerName').value=[p.first_name,p.last_name].filter(Boolean).join(' ')||'';
@@ -2327,7 +2370,6 @@ async function loadPassport(){
     document.getElementById('cp-phone').value=p.business_phone||'';
     document.getElementById('cp-website').value=p.website_url||'';
     document.getElementById('cp-formation-date').value=p.formation_date||'';
-    renderSetupCard(p);
   }catch(e){ console.log('Passport load error:', e.message); }
 }
 
@@ -2398,6 +2440,7 @@ async function savePassport(){
   try{
     const updated=await apiFetch('/api/portal/profile','PATCH',payload);
     const c=document.getElementById('cp-confirm'); c.style.display='inline'; setTimeout(()=>c.style.display='none',3000);
+    clearPassportDirty();
     renderSetupCard(updated);
   }catch(e){ alert('Save failed: '+e.message); }
 }
