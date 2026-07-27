@@ -495,7 +495,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
   <div class="mobile-menu" id="mobileMenu" role="dialog" aria-label="Navigation menu">
     <div class="mobile-menu-user" id="mobileMenuUser">—</div>
     <a href="#" data-page="overview" onclick="showPageFromMobile('overview', this); return false;">📊 Overview</a>
-    <a href="#" data-page="complete" onclick="showPageFromMobile('complete', this); return false;">✨ Complete profile</a>
+    <a href="#" data-page="complete" onclick="showPageFromMobile('complete', this); return false;">✨ Funding Passport</a>
     <a href="#" data-page="tracker" onclick="showPageFromMobile('tracker', this); return false;">📋 My Tracker</a>
     <div class="mobile-menu-section">Resources</div>
     <a href="grants-guide.html" target="_blank" rel="noopener" onclick="closeMenu()">📖 Grants 101</a>
@@ -513,7 +513,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
     <aside class="sidebar">
       <ul class="sidebar-nav">
         <li><a href="#" class="active" onclick="showPage('overview',this)"><span class="nav-icon">📊</span> Overview</a></li>
-        <li><a href="#" onclick="showPage('complete',this)" id="nav-complete"><span class="nav-icon">✨</span> Complete profile</a></li>
+        <li><a href="#" onclick="showPage('complete',this)" id="nav-complete"><span class="nav-icon">✨</span> Funding Passport</a></li>
         <li><a href="#" onclick="showPage('tracker',this)" id="nav-tracker"><span class="nav-icon">📋</span> My Tracker</a></li>
 
         <div class="sidebar-section">Resources</div>
@@ -545,7 +545,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
               <div style="font-size:13px;font-weight:300;color:var(--ink2);line-height:1.5">Add a few details about your business to unlock programs the basics can't reach, including grants reserved for specific owners.</div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <a href="#" onclick="showPage('complete',document.getElementById('nav-complete'));return false;" style="display:inline-block;padding:9px 18px;background:var(--green);color:#fff;border-radius:5px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap">Complete profile →</a>
+              <a href="#" onclick="showPage('complete',document.getElementById('nav-complete'));return false;" style="display:inline-block;padding:9px 18px;background:var(--green);color:#fff;border-radius:5px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap">Complete Funding Passport →</a>
               <a href="#" onclick="dismissNudge();return false;" style="font-family:'Jost',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap">Dismiss</a>
             </div>
           </div>
@@ -571,8 +571,8 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 
       <!-- COMPLETE PROFILE -->
       <div class="page" id="page-complete">
-        <div class="page-title">Complete your profile</div>
-        <div class="page-sub">The more we know, the sharper your matches. Everything here is optional, but each answer can unlock programs you'd otherwise never see.</div>
+        <div class="page-title">Complete your Funding Passport</div>
+        <div class="page-sub">The more we know, the sharper your matches, and the more we can eventually pre-fill for you on real applications. Everything here is optional, but each answer can unlock programs you'd otherwise never see.</div>
 
         <div class="card">
           <div class="form-group">
@@ -715,7 +715,27 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
               </div>
             </div>
 
-            <textarea id="cp-description" placeholder="A sentence or two about what you do. This helps us write better explanations of why each program fits you." style="min-height:90px"></textarea>
+            <label for="cp-description">Your business, in your own words</label>
+            <p style="font-size:12.5px;color:var(--muted);margin:2px 0 4px">A few sentences about what you do and why funding matters to you right now. This shapes the match explanations in your digest, and doubles as the starting point for application drafts, so write it the way you'd want a funder to read it.</p>
+            <textarea id="cp-description" placeholder="e.g. We're a family-run bakery in Great Barrington entering our sixth year. Funding would let us add a second oven and finally keep up with our farmers market demand." style="min-height:110px"></textarea>
+          </div>
+
+          <div class="form-group" style="margin-top:26px;padding-top:22px;border-top:1px solid var(--cream2)">
+            <label style="font-weight:bold;margin-bottom:4px">Application details</label>
+            <p style="font-size:12.5px;color:var(--muted);margin:0 0 14px">We'll use these to pre-fill real applications for you down the road. Nothing here is shared or submitted anywhere until you say so.</p>
+
+            <label for="cp-ein">Employer Identification Number (EIN)</label>
+            <input type="text" id="cp-ein" placeholder="12-3456789" maxlength="10" style="max-width:200px">
+            <div id="cp-ein-err" style="display:none;font-size:12.5px;color:var(--red);margin:-10px 0 16px">Please enter your EIN as XX-XXXXXXX.</div>
+
+            <label for="cp-phone">Business phone number</label>
+            <input type="tel" id="cp-phone" placeholder="(413) 555-0100" style="max-width:220px">
+
+            <label for="cp-website">Business website</label>
+            <input type="url" id="cp-website" placeholder="https://yourbusiness.com" style="max-width:320px">
+
+            <label for="cp-formation-date">Date business was formed</label>
+            <input type="date" id="cp-formation-date" style="max-width:200px">
           </div>
 
           <button class="save-btn" onclick="saveComplete()">Save and finish</button>
@@ -2513,16 +2533,37 @@ async function refreshCompletionState(){
     (p.certifications||[]).forEach(v=>{const el=document.querySelector('input[name="cp-cert"][value="'+v+'"]'); if(el) el.checked=true;});
     setRadioBool('cp-exports', p.exports);
     if(p.description) document.getElementById('cp-description').value=p.description;
+    if(p.ein) document.getElementById('cp-ein').value=p.ein;
+    if(p.business_phone) document.getElementById('cp-phone').value=p.business_phone;
+    if(p.website_url) document.getElementById('cp-website').value=p.website_url;
+    if(p.formation_date) document.getElementById('cp-formation-date').value=p.formation_date;
     let dismissed=false; try{ dismissed=localStorage.getItem('fb_nudge_dismissed')==='1'; }catch(_){}
     const nudge=document.getElementById('completeNudge');
     if(nudge) nudge.style.display = (!dismissed && profileLooksIncomplete(p)) ? 'block' : 'none';
   } catch(e){ /* non-fatal */ }
 }
+function eInValid(){
+  // Basic format check only — XX-XXXXXXX. Doesn't verify the EIN is real,
+  // just that it's shaped like one before we store it.
+  const v = document.getElementById('cp-ein').value.trim();
+  const errEl = document.getElementById('cp-ein-err');
+  if (v !== '' && !/^\d{2}-\d{7}$/.test(v)) {
+    errEl.style.display = 'block';
+    return true;
+  }
+  errEl.style.display = 'none';
+  return false;
+}
 async function saveComplete(){
+  if (eInValid()) {
+    document.getElementById('cp-ein').scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
   const tagVals=id=>Array.from(document.querySelectorAll('#'+id+' .tag-option.selected')).map(t=>t.dataset.value);
   const num=id=>{ const v=document.getElementById(id).value.trim(); return v===''?null:parseInt(v,10); };
   const radio=name=>{ const el=document.querySelector(`input[name="${name}"]:checked`); return el?el.value==='true':null; };
   const sel=id=>{ const v=document.getElementById(id).value; return v||null; };
+  const txt=id=>{ const v=document.getElementById(id).value.trim(); return v||null; };
   const payload={
     owner_demographics: tagVals('cp-demographics'),
     funding_purpose: tagVals('cp-funding'),
@@ -2538,6 +2579,10 @@ async function saveComplete(){
     exports: radio('cp-exports'),
     certifications: Array.from(document.querySelectorAll('input[name="cp-cert"]:checked')).map(cb=>cb.value),
     description: document.getElementById('cp-description').value.trim() || null,
+    ein: txt('cp-ein'),
+    business_phone: txt('cp-phone'),
+    website_url: txt('cp-website'),
+    formation_date: sel('cp-formation-date'),
   };
   // Drop nulls so untouched fields don't overwrite existing values with blanks.
   // Demographics and funding are arrays we always send (empty = cleared on purpose).
