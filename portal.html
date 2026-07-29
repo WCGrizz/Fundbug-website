@@ -578,6 +578,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         <div class="sidebar-section">Account</div>
         <li><a href="#" onclick="showPage('referral',this)"><span class="nav-icon">🎁</span> Referrals</a></li>
         <li><a href="#" onclick="showPage('subscription',this)"><span class="nav-icon">💳</span> Subscription</a></li>
+        <li><a href="#" onclick="showPage('team',this)"><span class="nav-icon">👥</span> Team</a></li>
         <li><a href="#" onclick="showPage('account',this)"><span class="nav-icon">⚙️</span> Account Settings</a></li>
       </ul>
     </aside>
@@ -1119,6 +1120,40 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
       </div>
 
       <!-- ACCOUNT SETTINGS -->
+      <div class="page" id="page-team">
+        <div class="page-hero">
+          <div class="page-eyebrow">Team</div>
+          <div class="page-title">Who can access this account</div>
+          <div class="page-sub">Add the people who help run your business. Everyone shares one Funding Passport and gets the same digest.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Seats</div>
+          <div id="seat-usage" style="font-size:14px;color:var(--muted);font-weight:300;margin-bottom:16px;">Loading…</div>
+          <div id="team-list"></div>
+        </div>
+
+        <div class="card" id="invite-card">
+          <div class="card-title">Invite someone</div>
+          <div class="form-row">
+            <div class="form-group"><label>Their email</label><input type="email" id="inv-email" placeholder="name@business.com"></div>
+            <div class="form-group"><label>Their name (optional)</label><input type="text" id="inv-name" placeholder="e.g. Katie"></div>
+          </div>
+          <div style="margin:4px 0 16px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:300;margin-bottom:8px;">
+              <input type="checkbox" id="inv-view" checked> Can view the Funding Passport
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:300;margin-bottom:8px;">
+              <input type="checkbox" id="inv-edit"> Can edit the Funding Passport
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:300;">
+              <input type="checkbox" id="inv-digest" checked> Receives the twice-monthly digest
+            </label>
+          </div>
+          <button class="save-btn" onclick="inviteSeat()">Send invite</button>
+        </div>
+      </div>
+
       <div class="page" id="page-account">
         <div class="page-hero">
           <div class="page-eyebrow">Account</div>
@@ -1135,12 +1170,18 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         </div>
 
         <div class="card">
-          <div class="card-title">Change password</div>
+          <div class="card-title" id="pw-card-title">Change password</div>
+          <div id="pw-passwordless-note" style="display:none;font-size:14px;color:var(--muted);margin-bottom:16px;font-weight:300;">
+            You sign in with an email link, so there's no password to change. Set one below if you'd rather use a password.
+          </div>
+          <div class="form-row" id="pw-current-row">
+            <div class="form-group"><label>Current password</label><input type="password" id="prof-pw-old" placeholder="Your current password"></div>
+          </div>
           <div class="form-row">
             <div class="form-group"><label>New password</label><input type="password" id="prof-pw" placeholder="Min. 8 characters"></div>
             <div class="form-group"><label>Confirm password</label><input type="password" id="prof-pw2" placeholder="Repeat password"></div>
           </div>
-          <button class="save-btn" onclick="savePassword()">Update password</button>
+          <button class="save-btn" id="pw-save-btn" onclick="savePassword()">Update password</button>
         </div>
 
         <div class="card" style="border-color:#f0c8c0">
@@ -1452,14 +1493,148 @@ async function saveEmail() {
   catch(e) { alert('Update failed: ' + e.message); }
 }
 
+// hasPassword drives whether we ask for a current password. Set by
+// loadAccountEmail() from the profile response.
+let hasPassword = true;
+
 async function savePassword() {
+  const oldPw = (document.getElementById('prof-pw-old') || {}).value || '';
   const pw = document.getElementById('prof-pw').value, pw2 = document.getElementById('prof-pw2').value;
   if (pw.length < 8) { alert('Password must be at least 8 characters.'); return; }
   if (pw !== pw2) { alert('Passwords do not match.'); return; }
+  if (hasPassword && !oldPw) { alert('Enter your current password.'); return; }
   try {
-    await apiFetch('/api/portal/change-password','POST',{new_password: pw});
-    alert('Password updated.'); document.getElementById('prof-pw').value = ''; document.getElementById('prof-pw2').value = '';
+    // Previously this sent only new_password while the API required
+    // old_password, so every attempt failed validation. Send it only when
+    // the account actually has one.
+    const body = hasPassword ? {old_password: oldPw, new_password: pw} : {new_password: pw};
+    const res = await apiFetch('/api/portal/change-password','POST',body);
+    alert(res.first_time ? 'Password set. You can now sign in with it.' : 'Password updated.');
+    ['prof-pw-old','prof-pw','prof-pw2'].forEach(id => { const el = document.getElementById(id); if (el) el.value=''; });
+    if (res.first_time) { hasPassword = true; applyPasswordUi(); }
   } catch(e) { alert('Update failed: ' + e.message); }
+}
+
+function applyPasswordUi() {
+  const row  = document.getElementById('pw-current-row');
+  const note = document.getElementById('pw-passwordless-note');
+  const ttl  = document.getElementById('pw-card-title');
+  const btn  = document.getElementById('pw-save-btn');
+  if (!row) return;
+  row.style.display  = hasPassword ? '' : 'none';
+  note.style.display = hasPassword ? 'none' : '';
+  ttl.textContent    = hasPassword ? 'Change password' : 'Set a password';
+  btn.textContent    = hasPassword ? 'Update password' : 'Set password';
+}
+
+// ── Team / seats ─────────────────────────────────────────────────────────
+// One business account, several logins. Everyone shares the Passport and the
+// digest; the owner decides who can see and change the Passport itself.
+let teamIsOwner = false;
+
+async function loadTeam() {
+  const list = document.getElementById('team-list');
+  const usage = document.getElementById('seat-usage');
+  try {
+    const d = await apiFetch('/api/portal/seats');
+    teamIsOwner = d.your_role === 'owner';
+    usage.textContent = `${d.seats_used} of ${d.seats_allowed} seats in use.` +
+      (d.seats_available < 1 ? ' Reply to any FundBug email to add more.' : '');
+    document.getElementById('invite-card').style.display =
+      (teamIsOwner && d.seats_available > 0) ? '' : 'none';
+
+    list.innerHTML = (d.members || []).map(m => {
+      const pend = m.status === 'invited';
+      const who  = m.member_name ? `${escapeHtml(m.member_name)} · ${escapeHtml(m.member_email)}`
+                                 : escapeHtml(m.member_email);
+      const tag  = m.role === 'owner' ? 'Owner' : (pend ? 'Invite pending' : 'Member');
+      const ctrl = (m.role === 'owner' || !teamIsOwner) ? '' : `
+        <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:13px;font-weight:300;">
+          <label style="display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" ${m.can_view_passport ? 'checked' : ''}
+              onchange="updateSeat('${m.id}','can_view_passport',this.checked)"> View Passport</label>
+          <label style="display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" ${m.can_edit_passport ? 'checked' : ''}
+              onchange="updateSeat('${m.id}','can_edit_passport',this.checked)"> Edit Passport</label>
+          <label style="display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" ${m.receives_digest ? 'checked' : ''}
+              onchange="updateSeat('${m.id}','receives_digest',this.checked)"> Gets digest</label>
+          <button class="btn-sm danger" onclick="revokeSeat('${m.id}')">Remove</button>
+        </div>`;
+      return `<div style="padding:14px 0;border-top:1px solid var(--line);">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline;">
+            <div style="font-size:15px;">${who}</div>
+            <div style="font-size:12px;color:var(--muted2);text-transform:uppercase;letter-spacing:.04em;">${tag}</div>
+          </div>${ctrl}</div>`;
+    }).join('') || '<div style="font-size:14px;color:var(--muted);font-weight:300;">Just you so far.</div>';
+  } catch(e) {
+    usage.textContent = '';
+    list.innerHTML = `<div style="font-size:14px;color:var(--muted);font-weight:300;">Couldn't load your team: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function inviteSeat() {
+  const email = document.getElementById('inv-email').value.trim();
+  if (!email || email.indexOf('@') < 0) { alert('Enter a valid email address.'); return; }
+  const edit = document.getElementById('inv-edit').checked;
+  try {
+    const r = await apiFetch('/api/portal/seats/invite','POST',{
+      email,
+      name: document.getElementById('inv-name').value.trim() || null,
+      can_view_passport: document.getElementById('inv-view').checked || edit,
+      can_edit_passport: edit,
+      receives_digest: document.getElementById('inv-digest').checked,
+    });
+    alert(r.message || 'Invite sent.');
+    document.getElementById('inv-email').value = '';
+    document.getElementById('inv-name').value = '';
+    loadTeam();
+  } catch(e) { alert('Could not send invite: ' + e.message); }
+}
+
+async function updateSeat(id, field, value) {
+  try {
+    await apiFetch('/api/portal/seats/' + id, 'PATCH', {[field]: value});
+    loadTeam();   // reload so implied permissions (edit implies view) show correctly
+  } catch(e) { alert('Update failed: ' + e.message); loadTeam(); }
+}
+
+async function revokeSeat(id) {
+  if (!confirm('Remove this person from the account? They will lose access immediately.')) return;
+  try { await apiFetch('/api/portal/seats/' + id, 'DELETE'); loadTeam(); }
+  catch(e) { alert('Could not remove: ' + e.message); }
+}
+
+async function consumeSeatInviteIfPresent() {
+  // Invite links land as ?seat_invite=<token>. Redeem it for a session the
+  // same way the magic link does, then strip it from the URL so it is not
+  // left in history or copy-pasted.
+  const qs = new URLSearchParams(window.location.search);
+  const hs = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+  const inviteToken = qs.get('seat_invite') || hs.get('seat_invite');
+  if (!inviteToken) return false;
+  try {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  } catch(_) {}
+  try {
+    const r = await fetch(API + '/api/portal/seats/accept', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({token: inviteToken}),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Invite could not be accepted');
+    token = d.token;
+    localStorage.setItem('fb_token', token);
+    return true;
+  } catch(e) {
+    alert(e.message + ' Ask the account owner to send a new invite.');
+    return false;
+  }
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g,
+    c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 async function loadReferral() {
@@ -1650,12 +1825,15 @@ function showPage(id, el) {
   if (id === 'account') loadAccountEmail();
   if (id === 'tracker') loadTracker();
   if (id === 'complete') loadPassport();
+  if (id === 'team') loadTeam();
 }
 
 async function loadAccountEmail() {
   try {
     const data = await apiFetch('/api/portal/profile');
     document.getElementById('prof-email').value = data.email || '';
+    hasPassword = data.has_password !== false;
+    applyPasswordUi();
   } catch(e) {}
 }
 
@@ -1714,6 +1892,12 @@ async function bootstrapApp() {
   // exchange it for a session and log in. Runs first so an email link always
   // wins over whatever happens to be in localStorage.
   if (await consumeMagicLinkIfPresent()) return;
+
+  // A seat invite (?seat_invite=…) is the same idea for someone joining an
+  // existing business account: redeem it for a session, then continue into
+  // the app rather than returning, since a brand-new member has no cached
+  // subscriber object yet and needs the normal bootstrap path below.
+  await consumeSeatInviteIfPresent();
 
   if (token && subscriber) {
     showApp();
