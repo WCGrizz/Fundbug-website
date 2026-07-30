@@ -877,7 +877,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
           </div>
           <div class="form-group">
             <label style="display:block;font-weight:bold;margin-bottom:4px">Certifications you hold</label>
-            <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">Some set-aside grants and most government contracting preferences require formal certification, not just ownership. Check any you already have. Not certified? Each link explains the certification and where to start. <a href="https://fundbug.net/certifications-guide.html" target="_blank" style="color:var(--green-dk)">Full guide &#8599;</a></p>
+            <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px"><strong>Most certifications open contracts, not grants.</strong> The tags below say which is which: <span style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:1px 6px;border-radius:8px;color:#fff;background:#6b7280">contracts</span> wins government and corporate purchasing work, <span style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:1px 6px;border-radius:8px;color:#fff;background:#5a9e52">grants</span> genuinely affects grant eligibility, <span style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:1px 6px;border-radius:8px;color:#fff;background:#8a7a4a">buyers</span> is a purchaser requirement. Check any you already have. Not certified? Each link explains the certification and where to start. <a href="https://fundbug.net/certifications-guide.html" target="_blank" style="color:var(--green-dk)">Full guide &#8599;</a></p>
             <div id="cp-certs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 18px">
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="sba_wosb"> SBA Women-Owned (WOSB / EDWOSB) <a href="https://fundbug.net/certifications-guide.html#wosb" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal"><input type="checkbox" name="cp-cert" value="wbenc"> WBENC (Women's Business Enterprise) <a href="https://fundbug.net/certifications-guide.html#wbenc" target="_blank" style="font-size:11px;color:var(--green-dk)">about &#8599;</a></label>
@@ -967,6 +967,32 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
             <div class="form-group">
               <label for="cp-formation-date">Date business was formed</label>
               <input type="date" id="cp-formation-date" style="max-width:200px">
+            </div>
+          </div>
+
+          <!-- SAM.gov. Every federal grant application requires an active
+               registration with a UEI, it expires one year after activation,
+               and it lapses with no useful warning — so businesses find out
+               when a submission fails. Recording the renewal date is what
+               lets us warn ahead of time. See fundbug_sam_reminder.py. -->
+          <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:14px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:normal;margin-bottom:8px">
+              <input type="checkbox" id="cp-fedreg" onchange="toggleSamDate()">
+              I'm registered on SAM.gov to apply for federal grants
+            </label>
+            <div id="cp-sam-wrap" style="display:none">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="cp-sam-renewed">SAM.gov last renewed or activated</label>
+                  <input type="date" id="cp-sam-renewed" style="max-width:200px">
+                </div>
+              </div>
+              <p style="font-size:12px;color:var(--muted);margin:0;font-weight:300">
+                Registration expires a year after activation and lapses quietly, which blocks
+                any federal application. Give us the date and we'll email you about six weeks
+                before it comes due, every year. Renewing is free &mdash; anyone charging you
+                for it isn't SAM.gov.
+              </p>
             </div>
           </div>
         </div>
@@ -2520,6 +2546,71 @@ function eInValid(){
   errEl.style.display = 'none';
   return false;
 }
+// ── Certification unlocks ────────────────────────────────────────────────
+// MUST stay in sync with CERT_OPTIONS in review.html. Same slugs, same
+// classification. The point of showing this is honesty: most certifications
+// win CONTRACTS, not grants, and subscribers routinely believe otherwise —
+// which is why a certified woman-owned business gets frustrated that her
+// certificate did not produce grant matches. Saying so up front is better
+// product than implying certifications improve grant eligibility.
+const CERT_UNLOCKS = {
+  sba_wosb:          ['contracts'],
+  wbenc:             ['contracts'],
+  ma_sdo:            ['contracts'],
+  sba_vetcert:       ['contracts'],
+  sba_8a:            ['contracts'],
+  hubzone:           ['contracts'],
+  nmsdc_mbe:         ['contracts'],
+  nglcc_lgbtbe:      ['contracts'],
+  disabilityin_dobe: ['contracts'],
+  dot_dbe:           ['contracts'],
+  usda_organic:      ['grants','market'],
+  usda_gap_ghp:      ['grants','market'],
+  ma_cqp:            ['market'],
+  cng:               ['market'],
+  safe_qual_food:    ['grants','market'],
+};
+
+const UNLOCK_LABEL = {
+  contracts: 'contracts',
+  grants:    'grants',
+  market:    'buyers',
+};
+const UNLOCK_COLOR = {
+  contracts: '#6b7280',   // neutral — useful, but not grant money
+  grants:    '#5a9e52',   // brand green — this one actually affects grants
+  market:    '#8a7a4a',
+};
+
+function toggleSamDate(){
+  const on = !!document.getElementById('cp-fedreg')?.checked;
+  const w = document.getElementById('cp-sam-wrap');
+  if (w) w.style.display = on ? '' : 'none';
+}
+
+function decorateCertBadges(){
+  document.querySelectorAll('input[name="cp-cert"]').forEach(inp => {
+    const label = inp.closest('label');
+    if (!label || label.dataset.badged) return;
+    const kinds = CERT_UNLOCKS[inp.value];
+    if (!kinds) return;
+    label.dataset.badged = '1';
+    kinds.forEach(k => {
+      const b = document.createElement('span');
+      b.textContent = UNLOCK_LABEL[k] || k;
+      b.style.cssText = 'font-size:10px;text-transform:uppercase;letter-spacing:.05em;'
+        + 'padding:1px 6px;border-radius:8px;margin-left:4px;white-space:nowrap;'
+        + 'color:#fff;background:' + (UNLOCK_COLOR[k] || '#6b7280') + ';';
+      b.title = k === 'grants'
+        ? 'Required or rewarded by some grant programs'
+        : k === 'contracts'
+          ? 'Opens set-aside and supplier-diversity contracting. Does not improve grant eligibility.'
+          : 'Buyer requirement or price premium, not funding';
+      label.appendChild(b);
+    });
+  });
+}
+
 function updateGreeting(p){
   // Greet the PERSON signed in, not the account owner. On a multi-seat
   // account every other profile field describes the business, so first_name
@@ -2564,6 +2655,10 @@ const PASSPORT_FIELDS=[
   {label:'business phone',       group:'Application details', filled:p=>!!(p.business_phone||'').trim()},
   {label:'website',              group:'Application details', filled:p=>!!(p.website_url||'').trim()},
   {label:'formation date',       group:'Application details', filled:p=>!!p.formation_date},
+  {label:'SAM.gov status',       group:'Application details',
+   // Counts as answered either way: saying "not registered" is a real answer
+   // that tells the matcher federal programs need a registration step first.
+   filled:p=>p.has_federal_registration===false || (!!p.has_federal_registration && !!p.sam_gov_renewed_on)},
 ];
 function computeCompletion(p){
   const missing=PASSPORT_FIELDS.filter(f=>!f.filled(p));
@@ -2643,6 +2738,12 @@ async function loadPassport(){
     document.getElementById('cp-phone').value=p.business_phone||'';
     document.getElementById('cp-website').value=p.website_url||'';
     document.getElementById('cp-formation-date').value=p.formation_date||'';
+    const fed=document.getElementById('cp-fedreg');
+    if(fed) fed.checked=!!p.has_federal_registration;
+    const samd=document.getElementById('cp-sam-renewed');
+    if(samd) samd.value=p.sam_gov_renewed_on||'';
+    toggleSamDate();
+    decorateCertBadges();
   }catch(e){ console.log('Passport load error:', e.message); }
   applyPassportPermissions();
 }
@@ -2706,6 +2807,11 @@ async function savePassport(){
     business_phone: txt('cp-phone'),
     website_url: txt('cp-website'),
     formation_date: sel('cp-formation-date'),
+    has_federal_registration: !!document.getElementById('cp-fedreg')?.checked,
+    // Only send a date when they say they're registered, so unchecking the box
+    // does not leave a stale renewal date driving reminder emails.
+    sam_gov_renewed_on: (document.getElementById('cp-fedreg')?.checked
+                          ? (sel('cp-sam-renewed') || null) : null),
   };
   // Drop nulls so untouched fields never blank existing values. Arrays always
   // send (empty = cleared on purpose).
