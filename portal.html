@@ -1532,12 +1532,31 @@ function applyPasswordUi() {
 // digest; the owner decides who can see and change the Passport itself.
 let teamIsOwner = false;
 
+// Set from /api/portal/seats when the Team page loads, and from the Passport
+// load, so the UI reflects the caller's actual rights rather than assuming
+// owner. Server-side gating is the real enforcement; this is just so a
+// view-only member is not offered a button that will 403.
+let myCanEditPassport = true;
+
+function applyPassportPermissions() {
+  if (myCanEditPassport) return;
+  document.querySelectorAll('#page-complete .save-btn, #page-complete input, #page-complete select, #page-complete textarea')
+    .forEach(el => { el.disabled = true; });
+  const hero = document.querySelector('#page-complete .page-sub');
+  if (hero && !hero.dataset.roNoted) {
+    hero.dataset.roNoted = '1';
+    hero.textContent = 'View only — the account owner has not enabled editing for you.';
+  }
+}
+
 async function loadTeam() {
   const list = document.getElementById('team-list');
   const usage = document.getElementById('seat-usage');
   try {
     const d = await apiFetch('/api/portal/seats');
     teamIsOwner = d.your_role === 'owner';
+    const me = (d.members || []).find(m => m.role === d.your_role && d.your_role === 'owner');
+    myCanEditPassport = teamIsOwner ? true : !!(me && me.can_edit_passport);
     usage.textContent = `${d.seats_used} of ${d.seats_allowed} seats in use.` +
       (d.seats_available < 1 ? ' Reply to any FundBug email to add more.' : '');
     document.getElementById('invite-card').style.display =
@@ -1627,15 +1646,13 @@ async function consumeSeatInviteIfPresent() {
     localStorage.setItem('fb_token', token);
     return true;
   } catch(e) {
-    alert(e.message + ' Ask the account owner to send a new invite.');
+    // Show the server's reason verbatim — a stale link, an expired invite and
+    // a server-side fault need different responses from the person reading it.
+    alert(e.message);
     return false;
   }
 }
 
-function escapeHtml(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g,
-    c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
 
 async function loadReferral() {
   try {
@@ -2604,6 +2621,7 @@ async function loadPassport(){
     document.getElementById('cp-website').value=p.website_url||'';
     document.getElementById('cp-formation-date').value=p.formation_date||'';
   }catch(e){ console.log('Passport load error:', e.message); }
+  applyPassportPermissions();
 }
 
 async function savePassport(){
