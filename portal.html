@@ -1557,6 +1557,7 @@ async function loadTeam() {
     teamIsOwner = d.your_role === 'owner';
     const me = (d.members || []).find(m => m.is_you);
     myCanEditPassport = teamIsOwner ? true : !!(me && me.can_edit_passport);
+    applyPassportPermissions();
     usage.textContent = `${d.seats_used} of ${d.seats_allowed} seats in use.` +
       (d.seats_available < 1 ? ' Reply to any FundBug email to add more.' : '');
     document.getElementById('invite-card').style.display =
@@ -1849,8 +1850,22 @@ function showPage(id, el) {
 async function loadAccountEmail() {
   try {
     const data = await apiFetch('/api/portal/profile');
-    document.getElementById('prof-email').value = data.email || '';
+    // The email on this page is the caller's login, not the account's.
+    document.getElementById('prof-email').value = data.your_email || data.email || '';
     hasPassword = data.has_password !== false;
+    if (data.is_seat) {
+      // A seat changing "the account email" would rename the owner's login.
+      const em = document.getElementById('prof-email');
+      if (em) em.disabled = true;
+      const card = em && em.closest('.card');
+      if (card && !card.dataset.seatNoted) {
+        card.dataset.seatNoted = '1';
+        const n = document.createElement('div');
+        n.style.cssText = 'font-size:13px;color:var(--muted);font-weight:300;margin-top:10px;';
+        n.textContent = "You're on this account as a team member. Ask the account owner to change the login email.";
+        card.appendChild(n);
+      }
+    }
     applyPasswordUi();
   } catch(e) {}
 }
@@ -2506,10 +2521,14 @@ function eInValid(){
   return false;
 }
 function updateGreeting(p){
-  // Prefer the person's first name once the Passport has one; fall back to
-  // the business name for accounts that haven't added it yet.
+  // Greet the PERSON signed in, not the account owner. On a multi-seat
+  // account every other profile field describes the business, so first_name
+  // is the owner's — an office manager would otherwise be greeted by her
+  // boss's name. your_first_name is the caller's own; it is only present for
+  // seats, so fall back through the account name and then the business.
   const el=document.getElementById('greetName');
-  if(el) el.textContent=(p.first_name||p.business_name||'there')+' \ud83d\udc4b';
+  const who = p.your_first_name || p.first_name || p.business_name || 'there';
+  if(el) el.textContent = who + ' \ud83d\udc4b';
 }
 function parseIndustry(ind){
   // Handles the three storage shapes upstream: array (JSONB), JSON-encoded
@@ -2573,6 +2592,9 @@ async function loadPassport(){
     const p=await apiFetch('/api/portal/profile');
     renderSetupCard(p);
     updateGreeting(p);
+    // Set from the profile so a view-only seat is locked down on first load,
+    // without needing to visit the Team page first.
+    if (p.is_seat) myCanEditPassport = !!p.can_edit_passport;
     // The basics
     document.getElementById('prof-businessName').value=p.business_name||'';
     document.getElementById('prof-ownerName').value=[p.first_name,p.last_name].filter(Boolean).join(' ')||'';
