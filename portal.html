@@ -1555,7 +1555,7 @@ async function loadTeam() {
   try {
     const d = await apiFetch('/api/portal/seats');
     teamIsOwner = d.your_role === 'owner';
-    const me = (d.members || []).find(m => m.role === d.your_role && d.your_role === 'owner');
+    const me = (d.members || []).find(m => m.is_you);
     myCanEditPassport = teamIsOwner ? true : !!(me && me.can_edit_passport);
     usage.textContent = `${d.seats_used} of ${d.seats_allowed} seats in use.` +
       (d.seats_available < 1 ? ' Reply to any FundBug email to add more.' : '');
@@ -1566,7 +1566,8 @@ async function loadTeam() {
       const pend = m.status === 'invited';
       const who  = m.member_name ? `${escapeHtml(m.member_name)} · ${escapeHtml(m.member_email)}`
                                  : escapeHtml(m.member_email);
-      const tag  = m.role === 'owner' ? 'Owner' : (pend ? 'Invite pending' : 'Member');
+      const base = m.role === 'owner' ? 'Owner' : (pend ? 'Invite pending' : 'Member');
+      const tag  = m.is_you ? base + ' · you' : base;
       const ctrl = (m.role === 'owner' || !teamIsOwner) ? '' : `
         <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:13px;font-weight:300;">
           <label style="display:flex;align-items:center;gap:6px;">
@@ -1580,7 +1581,7 @@ async function loadTeam() {
               onchange="updateSeat('${m.id}','receives_digest',this.checked)"> Gets digest</label>
           <button class="btn-sm danger" onclick="revokeSeat('${m.id}')">Remove</button>
         </div>`;
-      return `<div style="padding:14px 0;border-top:1px solid var(--line);">
+      return `<div style="padding:14px 0;border-top:1px solid var(--line);${m.is_you ? 'background:rgba(90,158,82,.05);' : ''}">
           <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline;">
             <div style="font-size:15px;">${who}</div>
             <div style="font-size:12px;color:var(--muted2);text-transform:uppercase;letter-spacing:.04em;">${tag}</div>
