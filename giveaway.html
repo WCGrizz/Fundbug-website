@@ -110,9 +110,15 @@
     <input type="email" id="email" name="email" required maxlength="200" autocomplete="email">
     <label for="business_name">Business name (optional)</label>
     <input type="text" id="business_name" name="business_name" maxlength="160" autocomplete="organization">
+    <!-- Honeypot. RENAMED 2026-08-10: this field was called "website", which
+         Chrome and Safari autofill aggressively from saved organization data
+         regardless of autocomplete="off". A real entrant with autofill on had
+         the field populated for them, which tripped the bot check server-side
+         and discarded the entry while still showing them "You're in!". The
+         name below is meaningless to autofill heuristics. -->
     <div class="hp" aria-hidden="true">
-      <label for="website">Website</label>
-      <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+      <label for="fb_hp_ref">Do not fill this in</label>
+      <input type="text" id="fb_hp_ref" name="fb_hp_ref" tabindex="-1" autocomplete="off">
     </div>
     <button type="submit" id="btn">Enter the giveaway</button>
     <div class="msg ok" id="ok">You're in! One entry recorded, and we'll email you if you win. Good luck!</div>
@@ -157,7 +163,7 @@
         name: f.name.value.trim(),
         email: f.email.value.trim(),
         business_name: f.business_name.value.trim(),
-        website: f.website.value
+        website: f.fb_hp_ref.value
       })
     })
     .then(function(r){ return r.json().then(function(j){ return {okr:r.ok, j:j}; }); })
