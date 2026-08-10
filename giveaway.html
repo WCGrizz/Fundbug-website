@@ -36,13 +36,19 @@
   .cta:hover{background:var(--green-dark)}
   .cta:focus-visible{outline:3px solid var(--green-dark);outline-offset:2px}
   .cta.secondary{background:transparent;color:var(--green);border:1px solid var(--green)}
+  /* The free entry route stays clearly available and one click away, which is
+     what keeps this a sweepstakes rather than a lottery, but it no longer
+     competes with the trial for attention. */
+  .altentry{font-size:11.5px;color:var(--faint);margin-top:10px}
+  .altentry a{color:var(--muted)}
 
   h2{font-family:Georgia,serif;font-size:19px;margin:34px 0 10px}
   .how{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px 22px;margin-bottom:8px;font-size:13px}
   .how strong{color:var(--green-dark)}
+  .altnote{font-size:12px;color:var(--muted);margin:14px 0 0}
 
-  form{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:22px 24px;margin-top:10px}
-  form .fhead{font-family:Georgia,serif;font-size:16px;font-weight:bold;margin-bottom:4px}
+  form{background:transparent;border:1px solid var(--line);border-radius:6px;padding:20px 22px;margin-top:26px}
+  form .fhead{font-family:Georgia,serif;font-size:15px;font-weight:bold;margin-bottom:4px}
   form .fsub{font-size:12px;color:var(--muted);margin-bottom:16px}
   label{display:block;font-size:12px;font-weight:bold;margin-bottom:5px}
   input[type=text],input[type=email]{width:100%;border:1px solid var(--line);border-radius:4px;padding:10px 12px;font-size:13px;font-family:inherit;margin-bottom:14px;background:#fff}
@@ -87,17 +93,17 @@
     <div class="why">Twelve months of personalized bi-weekly funding digests: grants, rebates, tax credits, and financing matched to your industry, location, and business profile, plus a tracker portal for the programs you pursue. One winner, drawn at random on September 7, 2026, and announced the same week.</div>
     <div class="headsup">Starting a free trial automatically enters you. No purchase necessary; the form below enters you with equal odds.</div>
     <a class="cta" href="https://fundbug.net/signup.html?src=berkshire2026">Start a free trial &amp; enter &rarr;</a>
-    <a class="cta secondary" href="#enter">Enter without signing up</a>
+    <div class="altentry">No purchase necessary. You can also <a href="#enter">enter without starting a trial</a>.</div>
   </div>
 
-  <h2>Two ways to enter, equal odds</h2>
-  <div class="how"><strong>1. Start a free trial.</strong> Any new FundBug trial started between August 25 and September 6, 2026 is automatically entered. The 14-day trial is free, and you'll see your first personalized digest within minutes.</div>
-  <div class="how"><strong>2. Enter free, no signup.</strong> Fill out the form below. No purchase or trial necessary, and form entries have exactly the same odds as trial entries.</div>
+  <h2>How to enter</h2>
+  <div class="how"><strong>Start a free trial.</strong> Any new FundBug trial started between August 25 and September 6, 2026 is automatically entered. The 14-day trial is free, nothing is charged until it ends, and you'll see your first personalized digest within minutes. This is the way most people will enter, and it is the only route that also gets you the product while you wait for the drawing.</div>
+  <p class="altnote">Prefer not to start a trial? <a href="#enter">Enter free using the form below</a>. No purchase or trial necessary, and form entries carry exactly the same odds.</p>
 
+  <a id="enter"></a>
   <form id="entry" name="entry" autocomplete="on">
-    <a id="enter"></a>
-    <div class="fhead">Free entry</div>
-    <div class="fsub">One entry per person or business. We'll only email you if you win.</div>
+    <div class="fhead">Free entry, no trial required</div>
+    <div class="fsub">One entry per person or business, with exactly the same odds as a trial entry. We'll only email you if you win.</div>
     <label for="name">Your name</label>
     <input type="text" id="name" name="name" required maxlength="120" autocomplete="name">
     <label for="email">Email</label>
