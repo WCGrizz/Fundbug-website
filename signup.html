@@ -137,6 +137,25 @@ function getAcquisitionSource() {
     <p class="intro-sub">A few quick questions and we'll email you grants, loans, tax credits, and rebates matched to your business. Start your 14-day free trial, cancel anytime. Takes two minutes.</p>
     <p class="footnote" style="text-align:left; margin-top:-16px; margin-bottom:24px;">We'll never sell or rent your email or business information. We use it only to match you with funding and send your digests.</p>
 
+    <!-- Live sample. Someone about to hand over a card has never seen the
+         product; this is the only place on the page that shows it. Filled from
+         /api/sample-digest, and hidden entirely if that call fails, because a
+         broken panel here is worse than no panel. -->
+    <div id="samplePanel" class="card" hidden
+         style="background:#f7f5f0;border:1px solid #e8e0d5;margin-bottom:24px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:4px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#3a7a32">
+          A real digest, from this morning
+        </div>
+        <div style="font-size:12px;color:#777" id="sampleFor"></div>
+      </div>
+      <p class="field-explanation" style="margin-bottom:14px">
+        These are live programs from our database, matched to a sample Berkshire
+        bakery. Yours will be matched to your business.
+      </p>
+      <div id="sampleList"></div>
+    </div>
+
     <div class="card">
       <div class="field" style="background:#f0faf0;border:1px solid rgba(90,158,82,.35);border-radius:8px;padding:16px 18px">
         <label for="scan-url" style="margin-bottom:2px">✨ Have a website? Let it do the typing</label>
@@ -507,6 +526,56 @@ async function submitThin() {
     err.textContent = e.message;
   }
 }
+</script>
+
+<script>
+/* ── Live sample digest ────────────────────────────────────────────────────
+   Someone on this page is deciding whether to give us a card, and until now
+   the page never showed them what they would get. Three real programs,
+   generated daily for a fictional Berkshire bakery through the same pipeline
+   a paying subscriber runs through. Hidden if the call fails: a broken panel
+   in front of the payment form is worse than no panel. */
+(function(){
+  var esc = function(t){
+    return String(t == null ? '' : t)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  };
+  fetch(API + '/api/sample-digest').then(function(r){
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  }).then(function(d){
+    if (!d || !d.cards || !d.cards.length) return;
+
+    var forEl = document.getElementById('sampleFor');
+    if (forEl) forEl.textContent =
+      (d.business_name || '') + (d.town ? ' · ' + d.town + ', MA' : '');
+
+    document.getElementById('sampleList').innerHTML = d.cards.map(function(p){
+      var meta = [p.capital_type, p.geo_label, p.amount].filter(Boolean)
+                   .map(esc).join(' · ');
+      var verdict = p.verdict === 'likely_qualifies'
+        ? '<span style="color:#3a7a32;font-weight:600">✓ Likely qualifies</span>'
+        : (p.verdict === 'verify_eligibility'
+            ? '<span style="color:#9a6b3f;font-weight:600">Verify eligibility</span>'
+            : '');
+      return '<div style="background:#fff;border:1px solid #e8e0d5;border-radius:7px;padding:14px 16px;margin-bottom:10px">'
+        + '<div style="font-family:\'Fraunces\',serif;font-size:15px;font-weight:700;line-height:1.3;margin-bottom:5px">' + esc(p.title) + '</div>'
+        + '<div style="font-size:12px;color:#666;margin-bottom:7px">' + meta + '</div>'
+        + (p.deadline ? '<div style="font-size:12px;font-weight:600;color:'
+            + (p.deadline_urgent ? '#a33a22' : '#444')
+            + ';margin-bottom:7px">Deadline: ' + esc(p.deadline) + '</div>' : '')
+        + '<div style="font-size:13.5px;line-height:1.55;color:#333">' + esc(p.why_fits) + '</div>'
+        + (verdict ? '<div style="font-size:12px;margin-top:7px">' + verdict + '</div>' : '')
+        + '</div>';
+    }).join('') + (d.match_count > d.cards.length
+        ? '<div style="font-size:13px;color:#777;text-align:center;padding-top:2px">'
+          + 'Plus ' + (d.match_count - d.cards.length) + ' more matches and '
+          + (d.financing_count || 0) + ' financing options in the full digest.</div>'
+        : '');
+
+    document.getElementById('samplePanel').hidden = false;
+  }).catch(function(){ /* panel stays hidden */ });
+})();
 </script>
 </body>
 </html>

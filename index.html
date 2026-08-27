@@ -939,68 +939,25 @@ footer { background: var(--ink); padding: 60px 80px; }
       </div>
       <!-- Greeting band -->
       <div style="background:#f7f5f0;padding:16px 20px;border-bottom:1px solid #e8e0d5;">
-        <div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:#1a1a1a;line-height:1.4;">Good morning, Jamie 👋<br><span style="font-size:13px;font-weight:400;color:#444;">You have <strong style="color:#5a9e52;">10 funding matches</strong> and 4 financing options in this digest.</span></div>
+        <div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:#1a1a1a;line-height:1.4;"><span id="sampleGreeting">Good morning, Jamie 👋</span><br><span style="font-size:13px;font-weight:400;color:#444;">You have <strong style="color:#5a9e52;" id="sampleCount">10 funding matches</strong> and <span id="sampleFin">4</span> financing options in this digest.</span></div>
       </div>
-      <!-- Grant cards -->
-      <div style="padding:12px 16px;background:#ffffff;">
-        <!-- Card 1 - Amber Grant -->
-        <div style="border:1px solid #e8e0d5;border-radius:5px;margin-bottom:8px;overflow:hidden;">
-          <div style="padding:10px 14px;">
-            <div style="font-family:'Fraunces',serif;font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:5px;line-height:1.3;">Amber Grant Foundation $10,000 Monthly Grant</div>
-            <div style="margin-bottom:5px;">
-              <span style="display:inline-block;background:#5a9e52;color:#fff;padding:2px 7px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:.5px;margin-right:5px;">GRANT</span>
-              <span style="font-size:9px;color:#555;">National · High Competition · Due last day of month</span>
-            </div>
-            <div style="font-size:10px;color:#333;line-height:1.6;margin-bottom:4px;">Jamie qualifies directly as a woman-owned U.S. business. No industry restrictions, and the funds can go toward equipment or working capital. Three grants are awarded every month.</div>
-            <div style="font-size:9px;font-weight:600;color:#3a7a32;margin-bottom:5px;">✓ Likely qualifies</div>
-            <span style="font-size:10px;color:#5a9e52;font-weight:700;">Learn More →</span>
-            <span style="font-size:9px;color:#8a8578;margin-left:10px;">+ Track this</span>
-          </div>
-        </div>
-        <!-- Card 2 - Workforce Training Fund Express -->
+      <!-- Grant cards. Filled from /api/sample-digest on load; the markup
+           below is the fallback if that call fails, and is deliberately
+           generic rather than naming dated deadlines. -->
+      <div style="padding:12px 16px;background:#ffffff;" id="sampleCards">
         <div style="border:1px solid #e8e0d5;border-radius:5px;margin-bottom:8px;overflow:hidden;">
           <div style="padding:10px 14px;">
             <div style="font-family:'Fraunces',serif;font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:5px;line-height:1.3;">Workforce Training Fund Express Program</div>
             <div style="margin-bottom:5px;">
               <span style="display:inline-block;background:#5a9e52;color:#fff;padding:2px 7px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:.5px;margin-right:5px;">GRANT</span>
-              <span style="font-size:9px;color:#555;">MA Statewide · Low Competition · Rolling</span>
+              <span style="font-size:9px;color:#555;">MA Statewide · Rolling</span>
             </div>
-            <div style="font-size:10px;color:#333;line-height:1.6;margin-bottom:4px;">As an MA employer with W-2 staff, Jamie can receive up to $3,000 per employee trained, to a cap of $15,000 a year. Training has to be approved before it starts.</div>
+            <div style="font-size:10px;color:#333;line-height:1.6;margin-bottom:4px;">Up to $15,000 a year in reimbursement for approved staff training, open to Massachusetts employers with W-2 staff.</div>
             <div style="font-size:9px;font-weight:600;color:#3a7a32;margin-bottom:5px;">✓ Likely qualifies</div>
             <span style="font-size:10px;color:#5a9e52;font-weight:700;">Learn More →</span>
-            <span style="font-size:9px;color:#8a8578;margin-left:10px;">+ Track this</span>
           </div>
         </div>
-        <!-- Card 3 - NASE Growth Grant -->
-        <div style="border:1px solid #e8e0d5;border-radius:5px;margin-bottom:8px;overflow:hidden;">
-          <div style="padding:10px 14px;">
-            <div style="font-family:'Fraunces',serif;font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:5px;line-height:1.3;">NASE Growth Grant</div>
-            <div style="margin-bottom:5px;">
-              <span style="display:inline-block;background:#5a9e52;color:#fff;padding:2px 7px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:.5px;margin-right:5px;">GRANT</span>
-              <span style="font-size:9px;color:#555;">National · Medium Competition · Reviewed quarterly</span>
-            </div>
-            <div style="font-size:10px;color:#333;line-height:1.6;margin-bottom:4px;">Up to $4,000 for growth costs like marketing, hiring, and equipment, open to any U.S. small business. Requires NASE membership, so Jamie should weigh the annual dues against the award.</div>
-            <div style="font-size:9px;font-weight:600;color:#3a7a32;margin-bottom:5px;">✓ Likely qualifies</div>
-            <span style="font-size:10px;color:#5a9e52;font-weight:700;">Learn More →</span>
-            <span style="font-size:9px;color:#8a8578;margin-left:10px;">+ Track this</span>
-          </div>
-        </div>
-        <!-- Card 4 - Runnin' Down a Dream -->
-        <div style="border:1px solid #e8e0d5;border-radius:5px;overflow:hidden;">
-          <div style="padding:10px 14px;">
-            <div style="font-family:'Fraunces',serif;font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:5px;line-height:1.3;">Runnin' Down a Dream Foundation Micro-Grants</div>
-            <div style="margin-bottom:5px;">
-              <span style="display:inline-block;background:#5a9e52;color:#fff;padding:2px 7px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:.5px;margin-right:5px;">GRANT</span>
-              <span style="font-size:9px;color:#555;">National · High Competition · Due Aug 1, 2026</span>
-            </div>
-            <div style="font-size:10px;color:#333;line-height:1.6;margin-bottom:4px;">A $5,000 grant open to anyone in the U.S. working toward a career goal who faces a financial obstacle. No business or industry restriction, so Jamie is eligible to apply.</div>
-            <div style="font-size:9px;font-weight:600;color:#3a7a32;margin-bottom:5px;">✓ Likely qualifies</div>
-            <span style="font-size:10px;color:#5a9e52;font-weight:700;">Learn More →</span>
-            <span style="font-size:9px;color:#8a8578;margin-left:10px;">+ Track this</span>
-          </div>
-        </div>
-        <!-- More indicator -->
-        <div style="text-align:center;padding:8px 0 2px;font-size:9px;font-weight:600;color:#8a8578;letter-spacing:.3px;">+ 6 more matches and 4 financing options ↓</div>
+        <div style="text-align:center;padding:8px 0 2px;font-size:9px;font-weight:600;color:#8a8578;letter-spacing:.3px;" id="sampleMore">+ more matches and financing options ↓</div>
       </div>
       <!-- Footer strip -->
       <div style="background:#1a1a1a;padding:10px 16px;border-top:2px solid #5a9e52;">
@@ -1389,6 +1346,65 @@ function toggleFaq(btn) {
 document.addEventListener('click', e => {
   if (!e.target.closest('nav') && !e.target.closest('.mobile-menu')) closeMenu();
 });
+</script>
+
+<script>
+/* ── Live sample digest ────────────────────────────────────────────────────
+   The cards in the hero used to be hand-written, and they went stale: one
+   advertised a deadline of August 1, 2026 well into September. They are now
+   filled from a digest generated daily for a fictional Berkshire bakery
+   through the same pipeline a paying subscriber's digest runs through.
+   If the call fails the markup already in the page stands, so the hero is
+   never empty. */
+(function(){
+  var API = 'https://fundbug-production.up.railway.app';
+  var esc = function(t){
+    return String(t == null ? '' : t)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  };
+  fetch(API + '/api/sample-digest').then(function(r){
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  }).then(function(d){
+    if (!d || !d.cards || !d.cards.length) return;
+
+    var g = document.getElementById('sampleGreeting');
+    if (g) g.textContent = 'Good morning, ' + (d.business_name || 'there') + ' 👋';
+    var c = document.getElementById('sampleCount');
+    if (c && d.match_count) c.textContent = d.match_count + ' funding matches';
+    var f = document.getElementById('sampleFin');
+    if (f && d.financing_count != null) f.textContent = d.financing_count;
+
+    var html = d.cards.map(function(p){
+      var meta = [p.geo_label, p.deadline ? 'Due ' + p.deadline : null]
+                   .filter(Boolean).join(' · ');
+      var verdict = p.verdict === 'likely_qualifies'
+        ? '<div style="font-size:9px;font-weight:600;color:#3a7a32;margin-bottom:5px;">✓ Likely qualifies</div>'
+        : (p.verdict === 'verify_eligibility'
+            ? '<div style="font-size:9px;font-weight:600;color:#9a6b3f;margin-bottom:5px;">Verify eligibility</div>'
+            : '');
+      return '<div style="border:1px solid #e8e0d5;border-radius:5px;margin-bottom:8px;overflow:hidden;">'
+        + '<div style="padding:10px 14px;">'
+        + '<div style="font-family:\'Fraunces\',serif;font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:5px;line-height:1.3;">' + esc(p.title) + '</div>'
+        + '<div style="margin-bottom:5px;">'
+        + '<span style="display:inline-block;background:#5a9e52;color:#fff;padding:2px 7px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:.5px;margin-right:5px;">' + esc((p.capital_type || 'GRANT')).toUpperCase() + '</span>'
+        + '<span style="font-size:9px;color:#555;">' + esc(meta) + '</span>'
+        + '</div>'
+        + '<div style="font-size:10px;color:#333;line-height:1.6;margin-bottom:4px;">' + esc(p.why_fits) + '</div>'
+        + verdict
+        + '<span style="font-size:10px;color:#5a9e52;font-weight:700;">Learn More →</span>'
+        + '</div></div>';
+    }).join('');
+
+    var more = d.match_count && d.match_count > d.cards.length
+      ? '+ ' + (d.match_count - d.cards.length) + ' more matches and '
+        + (d.financing_count || 0) + ' financing options ↓'
+      : '+ more matches and financing options ↓';
+    html += '<div style="text-align:center;padding:8px 0 2px;font-size:9px;font-weight:600;color:#8a8578;letter-spacing:.3px;">' + more + '</div>';
+
+    document.getElementById('sampleCards').innerHTML = html;
+  }).catch(function(){ /* fallback markup stands */ });
+})();
 </script>
 </body>
 </html>
