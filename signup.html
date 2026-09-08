@@ -269,10 +269,12 @@ function getAcquisitionSource() {
             <label class="check-label"><input type="checkbox" value="black-owned"><span>Black-owned business</span></label>
             <label class="check-label"><input type="checkbox" value="hispanic-owned"><span>Hispanic or Latino-owned business</span></label>
             <label class="check-label"><input type="checkbox" value="asian-owned"><span>Asian-owned business</span></label>
-            <label class="check-label"><input type="checkbox" value="native-american-owned"><span>Native American or Indigenous-owned business</span></label>
+            <label class="check-label"><input type="checkbox" value="pacific-islander-owned"><span>Native Hawaiian or Pacific Islander-owned business</span></label>
+            <label class="check-label"><input type="checkbox" value="native-american-owned"><span>Native American, Alaska Native, or Indigenous-owned business</span></label>
+            <label class="check-label"><input type="checkbox" value="mena-owned"><span>Middle Eastern or North African-owned business</span></label>
             <label class="check-label"><input type="checkbox" value="veteran-owned"><span>Veteran-owned or military-affiliated (veteran, spouse, or active duty)</span></label>
             <label class="check-label"><input type="checkbox" value="disability-owned"><span>Disability-owned business</span></label>
-            <label class="check-label"><input type="checkbox" value="lgbtq-owned"><span>LGBTQ+-owned business</span></label>
+            <label class="check-label"><input type="checkbox" value="lgbtq-owned"><span>LGBTQ+-owned business, including transgender and non-binary owners</span></label>
             <label class="check-label"><input type="checkbox" value="immigrant-owned"><span>Immigrant-owned business</span></label>
           </div>
         </div>
@@ -462,9 +464,28 @@ async function signupScan() {
   }
 }
 
+// Card problems belong at the card field, not at the bottom of the form. The
+// #card-errors div already sits under the Stripe element and is cleared as the
+// user types (see the cardEl 'change' handler above); this routes submit-time
+// failures into that same slot and scrolls it into view, because the field can
+// be well above the fold on a long form.
+function showCardError(message) {
+  const formErr = document.getElementById('formError');
+  const cardErr = document.getElementById('card-errors');
+  if (formErr) formErr.textContent = '';
+  if (cardErr) {
+    cardErr.textContent = message;
+    cardErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else if (formErr) {
+    formErr.textContent = message;
+  }
+}
+
 async function submitThin() {
   const err = document.getElementById('formError');
   err.textContent = '';
+  const cardErrEl = document.getElementById('card-errors');
+  if (cardErrEl) cardErrEl.textContent = '';
 
   const business_name = document.getElementById('business-name').value.trim();
   const email = document.getElementById('email').value.trim();
@@ -490,7 +511,7 @@ async function submitThin() {
     // Paid path (default): collect the card via Stripe before we submit.
     if (!stripeReady) { btn.disabled = false; updateSubmitLabel(); err.textContent = 'Payment field is still loading. Try again in a moment.'; return; }
     const { paymentMethod, error } = await stripe.createPaymentMethod({ type: 'card', card: cardEl, billing_details: { email } });
-    if (error) { btn.disabled = false; updateSubmitLabel(); err.textContent = error.message; return; }
+    if (error) { btn.disabled = false; updateSubmitLabel(); showCardError(error.message); return; }
     payment_method_id = paymentMethod.id;
   }
 
@@ -515,6 +536,16 @@ async function submitThin() {
       body: JSON.stringify(payload),
     });
     const data = await res.json();
+
+    // 402 means the card itself was refused (wrong CVC, declined, expired).
+    // The backend sends Stripe's own cardholder-facing wording, so show it at
+    // the card field and let the user correct it without losing the form.
+    if (res.status === 402) {
+      btn.disabled = false;
+      updateSubmitLabel();
+      showCardError(data.detail || 'Your card was declined. Check the details and try again.');
+      return;
+    }
     if (!res.ok) throw new Error(data.detail || 'Something went wrong. Please try again.');
 
     document.getElementById('formState').style.display = 'none';
