@@ -2057,15 +2057,22 @@ const BADGE_COLORS = {
   'Pitch Competition':'#8a4a2a','Training':'#8a5a00',
 };
 
+// Keep every value that can appear in subscriber_program_tracking.status.
+// A value missing from here matches no <option>, so the select falls back to
+// showing the first one: a row saved as 'submitted' displayed as "Not started",
+// which is worse than showing nothing at all. 'submitted' predates 'applied'
+// and still exists on live rows.
 const STATUS_LABELS = {
   'not_started':'Not started','in_progress':'In progress',
-  'applied':'Applied','won':'Won','passed':'Passed',
+  'submitted':'Submitted','applied':'Applied','won':'Won','passed':'Passed',
 };
 
 let trackerData = [];   // full list, fetched once per session
 
 function showTrackerToast(msg) {
   const el = document.getElementById('trackerToast');
+  clearTimeout(el._undoTimer);
+  el.innerHTML = '';
   el.textContent = msg;
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 2200);
@@ -2096,12 +2103,12 @@ function buildTrackerCard(prog, isFav) {
         ${deadlineText ? `<span class="tracker-deadline ${isUrgent ? 'urgent' : ''}">Deadline: ${esc(deadlineText)}</span>` : ''}
       </div>
       <div class="tracker-actions">
-        ${isFav ? `<select class="tracker-status-select" onchange="updateStatus('${prog.program_id}', this.value)">${statusOptions}</select>` : ''}
+        <select class="tracker-status-select" onchange="updateStatus('${prog.program_id}', this.value)">${statusOptions}</select>
         ${prog.source_url ? `<a href="${esc(prog.source_url)}" target="_blank" rel="noopener" class="tracker-link">View program →</a>` : ''}
         <button class="fb-ask ${feedbackAnswered[prog.program_id] ? 'answered' : ''}"
                 onclick="openFeedback('${prog.program_id}')">${feedbackAnswered[prog.program_id] ? 'Update your answer' : "How'd it go?"}</button>
         ${isFav ? `<button class="tracker-link" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;font-weight:500;color:var(--green-dk);" onclick="openPrepPanel('${prog.program_id}', '${esc(prog.title)}')">Prep application</button>` : ''}
-        ${!isFav ? `<button class="tracker-dismiss" onclick="dismissProgram('${prog.program_id}')" title="Remove from list">✕ dismiss</button>` : ''}
+        <button class="tracker-dismiss" onclick="dismissProgram('${prog.program_id}')" title="Hide from list">✕ hide</button>
       </div>
     </div>`;
   return card;
@@ -2246,10 +2253,48 @@ async function dismissProgram(programId) {
   renderTracker();
   try {
     await apiFetch('/api/portal/tracker/' + programId, 'PATCH', { dismissed: true });
+    // Hiding is now one click from any card, including a starred one, so it
+    // needs a way back that does not involve emailing support.
+    showTrackerUndo(programId, prog.title);
   } catch(e) {
     prog.dismissed = false;
     renderTracker();
+    showTrackerToast('Error — please try again');
   }
+}
+
+async function undoDismiss(programId) {
+  const prog = trackerData.find(p => p.program_id === programId);
+  if (!prog) return;
+  prog.dismissed = false;
+  renderTracker();
+  const el = document.getElementById('trackerToast');
+  if (el) el.classList.remove('show');
+  try {
+    await apiFetch('/api/portal/tracker/' + programId, 'PATCH', { dismissed: false });
+    showTrackerToast('Restored');
+  } catch(e) {
+    prog.dismissed = true;
+    renderTracker();
+    showTrackerToast('Error — please try again');
+  }
+}
+
+// Same toast element as showTrackerToast, but with an Undo control and a
+// longer dwell, since the point is to give the reader time to react.
+function showTrackerUndo(programId, title) {
+  const el = document.getElementById('trackerToast');
+  if (!el) return;
+  const short = (title || 'Program').length > 40 ? title.slice(0, 38) + '...' : (title || 'Program');
+  el.innerHTML = `${esc(short)} hidden <button onclick="undoDismiss('${programId}')" ` +
+    `style="margin-left:12px;background:none;border:none;color:#7ab870;font-family:'Jost',sans-serif;` +
+    `font-size:13px;font-weight:600;cursor:pointer;padding:0;text-decoration:underline;">Undo</button>`;
+  el.classList.add('show');
+  clearTimeout(el._undoTimer);
+  el._undoTimer = setTimeout(() => {
+    el.classList.remove('show');
+    el.textContent = '';
+  }, 6000);
 }
 
 // Deep-link handler: portal.html?track=program_id
