@@ -277,6 +277,11 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .tracker-section-title{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--ink);margin:0 0 4px}
 .tracker-section-sub{font-size:13px;font-weight:300;color:var(--muted);margin-bottom:16px}
 .tracker-empty{font-size:14px;color:var(--muted);font-weight:300;padding:24px 0;text-align:center}
+.tracker-error{font-size:14px;color:var(--ink2);font-weight:300;padding:20px 22px;text-align:center;background:#fdf3ea;border:1px solid #e8c9a8;border-radius:10px;margin:8px 0}
+.tracker-error strong{display:block;font-weight:500;color:var(--ink);margin-bottom:4px}
+.tracker-error button{margin-top:12px;background:var(--green);color:#fff;font-family:'Jost',sans-serif;font-weight:600;font-size:14px;border:none;border-radius:7px;padding:9px 20px;cursor:pointer}
+.tracker-error button:hover{background:var(--green-dk)}
+.tracker-error button:disabled{opacity:.6;cursor:default}
 .tracker-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;transition:border-color .12s}
 .tracker-card:hover{border-color:var(--green)}
 .tracker-card.favorite{border-left:3px solid var(--green)}
@@ -2139,6 +2144,31 @@ function renderTracker() {
   }
 }
 
+// Renders in place of the tracker lists when the fetch itself failed.
+// This exists because an empty list and a failed request used to look
+// identical: renderTracker never ran, the containers stayed empty, and a
+// subscriber reasonably read that as her saved work having been deleted.
+// Nothing is ever deleted by a failed read, so say so plainly.
+function renderTrackerError() {
+  const favList = document.getElementById('tracker-favorites-list');
+  const allList = document.getElementById('tracker-all-list');
+  if (!favList || !allList) return;
+  const box = `
+    <div class="tracker-error">
+      <strong>We couldn't load your tracker just now.</strong>
+      Nothing has been lost. Your saved programs, favorites and statuses are all still there;
+      this is a connection problem on our side, and a retry usually clears it.
+      <button onclick="retryLoadTracker(this)">Try again</button>
+    </div>`;
+  favList.innerHTML = box;
+  allList.innerHTML = '';
+}
+
+async function retryLoadTracker(btn) {
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading...'; }
+  await loadTracker();
+}
+
 async function loadTracker() {
   try {
     const data = await apiFetch('/api/portal/tracker');
@@ -2158,6 +2188,18 @@ async function loadTracker() {
     renderTracker();
   } catch(e) {
     console.log('Tracker load error:', e.message);
+    // One silent retry first: the underlying fault is a stale pooled
+    // connection to the database, and the second attempt gets a fresh one.
+    try {
+      await new Promise(r => setTimeout(r, 900));
+      const data = await apiFetch('/api/portal/tracker');
+      trackerData = data.programs || [];
+      renderTracker();
+      return;
+    } catch(e2) {
+      console.log('Tracker load retry failed:', e2.message);
+    }
+    renderTrackerError();
   }
 }
 
