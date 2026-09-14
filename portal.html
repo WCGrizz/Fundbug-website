@@ -284,9 +284,14 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .tag-review{background:#fdf3ea;color:#b07d3a}
 .tag-recurring{background:#e9f2e7;color:#3d7a38}
 .tracker-desc{font-size:13px;color:var(--ink2);line-height:1.55;margin:6px 0 0}
-.tracker-fee{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--amber,#b07d3a);margin-top:7px}
-.tracker-fee label{display:inline-flex;align-items:center;gap:5px;color:var(--muted);cursor:pointer}
-.tracker-fee input[type=date]{font-family:'Jost',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:5px;padding:2px 6px;color:var(--ink2)}
+.tracker-fee{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--amber,#b07d3a);margin-top:7px}
+.tracker-fee label{display:inline-flex;align-items:center;gap:5px;color:var(--muted);cursor:pointer;font-size:12px}
+.tracker-fee input[type=checkbox]{width:14px;height:14px;margin:0;accent-color:var(--green)}
+/* flex:0 0 auto or the date input stretches to fill the row and wraps onto
+   a line of its own, which is what it did on first render. */
+.tracker-fee input[type=date]{flex:0 0 auto;width:auto;font-family:'Jost',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:5px;padding:3px 7px;color:var(--ink2);background:#fff}
+.tracker-fee .fee-date-wrap{display:none;align-items:center;gap:6px;color:var(--muted)}
+.tracker-fee .fee-date-wrap.show{display:inline-flex}
 .tracker-notes{width:100%;box-sizing:border-box;margin-top:8px;font-family:'Jost',sans-serif;font-size:13px;font-weight:300;line-height:1.5;color:var(--ink2);background:var(--cream);border:1px solid var(--border);border-radius:7px;padding:8px 10px;resize:vertical;min-height:38px}
 .tracker-notes:focus{outline:none;border-color:var(--green-lt);background:#fff}
 .ag-overlay{display:none;position:fixed;inset:0;background:rgba(26,26,20,.5);z-index:320;align-items:center;justify-content:center;padding:20px}
@@ -2143,14 +2148,18 @@ function buildTrackerCard(prog, isFav) {
   // has been in the database all along and the portal never showed it, so a
   // subscriber could mark a program submitted without being told it cost $25
   // to enter.
+  // The date only appears once the fee is marked paid; an empty date box
+  // sitting next to an unpaid fee is a question nobody asked.
   const feeHtml = prog.fee_amount ? `
       <div class="tracker-fee">
         <span>Application fee: ${esc(prog.fee_amount)}</span>
         <label><input type="checkbox" ${prog.fee_paid ? 'checked' : ''}
                onchange="updateFeePaid('${prog.program_id}', this.checked)"> paid</label>
-        <input type="date" value="${esc(prog.fee_paid_date || '')}"
+        <span class="fee-date-wrap ${prog.fee_paid ? 'show' : ''}" id="feedate-${prog.program_id}">
+          on <input type="date" value="${esc(prog.fee_paid_date || '')}"
                title="Date the fee was paid"
                onchange="updateFeePaidDate('${prog.program_id}', this.value)">
+        </span>
       </div>` : '';
 
   const notesHtml = `
@@ -2342,6 +2351,10 @@ async function dismissProgram(programId) {
 async function updateFeePaid(programId, paid) {
   const prog = trackerData.find(p => p.program_id === programId);
   if (prog) prog.fee_paid = paid;
+  // Toggle the date field in place rather than re-rendering the whole list,
+  // which would lose focus and scroll position.
+  const wrap = document.getElementById('feedate-' + programId);
+  if (wrap) wrap.classList.toggle('show', paid);
   try {
     await apiFetch('/api/portal/tracker/' + programId, 'PATCH', { fee_paid: paid });
     showTrackerToast(paid ? 'Marked as paid' : 'Marked unpaid');
