@@ -277,6 +277,38 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .tracker-section-title{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--ink);margin:0 0 4px}
 .tracker-section-sub{font-size:13px;font-weight:300;color:var(--muted);margin-bottom:16px}
 .tracker-empty{font-size:14px;color:var(--muted);font-weight:300;padding:24px 0;text-align:center}
+.tracker-add-btn{display:inline-flex;align-items:center;gap:7px;background:var(--green);color:#fff;font-family:'Jost',sans-serif;font-weight:600;font-size:14px;border:none;border-radius:8px;padding:10px 18px;cursor:pointer;margin-bottom:6px}
+.tracker-add-btn:hover{background:var(--green-dk)}
+.tracker-tag{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;border-radius:4px;padding:2px 7px;margin-left:8px;vertical-align:2px}
+.tag-yours{background:#e8eef6;color:#2a6099}
+.tag-review{background:#fdf3ea;color:#b07d3a}
+.tag-recurring{background:#e9f2e7;color:#3d7a38}
+.tracker-desc{font-size:13px;color:var(--ink2);line-height:1.55;margin:6px 0 0}
+.tracker-fee{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--amber,#b07d3a);margin-top:7px}
+.tracker-fee label{display:inline-flex;align-items:center;gap:5px;color:var(--muted);cursor:pointer}
+.tracker-fee input[type=date]{font-family:'Jost',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:5px;padding:2px 6px;color:var(--ink2)}
+.tracker-notes{width:100%;box-sizing:border-box;margin-top:8px;font-family:'Jost',sans-serif;font-size:13px;font-weight:300;line-height:1.5;color:var(--ink2);background:var(--cream);border:1px solid var(--border);border-radius:7px;padding:8px 10px;resize:vertical;min-height:38px}
+.tracker-notes:focus{outline:none;border-color:var(--green-lt);background:#fff}
+.ag-overlay{display:none;position:fixed;inset:0;background:rgba(26,26,20,.5);z-index:320;align-items:center;justify-content:center;padding:20px}
+.ag-overlay.open{display:flex}
+.ag-modal{background:var(--cream);border-radius:14px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:26px 28px 22px}
+.ag-modal h3{font-family:'Fraunces',serif;font-size:21px;font-weight:600;margin:0 0 4px}
+.ag-modal .ag-sub{font-size:13px;color:var(--muted);margin:0 0 18px;line-height:1.5}
+.ag-field{margin-bottom:14px}
+.ag-field label{display:block;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.ag-field input[type=text],.ag-field input[type=url],.ag-field input[type=date],.ag-field select,.ag-field textarea{width:100%;box-sizing:border-box;font-family:'Jost',sans-serif;font-size:14px;font-weight:300;color:var(--ink);background:#fff;border:1px solid var(--border);border-radius:7px;padding:9px 11px}
+.ag-field textarea{min-height:74px;resize:vertical;line-height:1.5}
+.ag-field input:focus,.ag-field select:focus,.ag-field textarea:focus{outline:none;border-color:var(--green-lt)}
+.ag-check{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:300;color:var(--ink2);cursor:pointer}
+.ag-row{display:flex;gap:12px}
+.ag-row>*{flex:1}
+.ag-note{font-size:12px;color:var(--muted);line-height:1.5;background:var(--cream2);border-radius:8px;padding:11px 13px;margin:4px 0 16px}
+.ag-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+.ag-cancel{background:none;border:none;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;padding:10px 14px}
+.ag-save{background:var(--green);color:#fff;font-family:'Jost',sans-serif;font-weight:600;font-size:14px;border:none;border-radius:8px;padding:11px 22px;cursor:pointer}
+.ag-save:disabled{opacity:.6;cursor:default}
+.ag-err{font-size:13px;color:var(--red);margin-top:10px;display:none}
+.ag-err.show{display:block}
 .tracker-error{font-size:14px;color:var(--ink2);font-weight:300;padding:20px 22px;text-align:center;background:#fdf3ea;border:1px solid #e8c9a8;border-radius:10px;margin:8px 0}
 .tracker-error strong{display:block;font-weight:500;color:var(--ink);margin-bottom:4px}
 .tracker-error button{margin-top:12px;background:var(--green);color:#fff;font-family:'Jost',sans-serif;font-weight:600;font-size:14px;border:none;border-radius:7px;padding:9px 20px;cursor:pointer}
@@ -1068,6 +1100,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
           <div class="page-eyebrow">Programs</div>
           <div class="page-title">My Tracker</div>
           <div class="page-sub">Keep tabs on every opportunity — star the ones you're serious about and track your progress.</div>
+          <button class="tracker-add-btn" onclick="openAddGrant()">+ Add a grant</button>
         </div>
 
         <!-- FEEDBACK PENDING BAR (shown only via ?feedback=1 deep link) -->
@@ -2057,14 +2090,22 @@ const BADGE_COLORS = {
   'Pitch Competition':'#8a4a2a','Training':'#8a5a00',
 };
 
-// Keep every value that can appear in subscriber_program_tracking.status.
-// A value missing from here matches no <option>, so the select falls back to
-// showing the first one: a row saved as 'submitted' displayed as "Not started",
-// which is worse than showing nothing at all. 'submitted' predates 'applied'
-// and still exists on live rows.
+// One vocabulary for every row, FundBug-sourced or user-added. Reconciled
+// 2026-09-12 against a subscriber's own list: 'applied' and 'submitted' had
+// always meant the same thing and both existed live, and there was no way at
+// all to record "waiting to hear" or "they said no".
+//
+// 'Passed' and 'Not awarded' are both here on purpose and are NOT the same:
+// the first is the subscriber deciding against the program, the second is the
+// program deciding against them.
+//
+// A value missing from here matches no <option>, so the select silently falls
+// back to showing the first one. That is how a submitted application came to
+// display as "Not started" for a month.
 const STATUS_LABELS = {
   'not_started':'Not started','in_progress':'In progress',
-  'submitted':'Submitted','applied':'Applied','won':'Won','passed':'Passed',
+  'submitted':'Submitted','under_review':'Under review',
+  'awarded':'Awarded','not_awarded':'Not awarded','passed':'Passed',
 };
 
 let trackerData = [];   // full list, fetched once per session
@@ -2089,6 +2130,33 @@ function buildTrackerCard(prog, isFav) {
     `<option value="${v}" ${prog.status === v ? 'selected' : ''}>${l}</option>`
   ).join('');
 
+  const isUser = prog.source === 'user';
+  const tagsHtml =
+    (isUser ? '<span class="tracker-tag tag-yours">Added by you</span>' : '') +
+    (prog.under_review ? '<span class="tracker-tag tag-review">With FundBug to review</span>' : '') +
+    (prog.is_recurring ? '<span class="tracker-tag tag-recurring">Recurring</span>' : '');
+
+  const descHtml = prog.description
+    ? `<p class="tracker-desc">${esc(prog.description)}</p>` : '';
+
+  // The fee line renders for FundBug programs too. canonical_participation_cost
+  // has been in the database all along and the portal never showed it, so a
+  // subscriber could mark a program submitted without being told it cost $25
+  // to enter.
+  const feeHtml = prog.fee_amount ? `
+      <div class="tracker-fee">
+        <span>Application fee: ${esc(prog.fee_amount)}</span>
+        <label><input type="checkbox" ${prog.fee_paid ? 'checked' : ''}
+               onchange="updateFeePaid('${prog.program_id}', this.checked)"> paid</label>
+        <input type="date" value="${esc(prog.fee_paid_date || '')}"
+               title="Date the fee was paid"
+               onchange="updateFeePaidDate('${prog.program_id}', this.value)">
+      </div>` : '';
+
+  const notesHtml = `
+      <textarea class="tracker-notes" placeholder="Your notes on this one..."
+                onblur="updateNotes('${prog.program_id}', this.value)">${esc(prog.notes || '')}</textarea>`;
+
   const card = document.createElement('div');
   card.className = 'tracker-card' + (isFav ? ' favorite' : '');
   card.id = 'tcard-' + prog.program_id;
@@ -2096,7 +2164,7 @@ function buildTrackerCard(prog, isFav) {
     <div class="tracker-star ${isFav ? 'on' : ''}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}"
          onclick="toggleFavorite('${prog.program_id}', ${isFav})">★</div>
     <div class="tracker-body">
-      <div class="tracker-title" title="${esc(prog.title)}">${esc(prog.title || '—')}</div>
+      <div class="tracker-title" title="${esc(prog.title)}">${esc(prog.title || '—')}${tagsHtml}</div>
       <div class="tracker-meta">
         ${prog.capital_type ? `<span class="tracker-badge" style="background:${trackerBadgeColor(prog.capital_type)}">${esc(prog.capital_type)}</span>` : ''}
         ${prog.amount ? `<span class="tracker-amount">${esc(prog.amount)}</span>` : ''}
@@ -2107,9 +2175,13 @@ function buildTrackerCard(prog, isFav) {
         ${prog.source_url ? `<a href="${esc(prog.source_url)}" target="_blank" rel="noopener" class="tracker-link">View program →</a>` : ''}
         <button class="fb-ask ${feedbackAnswered[prog.program_id] ? 'answered' : ''}"
                 onclick="openFeedback('${prog.program_id}')">${feedbackAnswered[prog.program_id] ? 'Update your answer' : "How'd it go?"}</button>
-        ${isFav ? `<button class="tracker-link" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;font-weight:500;color:var(--green-dk);" onclick="openPrepPanel('${prog.program_id}', '${esc(prog.title)}')">Prep application</button>` : ''}
+        ${isFav && !isUser ? `<button class="tracker-link" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;font-weight:500;color:var(--green-dk);" onclick="openPrepPanel('${prog.program_id}', '${esc(prog.title)}')">Prep application</button>` : ''}
+        ${isUser ? `<button class="tracker-link" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;font-weight:500;color:var(--green-dk);" onclick="openAddGrant('${prog.program_id}')">Edit</button>` : ''}
         <button class="tracker-dismiss" onclick="dismissProgram('${prog.program_id}')" title="Hide from list">✕ hide</button>
       </div>
+      ${descHtml}
+      ${feeHtml}
+      ${notesHtml}
     </div>`;
   return card;
 }
@@ -2260,6 +2332,142 @@ async function dismissProgram(programId) {
     prog.dismissed = false;
     renderTracker();
     showTrackerToast('Error — please try again');
+  }
+}
+
+// ── FEE AND NOTES ─────────────────────────────────────────────────────────
+// Each writes one field and leaves the rest alone, so a stale card in another
+// tab cannot overwrite something it never knew about.
+
+async function updateFeePaid(programId, paid) {
+  const prog = trackerData.find(p => p.program_id === programId);
+  if (prog) prog.fee_paid = paid;
+  try {
+    await apiFetch('/api/portal/tracker/' + programId, 'PATCH', { fee_paid: paid });
+    showTrackerToast(paid ? 'Marked as paid' : 'Marked unpaid');
+  } catch(e) {
+    if (prog) prog.fee_paid = !paid;
+    renderTracker();
+    showTrackerToast('Error — please try again');
+  }
+}
+
+async function updateFeePaidDate(programId, value) {
+  const prog = trackerData.find(p => p.program_id === programId);
+  const prev = prog ? prog.fee_paid_date : '';
+  if (prog) prog.fee_paid_date = value;
+  try {
+    await apiFetch('/api/portal/tracker/' + programId, 'PATCH', { fee_paid_date: value || null });
+    showTrackerToast('Saved');
+  } catch(e) {
+    if (prog) prog.fee_paid_date = prev;
+    renderTracker();
+    showTrackerToast('Error — please try again');
+  }
+}
+
+// Fires on blur rather than on every keystroke; no toast unless it fails,
+// since a toast on every click away from the box would be noise.
+async function updateNotes(programId, value) {
+  const prog = trackerData.find(p => p.program_id === programId);
+  if (prog && (prog.notes || '') === value) return;
+  const prev = prog ? prog.notes : '';
+  if (prog) prog.notes = value;
+  try {
+    await apiFetch('/api/portal/tracker/' + programId, 'PATCH', { notes: value });
+  } catch(e) {
+    if (prog) prog.notes = prev;
+    showTrackerToast('Note not saved — please try again');
+  }
+}
+
+// ── ADD OR EDIT A GRANT ───────────────────────────────────────────────────
+// One modal for both. agEditing holds the program_id when editing, null when
+// adding, and every difference between the two flows hangs off that.
+
+let agEditing = null;
+
+function openAddGrant(programId) {
+  agEditing = programId || null;
+  const prog = agEditing ? trackerData.find(p => p.program_id === agEditing) : null;
+
+  const sel = document.getElementById('agStatus');
+  sel.innerHTML = Object.entries(STATUS_LABELS)
+    .map(([v,l]) => `<option value="${v}">${l}</option>`).join('');
+
+  document.getElementById('agHeading').textContent = prog ? 'Edit grant' : 'Add a grant';
+  document.getElementById('agSub').textContent = prog
+    ? 'Update what you know about this one.'
+    : 'Track something you found yourself, alongside the programs FundBug sends you.';
+  document.getElementById('agSave').textContent = prog ? 'Save changes' : 'Add to tracker';
+  // An edit does not resubmit to review; the first submission already went.
+  document.getElementById('agReviewNote').style.display = prog ? 'none' : '';
+
+  document.getElementById('agTitle').value       = prog ? (prog.title || '') : '';
+  document.getElementById('agDesc').value        = prog ? (prog.description || '') : '';
+  document.getElementById('agUrl').value         = prog ? (prog.source_url || '') : '';
+  document.getElementById('agDeadline').value    = prog ? (prog.deadline_display || '') : '';
+  document.getElementById('agStatus').value      = prog ? (prog.status || 'not_started') : 'not_started';
+  document.getElementById('agRecurring').checked = prog ? !!prog.is_recurring : false;
+  document.getElementById('agFee').value         = prog ? (prog.fee_amount || '') : '';
+  document.getElementById('agFeePaid').checked   = prog ? !!prog.fee_paid : false;
+  document.getElementById('agFeePaidDate').value = prog ? (prog.fee_paid_date || '') : '';
+
+  const err = document.getElementById('agErr');
+  err.classList.remove('show'); err.textContent = '';
+  document.getElementById('agOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('agTitle').focus(), 60);
+}
+
+function closeAddGrant() {
+  document.getElementById('agOverlay').classList.remove('open');
+  agEditing = null;
+}
+
+async function saveAddGrant() {
+  const btn = document.getElementById('agSave');
+  const err = document.getElementById('agErr');
+  const title = document.getElementById('agTitle').value.trim();
+  if (!title) {
+    err.textContent = 'Please give the grant a name.';
+    err.classList.add('show');
+    document.getElementById('agTitle').focus();
+    return;
+  }
+  let url = document.getElementById('agUrl').value.trim();
+  if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+  const payload = {
+    title:          title,
+    description:    document.getElementById('agDesc').value.trim(),
+    source_url:     url,
+    deadline_text:  document.getElementById('agDeadline').value.trim(),
+    is_recurring:   document.getElementById('agRecurring').checked,
+    status:         document.getElementById('agStatus').value,
+    fee_amount:     document.getElementById('agFee').value.trim(),
+    fee_paid:       document.getElementById('agFeePaid').checked,
+    fee_paid_date:  document.getElementById('agFeePaidDate').value || null,
+  };
+
+  btn.disabled = true;
+  btn.textContent = agEditing ? 'Saving...' : 'Adding...';
+  err.classList.remove('show');
+  try {
+    if (agEditing) {
+      await apiFetch('/api/portal/tracker/' + agEditing, 'PATCH', payload);
+      showTrackerToast('Saved');
+    } else {
+      await apiFetch('/api/portal/tracker/custom', 'POST', payload);
+      showTrackerToast('Added to your tracker');
+    }
+    closeAddGrant();
+    await loadTracker();
+  } catch(e) {
+    err.textContent = 'Could not save that. Nothing has been lost; please try again.';
+    err.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = agEditing ? 'Save changes' : 'Add to tracker';
   }
 }
 
@@ -2743,6 +2951,73 @@ const _origSwitchTab = typeof switchTab === 'function' ? switchTab : null;
 
 </script>
 <!-- PREP APPLICATION PANEL -->
+<!-- ADD / EDIT A GRANT ────────────────────────────────────────────────────
+     Fields are the ones a subscriber asked for, in her words: name, a
+     description box, the link, deadline, whether it recurs, status, an
+     optional fee, and whether that fee has been paid and when. Only the name
+     is required; the rest is whatever they happen to know. -->
+<div class="ag-overlay" id="agOverlay" onclick="if(event.target===this)closeAddGrant()">
+  <div class="ag-modal">
+    <h3 id="agHeading">Add a grant</h3>
+    <p class="ag-sub" id="agSub">Track something you found yourself, alongside the programs FundBug sends you.</p>
+
+    <div class="ag-field">
+      <label for="agTitle">Name of grant</label>
+      <input type="text" id="agTitle" maxlength="300" placeholder="e.g. Berkshire Taconic Community Foundation grant">
+    </div>
+
+    <div class="ag-field">
+      <label for="agDesc">Description</label>
+      <textarea id="agDesc" maxlength="4000" placeholder="What it funds, who runs it, anything worth remembering."></textarea>
+    </div>
+
+    <div class="ag-field">
+      <label for="agUrl">Website link</label>
+      <input type="url" id="agUrl" maxlength="1000" placeholder="https://">
+    </div>
+
+    <div class="ag-row">
+      <div class="ag-field">
+        <label for="agDeadline">Deadline</label>
+        <input type="text" id="agDeadline" maxlength="300" placeholder="e.g. March 15, 2027, or rolling">
+      </div>
+      <div class="ag-field">
+        <label for="agStatus">Status</label>
+        <select id="agStatus"></select>
+      </div>
+    </div>
+
+    <div class="ag-field">
+      <label class="ag-check"><input type="checkbox" id="agRecurring"> This grant runs on a repeating cycle</label>
+    </div>
+
+    <div class="ag-row">
+      <div class="ag-field">
+        <label for="agFee">Application fee (optional)</label>
+        <input type="text" id="agFee" maxlength="200" placeholder="e.g. $25">
+      </div>
+      <div class="ag-field">
+        <label for="agFeeDate">Fee paid on</label>
+        <input type="date" id="agFeePaidDate">
+      </div>
+    </div>
+    <div class="ag-field">
+      <label class="ag-check"><input type="checkbox" id="agFeePaid"> Fee has been paid</label>
+    </div>
+
+    <div class="ag-note" id="agReviewNote">
+      Grants you add are sent to us to check and add to the database, so other
+      businesses can find them too. Your notes stay private to your account.
+    </div>
+
+    <div class="ag-err" id="agErr"></div>
+    <div class="ag-actions">
+      <button class="ag-cancel" onclick="closeAddGrant()">Cancel</button>
+      <button class="ag-save" id="agSave" onclick="saveAddGrant()">Add to tracker</button>
+    </div>
+  </div>
+</div>
+
 <div class="prep-overlay" id="prepOverlay" onclick="if(event.target===this)closePrepPanel()">
   <div class="prep-panel" id="prepPanel">
     <div class="prep-header">
