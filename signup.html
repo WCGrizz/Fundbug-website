@@ -287,9 +287,28 @@ function getAcquisitionSource() {
         <div class="comp-status" id="comp-status"></div>
       </div>
 
+      <div class="field" id="plan-section">
+        <label>Plan</label>
+        <p class="field-explanation">Either way the first 14 days are free and nothing is charged until they end.</p>
+        <div class="plan-choice">
+          <label class="plan-opt selected" id="plan-opt-monthly" onclick="setPlan('monthly')">
+            <input type="radio" name="plan" value="monthly" checked>
+            <span class="plan-name">Monthly</span>
+            <span class="plan-price">$20<span class="plan-per">/month</span></span>
+            <span class="plan-note">Cancel anytime</span>
+          </label>
+          <label class="plan-opt" id="plan-opt-annual" onclick="setPlan('annual')">
+            <input type="radio" name="plan" value="annual">
+            <span class="plan-name">Annual</span>
+            <span class="plan-price">$200<span class="plan-per">/year</span></span>
+            <span class="plan-note">Two months free</span>
+          </label>
+        </div>
+      </div>
+
       <div class="field" id="payment-section">
         <label>Payment details <span class="req">*</span></label>
-        <p class="field-explanation">Free for 14 days, then $20/month. Cancel anytime, and we'll remind you before the trial ends.</p>
+        <p class="field-explanation" id="pay-explanation">Free for 14 days, then $20/month. Cancel anytime, and we'll remind you before the trial ends.</p>
         <div id="card-element" class="card-input"></div>
         <div class="card-errors" id="card-errors"></div>
       </div>
@@ -307,7 +326,7 @@ function getAcquisitionSource() {
 
       <button class="btn" id="submitBtn" onclick="submitThin()">Start free trial →</button>
       <div class="form-error" id="formError"></div>
-      <p class="footnote">14 days free, then $20/month. Cancel anytime. Have a comp code? Enter it above to skip payment. We'll email your first digest and a link to your portal.</p>
+      <p class="footnote" id="footnote-price">14 days free, then $20/month. Cancel anytime. Have a comp code? Enter it above to skip payment. We'll email your first digest and a link to your portal.</p>
     </div>
   </div>
 
@@ -322,6 +341,27 @@ function getAcquisitionSource() {
 
 </div>
 
+<style>
+  /* Plan chooser. The annual price existed in Stripe and in the API from the
+     start, but this page hardcoded plan:'monthly', so the homepage's annual
+     button landed here and silently billed monthly. Showing both here makes
+     the cheaper-per-month option visible to everyone rather than only to
+     people who happened to click the right link. */
+  .plan-choice { display:flex; gap:12px; flex-wrap:wrap; margin-top:4px; }
+  .plan-opt { flex:1 1 180px; position:relative; display:flex; flex-direction:column;
+              gap:2px; border:1.5px solid var(--border,#d8d3c8); border-radius:10px;
+              padding:14px 16px; cursor:pointer; background:#fff; transition:border-color .12s; }
+  .plan-opt:hover { border-color:var(--green-lt,#7ab870); }
+  .plan-opt.selected { border-color:var(--green,#5a9e52); box-shadow:0 0 0 1px var(--green,#5a9e52) inset; }
+  .plan-opt input { position:absolute; opacity:0; pointer-events:none; }
+  .plan-name { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+               color:var(--muted,#8a8578); }
+  .plan-price { font-family:'Fraunces',serif; font-size:24px; font-weight:700;
+                color:var(--ink,#1a1a14); line-height:1.1; }
+  .plan-per { font-family:'Jost',sans-serif; font-size:13px; font-weight:400;
+              color:var(--muted,#8a8578); }
+  .plan-note { font-size:12px; font-weight:400; color:var(--green-dk,#3d7a38); }
+</style>
 <script src="https://js.stripe.com/v3/"></script>
 <style>
   .card-input { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; background: var(--white); }
@@ -335,6 +375,38 @@ const API = 'https://fundbug-production.up.railway.app';
 
 // Carry an optional referral code from the URL (?ref=CODE).
 const REF = new URLSearchParams(window.location.search).get('ref') || null;
+
+// Honour ?plan=annual from the homepage pricing table. Anything unrecognised
+// falls back to monthly rather than being passed through to Stripe.
+let SELECTED_PLAN = (new URLSearchParams(window.location.search).get('plan') === 'annual')
+  ? 'annual' : 'monthly';
+
+// Applied on load as well, so arriving with ?plan=annual shows the annual
+// price rather than monthly copy next to an annual charge.
+const PLAN_COPY = {
+  monthly: { pay: 'Free for 14 days, then $20/month. Cancel anytime, and we\'ll remind you before the trial ends.',
+             foot: '14 days free, then $20/month. Cancel anytime.' },
+  annual:  { pay: 'Free for 14 days, then $200/year. Cancel anytime, and we\'ll remind you before the trial ends.',
+             foot: '14 days free, then $200/year. Cancel anytime.' },
+};
+
+function setPlan(plan) {
+  SELECTED_PLAN = (plan === 'annual') ? 'annual' : 'monthly';
+  document.getElementById('plan-opt-monthly').classList.toggle('selected', SELECTED_PLAN === 'monthly');
+  document.getElementById('plan-opt-annual').classList.toggle('selected', SELECTED_PLAN === 'annual');
+  const radio = document.querySelector('input[name=plan][value="' + SELECTED_PLAN + '"]');
+  if (radio) radio.checked = true;
+  const pay = document.getElementById('pay-explanation');
+  if (pay) pay.textContent = PLAN_COPY[SELECTED_PLAN].pay;
+  const foot = document.getElementById('footnote-price');
+  if (foot) {
+    foot.textContent = PLAN_COPY[SELECTED_PLAN].foot
+      + ' Have a comp code? Enter it above to skip payment.'
+      + ' We\'ll email your first digest and a link to your portal.';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function () { setPlan(SELECTED_PLAN); });
 
 // ── Stripe (paid path, the default) ──────────────────────────────────────────
 let stripe = null, cardEl = null, stripeReady = false;
@@ -526,7 +598,7 @@ async function submitThin() {
     referral_code,
     acquisition_source: getAcquisitionSource(),
     payment_method_id,
-    plan: 'monthly',
+    plan: SELECTED_PLAN,
   };
 
   try {
