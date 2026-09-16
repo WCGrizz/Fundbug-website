@@ -2086,7 +2086,18 @@ async function bootstrapApp() {
   }
   document.getElementById('loginWrap').style.display = 'flex';
 }
-bootstrapApp();
+// bootstrapApp() must wait for every script block on the page to be parsed.
+// It calls showApp(), which calls loadPassport(), and loadPassport is declared
+// in the SECOND <script> block further down this file. Function declarations
+// hoist within their own script element only, so calling bootstrapApp() here
+// threw "loadPassport is not defined" (2026-09-16), which killed the rest of
+// showApp() and took loadReferral(), loadSubscription() and the #hash deep
+// link with it. DOMContentLoaded fires after both blocks have run.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootstrapApp);
+} else {
+  bootstrapApp();
+}
 
 // ── TRACKER ───────────────────────────────────────────────────────────────────
 
@@ -3187,13 +3198,19 @@ async function openDigest(logId) {
       const amt = p.amount ? `<span style="font-size:12px;color:var(--muted)">${escapeHtml(p.amount)}</span>` : '';
       const near = (p.days_until_deadline!=null && p.days_until_deadline<=30 && p.days_until_deadline>=0);
       const dl = p.deadline_display ? `<div style="font-size:12px;color:${near?'var(--red)':'var(--muted)'};margin-top:3px">Deadline: ${escapeHtml(p.deadline_display)}${(p.days_until_deadline!=null && p.days_until_deadline>=0)?` (${p.days_until_deadline} days)`:''}</div>` : '';
+      // A program that has since gone inactive, been excluded, or dropped out
+      // of program_groups entirely. It was in the digest we sent, so it stays
+      // on the list rather than vanishing, but nobody should chase it.
+      const gone = p.no_longer_listed ? `<span style="display:inline-block;padding:2px 9px;border-radius:11px;background:rgba(0,0,0,.06);color:var(--muted);font-size:11px;font-weight:500;margin-right:6px">No longer listed</span>` : '';
+      const cost = p.participation_cost ? `<div style="font-size:12px;color:#b07d3a;margin-top:3px">Cost to participate: ${escapeHtml(p.participation_cost)}</div>` : '';
       const link = p.source_url ? `<a href="${encodeURI(p.source_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:13px;color:var(--green-dk);text-decoration:underline;white-space:nowrap">View &amp; apply →</a>` : '';
       return `<div onclick="jumpToTrackerProgram('${String(p.program_id).replace(/'/g,"\\'")}')" title="Open this program in your tracker" style="padding:14px 0;border-top:1px solid var(--border);cursor:pointer;transition:background .12s" onmouseover="this.style.background='rgba(90,158,82,.05)'" onmouseout="this.style.background='none'">
         <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start">
           <div style="flex:1;min-width:0">
             <div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:5px">${escapeHtml(p.title)}</div>
-            <div>${cap}${amt}</div>
+            <div>${gone}${cap}${amt}</div>
             ${dl}
+            ${cost}
           </div>
           <div style="flex-shrink:0;padding-top:2px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;text-align:right">
             <span style="font-size:12px;color:var(--green-dk);white-space:nowrap">Open in tracker →</span>
