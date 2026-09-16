@@ -335,6 +335,8 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .tracker-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .tracker-status-select{font-family:'Jost',sans-serif;font-size:14px;color:var(--ink);background:var(--cream);border:1px solid var(--border);border-radius:4px;padding:8px 28px 8px 12px;cursor:pointer;outline:none;min-height:40px;margin:0;width:auto;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a8578' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
 .tracker-status-select:focus{border-color:var(--green)}
+.tracker-prep-btn{display:inline-block;padding:9px 18px;background:var(--green);color:#fff;border:none;border-radius:5px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;min-height:40px;transition:background .15s}
+.tracker-prep-btn:hover{background:var(--green-lt)}
 .tracker-link{font-size:14px;color:var(--green-dk);text-decoration:none;font-weight:500;border-bottom:1px solid transparent;transition:border-color .12s;padding:8px 4px;display:inline-block;min-height:40px;line-height:1.6}
 .tracker-link:hover{border-color:var(--green-dk)}
 .tracker-dismiss{font-size:13px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:8px 4px;transition:color .12s;min-height:40px}
@@ -2204,11 +2206,11 @@ function buildTrackerCard(prog, isFav) {
         ${deadlineText ? `<span class="tracker-deadline ${isUrgent ? 'urgent' : ''}">Deadline: ${esc(deadlineText)}</span>` : ''}
       </div>
       <div class="tracker-actions">
+        <button class="tracker-prep-btn" onclick="openPrepPanel('${prog.program_id}')">Prep Application</button>
         <select class="tracker-status-select" onchange="updateStatus('${prog.program_id}', this.value)">${statusOptions}</select>
         ${prog.source_url ? `<a href="${esc(prog.source_url)}" target="_blank" rel="noopener" class="tracker-link">View program →</a>` : ''}
         <button class="fb-ask ${feedbackAnswered[prog.program_id] ? 'answered' : ''}"
                 onclick="openFeedback('${prog.program_id}')">${feedbackAnswered[prog.program_id] ? 'Update your answer' : "How'd it go?"}</button>
-        ${isFav && !isUser ? `<button class="tracker-link" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;font-weight:500;color:var(--green-dk);" onclick="openPrepPanel('${prog.program_id}', '${esc(prog.title)}')">Prep application</button>` : ''}
         ${isUser ? `<button class="tracker-link" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;font-weight:500;color:var(--green-dk);" onclick="openAddGrant('${prog.program_id}')">Edit</button>` : ''}
         <button class="tracker-dismiss" onclick="dismissProgram('${prog.program_id}')" title="Hide from list">✕ hide</button>
       </div>
@@ -2895,7 +2897,14 @@ async function handleFeedbackDeepLink() {
 let currentPrepProgramId = null;
 let currentPrepData = null;
 
-async function openPrepPanel(programId, programTitle) {
+async function openPrepPanel(programId) {
+  // The title is looked up here rather than passed through the onclick
+  // attribute. It used to arrive as a quoted string inside the inline
+  // handler, and esc() does not escape apostrophes, so any title with one
+  // (Hustler's MicroGrant) produced an unterminated string and the button
+  // threw "missing ) after argument list" before doing anything (2026-09-16).
+  const row = (trackerData || []).find(p => p.program_id === programId);
+  const programTitle = row ? (row.title || '') : '';
   currentPrepProgramId = programId;
   currentPrepData = null;
 
