@@ -424,6 +424,27 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .pr-progmeta{font-size:13px;color:#4a4a42;font-weight:400}
 .pr-promote{margin-top:12px;padding:14px 16px;background:var(--cream);border:1px solid var(--border);border-radius:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .pr-promote .pr-newname{width:100%}
+.dr-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:22px}
+.dr-tab{font-family:'Jost',sans-serif;font-size:15px;font-weight:500;color:#4a4a42;background:none;border:none;border-bottom:2px solid transparent;padding:10px 16px;cursor:pointer;margin-bottom:-1px}
+.dr-tab:hover{color:var(--ink)}
+.dr-tab.active{color:var(--green-dk);border-bottom-color:var(--green)}
+.dr-tabpane{display:none}
+.dr-tabpane.active{display:block}
+.pr-desc{max-height:3.3em;overflow:hidden;transition:max-height .18s}
+.pr-desc.open{max-height:none}
+.pr-more{font-size:14px;font-weight:500;color:var(--green-dk);background:none;border:none;padding:0;cursor:pointer;margin-bottom:12px}
+.pr-more:hover{text-decoration:underline}
+.pr-plan{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin-bottom:18px}
+.pr-plan h3{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;color:var(--ink);margin-bottom:12px}
+.pr-plan h4{font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+.pr-plan ul{list-style:none;margin:0}
+.pr-plan li{font-size:15px;color:var(--ink);font-weight:400;line-height:1.55;padding:5px 0 5px 22px;position:relative}
+.pr-plan li:before{content:'';position:absolute;left:0;top:11px;width:10px;height:10px;border:1.5px solid var(--green);border-radius:2px}
+.pr-plan .pr-dates li:before,.pr-plan .pr-elig li:before{border:none;background:var(--green);border-radius:50%;width:6px;height:6px;top:13px;left:2px}
+.pr-plan .pr-date-label{font-weight:500}
+.pr-plan .pr-submit{font-size:15px;color:var(--ink);font-weight:400;line-height:1.55}
+.pr-star{color:#c9a227;font-size:15px;flex:0 0 auto;width:14px}
+.pr-soon{font-size:13px;font-weight:600;color:#7a4c08;background:#fbf1dc;border-radius:12px;padding:3px 9px;white-space:nowrap}
 .pr-promote input{width:100%;font-family:'Jost',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:5px;padding:9px 12px;background:var(--white)}
 
 /* ── Feedback bubble ────────────────────────────────────────────────────── */
@@ -1260,6 +1281,12 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
           <div class="page-sub">The questions nearly every grant asks, answered in your voice from your Funding Passport. Edit anything, add your own, and reuse them on every application.</div>
         </div>
 
+        <div class="dr-tabs">
+          <button class="dr-tab active" id="drTabAnswers" onclick="drShowTab('answers')">My Answers</button>
+          <button class="dr-tab" id="drTabApps" onclick="drShowTab('apps')">Applications</button>
+        </div>
+
+        <div class="dr-tabpane active" id="drPaneAnswers">
         <div class="setup-card" id="drMeterCard">
           <div class="setup-head">
             <div class="setup-title">Drafting strength</div>
@@ -1274,8 +1301,8 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         <div class="dr-status" id="drStatus"></div>
 
         <div class="dr-toolbar" id="drToolbar" style="display:none">
-          <button class="dr-btn" id="drDraftBtn" onclick="draftLibrary()">Draft the standard questions</button>
-          <button class="dr-btn ghost" onclick="toggleAddQuestion()">Add a question</button>
+          <button class="dr-btn" id="drDraftBtn" onclick="draftLibrary()">Draft The Standard Questions</button>
+          <button class="dr-btn ghost" onclick="toggleAddQuestion()">Add A Question</button>
         </div>
 
         <div class="dr-add" id="drAdd">
@@ -1283,7 +1310,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
           <textarea id="drAddQuestion" rows="2" placeholder="The question, as a grant would ask it"></textarea>
           <textarea id="drAddAnswer" rows="4" placeholder="Your answer (optional; you can draft it later)"></textarea>
           <div class="dr-foot">
-            <button class="dr-btn small" onclick="submitAddQuestion()">Add to my answers</button>
+            <button class="dr-btn small" onclick="submitAddQuestion()">Add To My Answers</button>
             <button class="dr-btn ghost small" onclick="toggleAddQuestion(false)">Cancel</button>
           </div>
         </div>
@@ -1291,66 +1318,71 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         <div id="drEmpty" class="card dr-empty" style="display:none">
           <h3>Nothing drafted yet</h3>
           <p>Press the button and FundBug writes first drafts of the five questions nearly every grant asks, using what is in your Funding Passport. You edit them; nothing is submitted anywhere.</p>
-          <button class="dr-btn" id="drEmptyBtn" onclick="draftLibrary()">Draft these for me</button>
+          <button class="dr-btn" id="drEmptyBtn" onclick="draftLibrary()">Draft These For Me</button>
           <div style="margin-top:12px"><a href="#" onclick="toggleAddQuestion(true);return false;" style="font-size:13px;color:var(--green-dk)">Or add a question of your own</a></div>
         </div>
 
         <div id="drCards"></div>
+        </div>
 
-        <div class="card" id="drProgramPicker" style="display:none;margin-top:22px">
-          <div class="setup-title" style="margin-bottom:4px">Working on a specific application</div>
-          <div class="dr-meter-note" style="margin-top:0;margin-bottom:6px">Open a program you are tracking to build its application question by question, using these answers as your starting point.</div>
-          <div class="pr-progs" id="drProgramList"></div>
+        <div class="dr-tabpane" id="drPaneApps">
+          <div class="card" id="drProgramPicker">
+            <div class="setup-title" style="margin-bottom:4px">Your Tracked Programs</div>
+            <div class="dr-meter-note" style="margin-top:0;margin-bottom:6px">Open one to build its application question by question. Favorites come first, then whatever closes soonest.</div>
+            <div class="pr-progs" id="drProgramList"></div>
+          </div>
         </div>
       </div>
 
       <div class="page" id="page-program">
-        <button class="pr-back" onclick="backToLibrary()">&larr; All my answers</button>
+        <button class="pr-back" onclick="backToLibrary()">&larr; All My Answers</button>
         <div id="prProgram"></div>
         <div class="dr-status" id="prStatus"></div>
 
         <div class="pr-import" id="prImport">
-          <h3>Add the application's questions</h3>
+          <h3>Add The Application's Questions</h3>
           <p>Paste the application text or upload its PDF, and FundBug pulls out the questions it asks. You confirm the list before anything is added.</p>
           <textarea id="prPaste" placeholder="Paste the application text here"></textarea>
           <div class="pr-or">or</div>
           <input type="file" id="prFile" accept="application/pdf,.pdf" class="pr-file">
           <div class="dr-foot" style="margin-top:14px">
-            <button class="dr-btn" id="prExtractBtn" onclick="extractApplication()">Find the questions</button>
+            <button class="dr-btn" id="prExtractBtn" onclick="extractApplication()">Find The Questions</button>
             <button class="dr-btn ghost" onclick="toggleImport(false)">Cancel</button>
           </div>
         </div>
 
         <div class="pr-found" id="prFound">
-          <h3>Questions found</h3>
+          <h3>Questions Found</h3>
           <p id="prFoundSub"></p>
           <div id="prFoundList"></div>
           <div class="dr-foot" style="margin-top:14px">
-            <button class="dr-btn" onclick="confirmExtracted()">Add the checked questions</button>
+            <button class="dr-btn" onclick="confirmExtracted()">Add The Checked Questions</button>
             <button class="dr-btn ghost" onclick="document.getElementById('prFound').classList.remove('show')">Discard</button>
           </div>
         </div>
 
+        <div class="pr-plan" id="prPlan" style="display:none"></div>
+
         <div class="pr-pick" id="prPick">
-          <button class="dr-btn" onclick="toggleImport()">Paste or upload the application</button>
+          <button class="dr-btn" onclick="toggleImport()">Paste Or Upload The Application</button>
           <span class="pr-or" style="margin:0">or add one at a time:</span>
           <select id="prLibPick" aria-label="Add a question from your answers"></select>
-          <button class="dr-btn ghost" onclick="addSlotFromLibrary()">From my answers</button>
-          <button class="dr-btn ghost" onclick="toggleAddBlank()">Write a new question</button>
+          <button class="dr-btn ghost" onclick="addSlotFromLibrary()">From My Answers</button>
+          <button class="dr-btn ghost" onclick="toggleAddBlank()">Write A New Question</button>
         </div>
 
         <div class="dr-add" id="prAddBlank">
           <div class="dr-field-label">The question, as the application asks it</div>
           <textarea id="prBlankQ" rows="3" placeholder="For example: Describe the community impact of this project. (250 words)"></textarea>
           <div class="dr-foot">
-            <button class="dr-btn small" onclick="submitBlankSlot()">Add this question</button>
+            <button class="dr-btn small" onclick="submitBlankSlot()">Add This Question</button>
             <button class="dr-btn ghost small" onclick="toggleAddBlank(false)">Cancel</button>
           </div>
         </div>
 
         <div class="dr-toolbar" id="prToolbar" style="display:none">
-          <button class="dr-btn" id="prDraftAllBtn" onclick="draftAllSlots()">Draft all answers</button>
-          <button class="dr-btn ghost" onclick="downloadApplication()">Download for review</button>
+          <button class="dr-btn" id="prDraftAllBtn" onclick="draftAllSlots()">Draft All Answers</button>
+          <button class="dr-btn ghost" onclick="downloadApplication()">Download For Review</button>
           <span class="dr-meta" id="prProgress"></span>
         </div>
 
@@ -4041,6 +4073,14 @@ function drWhen(iso){
   return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
 }
 
+function drShowTab(which){
+  const answers = which === 'answers';
+  document.getElementById('drPaneAnswers').classList.toggle('active', answers);
+  document.getElementById('drPaneApps').classList.toggle('active', !answers);
+  document.getElementById('drTabAnswers').classList.toggle('active', answers);
+  document.getElementById('drTabApps').classList.toggle('active', !answers);
+}
+
 async function loadDrafting(){
   drStatus('Loading your answers...');
   try{
@@ -4082,7 +4122,7 @@ function renderDrafting(){
   if(!answers.length){
     empty.style.display='block'; toolbar.style.display='none';
     document.getElementById('drEmptyBtn').disabled=!p.ready;
-    document.getElementById('drEmptyBtn').textContent=p.ready?'Draft these for me':'Complete your Passport first';
+    document.getElementById('drEmptyBtn').textContent=p.ready?'Draft These For Me':'Complete your Passport first';
     cards.innerHTML='';
     return;
   }
@@ -4291,10 +4331,21 @@ function prStatus(msg, isErr){
   el.textContent=msg||''; el.className='dr-status'+(isErr?' err':'');
 }
 
+function prToggleDesc(btn){
+  const d=document.getElementById('prDesc'); if(!d) return;
+  btn.textContent = d.classList.toggle('open') ? 'Show less' : 'Show more';
+}
+
 function openProgramDrafting(pid){
   if (typeof event !== 'undefined' && event && event.preventDefault) event.preventDefault();
-  window.location.hash = 'drafting/' + encodeURIComponent(pid);
-  showProgramView(pid);
+  // Setting the hash fires hashchange, which loads the view. Calling
+  // showProgramView here too started two loads of the same page, and a slow
+  // response for the program you just left could land on top of the one you
+  // are on (2026-09-17: the Express program showing Hustler's apply link).
+  // The hash is the single trigger now.
+  const target = 'drafting/' + encodeURIComponent(pid);
+  if ((window.location.hash || '').replace('#','') === target) showProgramView(pid);
+  else window.location.hash = target;
 }
 function backToLibrary(){
   if (prHasUnsaved() && !confirm('You have unsaved answers on this application. Leave without saving?')) return;
@@ -4311,18 +4362,23 @@ function showProgramView(pid){
   loadProgramDrafting(pid);
 }
 
+let prLoadToken = 0;
 async function loadProgramDrafting(pid){
+  const mine = ++prLoadToken;      // only the newest load may paint
   prPid = pid;
   prDirty.clear();
   prStatus('Loading this application...');
   document.getElementById('prSlots').innerHTML = '';
   try{
-    prData = await apiFetch('/api/portal/drafts/program/' + encodeURIComponent(pid));
+    const data = await apiFetch('/api/portal/drafts/program/' + encodeURIComponent(pid));
+    if (mine !== prLoadToken) return;
+    prData = data;
     renderProgramHeader(prData.program, prData.passport);
     renderLibraryPicker(prData.library);
     renderSlots(prData.slots);
     prStatus('');
   }catch(e){
+    if (mine !== prLoadToken) return;
     prStatus(e.status===404 ? 'That program is not in your tracker.' : e.message, true);
   }
 }
@@ -4340,7 +4396,8 @@ function renderProgramHeader(p, passport){
     <div class="pr-prog">
       <h2>${drEsc(p.title)}</h2>
       <div class="pr-facts">${facts.join('')}</div>
-      ${p.description?`<div class="pr-desc">${drEsc(p.description)}</div>`:''}
+      ${p.description?`<div class="pr-desc" id="prDesc">${drEsc(p.description)}</div>
+        ${p.description.length>220?`<button class="pr-more" onclick="prToggleDesc(this)">Show more</button>`:''}`:''}
       ${p.eligibility_quote?`<div class="pr-quote">${drEsc(p.eligibility_quote)}</div>`:''}
       ${p.source_url?`<a class="pr-apply" href="${drEsc(p.source_url)}" target="_blank" rel="noopener">Open the program page &rarr;</a>`:''}
       ${passport && !passport.ready?`<div class="dr-stale">FundBug cannot draft for you until your Funding Passport has: ${drEsc(passport.missing_for_drafting.join(', '))}. You can still write answers yourself.</div>`:''}
@@ -4397,10 +4454,10 @@ function renderSlots(slots){
       <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="prMarkDirty('${drEsc(s.id)}');drAutosize(this)" placeholder="Write your answer, or press Adapt to this program." aria-label="Answer ${n}">${drEsc(s.answer_text)}</textarea>
       <div class="dr-foot">
         <button class="dr-btn small" id="prsave-${drEsc(s.id)}" onclick="saveSlot('${drEsc(s.id)}')">Save</button>
-        <button class="dr-btn ghost small" onclick="adaptSlot('${drEsc(s.id)}')" ${ready?'':'disabled title="Complete your Passport first"'}>Adapt to this program</button>
+        <button class="dr-btn ghost small" onclick="adaptSlot('${drEsc(s.id)}')" ${ready?'':'disabled title="Complete your Passport first"'}>Adapt To This Program</button>
         <button class="dr-btn ghost small" onclick="undoSlot('${drEsc(s.id)}')">Undo</button>
         <button class="dr-btn ghost small" onclick="copySlot('${drEsc(s.id)}',this)">Copy</button>
-        <button class="dr-btn ghost small" onclick="promoteSlot('${drEsc(s.id)}')">Save to my answers</button>
+        <button class="dr-btn ghost small" onclick="promoteSlot('${drEsc(s.id)}')">Save To My Answers</button>
         <span class="spacer"></span>
         <span class="dr-meta">${isDraft?'Drafted':'Saved'} ${drEsc(drWhen(isDraft?s.generated_at:(s.reviewed_at||s.updated_at)))}</span>
         <button class="dr-btn danger small" onclick="deleteSlot('${drEsc(s.id)}')">Remove</button>
@@ -4581,7 +4638,7 @@ async function draftAllSlots(){
     if(e.status===409 && e.detail && e.detail.missing_for_drafting){
       prStatus('Add to your Funding Passport first: '+e.detail.missing_for_drafting.join(', ')+'.', true);
     } else prStatus(e.message, true);
-  }finally{ btn.disabled=false; btn.textContent='Draft all answers'; }
+  }finally{ btn.disabled=false; btn.textContent='Draft All Answers'; }
 }
 
 // ── Write a new question, in the page rather than a browser prompt ──────────
@@ -4632,13 +4689,31 @@ async function extractApplication(){
     }
     prExtracted=data.questions||[];
     prUploadId=data.upload_id||null;
-    if(!prExtracted.length){ prStatus(data.message||'No questions found in that.', true); return; }
+    renderPlan(data);
+    if(!prExtracted.length){ prStatus(data.message||'Nothing to write was found in that.', true); toggleImport(false); return; }
     renderExtracted();
     toggleImport(false);
     prStatus('');
   }catch(e){ prStatus(e.message, true); }
-  finally{ btn.disabled=false; btn.textContent='Find the questions'; }
+  finally{ btn.disabled=false; btn.textContent='Find The Questions'; }
 }
+// Everything from the document that is not a question to write: what to
+// attach, when things are due, who is eligible, how to submit. Read-only and
+// above the slots, because this is the part people forget and lose on.
+function renderPlan(data){
+  const box=document.getElementById('prPlan');
+  const att=data.attachments||[], dates=data.dates||[], elig=data.eligibility||[], sub=data.submission||'';
+  if(!att.length && !dates.length && !elig.length && !sub){ box.style.display='none'; return; }
+  let h='<h3>What This Application Needs</h3>';
+  if(att.length) h+='<h4>Documents To Attach</h4><ul>'+att.map(a=>`<li>${drEsc(a)}</li>`).join('')+'</ul>';
+  if(dates.length) h+='<h4>Key Dates</h4><ul class="pr-dates">'+dates.map(d=>
+      `<li><span class="pr-date-label">${drEsc(d.label)}</span>${d.date?': '+drEsc(d.date):''}</li>`).join('')+'</ul>';
+  if(elig.length) h+='<h4>Eligibility</h4><ul class="pr-elig">'+elig.map(e=>`<li>${drEsc(e)}</li>`).join('')+'</ul>';
+  if(sub) h+='<h4>How To Submit</h4><div class="pr-submit">'+drEsc(sub)+'</div>';
+  box.innerHTML=h;
+  box.style.display='block';
+}
+
 function renderExtracted(){
   const box=document.getElementById('prFound');
   document.getElementById('prFoundSub').textContent =
@@ -4675,13 +4750,30 @@ async function renderProgramPicker(){
   try{
     const t=await apiFetch('/api/portal/tracker');
     const progs=(t.programs||[]).filter(p=>!p.dismissed);
-    if(!progs.length){ card.style.display='none'; return; }
-    list.innerHTML=progs.slice(0,40).map(p=>`
+    if(!progs.length){
+      list.innerHTML='<div class="dr-meter-note" style="margin-top:0">Nothing in your tracker yet. Star a program in a digest and it will show up here.</div>';
+      return;
+    }
+    // Order: favorites first, then whatever closes soonest, then newest.
+    const days=p=>{ const d=p.days_until_deadline; return (d==null||d<0)?99999:d; };
+    progs.sort((a,b)=>{
+      if(!!b.is_favorite !== !!a.is_favorite) return b.is_favorite?1:-1;
+      const da=days(a), db=days(b);
+      if(da!==db) return da-db;
+      return (b.created_at||'').localeCompare(a.created_at||'');
+    });
+    list.innerHTML=progs.slice(0,40).map(p=>{
+      const d=p.days_until_deadline;
+      const soon=(d!=null && d>=0 && d<=30);
+      return `
       <div class="pr-progrow" onclick="openProgramDrafting('${drEsc(p.program_id)}')">
+        <span class="pr-star">${p.is_favorite?'&#9733;':''}</span>
         <span class="pr-progname">${drEsc(p.title)}</span>
-        <span class="pr-progmeta">${drEsc(p.capital_type||'')}</span>
+        ${soon?`<span class="pr-soon">${d===0?'Closes today':(d===1?'1 day left':d+' days left')}</span>`:''}
+        <span class="pr-progmeta">${drEsc(p.deadline_display||p.capital_type||'')}</span>
         <span class="pr-progmeta">&rarr;</span>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     card.style.display='block';
   }catch(_){ card.style.display='none'; }
 }
