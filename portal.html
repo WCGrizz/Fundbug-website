@@ -343,7 +343,8 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .dr-meter{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .dr-meter .setup-bar{flex:1;min-width:160px;margin:0}
 .dr-meter-pct{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:600;color:var(--green-dk);min-width:64px}
-.dr-meter-note{width:100%;font-size:13px;color:var(--muted);font-weight:300;margin-top:6px}
+.dr-meter-note{width:100%;font-size:15px;color:var(--ink);font-weight:400;line-height:1.55;margin-top:8px}
+.dr-meter-note a{color:var(--green-dk);font-weight:500}
 .dr-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
 .dr-btn{display:inline-block;padding:10px 18px;border-radius:5px;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;cursor:pointer;border:1px solid transparent;min-height:42px;transition:all .12s;background:var(--green);color:#fff}
 .dr-btn:hover{background:var(--green-lt)}
@@ -353,11 +354,11 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .dr-btn.danger{background:transparent;color:#a33;border-color:transparent;padding-left:8px;padding-right:8px}
 .dr-btn.danger:hover{background:rgba(170,51,51,.06)}
 .dr-btn.small{padding:7px 12px;font-size:13px;min-height:34px}
-.dr-status{font-size:13px;color:var(--muted);margin:4px 0 14px;min-height:18px}
+.dr-status{font-size:15px;color:var(--ink);font-weight:400;margin:4px 0 14px;min-height:20px}
 .dr-status.err{color:#a33}
 .dr-empty{text-align:center;padding:36px 20px}
 .dr-empty h3{font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:600;margin-bottom:8px;color:var(--ink)}
-.dr-empty p{font-size:14px;color:var(--muted);font-weight:300;max-width:520px;margin:0 auto 18px}
+.dr-empty p{font-size:15px;color:var(--ink);font-weight:400;line-height:1.6;max-width:560px;margin:0 auto 18px}
 .dr-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:22px 24px;margin-bottom:16px;box-shadow:0 1px 2px rgba(26,26,20,.04)}
 .dr-card.dirty{border-color:var(--green)}
 .dr-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
@@ -366,21 +367,21 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .dr-badge{padding:3px 10px;border-radius:11px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
 .dr-badge.draft{background:#fbf1dc;color:#8a5a12}
 .dr-badge.yours{background:rgba(90,158,82,.14);color:var(--green-dk)}
-.dr-q{width:100%;font-family:'Jost',sans-serif;font-size:13px;color:var(--muted);font-weight:300;border:1px solid transparent;border-radius:5px;padding:6px 8px;background:transparent;resize:vertical;min-height:40px;line-height:1.5}
-.dr-q:hover,.dr-q:focus{border-color:var(--border);background:var(--cream);outline:none;color:var(--ink)}
-.dr-a{width:100%;font-family:'Jost',sans-serif;font-size:15px;line-height:1.65;color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-top:8px;min-height:130px;resize:vertical;background:var(--white)}
+.dr-q{width:100%;font-family:'Jost',sans-serif;font-size:15px;color:#3a3a33;font-weight:400;border:1px solid var(--border);border-radius:6px;padding:10px 12px;background:var(--cream);resize:vertical;min-height:72px;line-height:1.55;overflow:hidden}
+.dr-q:focus{border-color:var(--green);outline:none;color:var(--ink);background:var(--white)}
+.dr-a{width:100%;font-family:'Jost',sans-serif;font-size:16px;line-height:1.7;color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-top:10px;min-height:220px;resize:vertical;background:var(--white);overflow:hidden}
 .dr-a:focus{outline:none;border-color:var(--green)}
 .dr-a.is-draft{background:#fffdf7}
-.dr-a::placeholder{color:#b8b4a8}
+.dr-a::placeholder{color:#8f8b80}
 .dr-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
 .dr-foot .spacer{flex:1}
-.dr-meta{font-size:12px;color:var(--muted);font-weight:300}
-.dr-stale{font-size:12px;color:#8a5a12;margin-top:6px}
+.dr-meta{font-size:13px;color:#4a4a42;font-weight:400}
+.dr-stale{font-size:14px;color:#7a4c08;font-weight:400;margin-top:8px}
 .dr-add{border:1px dashed var(--border);border-radius:10px;padding:18px 22px;margin-bottom:16px;display:none}
 .dr-add.show{display:block}
 .dr-add input,.dr-add textarea{width:100%;font-family:'Jost',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:5px;padding:10px 12px;margin-bottom:10px;background:var(--white)}
 .dr-add input:focus,.dr-add textarea:focus{outline:none;border-color:var(--green)}
-.dr-note{font-size:13px;color:var(--muted);font-weight:300;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+.dr-note{font-size:14px;color:#4a4a42;font-weight:400;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
 
 /* ── Feedback bubble ────────────────────────────────────────────────────── */
 .fb-bubble{position:fixed;right:22px;bottom:22px;z-index:9000;font-family:'Jost',sans-serif}
@@ -389,7 +390,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .fb-panel{display:none;position:absolute;right:0;bottom:64px;width:320px;max-width:calc(100vw - 44px);background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 40px rgba(26,26,20,.18);padding:16px 16px 14px}
 .fb-panel.open{display:block}
 .fb-panel h4{font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:600;color:var(--ink);margin-bottom:4px}
-.fb-panel p{font-size:12.5px;color:var(--muted);font-weight:300;margin-bottom:10px}
+.fb-panel p{font-size:14px;color:#3a3a33;font-weight:400;line-height:1.5;margin-bottom:10px}
 .fb-panel textarea{width:100%;min-height:110px;font-family:'Jost',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:6px;padding:10px 12px;resize:vertical;background:var(--white)}
 .fb-panel textarea:focus{outline:none;border-color:var(--green)}
 .fb-row{display:flex;align-items:center;gap:8px;margin-top:10px}
@@ -3978,8 +3979,8 @@ function renderDrafting(){
         <input class="dr-label" value="${drEsc(a.label)}" maxlength="120" oninput="drMarkDirty('${drEsc(qt)}')" aria-label="Question name">
         <span class="dr-badge ${isDraft?'draft':'yours'}">${isDraft?'Draft':'Yours'}</span>
       </div>
-      <textarea class="dr-q" rows="2" oninput="drMarkDirty('${drEsc(qt)}')" aria-label="Question">${drEsc(a.question_text)}</textarea>
-      <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="drMarkDirty('${drEsc(qt)}')" placeholder="${p.ready?'Write your answer, or press Regenerate to draft one.':'Write your answer here.'}" aria-label="Answer">${drEsc(a.answer_text)}</textarea>
+      <textarea class="dr-q" oninput="drMarkDirty('${drEsc(qt)}');drAutosize(this)" aria-label="Question">${drEsc(a.question_text)}</textarea>
+      <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="drMarkDirty('${drEsc(qt)}');drAutosize(this)" placeholder="${p.ready?'Write your answer, or press Regenerate to draft one.':'Write your answer here.'}" aria-label="Answer">${drEsc(a.answer_text)}</textarea>
       ${stale?'<div class="dr-stale">Your Funding Passport has changed since this was written. Regenerate to use the new details, or leave it as is.</div>':''}
       <div class="dr-foot">
         <button class="dr-btn small" onclick="saveAnswer('${drEsc(qt)}')" id="drsave-${drEsc(qt)}">Save</button>
@@ -3991,8 +3992,20 @@ function renderDrafting(){
       </div>
     </div>`;
   }).join('');
+  requestAnimationFrame(drAutosizeAll);
 }
 
+// A box is as tall as its content, never shorter than its CSS min-height,
+// so nobody drags a corner to read their own answer. Runs after each render
+// and on every keystroke.
+function drAutosize(el){
+  if(!el) return;
+  el.style.height='auto';
+  el.style.height=(el.scrollHeight+2)+'px';
+}
+function drAutosizeAll(){
+  document.querySelectorAll('#drCards .dr-q, #drCards .dr-a').forEach(drAutosize);
+}
 function drMarkDirty(qt){
   drDirty.add(qt);
   const c=document.getElementById('drc-'+qt); if(c) c.classList.add('dirty');
