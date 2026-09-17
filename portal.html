@@ -1340,13 +1340,13 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         <div class="dr-status" id="prStatus"></div>
 
         <div class="pr-import" id="prImport">
-          <h3>Add The Application's Questions</h3>
-          <p>Paste the application text or upload its PDF, and FundBug pulls out the questions it asks. You confirm the list before anything is added.</p>
-          <textarea id="prPaste" placeholder="Paste the application text here"></textarea>
-          <div class="pr-or">or</div>
+          <h3>Relevant Files</h3>
+          <p>Upload the RFP, guidelines or application form, or paste the text. FundBug reads it and pulls out what you have to write, what to attach, the dates and who is eligible. You confirm the questions before anything is added. PDFs up to 25 pages.</p>
           <input type="file" id="prFile" accept="application/pdf,.pdf" class="pr-file">
+          <div class="pr-or">or paste the text</div>
+          <textarea id="prPaste" placeholder="Paste from the program's page or application form"></textarea>
           <div class="dr-foot" style="margin-top:14px">
-            <button class="dr-btn" id="prExtractBtn" onclick="extractApplication()">Find The Questions</button>
+            <button class="dr-btn" id="prExtractBtn" onclick="extractApplication()">Read It</button>
             <button class="dr-btn ghost" onclick="toggleImport(false)">Cancel</button>
           </div>
         </div>
@@ -1364,7 +1364,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         <div class="pr-plan" id="prPlan" style="display:none"></div>
 
         <div class="pr-pick" id="prPick">
-          <button class="dr-btn" onclick="toggleImport()">Paste Or Upload The Application</button>
+          <button class="dr-btn" onclick="toggleImport()">Add Relevant Files</button>
           <span class="pr-or" style="margin:0">or add one at a time:</span>
           <select id="prLibPick" aria-label="Add a question from your answers"></select>
           <button class="dr-btn ghost" onclick="addSlotFromLibrary()">From My Answers</button>
@@ -4335,6 +4335,14 @@ function prToggleDesc(btn){
   const d=document.getElementById('prDesc'); if(!d) return;
   btn.textContent = d.classList.toggle('open') ? 'Show less' : 'Show more';
 }
+// The button appears only when the text is actually clipped, measured after
+// layout. A character count guessed wrong: a description just over three
+// lines was cut off with no way to open it (2026-09-17).
+function prSyncDescMore(){
+  const d=document.getElementById('prDesc'), b=document.getElementById('prDescMore');
+  if(!d || !b) return;
+  b.style.display = (d.scrollHeight - d.clientHeight > 2) ? 'block' : 'none';
+}
 
 function openProgramDrafting(pid){
   if (typeof event !== 'undefined' && event && event.preventDefault) event.preventDefault();
@@ -4397,11 +4405,12 @@ function renderProgramHeader(p, passport){
       <h2>${drEsc(p.title)}</h2>
       <div class="pr-facts">${facts.join('')}</div>
       ${p.description?`<div class="pr-desc" id="prDesc">${drEsc(p.description)}</div>
-        ${p.description.length>220?`<button class="pr-more" onclick="prToggleDesc(this)">Show more</button>`:''}`:''}
+        <button class="pr-more" id="prDescMore" onclick="prToggleDesc(this)" style="display:none">Show more</button>`:''}
       ${p.eligibility_quote?`<div class="pr-quote">${drEsc(p.eligibility_quote)}</div>`:''}
       ${p.source_url?`<a class="pr-apply" href="${drEsc(p.source_url)}" target="_blank" rel="noopener">Open the program page &rarr;</a>`:''}
       ${passport && !passport.ready?`<div class="dr-stale">FundBug cannot draft for you until your Funding Passport has: ${drEsc(passport.missing_for_drafting.join(', '))}. You can still write answers yourself.</div>`:''}
     </div>`;
+  requestAnimationFrame(prSyncDescMore);
 }
 
 function renderLibraryPicker(lib){
@@ -4674,10 +4683,10 @@ async function extractApplication(){
   const text=document.getElementById('prPaste').value.trim();
   const fileEl=document.getElementById('prFile');
   const file=fileEl.files&&fileEl.files[0];
-  if(!text && !file){ prStatus('Paste the application text or choose the PDF.', true); return; }
+  if(!text && !file){ prStatus('Choose a file or paste the text first.', true); return; }
   const btn=document.getElementById('prExtractBtn');
   btn.disabled=true; btn.textContent='Reading...';
-  prStatus('Reading the application. This takes up to a minute for a long one.');
+  prStatus('Reading it. A long document takes up to a minute.');
   try{
     const fd=new FormData();
     if(file) fd.append('file', file); else fd.append('text', text);
@@ -4690,12 +4699,16 @@ async function extractApplication(){
     prExtracted=data.questions||[];
     prUploadId=data.upload_id||null;
     renderPlan(data);
-    if(!prExtracted.length){ prStatus(data.message||'Nothing to write was found in that.', true); toggleImport(false); return; }
+    if(!prExtracted.length){
+      prStatus([data.notice, data.message||'Nothing to write was found in that.'].filter(Boolean).join(' '), true);
+      toggleImport(false);
+      return;
+    }
     renderExtracted();
     toggleImport(false);
-    prStatus('');
+    prStatus(data.notice||'');
   }catch(e){ prStatus(e.message, true); }
-  finally{ btn.disabled=false; btn.textContent='Find The Questions'; }
+  finally{ btn.disabled=false; btn.textContent='Read It'; }
 }
 // Everything from the document that is not a question to write: what to
 // attach, when things are due, who is eligible, how to submit. Read-only and
