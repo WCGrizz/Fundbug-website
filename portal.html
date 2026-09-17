@@ -385,6 +385,47 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .dr-add input:focus,.dr-add textarea:focus{outline:none;border-color:var(--green)}
 .dr-note{font-size:14px;color:#4a4a42;font-weight:400;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
 
+/* ── Per-program drafting (Stage 2b) ─────────────────────────────────── */
+.pr-back{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--green-dk);cursor:pointer;background:none;border:none;padding:0;margin-bottom:14px}
+.pr-back:hover{text-decoration:underline}
+.pr-prog{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:22px 24px;margin-bottom:18px}
+.pr-prog h2{font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:600;color:var(--ink);line-height:1.25;margin-bottom:10px}
+.pr-facts{display:flex;flex-wrap:wrap;gap:8px 10px;margin-bottom:14px}
+.pr-fact{font-size:13px;font-weight:500;color:var(--ink);background:var(--cream);border:1px solid var(--border);border-radius:20px;padding:5px 12px}
+.pr-fact.warn{background:#fbf1dc;border-color:#e8d5a8;color:#7a4c08}
+.pr-desc{font-size:15px;color:var(--ink);font-weight:400;line-height:1.65;margin-bottom:10px}
+.pr-quote{font-size:14px;color:#3a3a33;font-weight:400;line-height:1.6;border-left:3px solid var(--green);background:var(--cream);padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:12px}
+.pr-apply{display:inline-block;font-size:14px;font-weight:500;color:var(--green-dk)}
+.pr-import{border:1px dashed var(--border);border-radius:10px;padding:20px 22px;margin-bottom:18px;background:var(--white);display:none}
+.pr-import.show{display:block}
+.pr-import h3{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.pr-import p{font-size:14px;color:#3a3a33;font-weight:400;line-height:1.55;margin-bottom:12px}
+.pr-import textarea{width:100%;min-height:120px;font-family:'Jost',sans-serif;font-size:15px;line-height:1.6;border:1px solid var(--border);border-radius:6px;padding:12px 14px;background:var(--white);resize:vertical}
+.pr-import textarea:focus{outline:none;border-color:var(--green)}
+.pr-or{font-size:14px;color:#4a4a42;font-weight:500;margin:10px 0}
+.pr-file{font-size:14px;color:var(--ink)}
+.pr-found{border:1px solid var(--green);border-radius:10px;padding:18px 20px;margin-bottom:18px;background:#fbfdfa;display:none}
+.pr-found.show{display:block}
+.pr-found h3{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.pr-found p{font-size:14px;color:#3a3a33;font-weight:400;margin-bottom:12px}
+.pr-qrow{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--border)}
+.pr-qrow:first-of-type{border-top:none}
+.pr-qrow input[type=checkbox]{margin-top:4px;width:17px;height:17px;accent-color:var(--green);flex:0 0 auto}
+.pr-qtext{flex:1;font-size:15px;color:var(--ink);font-weight:400;line-height:1.55}
+.pr-qlimit{font-size:13px;color:#4a4a42;font-weight:500;white-space:nowrap}
+.pr-slotnum{font-family:'Fraunces',Georgia,serif;font-size:15px;font-weight:600;color:var(--green-dk);margin-bottom:2px}
+.pr-pick{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.pr-pick select{font-family:'Jost',sans-serif;font-size:14px;color:var(--ink);border:1px solid var(--border);border-radius:5px;padding:9px 12px;background:var(--white);min-width:220px;min-height:42px}
+.pr-progs{margin-top:8px}
+.pr-progrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border);cursor:pointer}
+.pr-progrow:first-of-type{border-top:none}
+.pr-progrow:hover .pr-progname{color:var(--green-dk)}
+.pr-progname{flex:1;font-size:15px;font-weight:500;color:var(--ink)}
+.pr-progmeta{font-size:13px;color:#4a4a42;font-weight:400}
+.pr-promote{margin-top:12px;padding:14px 16px;background:var(--cream);border:1px solid var(--border);border-radius:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pr-promote .pr-newname{width:100%}
+.pr-promote input{width:100%;font-family:'Jost',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:5px;padding:9px 12px;background:var(--white)}
+
 /* ── Feedback bubble ────────────────────────────────────────────────────── */
 .fb-bubble{position:fixed;right:22px;bottom:22px;z-index:9000;font-family:'Jost',sans-serif}
 .fb-toggle{width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;border:none;cursor:pointer;box-shadow:0 6px 18px rgba(26,26,20,.22);font-size:22px;display:flex;align-items:center;justify-content:center;transition:transform .12s,background .12s}
@@ -1256,7 +1297,64 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 
         <div id="drCards"></div>
 
-        <div class="dr-note">Per-program drafting is next: open a program, paste its questions, and get answers adapted to that application from what you have here.</div>
+        <div class="card" id="drProgramPicker" style="display:none;margin-top:22px">
+          <div class="setup-title" style="margin-bottom:4px">Working on a specific application</div>
+          <div class="dr-meter-note" style="margin-top:0;margin-bottom:6px">Open a program you are tracking to build its application question by question, using these answers as your starting point.</div>
+          <div class="pr-progs" id="drProgramList"></div>
+        </div>
+      </div>
+
+      <div class="page" id="page-program">
+        <button class="pr-back" onclick="backToLibrary()">&larr; All my answers</button>
+        <div id="prProgram"></div>
+        <div class="dr-status" id="prStatus"></div>
+
+        <div class="pr-import" id="prImport">
+          <h3>Add the application's questions</h3>
+          <p>Paste the application text or upload its PDF, and FundBug pulls out the questions it asks. You confirm the list before anything is added.</p>
+          <textarea id="prPaste" placeholder="Paste the application text here"></textarea>
+          <div class="pr-or">or</div>
+          <input type="file" id="prFile" accept="application/pdf,.pdf" class="pr-file">
+          <div class="dr-foot" style="margin-top:14px">
+            <button class="dr-btn" id="prExtractBtn" onclick="extractApplication()">Find the questions</button>
+            <button class="dr-btn ghost" onclick="toggleImport(false)">Cancel</button>
+          </div>
+        </div>
+
+        <div class="pr-found" id="prFound">
+          <h3>Questions found</h3>
+          <p id="prFoundSub"></p>
+          <div id="prFoundList"></div>
+          <div class="dr-foot" style="margin-top:14px">
+            <button class="dr-btn" onclick="confirmExtracted()">Add the checked questions</button>
+            <button class="dr-btn ghost" onclick="document.getElementById('prFound').classList.remove('show')">Discard</button>
+          </div>
+        </div>
+
+        <div class="pr-pick" id="prPick">
+          <button class="dr-btn" onclick="toggleImport()">Paste or upload the application</button>
+          <span class="pr-or" style="margin:0">or add one at a time:</span>
+          <select id="prLibPick" aria-label="Add a question from your answers"></select>
+          <button class="dr-btn ghost" onclick="addSlotFromLibrary()">From my answers</button>
+          <button class="dr-btn ghost" onclick="toggleAddBlank()">Write a new question</button>
+        </div>
+
+        <div class="dr-add" id="prAddBlank">
+          <div class="dr-field-label">The question, as the application asks it</div>
+          <textarea id="prBlankQ" rows="3" placeholder="For example: Describe the community impact of this project. (250 words)"></textarea>
+          <div class="dr-foot">
+            <button class="dr-btn small" onclick="submitBlankSlot()">Add this question</button>
+            <button class="dr-btn ghost small" onclick="toggleAddBlank(false)">Cancel</button>
+          </div>
+        </div>
+
+        <div class="dr-toolbar" id="prToolbar" style="display:none">
+          <button class="dr-btn" id="prDraftAllBtn" onclick="draftAllSlots()">Draft all answers</button>
+          <button class="dr-btn ghost" onclick="downloadApplication()">Download for review</button>
+          <span class="dr-meta" id="prProgress"></span>
+        </div>
+
+        <div id="prSlots"></div>
       </div>
 
       <div class="page" id="page-referral">
@@ -1628,7 +1726,12 @@ function showApp() {
   // Honor URL hash for direct deep-link (e.g., from email: /portal.html#subscription)
   const rawHash = (window.location.hash || '').replace('#','');
   const hash = rawHash === 'profile' ? 'complete' : rawHash;  // legacy #profile links land on the Passport
-  if (hash && ['overview','complete','referral','subscription','account'].includes(hash)) {
+  if (hash.startsWith('drafting/')) {
+    showProgramView(decodeURIComponent(hash.slice('drafting/'.length)));
+  } else if (hash === 'drafting') {
+    const link = document.getElementById('nav-drafting');
+    if (link) link.click();
+  } else if (hash && ['overview','complete','referral','subscription','account'].includes(hash)) {
     const link = document.querySelector(`.sidebar-nav a[onclick*="'${hash}'"]`);
     if (link) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -2103,6 +2206,12 @@ function showPage(id, el) {
     if (!confirm('You have unsaved answers. Leave without saving?')) return;
     drClearDirty();
   }
+  const onProgram = document.getElementById('page-program').classList.contains('active');
+  if (onProgram && typeof prHasUnsaved === 'function' && prHasUnsaved()) {
+    if (!confirm('You have unsaved answers on this application. Leave without saving?')) return;
+    prDirty.clear();
+  }
+  if (onProgram && (window.location.hash||'').startsWith('#drafting/')) window.location.hash = '';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
@@ -2346,7 +2455,7 @@ function buildTrackerCard(prog, isFav) {
         ${deadlineText ? `<span class="tracker-deadline ${isUrgent ? 'urgent' : ''}">Deadline: ${esc(deadlineText)}</span>` : ''}
       </div>
       <div class="tracker-actions">
-        <button class="tracker-prep-btn" onclick="showPage('drafting', document.getElementById('nav-drafting'))">Prep Application</button>
+        <button class="tracker-prep-btn" onclick="openProgramDrafting('${prog.program_id}')">Prep Application</button>
         <select class="tracker-status-select" onchange="updateStatus('${prog.program_id}', this.value)">${statusOptions}</select>
         ${prog.source_url ? `<a href="${esc(prog.source_url)}" target="_blank" rel="noopener" class="tracker-link">View program →</a>` : ''}
         <button class="fb-ask ${feedbackAnswered[prog.program_id] ? 'answered' : ''}"
@@ -3415,7 +3524,18 @@ function clearPassportDirty(){
 // Warn on actual page close/reload with unsaved edits (browsers show their
 // own generic message; ours just opts in).
 window.addEventListener('beforeunload',e=>{
-  if(_ppDirty || (typeof drHasUnsaved==='function' && drHasUnsaved())){ e.preventDefault(); e.returnValue=''; }
+  if(_ppDirty || (typeof drHasUnsaved==='function' && drHasUnsaved())
+     || (typeof prHasUnsaved==='function' && prHasUnsaved())){ e.preventDefault(); e.returnValue=''; }
+});
+
+// Back and forward between #drafting and #drafting/<program_id>.
+window.addEventListener('hashchange',()=>{
+  const h=(window.location.hash||'').replace('#','');
+  if(h.startsWith('drafting/')){
+    showProgramView(decodeURIComponent(h.slice('drafting/'.length)));
+  } else if(h==='drafting' && document.getElementById('page-program').classList.contains('active')){
+    showPage('drafting', document.getElementById('nav-drafting'));
+  }
 });
 function wireCompleteTags(){
   if(_cpWired) return; _cpWired=true;
@@ -3927,6 +4047,7 @@ async function loadDrafting(){
     drData = await apiFetch('/api/portal/drafts/library');
     drDirty.clear();
     renderDrafting();
+    renderProgramPicker();
     drStatus('');
   }catch(e){ drStatus(e.message, true); }
 }
@@ -4151,6 +4272,418 @@ async function sendFeedback(){
   }catch(e){
     thanks.textContent=e.message;
   }finally{ btn.disabled=false; btn.textContent='Send'; }
+}
+
+
+// ─── PER-PROGRAM DRAFTING (Stage 2b) ────────────────────────────────────────
+// Reached at #drafting/<program_id>, so a reload keeps you where you were and
+// a tracker card can link straight in. Slots are this program's questions;
+// the library is the pool they are copied from.
+let prData = null;
+let prPid = null;
+let prDirty = new Set();
+let prExtracted = [];
+let prUploadId = null;
+
+function prHasUnsaved(){ return prDirty.size > 0; }
+function prStatus(msg, isErr){
+  const el=document.getElementById('prStatus'); if(!el) return;
+  el.textContent=msg||''; el.className='dr-status'+(isErr?' err':'');
+}
+
+function openProgramDrafting(pid){
+  if (typeof event !== 'undefined' && event && event.preventDefault) event.preventDefault();
+  window.location.hash = 'drafting/' + encodeURIComponent(pid);
+  showProgramView(pid);
+}
+function backToLibrary(){
+  if (prHasUnsaved() && !confirm('You have unsaved answers on this application. Leave without saving?')) return;
+  prDirty.clear();
+  window.location.hash = 'drafting';
+  showPage('drafting', document.getElementById('nav-drafting'));
+}
+function showProgramView(pid){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-program').classList.add('active');
+  const nav = document.getElementById('nav-drafting'); if (nav) nav.classList.add('active');
+  window.scrollTo(0,0);
+  loadProgramDrafting(pid);
+}
+
+async function loadProgramDrafting(pid){
+  prPid = pid;
+  prDirty.clear();
+  prStatus('Loading this application...');
+  document.getElementById('prSlots').innerHTML = '';
+  try{
+    prData = await apiFetch('/api/portal/drafts/program/' + encodeURIComponent(pid));
+    renderProgramHeader(prData.program, prData.passport);
+    renderLibraryPicker(prData.library);
+    renderSlots(prData.slots);
+    prStatus('');
+  }catch(e){
+    prStatus(e.status===404 ? 'That program is not in your tracker.' : e.message, true);
+  }
+}
+
+function renderProgramHeader(p, passport){
+  const facts=[];
+  if(p.capital_type) facts.push(`<span class="pr-fact">${drEsc(p.capital_type)}</span>`);
+  if(p.amount) facts.push(`<span class="pr-fact">${drEsc(p.amount)}</span>`);
+  if(p.deadline) facts.push(`<span class="pr-fact">Deadline: ${drEsc(p.deadline)}</span>`);
+  if(p.geography) facts.push(`<span class="pr-fact">${drEsc(p.geography)}</span>`);
+  if(p.participation_cost) facts.push(`<span class="pr-fact warn">Cost to participate: ${drEsc(p.participation_cost)}</span>`);
+  if(p.no_longer_listed) facts.push(`<span class="pr-fact warn">No longer listed</span>`);
+  if(p.is_user_added) facts.push(`<span class="pr-fact">You added this one</span>`);
+  document.getElementById('prProgram').innerHTML = `
+    <div class="pr-prog">
+      <h2>${drEsc(p.title)}</h2>
+      <div class="pr-facts">${facts.join('')}</div>
+      ${p.description?`<div class="pr-desc">${drEsc(p.description)}</div>`:''}
+      ${p.eligibility_quote?`<div class="pr-quote">${drEsc(p.eligibility_quote)}</div>`:''}
+      ${p.source_url?`<a class="pr-apply" href="${drEsc(p.source_url)}" target="_blank" rel="noopener">Open the program page &rarr;</a>`:''}
+      ${passport && !passport.ready?`<div class="dr-stale">FundBug cannot draft for you until your Funding Passport has: ${drEsc(passport.missing_for_drafting.join(', '))}. You can still write answers yourself.</div>`:''}
+    </div>`;
+}
+
+function renderLibraryPicker(lib){
+  const sel=document.getElementById('prLibPick');
+  const withAnswers=(lib||[]).filter(a=>(a.answer_text||'').trim());
+  if(!withAnswers.length){
+    sel.innerHTML='<option value="">No saved answers yet</option>';
+    sel.disabled=true;
+    return;
+  }
+  sel.disabled=false;
+  sel.innerHTML=withAnswers.map(a=>`<option value="${drEsc(a.question_type)}">${drEsc(a.label)}</option>`).join('');
+}
+
+function renderSlots(slots){
+  const wrap=document.getElementById('prSlots');
+  const toolbar=document.getElementById('prToolbar');
+  const answered=(slots||[]).filter(s=>(s.answer_text||'').trim()).length;
+  toolbar.style.display=(slots&&slots.length)?'flex':'none';
+  document.getElementById('prProgress').textContent=
+    (slots&&slots.length)?`${answered} of ${slots.length} answered`:'';
+  const draftAll=document.getElementById('prDraftAllBtn');
+  if(draftAll){
+    const ready=(prData&&prData.passport&&prData.passport.ready);
+    draftAll.disabled=!ready || answered===(slots||[]).length;
+    draftAll.title=ready?'':'Complete your Funding Passport first';
+  }
+  if(!slots || !slots.length){
+    wrap.innerHTML=`<div class="card dr-empty"><h3>No questions yet</h3>
+      <p>Paste the application and FundBug will pull its questions out, or add them one at a time from the answers you already have.</p></div>`;
+    return;
+  }
+  wrap.innerHTML=slots.map((s,i)=>{
+    const isDraft=s.review_status==='draft';
+    const n=i+1;
+    const ready=(prData&&prData.passport&&prData.passport.ready);
+    return `
+    <div class="dr-card" id="prc-${drEsc(s.id)}" data-sid="${drEsc(s.id)}">
+      <div class="dr-head">
+        <div style="flex:1;min-width:180px">
+          <div class="pr-slotnum">Question ${n}</div>
+          <div class="dr-field-label">Title</div>
+          <input class="dr-label" value="${drEsc(s.label)}" maxlength="120" oninput="prMarkDirty('${drEsc(s.id)}')" aria-label="Title">
+        </div>
+        <span class="dr-badge ${isDraft?'draft':'yours'}">${isDraft?'Draft':'Yours'}</span>
+      </div>
+      <div class="dr-field-label">Question ${n}</div>
+      <textarea class="dr-q" oninput="prMarkDirty('${drEsc(s.id)}');drAutosize(this)" aria-label="Question ${n}">${drEsc(s.question_text)}</textarea>
+      <div class="dr-field-label">Answer ${n}</div>
+      <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="prMarkDirty('${drEsc(s.id)}');drAutosize(this)" placeholder="Write your answer, or press Adapt to this program." aria-label="Answer ${n}">${drEsc(s.answer_text)}</textarea>
+      <div class="dr-foot">
+        <button class="dr-btn small" id="prsave-${drEsc(s.id)}" onclick="saveSlot('${drEsc(s.id)}')">Save</button>
+        <button class="dr-btn ghost small" onclick="adaptSlot('${drEsc(s.id)}')" ${ready?'':'disabled title="Complete your Passport first"'}>Adapt to this program</button>
+        <button class="dr-btn ghost small" onclick="undoSlot('${drEsc(s.id)}')">Undo</button>
+        <button class="dr-btn ghost small" onclick="copySlot('${drEsc(s.id)}',this)">Copy</button>
+        <button class="dr-btn ghost small" onclick="promoteSlot('${drEsc(s.id)}')">Save to my answers</button>
+        <span class="spacer"></span>
+        <span class="dr-meta">${isDraft?'Drafted':'Saved'} ${drEsc(drWhen(isDraft?s.generated_at:(s.reviewed_at||s.updated_at)))}</span>
+        <button class="dr-btn danger small" onclick="deleteSlot('${drEsc(s.id)}')">Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+  requestAnimationFrame(()=>document.querySelectorAll('#prSlots .dr-q, #prSlots .dr-a').forEach(drAutosize));
+}
+
+function prMarkDirty(sid){
+  prDirty.add(sid);
+  const c=document.getElementById('prc-'+sid); if(c) c.classList.add('dirty');
+}
+function prSlotFields(sid){
+  const c=document.getElementById('prc-'+sid); if(!c) return null;
+  return {
+    label:c.querySelector('.dr-label').value.trim(),
+    question:c.querySelector('.dr-q').value.trim(),
+    answer:c.querySelector('.dr-a').value.trim(),
+  };
+}
+function prBusy(sid,label){
+  const b=document.getElementById('prsave-'+sid); if(!b) return;
+  b.closest('.dr-card').querySelectorAll('button').forEach(x=>x.disabled=true);
+  b.textContent=label||'Working...';
+}
+function prBase(){ return '/api/portal/drafts/program/'+encodeURIComponent(prPid); }
+
+async function addSlotFromLibrary(){
+  const sel=document.getElementById('prLibPick');
+  if(!sel.value){ prStatus('You have no saved answers to add yet.', true); return; }
+  try{
+    await apiFetch(prBase()+'/slots','POST',{base_question_type:sel.value});
+    await loadProgramDrafting(prPid);
+    prStatus('Added. Press Adapt to this program to tailor it, or edit it yourself.');
+  }catch(e){ prStatus(e.message, true); }
+}
+async function saveSlot(sid){
+  const f=prSlotFields(sid); if(!f) return;
+  if(!f.label){ prStatus('Give the question a name.', true); return; }
+  if(!f.question){ prStatus('The question cannot be empty.', true); return; }
+  prBusy(sid,'Saving...');
+  try{
+    await apiFetch(prBase()+'/slots/'+encodeURIComponent(sid),'PATCH',
+      {label:f.label,question_text:f.question,answer_text:f.answer});
+    prDirty.delete(sid);
+    await loadProgramDrafting(prPid);
+    prStatus('Saved.');
+  }catch(e){ prStatus(e.message, true); await loadProgramDrafting(prPid); }
+}
+async function adaptSlot(sid){
+  if(prDirty.has(sid) && !confirm('This answer has unsaved edits. Adapt anyway? Your unsaved text will be lost; the saved version stays in Undo.')) return;
+  prBusy(sid,'Adapting...');
+  prStatus('Rewriting this answer for this program. The current one is kept under Undo.');
+  try{
+    await apiFetch(prBase()+'/slots/'+encodeURIComponent(sid)+'/adapt','POST',{});
+    prDirty.delete(sid);
+    await loadProgramDrafting(prPid);
+    prStatus('Adapted. Read it, edit anything, then save.');
+  }catch(e){
+    if(e.status===409 && e.detail && e.detail.missing_for_drafting){
+      prStatus('Add to your Funding Passport first: '+e.detail.missing_for_drafting.join(', ')+'.', true);
+    } else prStatus(e.message, true);
+    await loadProgramDrafting(prPid);
+  }
+}
+async function undoSlot(sid){
+  prBusy(sid,'Undoing...');
+  try{
+    await apiFetch(prBase()+'/slots/'+encodeURIComponent(sid)+'/undo','POST',{});
+    prDirty.delete(sid);
+    await loadProgramDrafting(prPid);
+    prStatus('Restored the previous version. Undo again to switch back.');
+  }catch(e){
+    prStatus(e.status===404?'Nothing to undo yet.':e.message, e.status!==404);
+    await loadProgramDrafting(prPid);
+  }
+}
+async function deleteSlot(sid){
+  if(!confirm('Remove this question from this application? Your saved answers are not affected.')) return;
+  prBusy(sid,'Removing...');
+  try{
+    await apiFetch(prBase()+'/slots/'+encodeURIComponent(sid),'DELETE');
+    prDirty.delete(sid);
+    await loadProgramDrafting(prPid);
+    prStatus('Removed.');
+  }catch(e){ prStatus(e.message, true); await loadProgramDrafting(prPid); }
+}
+async function promoteSlot(sid){
+  // Three real choices. This used to be a confirm() where Cancel meant
+  // "save as new", so anyone backing out of the dialog created a library
+  // entry they never asked for (2026-09-17).
+  const slot=(prData&&prData.slots||[]).find(s=>s.id===sid);
+  const hasBase=!!(slot&&slot.base_answer_id);
+  const card=document.getElementById('prc-'+sid);
+  if(card && card.querySelector('.pr-promote')) return;   // already open
+  const box=document.createElement('div');
+  box.className='pr-promote';
+  box.innerHTML=`
+    <div class="dr-field-label" style="margin-top:0">Save this answer to your library</div>
+    ${hasBase?`<button class="dr-btn small" data-mode="update">Update "${drEsc(slot.label)}"</button>`:''}
+    <button class="dr-btn ghost small" data-mode="new">Save as a new answer</button>
+    <button class="dr-btn ghost small" data-mode="cancel">Never mind</button>
+    <div class="pr-newname" style="display:none;margin-top:10px">
+      <div class="dr-field-label" style="margin-top:0">Name it</div>
+      <input class="pr-newlabel" maxlength="120" value="${drEsc((slot&&slot.label)||'')}">
+      <div class="dr-foot"><button class="dr-btn small" data-mode="confirm-new">Save it</button></div>
+    </div>`;
+  card.querySelector('.dr-foot').after(box);
+  box.addEventListener('click', async ev=>{
+    const b=ev.target.closest('button'); if(!b) return;
+    const mode=b.dataset.mode;
+    if(mode==='cancel'){ box.remove(); return; }
+    if(mode==='new'){ box.querySelector('.pr-newname').style.display='block'; box.querySelector('.pr-newlabel').focus(); return; }
+    const label = mode==='confirm-new' ? box.querySelector('.pr-newlabel').value.trim() : null;
+    if(mode==='confirm-new' && !label){ prStatus('Give it a name first.', true); return; }
+    box.remove();
+    await doPromote(sid, mode==='update'?'update':'new', label);
+  });
+}
+async function doPromote(sid, mode, label){
+  prBusy(sid,'Saving...');
+  try{
+    const r=await apiFetch(prBase()+'/slots/'+encodeURIComponent(sid)+'/promote','POST',{mode,label});
+    await loadProgramDrafting(prPid);
+    prStatus(r.mode==='update'?'Updated in your answers.':'Saved to your answers as a new entry.');
+  }catch(e){ prStatus(e.message, true); await loadProgramDrafting(prPid); }
+}
+
+// ── Getting the answers out ─────────────────────────────────────────────────
+// Per-answer copy is the one people use: most applications are web forms with
+// a box per question, so answers leave one at a time. The download is for
+// sending to an SBDC advisor before submitting, and for keeping a record.
+async function copySlot(sid, btn){
+  const f=prSlotFields(sid); if(!f) return;
+  try{
+    await navigator.clipboard.writeText(f.answer);
+    const was=btn.textContent; btn.textContent='Copied';
+    setTimeout(()=>{btn.textContent=was;},1400);
+  }catch(_){ prStatus('Your browser would not let us copy. Select the text and copy it manually.', true); }
+}
+function downloadApplication(){
+  if(!prData) return;
+  const p=prData.program||{};
+  const lines=[p.title||'Application', ''];
+  if(p.deadline) lines.push('Deadline: '+p.deadline);
+  if(p.amount) lines.push('Amount: '+p.amount);
+  if(p.source_url) lines.push('Program page: '+p.source_url);
+  lines.push('', 'Prepared with FundBug on '+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}), '');
+  (prData.slots||[]).forEach((s,i)=>{
+    const f=prSlotFields(s.id);
+    const q=f?f.question:s.question_text;
+    const a=f?f.answer:s.answer_text;
+    lines.push('', `QUESTION ${i+1}: ${s.label||''}`, q||'', '', a||'(not answered yet)', '', '-'.repeat(60));
+  });
+  const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=(p.title||'application').replace(/[^a-z0-9]+/gi,'-').toLowerCase().slice(0,60)+'-answers.txt';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  prStatus('Downloaded. Anything you have typed but not saved is included.');
+}
+
+// ── Draft every empty answer at once ────────────────────────────────────────
+async function draftAllSlots(){
+  const empty=(prData&&prData.slots||[]).filter(s=>!(s.answer_text||'').trim());
+  if(!empty.length){ prStatus('Every question already has an answer. Use Adapt on one to redo it.'); return; }
+  const btn=document.getElementById('prDraftAllBtn');
+  btn.disabled=true; btn.textContent='Drafting...';
+  prStatus(`Drafting ${empty.length} answer${empty.length===1?'':'s'} together, so they do not repeat each other. This takes up to a minute.`);
+  try{
+    const r=await apiFetch(prBase()+'/draft-all','POST',{});
+    await loadProgramDrafting(prPid);
+    prStatus(r.drafted?`Drafted ${r.drafted} answer${r.drafted===1?'':'s'}. Read each one, edit anything, then save.`:(r.message||''));
+  }catch(e){
+    if(e.status===409 && e.detail && e.detail.missing_for_drafting){
+      prStatus('Add to your Funding Passport first: '+e.detail.missing_for_drafting.join(', ')+'.', true);
+    } else prStatus(e.message, true);
+  }finally{ btn.disabled=false; btn.textContent='Draft all answers'; }
+}
+
+// ── Write a new question, in the page rather than a browser prompt ──────────
+function toggleAddBlank(force){
+  const box=document.getElementById('prAddBlank');
+  const show=(force===undefined)?!box.classList.contains('show'):!!force;
+  box.classList.toggle('show',show);
+  if(show) document.getElementById('prBlankQ').focus();
+}
+async function submitBlankSlot(){
+  const q=document.getElementById('prBlankQ').value.trim();
+  if(!q){ prStatus('Type the question first.', true); return; }
+  try{
+    await apiFetch(prBase()+'/slots','POST',{question_text:q});
+    document.getElementById('prBlankQ').value='';
+    toggleAddBlank(false);
+    await loadProgramDrafting(prPid);
+    prStatus('Added.');
+  }catch(e){ prStatus(e.message, true); }
+}
+
+// ── Paste or upload the application ─────────────────────────────────────────
+function toggleImport(force){
+  // Class, not inline style. It used to test box.style.display==='none',
+  // which is '' before anything sets it, so the button that opens the panel
+  // closed it on the first press (2026-09-17).
+  const box=document.getElementById('prImport');
+  const show=(force===undefined)?!box.classList.contains('show'):!!force;
+  box.classList.toggle('show',show);
+  if(show){ document.getElementById('prPaste').focus(); box.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+}
+async function extractApplication(){
+  const text=document.getElementById('prPaste').value.trim();
+  const fileEl=document.getElementById('prFile');
+  const file=fileEl.files&&fileEl.files[0];
+  if(!text && !file){ prStatus('Paste the application text or choose the PDF.', true); return; }
+  const btn=document.getElementById('prExtractBtn');
+  btn.disabled=true; btn.textContent='Reading...';
+  prStatus('Reading the application. This takes up to a minute for a long one.');
+  try{
+    const fd=new FormData();
+    if(file) fd.append('file', file); else fd.append('text', text);
+    const r=await fetch(API+prBase()+'/extract',{method:'POST',headers:{'Authorization':`Bearer ${token}`},body:fd});
+    let data={}; try{ data=await r.json(); }catch(_){}
+    if(!r.ok){
+      const d=data.detail;
+      throw new Error(r.status>=500?FRIENDLY_DOWN:(typeof d==='string'?d:FRIENDLY_4XX));
+    }
+    prExtracted=data.questions||[];
+    prUploadId=data.upload_id||null;
+    if(!prExtracted.length){ prStatus(data.message||'No questions found in that.', true); return; }
+    renderExtracted();
+    toggleImport(false);
+    prStatus('');
+  }catch(e){ prStatus(e.message, true); }
+  finally{ btn.disabled=false; btn.textContent='Find the questions'; }
+}
+function renderExtracted(){
+  const box=document.getElementById('prFound');
+  document.getElementById('prFoundSub').textContent =
+    `${prExtracted.length} question${prExtracted.length===1?'':'s'} found. Uncheck anything that is not a question you need to write.`;
+  document.getElementById('prFoundList').innerHTML = prExtracted.map((q,i)=>`
+    <div class="pr-qrow">
+      <input type="checkbox" id="prq-${i}" checked>
+      <label class="pr-qtext" for="prq-${i}">${drEsc(q.question)}</label>
+      ${q.word_limit?`<span class="pr-qlimit">${q.word_limit} words</span>`:''}
+    </div>`).join('');
+  box.classList.add('show');
+}
+async function confirmExtracted(){
+  const picked=prExtracted.filter((_,i)=>{
+    const el=document.getElementById('prq-'+i); return el && el.checked;
+  });
+  if(!picked.length){ prStatus('Check at least one question first.', true); return; }
+  prStatus('Adding...');
+  try{
+    const r=await apiFetch(prBase()+'/slots/bulk','POST',{questions:picked,upload_id:prUploadId});
+    document.getElementById('prFound').classList.remove('show');
+    document.getElementById('prPaste').value='';
+    document.getElementById('prFile').value='';
+    prExtracted=[]; prUploadId=null;
+    await loadProgramDrafting(prPid);
+    prStatus(`Added ${r.created} question${r.created===1?'':'s'}. Press Adapt on each one to draft an answer from your saved answers.`);
+  }catch(e){ prStatus(e.message, true); }
+}
+
+// ── The picker on the library page ──────────────────────────────────────────
+async function renderProgramPicker(){
+  const card=document.getElementById('drProgramPicker');
+  const list=document.getElementById('drProgramList');
+  try{
+    const t=await apiFetch('/api/portal/tracker');
+    const progs=(t.programs||[]).filter(p=>!p.dismissed);
+    if(!progs.length){ card.style.display='none'; return; }
+    list.innerHTML=progs.slice(0,40).map(p=>`
+      <div class="pr-progrow" onclick="openProgramDrafting('${drEsc(p.program_id)}')">
+        <span class="pr-progname">${drEsc(p.title)}</span>
+        <span class="pr-progmeta">${drEsc(p.capital_type||'')}</span>
+        <span class="pr-progmeta">&rarr;</span>
+      </div>`).join('');
+    card.style.display='block';
+  }catch(_){ card.style.display='none'; }
 }
 
 </script>
