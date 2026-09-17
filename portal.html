@@ -1535,12 +1535,34 @@ function showApp() {
   handleFeedbackDeepLink();
 }
 
+// What a subscriber sees when the problem is ours. A 500, a dead connection
+// or a non-JSON reply is never something they can act on, so the raw server
+// text ("Failed to update profile", "API error") never reaches the screen.
+// 4xx replies keep their detail because those are things they CAN act on
+// ("Invalid status", "Name cannot be empty"). (2026-09-17)
+const FRIENDLY_DOWN = "Something went wrong on our end. Please try again in a few minutes; if it keeps happening, email hello@fundbug.net.";
+const FRIENDLY_4XX  = "That didn't go through. Please check what you entered and try again.";
+
 async function apiFetch(path, method='GET', body=null) {
   const opts = { method, headers: {'Authorization':`Bearer ${token}`,'Content-Type':'application/json'} };
   if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(API + path, opts);
-  const data = await r.json();
-  if (!r.ok) throw new Error(data.detail || 'API error');
+  let r;
+  try { r = await fetch(API + path, opts); }
+  catch (_) { const e = new Error(FRIENDLY_DOWN); e.status = 0; throw e; }
+  let data = {};
+  try { data = await r.json(); } catch (_) { data = {}; }
+  if (!r.ok) {
+    const d = data.detail;
+    let msg;
+    if (r.status >= 500)            msg = FRIENDLY_DOWN;
+    else if (typeof d === 'string') msg = d;
+    else if (d && d.reason)         msg = d.reason;
+    else                            msg = FRIENDLY_4XX;
+    const e = new Error(msg);
+    e.status = r.status;   // pages that need to branch on it (the drafting gate's 409) can
+    e.detail = d;          // and the structured detail rides along untouched
+    throw e;
+  }
   return data;
 }
 
@@ -3610,7 +3632,7 @@ async function savePassport(){
     clearPassportDirty();
     renderSetupCard(updated);
     updateGreeting(updated);
-  }catch(e){ alert('Save failed: '+e.message); }
+  }catch(e){ alert(e.status>=500||e.status===0 ? e.message : 'Save failed: '+e.message); }
 }
 
 // ─── WEBSITE SCAN → PASSPORT SUGGESTIONS ────────────────────────────────────
