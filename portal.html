@@ -337,6 +337,65 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .tracker-status-select:focus{border-color:var(--green)}
 .tracker-prep-btn{display:inline-block;padding:9px 18px;background:var(--green);color:#fff;border:none;border-radius:5px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;min-height:40px;transition:background .15s}
 .tracker-prep-btn:hover{background:var(--green-lt)}
+
+/* ── Application Drafting (Beta) ─────────────────────────────────────── */
+.nav-beta{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:9px;background:rgba(90,158,82,.18);color:var(--green-lt);font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;vertical-align:middle}
+.dr-meter{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.dr-meter .setup-bar{flex:1;min-width:160px;margin:0}
+.dr-meter-pct{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:600;color:var(--green-dk);min-width:64px}
+.dr-meter-note{width:100%;font-size:13px;color:var(--muted);font-weight:300;margin-top:6px}
+.dr-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.dr-btn{display:inline-block;padding:10px 18px;border-radius:5px;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;cursor:pointer;border:1px solid transparent;min-height:42px;transition:all .12s;background:var(--green);color:#fff}
+.dr-btn:hover{background:var(--green-lt)}
+.dr-btn:disabled{opacity:.55;cursor:default}
+.dr-btn.ghost{background:transparent;color:var(--green-dk);border-color:var(--border)}
+.dr-btn.ghost:hover{background:rgba(90,158,82,.06)}
+.dr-btn.danger{background:transparent;color:#a33;border-color:transparent;padding-left:8px;padding-right:8px}
+.dr-btn.danger:hover{background:rgba(170,51,51,.06)}
+.dr-btn.small{padding:7px 12px;font-size:13px;min-height:34px}
+.dr-status{font-size:13px;color:var(--muted);margin:4px 0 14px;min-height:18px}
+.dr-status.err{color:#a33}
+.dr-empty{text-align:center;padding:36px 20px}
+.dr-empty h3{font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:600;margin-bottom:8px;color:var(--ink)}
+.dr-empty p{font-size:14px;color:var(--muted);font-weight:300;max-width:520px;margin:0 auto 18px}
+.dr-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:22px 24px;margin-bottom:16px;box-shadow:0 1px 2px rgba(26,26,20,.04)}
+.dr-card.dirty{border-color:var(--green)}
+.dr-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.dr-label{flex:1;min-width:180px;font-family:'Fraunces',Georgia,serif;font-size:18px;font-weight:600;color:var(--ink);border:1px solid transparent;border-radius:5px;padding:4px 6px;background:transparent}
+.dr-label:hover,.dr-label:focus{border-color:var(--border);background:var(--cream);outline:none}
+.dr-badge{padding:3px 10px;border-radius:11px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.dr-badge.draft{background:#fbf1dc;color:#8a5a12}
+.dr-badge.yours{background:rgba(90,158,82,.14);color:var(--green-dk)}
+.dr-q{width:100%;font-family:'Jost',sans-serif;font-size:13px;color:var(--muted);font-weight:300;border:1px solid transparent;border-radius:5px;padding:6px 8px;background:transparent;resize:vertical;min-height:40px;line-height:1.5}
+.dr-q:hover,.dr-q:focus{border-color:var(--border);background:var(--cream);outline:none;color:var(--ink)}
+.dr-a{width:100%;font-family:'Jost',sans-serif;font-size:15px;line-height:1.65;color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-top:8px;min-height:130px;resize:vertical;background:var(--white)}
+.dr-a:focus{outline:none;border-color:var(--green)}
+.dr-a.is-draft{background:#fffdf7}
+.dr-a::placeholder{color:#b8b4a8}
+.dr-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.dr-foot .spacer{flex:1}
+.dr-meta{font-size:12px;color:var(--muted);font-weight:300}
+.dr-stale{font-size:12px;color:#8a5a12;margin-top:6px}
+.dr-add{border:1px dashed var(--border);border-radius:10px;padding:18px 22px;margin-bottom:16px;display:none}
+.dr-add.show{display:block}
+.dr-add input,.dr-add textarea{width:100%;font-family:'Jost',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:5px;padding:10px 12px;margin-bottom:10px;background:var(--white)}
+.dr-add input:focus,.dr-add textarea:focus{outline:none;border-color:var(--green)}
+.dr-note{font-size:13px;color:var(--muted);font-weight:300;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+
+/* ── Feedback bubble ────────────────────────────────────────────────────── */
+.fb-bubble{position:fixed;right:22px;bottom:22px;z-index:9000;font-family:'Jost',sans-serif}
+.fb-toggle{width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;border:none;cursor:pointer;box-shadow:0 6px 18px rgba(26,26,20,.22);font-size:22px;display:flex;align-items:center;justify-content:center;transition:transform .12s,background .12s}
+.fb-toggle:hover{background:var(--green-lt);transform:translateY(-1px)}
+.fb-panel{display:none;position:absolute;right:0;bottom:64px;width:320px;max-width:calc(100vw - 44px);background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 40px rgba(26,26,20,.18);padding:16px 16px 14px}
+.fb-panel.open{display:block}
+.fb-panel h4{font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.fb-panel p{font-size:12.5px;color:var(--muted);font-weight:300;margin-bottom:10px}
+.fb-panel textarea{width:100%;min-height:110px;font-family:'Jost',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:6px;padding:10px 12px;resize:vertical;background:var(--white)}
+.fb-panel textarea:focus{outline:none;border-color:var(--green)}
+.fb-row{display:flex;align-items:center;gap:8px;margin-top:10px}
+.fb-row .spacer{flex:1}
+.fb-thanks{font-size:13px;color:var(--green-dk);font-weight:500}
+@media (max-width:900px){ .fb-bubble{right:14px;bottom:14px} }
 .tracker-link{font-size:14px;color:var(--green-dk);text-decoration:none;font-weight:500;border-bottom:1px solid transparent;transition:border-color .12s;padding:8px 4px;display:inline-block;min-height:40px;line-height:1.6}
 .tracker-link:hover{border-color:var(--green-dk)}
 .tracker-dismiss{font-size:13px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:8px 4px;transition:color .12s;min-height:40px}
@@ -630,6 +689,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
     <a href="#" data-page="overview" onclick="showPageFromMobile('overview', this); return false;">📊 Overview</a>
     <a href="#" data-page="complete" onclick="showPageFromMobile('complete', this); return false;">✨ Funding Passport</a>
     <a href="#" data-page="tracker" onclick="showPageFromMobile('tracker', this); return false;">📋 My Tracker</a>
+    <a href="#" data-page="drafting" onclick="showPageFromMobile('drafting', this); return false;">✍️ Application Drafting</a>
     <div class="mobile-menu-section">Resources</div>
     <a href="/grants-guide" target="_blank" rel="noopener" onclick="closeMenu()">📖 Grants 101</a>
     <div class="mobile-menu-section">Account</div>
@@ -647,6 +707,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         <li><a href="#" class="active" onclick="showPage('overview',this)"><span class="nav-icon">📊</span> Overview</a></li>
         <li><a href="#" onclick="showPage('complete',this)" id="nav-complete"><span class="nav-icon">✨</span> Funding Passport</a></li>
         <li><a href="#" onclick="showPage('tracker',this)" id="nav-tracker"><span class="nav-icon">📋</span> My Tracker</a></li>
+        <li><a href="#" onclick="showPage('drafting',this)" id="nav-drafting"><span class="nav-icon">✍️</span> Application Drafting<span class="nav-beta">Beta</span></a></li>
 
         <div class="sidebar-section">Resources</div>
         <li><a href="/grants-guide" target="_blank"><span class="nav-icon">📖</span> Grants 101</a></li>
@@ -1148,6 +1209,53 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
       <div class="tracker-toast" id="trackerToast"></div>
 
       <!-- REFERRAL -->
+      <div class="page" id="page-drafting">
+        <div class="page-hero">
+          <div class="page-eyebrow">Application Drafting <span class="nav-beta" style="margin-left:8px">Beta</span></div>
+          <div class="page-title">Your answers, written once</div>
+          <div class="page-sub">The questions nearly every grant asks, answered in your voice from your Funding Passport. Edit anything, add your own, and reuse them on every application.</div>
+        </div>
+
+        <div class="setup-card" id="drMeterCard">
+          <div class="setup-head">
+            <div class="setup-title">Drafting strength</div>
+          </div>
+          <div class="dr-meter">
+            <div class="dr-meter-pct"><span id="drPct">0</span>%</div>
+            <div class="setup-bar"><div class="setup-bar-fill" id="drBarFill"></div></div>
+            <div class="dr-meter-note" id="drMeterNote"></div>
+          </div>
+        </div>
+
+        <div class="dr-status" id="drStatus"></div>
+
+        <div class="dr-toolbar" id="drToolbar" style="display:none">
+          <button class="dr-btn" id="drDraftBtn" onclick="draftLibrary()">Draft the standard questions</button>
+          <button class="dr-btn ghost" onclick="toggleAddQuestion()">Add a question</button>
+        </div>
+
+        <div class="dr-add" id="drAdd">
+          <input id="drAddLabel" placeholder="Name it (for example: Growth plan)" maxlength="120">
+          <textarea id="drAddQuestion" rows="2" placeholder="The question, as a grant would ask it"></textarea>
+          <textarea id="drAddAnswer" rows="4" placeholder="Your answer (optional; you can draft it later)"></textarea>
+          <div class="dr-foot">
+            <button class="dr-btn small" onclick="submitAddQuestion()">Add to my answers</button>
+            <button class="dr-btn ghost small" onclick="toggleAddQuestion(false)">Cancel</button>
+          </div>
+        </div>
+
+        <div id="drEmpty" class="card dr-empty" style="display:none">
+          <h3>Nothing drafted yet</h3>
+          <p>Press the button and FundBug writes first drafts of the five questions nearly every grant asks, using what is in your Funding Passport. You edit them; nothing is submitted anywhere.</p>
+          <button class="dr-btn" id="drEmptyBtn" onclick="draftLibrary()">Draft these for me</button>
+          <div style="margin-top:12px"><a href="#" onclick="toggleAddQuestion(true);return false;" style="font-size:13px;color:var(--green-dk)">Or add a question of your own</a></div>
+        </div>
+
+        <div id="drCards"></div>
+
+        <div class="dr-note">Per-program drafting is next: open a program, paste its questions, and get answers adapted to that application from what you have here.</div>
+      </div>
+
       <div class="page" id="page-referral">
         <div class="page-hero">
           <div class="page-eyebrow">Share FundBug</div>
@@ -1986,6 +2094,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function showPage(id, el) {
   if (typeof event !== 'undefined' && event && event.preventDefault) event.preventDefault();
+  // Unsaved drafting edits: ask before leaving the page, never lose them silently.
+  const onDrafting = document.getElementById('page-drafting').classList.contains('active');
+  if (onDrafting && id !== 'drafting' && typeof drHasUnsaved === 'function' && drHasUnsaved()) {
+    if (!confirm('You have unsaved answers. Leave without saving?')) return;
+    drClearDirty();
+  }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
@@ -1994,6 +2108,7 @@ function showPage(id, el) {
   if (id === 'tracker') loadTracker();
   if (id === 'complete') loadPassport();
   if (id === 'team') loadTeam();
+  if (id === 'drafting') loadDrafting();
 }
 
 async function loadAccountEmail() {
@@ -2228,7 +2343,7 @@ function buildTrackerCard(prog, isFav) {
         ${deadlineText ? `<span class="tracker-deadline ${isUrgent ? 'urgent' : ''}">Deadline: ${esc(deadlineText)}</span>` : ''}
       </div>
       <div class="tracker-actions">
-        <button class="tracker-prep-btn" onclick="openPrepPanel('${prog.program_id}')">Prep Application</button>
+        <button class="tracker-prep-btn" onclick="showPage('drafting', document.getElementById('nav-drafting'))">Prep Application</button>
         <select class="tracker-status-select" onchange="updateStatus('${prog.program_id}', this.value)">${statusOptions}</select>
         ${prog.source_url ? `<a href="${esc(prog.source_url)}" target="_blank" rel="noopener" class="tracker-link">View program →</a>` : ''}
         <button class="fb-ask ${feedbackAnswered[prog.program_id] ? 'answered' : ''}"
@@ -3297,7 +3412,7 @@ function clearPassportDirty(){
 // Warn on actual page close/reload with unsaved edits (browsers show their
 // own generic message; ours just opts in).
 window.addEventListener('beforeunload',e=>{
-  if(_ppDirty){ e.preventDefault(); e.returnValue=''; }
+  if(_ppDirty || (typeof drHasUnsaved==='function' && drHasUnsaved())){ e.preventDefault(); e.returnValue=''; }
 });
 function wireCompleteTags(){
   if(_cpWired) return; _cpWired=true;
@@ -3782,6 +3897,255 @@ function closeScanModal(){
   document.getElementById('scanModal').classList.remove('open');
 }
 
+
+// ─── APPLICATION DRAFTING (Beta): the answer library ────────────────────────
+// Backed by /api/portal/drafts/library (Stage 2a). Rules the page enforces:
+// nothing regenerates over an edited answer unless asked; a draft nobody has
+// read is marked Draft until it is saved or edited; unsaved edits ask before
+// the page is left; the meter is the Passport's own number.
+let drData = null;          // last GET /drafts/library
+let drDirty = new Set();    // question_types with unsaved edits
+function drHasUnsaved(){ return drDirty.size > 0; }
+function drClearDirty(){ drDirty.clear(); }
+function drStatus(msg, isErr){
+  const el=document.getElementById('drStatus'); if(!el) return;
+  el.textContent=msg||''; el.className='dr-status'+(isErr?' err':'');
+}
+function drEsc(t){ return (t==null?'':String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function drWhen(iso){
+  if(!iso) return '';
+  const d=new Date(iso); if(isNaN(d)) return '';
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+}
+
+async function loadDrafting(){
+  drStatus('Loading your answers...');
+  try{
+    drData = await apiFetch('/api/portal/drafts/library');
+    drDirty.clear();
+    renderDrafting();
+    drStatus('');
+  }catch(e){ drStatus(e.message, true); }
+}
+
+function renderMeter(p){
+  const pct=p.pct||0;
+  document.getElementById('drPct').textContent=pct;
+  document.getElementById('drBarFill').style.width=pct+'%';
+  const note=document.getElementById('drMeterNote');
+  if(!p.ready){
+    note.innerHTML='Before FundBug can draft, add to your Funding Passport: <strong>'+drEsc(p.missing_for_drafting.join(', '))+'</strong>. '+
+      '<a href="#" onclick="showPage(\'complete\',document.getElementById(\'nav-complete\'));return false;">Open the Passport →</a>';
+  } else if(pct<100){
+    const names=(p.missing||[]).slice(0,3).join(', ');
+    const extra=(p.missing||[]).length-Math.min(3,(p.missing||[]).length);
+    note.innerHTML='The fuller your Passport, the more specific the drafts. Still to add: '+drEsc(names)+(extra>0?', and '+extra+' more':'')+'. '+
+      '<a href="#" onclick="showPage(\'complete\',document.getElementById(\'nav-complete\'));return false;">Open the Passport →</a>';
+  } else {
+    note.textContent='Your Funding Passport is complete. Drafts draw on everything in it.';
+  }
+}
+
+function renderDrafting(){
+  if(!drData) return;
+  const p=drData.passport||{};
+  renderMeter(p);
+  const answers=drData.answers||[];
+  const empty=document.getElementById('drEmpty');
+  const toolbar=document.getElementById('drToolbar');
+  const cards=document.getElementById('drCards');
+  const standardMissing=(drData.standard||[]).some(sq=>!answers.some(a=>a.question_type===sq.question_type && (a.answer_text||'').trim()));
+  if(!answers.length){
+    empty.style.display='block'; toolbar.style.display='none';
+    document.getElementById('drEmptyBtn').disabled=!p.ready;
+    document.getElementById('drEmptyBtn').textContent=p.ready?'Draft these for me':'Complete your Passport first';
+    cards.innerHTML='';
+    return;
+  }
+  empty.style.display='none'; toolbar.style.display='flex';
+  const draftBtn=document.getElementById('drDraftBtn');
+  draftBtn.style.display=standardMissing?'inline-block':'none';
+  draftBtn.disabled=!p.ready;
+  const pu=p.passport_updated_at?new Date(p.passport_updated_at):null;
+  cards.innerHTML=answers.map(a=>{
+    const isDraft=a.review_status==='draft';
+    const au=a.updated_at?new Date(a.updated_at):null;
+    const stale=!!(pu && au && (a.answer_text||'').trim() && pu>au);
+    const qt=a.question_type;
+    return `
+    <div class="dr-card" id="drc-${drEsc(qt)}" data-qt="${drEsc(qt)}">
+      <div class="dr-head">
+        <input class="dr-label" value="${drEsc(a.label)}" maxlength="120" oninput="drMarkDirty('${drEsc(qt)}')" aria-label="Question name">
+        <span class="dr-badge ${isDraft?'draft':'yours'}">${isDraft?'Draft':'Yours'}</span>
+      </div>
+      <textarea class="dr-q" rows="2" oninput="drMarkDirty('${drEsc(qt)}')" aria-label="Question">${drEsc(a.question_text)}</textarea>
+      <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="drMarkDirty('${drEsc(qt)}')" placeholder="${p.ready?'Write your answer, or press Regenerate to draft one.':'Write your answer here.'}" aria-label="Answer">${drEsc(a.answer_text)}</textarea>
+      ${stale?'<div class="dr-stale">Your Funding Passport has changed since this was written. Regenerate to use the new details, or leave it as is.</div>':''}
+      <div class="dr-foot">
+        <button class="dr-btn small" onclick="saveAnswer('${drEsc(qt)}')" id="drsave-${drEsc(qt)}">Save</button>
+        <button class="dr-btn ghost small" onclick="regenerateAnswer('${drEsc(qt)}')" ${p.ready?'':'disabled title="Complete your Passport first"'}>Regenerate</button>
+        <button class="dr-btn ghost small" onclick="undoAnswer('${drEsc(qt)}')">Undo</button>
+        <span class="spacer"></span>
+        <span class="dr-meta">${isDraft?'Drafted':'Saved'} ${drEsc(drWhen(isDraft?a.generated_at:(a.reviewed_at||a.updated_at)))}</span>
+        <button class="dr-btn danger small" onclick="deleteAnswer('${drEsc(qt)}')" title="Remove this question">Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function drMarkDirty(qt){
+  drDirty.add(qt);
+  const c=document.getElementById('drc-'+qt); if(c) c.classList.add('dirty');
+}
+function drCard(qt){
+  const c=document.getElementById('drc-'+qt); if(!c) return null;
+  return {
+    el:c,
+    label:c.querySelector('.dr-label').value.trim(),
+    question:c.querySelector('.dr-q').value.trim(),
+    answer:c.querySelector('.dr-a').value.trim(),
+  };
+}
+function drBusy(qt, label){
+  const b=document.getElementById('drsave-'+qt); if(!b) return;
+  const card=b.closest('.dr-card');
+  card.querySelectorAll('button').forEach(x=>x.disabled=true);
+  b.textContent=label||'Working...';
+}
+
+async function draftLibrary(){
+  const btns=[document.getElementById('drDraftBtn'),document.getElementById('drEmptyBtn')].filter(Boolean);
+  btns.forEach(b=>{b.disabled=true; b.dataset.was=b.textContent; b.textContent='Drafting...';});
+  drStatus('Writing first drafts from your Funding Passport. This takes about twenty seconds.');
+  try{
+    const r=await apiFetch('/api/portal/drafts/library/generate','POST',{});
+    await loadDrafting();
+    drStatus(r.drafted&&r.drafted.length?`Drafted ${r.drafted.length} answer${r.drafted.length===1?'':'s'}. Read each one, edit anything, then save.`:(r.message||''));
+  }catch(e){
+    if(e.status===409 && e.detail && e.detail.missing_for_drafting){
+      drStatus('Add to your Funding Passport first: '+e.detail.missing_for_drafting.join(', ')+'.', true);
+    } else drStatus(e.message, true);
+  }finally{
+    btns.forEach(b=>{b.disabled=false; if(b.dataset.was) b.textContent=b.dataset.was;});
+  }
+}
+
+async function saveAnswer(qt){
+  const c=drCard(qt); if(!c) return;
+  if(!c.label){ drStatus('Give the question a name.', true); return; }
+  if(!c.question){ drStatus('The question cannot be empty.', true); return; }
+  drBusy(qt,'Saving...');
+  try{
+    await apiFetch('/api/portal/drafts/library/'+encodeURIComponent(qt),'PATCH',{label:c.label,question_text:c.question,answer_text:c.answer});
+    drDirty.delete(qt);
+    await loadDrafting();
+    drStatus('Saved.');
+  }catch(e){ drStatus(e.message, true); await loadDrafting(); }
+}
+
+async function regenerateAnswer(qt){
+  const c=drCard(qt); if(!c) return;
+  if(drDirty.has(qt) && !confirm('This answer has unsaved edits. Regenerate anyway? Your unsaved text will be lost; the saved version stays in Undo.')) return;
+  drBusy(qt,'Drafting...');
+  drStatus('Writing a new draft. The current one is kept under Undo.');
+  try{
+    await apiFetch('/api/portal/drafts/library/'+encodeURIComponent(qt)+'/regenerate','POST',{});
+    drDirty.delete(qt);
+    await loadDrafting();
+    drStatus('New draft ready. Read it, edit anything, then save.');
+  }catch(e){
+    if(e.status===409 && e.detail && e.detail.missing_for_drafting){
+      drStatus('Add to your Funding Passport first: '+e.detail.missing_for_drafting.join(', ')+'.', true);
+    } else drStatus(e.message, true);
+    await loadDrafting();
+  }
+}
+
+async function undoAnswer(qt){
+  drBusy(qt,'Undoing...');
+  try{
+    await apiFetch('/api/portal/drafts/library/'+encodeURIComponent(qt)+'/undo','POST',{});
+    drDirty.delete(qt);
+    await loadDrafting();
+    drStatus('Restored the previous version. Undo again to switch back.');
+  }catch(e){
+    drStatus(e.status===404?'Nothing to undo yet.':e.message, e.status!==404);
+    await loadDrafting();
+  }
+}
+
+async function deleteAnswer(qt){
+  const a=(drData&&drData.answers||[]).find(x=>x.question_type===qt);
+  const name=a?a.label:'this question';
+  if(!confirm(`Remove "${name}" and its history? A standard question comes back empty the next time you draft.`)) return;
+  drBusy(qt,'Removing...');
+  try{
+    await apiFetch('/api/portal/drafts/library/'+encodeURIComponent(qt),'DELETE');
+    drDirty.delete(qt);
+    await loadDrafting();
+    drStatus('Removed.');
+  }catch(e){ drStatus(e.message, true); await loadDrafting(); }
+}
+
+function toggleAddQuestion(force){
+  const box=document.getElementById('drAdd');
+  const show=(force===undefined)?!box.classList.contains('show'):!!force;
+  box.classList.toggle('show',show);
+  if(show) document.getElementById('drAddLabel').focus();
+}
+async function submitAddQuestion(){
+  const label=document.getElementById('drAddLabel').value.trim();
+  const q=document.getElementById('drAddQuestion').value.trim();
+  const a=document.getElementById('drAddAnswer').value.trim();
+  if(!label){ drStatus('Give the question a name.', true); return; }
+  if(!q){ drStatus('Enter the question.', true); return; }
+  try{
+    await apiFetch('/api/portal/drafts/library','POST',{label,question_text:q,answer_text:a});
+    document.getElementById('drAddLabel').value=''; document.getElementById('drAddQuestion').value=''; document.getElementById('drAddAnswer').value='';
+    toggleAddQuestion(false);
+    await loadDrafting();
+    drStatus(a?'Added.':'Added. Press Regenerate on it whenever you want a draft.');
+  }catch(e){ drStatus(e.message, true); }
+}
+
+// ─── FEEDBACK BUBBLE ─────────────────────────────────────────────────────────
+function toggleFeedback(force){
+  const p=document.getElementById('fbPanel');
+  const open=(force===undefined)?!p.classList.contains('open'):!!force;
+  p.classList.toggle('open',open);
+  if(open){ document.getElementById('fbThanks').textContent=''; setTimeout(()=>document.getElementById('fbText').focus(),50); }
+}
+async function sendFeedback(){
+  const ta=document.getElementById('fbText');
+  const msg=ta.value.trim();
+  const thanks=document.getElementById('fbThanks');
+  if(!msg){ thanks.textContent='Write something first.'; return; }
+  const btn=document.getElementById('fbSend'); btn.disabled=true; btn.textContent='Sending...';
+  const page=(document.querySelector('.page.active')||{}).id||'';
+  try{
+    await apiFetch('/api/portal/comments','POST',{message:msg,page:page.replace(/^page-/,'')});
+    ta.value='';
+    thanks.textContent='Sent. Thank you.';
+    setTimeout(()=>toggleFeedback(false),1400);
+  }catch(e){
+    thanks.textContent=e.message;
+  }finally{ btn.disabled=false; btn.textContent='Send'; }
+}
+
 </script>
+<div class="fb-bubble" id="fbBubble">
+  <div class="fb-panel" id="fbPanel">
+    <h4>Tell us what you think</h4>
+    <p>Bugs, ideas, something that should work and does not. This goes straight to the FundBug team.</p>
+    <textarea id="fbText" placeholder="What is on your mind?" maxlength="4000"></textarea>
+    <div class="fb-row">
+      <span class="fb-thanks" id="fbThanks"></span>
+      <span class="spacer"></span>
+      <button class="dr-btn ghost small" onclick="toggleFeedback(false)">Close</button>
+      <button class="dr-btn small" id="fbSend" onclick="sendFeedback()">Send</button>
+    </div>
+  </div>
+  <button class="fb-toggle" onclick="toggleFeedback()" title="Send feedback" aria-label="Send feedback">💬</button>
+</div>
 </body>
 </html>
