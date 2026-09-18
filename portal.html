@@ -443,6 +443,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .pr-plan .pr-dates li:before,.pr-plan .pr-elig li:before{border:none;background:var(--green);border-radius:50%;width:6px;height:6px;top:13px;left:2px}
 .pr-plan .pr-date-label{font-weight:500}
 .pr-plan .pr-submit{font-size:15px;color:var(--ink);font-weight:400;line-height:1.55}
+.pr-plan .pr-source{font-size:13px;color:#4a4a42;font-weight:400;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
 .pr-star{color:#c9a227;font-size:15px;flex:0 0 auto;width:14px}
 .pr-soon{font-size:13px;font-weight:600;color:#7a4c08;background:#fbf1dc;border-radius:12px;padding:3px 9px;white-space:nowrap}
 .pr-promote input{width:100%;font-family:'Jost',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:5px;padding:9px 12px;background:var(--white)}
@@ -4383,6 +4384,7 @@ async function loadProgramDrafting(pid){
     prData = data;
     renderProgramHeader(prData.program, prData.passport);
     renderLibraryPicker(prData.library);
+    renderPlan(prData.plan || {});
     renderSlots(prData.slots);
     prStatus('');
   }catch(e){
@@ -4723,6 +4725,11 @@ function renderPlan(data){
       `<li><span class="pr-date-label">${drEsc(d.label)}</span>${d.date?': '+drEsc(d.date):''}</li>`).join('')+'</ul>';
   if(elig.length) h+='<h4>Eligibility</h4><ul class="pr-elig">'+elig.map(e=>`<li>${drEsc(e)}</li>`).join('')+'</ul>';
   if(sub) h+='<h4>How To Submit</h4><div class="pr-submit">'+drEsc(sub)+'</div>';
+  if(data.file_name || data.read_at){
+    const when=data.read_at?drWhen(data.read_at):'';
+    const pages=data.page_count?`, ${data.page_count} page${data.page_count===1?'':'s'}`:'';
+    h+=`<div class="pr-source">From ${drEsc(data.file_name||'text you pasted')}${pages}${when?', read '+drEsc(when):''}</div>`;
+  }
   box.innerHTML=h;
   box.style.display='block';
 }
