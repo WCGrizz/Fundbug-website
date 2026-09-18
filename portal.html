@@ -852,9 +852,10 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         <div class="card">
           <div class="pp-section-label">The basics</div>
           <p class="pp-section-sub">Who you are and the shape of the business. These drive your core eligibility.</p>
+          <div class="form-group"><label>Business name</label><input type="text" id="prof-businessName"></div>
           <div class="form-row">
-            <div class="form-group"><label>Business name</label><input type="text" id="prof-businessName"></div>
-            <div class="form-group"><label>Your name</label><input type="text" id="prof-ownerName"></div>
+            <div class="form-group"><label>First name</label><input type="text" id="prof-firstName" autocomplete="given-name"></div>
+            <div class="form-group"><label>Last name</label><input type="text" id="prof-lastName" autocomplete="family-name"></div>
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -3772,7 +3773,8 @@ async function loadPassport(){
     if (p.is_seat) myCanEditPassport = !!p.can_edit_passport;
     // The basics
     document.getElementById('prof-businessName').value=p.business_name||'';
-    document.getElementById('prof-ownerName').value=[p.first_name,p.last_name].filter(Boolean).join(' ')||'';
+    document.getElementById('prof-firstName').value=p.first_name||'';
+    document.getElementById('prof-lastName').value=p.last_name||'';
     document.getElementById('prof-zip').value=p.zip_code||'';
     const su=document.getElementById('scan-url');
     if(su&&!su.value.trim()) su.value=p.website_url||'';
@@ -3837,10 +3839,11 @@ async function savePassport(){
   const sel=id=>{const v=document.getElementById(id).value;return v||null;};
   const radio=name=>{const el=document.querySelector('input[name="'+name+'"]:checked');return el?el.value==='true':null;};
   const tagVals=id=>Array.from(document.querySelectorAll('#'+id+' .tag-option.selected')).map(t=>t.dataset.value);
-  // Owner name: one input, stored as first/last
-  const nameParts=document.getElementById('prof-ownerName').value.trim().split(/\s+/).filter(Boolean);
-  const firstName=nameParts.shift()||'';
-  const lastName=nameParts.join(' ');
+  // Owner name: separate first and last inputs, stored as they were typed.
+  // The old single box split on the first space, which filed a two-word
+  // first name (Mary Ann) or a missing last name wrongly.
+  const firstName=document.getElementById('prof-firstName').value.trim();
+  const lastName=document.getElementById('prof-lastName').value.trim();
   // "Where do you operate?" is the single source of truth; ownership and
   // home-based flags derive from it so all three columns stay in sync for
   // the matcher (property_ownership gates real-estate/facade programs).
