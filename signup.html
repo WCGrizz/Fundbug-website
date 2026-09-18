@@ -169,6 +169,18 @@ function getAcquisitionSource() {
 
       <div class="two-col">
       <div class="field">
+        <label for="first-name">First name <span class="req">*</span></label>
+        <input type="text" id="first-name" autocomplete="given-name" placeholder="First name">
+      </div>
+
+      <div class="field">
+        <label for="last-name">Last name <span class="req">*</span></label>
+        <input type="text" id="last-name" autocomplete="family-name" placeholder="Last name">
+      </div>
+      </div>
+
+      <div class="two-col">
+      <div class="field">
         <label for="business-name">Business name <span class="req">*</span></label>
         <input type="text" id="business-name" autocomplete="organization" placeholder="Your business">
       </div>
@@ -559,12 +571,15 @@ async function submitThin() {
   const cardErrEl = document.getElementById('card-errors');
   if (cardErrEl) cardErrEl.textContent = '';
 
+  const first_name = document.getElementById('first-name').value.trim();
+  const last_name = document.getElementById('last-name').value.trim();
   const business_name = document.getElementById('business-name').value.trim();
   const email = document.getElementById('email').value.trim();
   const zip = document.getElementById('zip-code').value.trim();
   const industry = selectedIndustries();
   const adult = document.getElementById('certified-adult').checked;
 
+  if (!first_name || !last_name) { err.textContent = 'Please enter your first and last name.'; return; }
   if (!business_name) { err.textContent = 'Please enter your business name.'; return; }
   if (!email || !email.includes('@')) { err.textContent = 'Please enter a valid email address.'; return; }
   if (!/^[0-9]{5}(-[0-9]{4})?$/.test(zip)) { err.textContent = 'Please enter a valid ZIP code.'; return; }
@@ -588,6 +603,8 @@ async function submitThin() {
   }
 
   const payload = {
+    first_name,
+    last_name,
     business_name,
     email,
     zip_code: zip,
