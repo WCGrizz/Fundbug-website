@@ -4647,7 +4647,8 @@ async function draftAllSlots(){
   try{
     const r=await apiFetch(prBase()+'/draft-all','POST',{});
     await loadProgramDrafting(prPid);
-    prStatus(r.drafted?`Drafted ${r.drafted} answer${r.drafted===1?'':'s'}. Read each one, edit anything, then save.`:(r.message||''));
+    const prFailNote=r.failed?` ${r.failed} ${r.failed===1?'question':'questions'} could not be drafted; click Draft All Answers again to try ${r.failed===1?'it':'them'}.`:'';
+    prStatus(r.drafted?`Drafted ${r.drafted} answer${r.drafted===1?'':'s'}. Read each one, edit anything, then save.${prFailNote}`:(r.message||''));
   }catch(e){
     if(e.status===409 && e.detail && e.detail.missing_for_drafting){
       prStatus('Add to your Funding Passport first: '+e.detail.missing_for_drafting.join(', ')+'.', true);
