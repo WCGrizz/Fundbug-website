@@ -364,6 +364,8 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .dr-head{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:6px}
 .dr-label{flex:1;min-width:180px;font-family:'Fraunces',Georgia,serif;font-size:18px;font-weight:600;color:var(--ink);border:1px solid transparent;border-radius:5px;padding:4px 6px;background:transparent}
 .dr-label:hover,.dr-label:focus{border-color:var(--border);background:var(--cream);outline:none}
+.dr-wc{font-family:'Jost',sans-serif;font-size:14px;font-weight:400;color:var(--ink);margin:-8px 0 12px;text-align:right}
+.dr-wc.over{color:#a4261d;font-weight:600}
 .dr-field-label{font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
 .dr-field-label:first-of-type{margin-top:2px}
 .dr-badge{padding:5px 10px;border-radius:11px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:18px}
@@ -4151,9 +4153,10 @@ function renderDrafting(){
         <span class="dr-badge ${isDraft?'draft':'yours'}">${isDraft?'Draft':'Yours'}</span>
       </div>
       <div class="dr-field-label">Question ${n}</div>
-      <textarea class="dr-q" oninput="drMarkDirty('${drEsc(qt)}');drAutosize(this)" aria-label="Question ${n}">${drEsc(a.question_text)}</textarea>
+      <textarea class="dr-q" oninput="drMarkDirty('${drEsc(qt)}');drAutosize(this);drWordCount(this)" aria-label="Question ${n}">${drEsc(a.question_text)}</textarea>
       <div class="dr-field-label">Answer ${n}</div>
-      <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="drMarkDirty('${drEsc(qt)}');drAutosize(this)" placeholder="${p.ready?'Write your answer, or press Regenerate to draft one.':'Write your answer here.'}" aria-label="Answer ${n}">${drEsc(a.answer_text)}</textarea>
+      <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="drMarkDirty('${drEsc(qt)}');drAutosize(this);drWordCount(this)" placeholder="${p.ready?'Write your answer, or press Regenerate to draft one.':'Write your answer here.'}" aria-label="Answer ${n}">${drEsc(a.answer_text)}</textarea>
+      <div class="dr-wc" aria-live="polite"></div>
       ${stale?'<div class="dr-stale">Your Funding Passport has changed since this was written. Regenerate to use the new details, or leave it as is.</div>':''}
       <div class="dr-foot">
         <button class="dr-btn small" onclick="saveAnswer('${drEsc(qt)}')" id="drsave-${drEsc(qt)}">Save</button>
@@ -4165,7 +4168,7 @@ function renderDrafting(){
       </div>
     </div>`;
   }).join('');
-  requestAnimationFrame(drAutosizeAll);
+  requestAnimationFrame(()=>{drAutosizeAll();document.querySelectorAll('#drCards .dr-a').forEach(drWordCount);});
 }
 
 // A box is as tall as its content, never shorter than its CSS min-height,
@@ -4175,6 +4178,24 @@ function drAutosize(el){
   if(!el) return;
   el.style.height='auto';
   el.style.height=(el.scrollHeight+2)+'px';
+}
+// Live word count under every answer box. The limit is read from the
+// question text itself ("limit: 150 words", "Max 300 words", "(250 words)"),
+// so editing the question updates it too. Over the limit turns the line red.
+function drWordCount(el){
+  const card=el&&el.closest('.dr-card'); if(!card) return;
+  const a=card.querySelector('.dr-a'), q=card.querySelector('.dr-q'), out=card.querySelector('.dr-wc');
+  if(!a||!out) return;
+  const words=(a.value||'').trim().split(/\s+/).filter(Boolean).length;
+  const m=(q&&q.value||'').match(/(\d[\d,]*)\s*words?/i);
+  const limit=m?parseInt(m[1].replace(/,/g,''),10):0;
+  if(limit){
+    out.textContent=`${words} of ${limit} words`+(words>limit?` (${words-limit} over)`:'');
+    out.classList.toggle('over',words>limit);
+  }else{
+    out.textContent=`${words} word${words===1?'':'s'}`;
+    out.classList.remove('over');
+  }
 }
 function drAutosizeAll(){
   document.querySelectorAll('#drCards .dr-q, #drCards .dr-a').forEach(drAutosize);
@@ -4463,9 +4484,10 @@ function renderSlots(slots){
         <span class="dr-badge ${isDraft?'draft':'yours'}">${isDraft?'Draft':'Yours'}</span>
       </div>
       <div class="dr-field-label">Question ${n}</div>
-      <textarea class="dr-q" oninput="prMarkDirty('${drEsc(s.id)}');drAutosize(this)" aria-label="Question ${n}">${drEsc(s.question_text)}</textarea>
+      <textarea class="dr-q" oninput="prMarkDirty('${drEsc(s.id)}');drAutosize(this);drWordCount(this)" aria-label="Question ${n}">${drEsc(s.question_text)}</textarea>
       <div class="dr-field-label">Answer ${n}</div>
-      <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="prMarkDirty('${drEsc(s.id)}');drAutosize(this)" placeholder="Write your answer, or press Adapt to this program." aria-label="Answer ${n}">${drEsc(s.answer_text)}</textarea>
+      <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="prMarkDirty('${drEsc(s.id)}');drAutosize(this);drWordCount(this)" placeholder="Write your answer, or press Adapt to this program." aria-label="Answer ${n}">${drEsc(s.answer_text)}</textarea>
+      <div class="dr-wc" aria-live="polite"></div>
       <div class="dr-foot">
         <button class="dr-btn small" id="prsave-${drEsc(s.id)}" onclick="saveSlot('${drEsc(s.id)}')">Save</button>
         <button class="dr-btn ghost small" onclick="adaptSlot('${drEsc(s.id)}')" ${ready?'':'disabled title="Complete your Passport first"'}>Adapt To This Program</button>
@@ -4478,7 +4500,7 @@ function renderSlots(slots){
       </div>
     </div>`;
   }).join('');
-  requestAnimationFrame(()=>document.querySelectorAll('#prSlots .dr-q, #prSlots .dr-a').forEach(drAutosize));
+  requestAnimationFrame(()=>{document.querySelectorAll('#prSlots .dr-q, #prSlots .dr-a').forEach(drAutosize);document.querySelectorAll('#prSlots .dr-a').forEach(drWordCount);});
 }
 
 function prMarkDirty(sid){
