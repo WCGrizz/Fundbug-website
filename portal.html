@@ -2463,7 +2463,7 @@ function buildTrackerCard(prog, isFav) {
   // sitting next to an unpaid fee is a question nobody asked.
   const feeHtml = prog.fee_amount ? `
       <div class="tracker-fee">
-        <span>Application fee: ${esc(prog.fee_amount)}</span>
+        <span>Cost: ${esc(prog.fee_amount)}</span>
         <label><input type="checkbox" ${prog.fee_paid ? 'checked' : ''}
                onchange="updateFeePaid('${prog.program_id}', this.checked)"> paid</label>
         <span class="fee-date-wrap ${prog.fee_paid ? 'show' : ''}" id="feedate-${prog.program_id}">
@@ -3361,7 +3361,7 @@ const _origSwitchTab = typeof switchTab === 'function' ? switchTab : null;
 
     <div class="ag-row">
       <div class="ag-field">
-        <label for="agFee">Application fee (optional)</label>
+        <label for="agFee">Cost (optional)</label>
         <input type="text" id="agFee" maxlength="200" placeholder="e.g. $25">
       </div>
       <div class="ag-field">
@@ -3496,7 +3496,7 @@ async function openDigest(logId) {
       // of program_groups entirely. It was in the digest we sent, so it stays
       // on the list rather than vanishing, but nobody should chase it.
       const gone = p.no_longer_listed ? `<span style="display:inline-block;padding:2px 9px;border-radius:11px;background:rgba(0,0,0,.06);color:var(--muted);font-size:11px;font-weight:500;margin-right:6px">No longer listed</span>` : '';
-      const cost = p.participation_cost ? `<div style="font-size:12px;color:#b07d3a;margin-top:3px">Cost to participate: ${escapeHtml(p.participation_cost)}</div>` : '';
+      const cost = p.participation_cost ? `<div style="font-size:14px;color:#8a5a1c;margin-top:3px">Cost: ${escapeHtml(p.participation_cost)}</div>` : '';
       const link = p.source_url ? `<a href="${encodeURI(p.source_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:13px;color:var(--green-dk);text-decoration:underline;white-space:nowrap">View &amp; apply →</a>` : '';
       return `<div onclick="jumpToTrackerProgram('${String(p.program_id).replace(/'/g,"\\'")}')" title="Open this program in your tracker" style="padding:14px 0;border-top:1px solid var(--border);cursor:pointer;transition:background .12s" onmouseover="this.style.background='rgba(90,158,82,.05)'" onmouseout="this.style.background='none'">
         <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start">
@@ -4423,7 +4423,7 @@ function renderProgramHeader(p, passport){
   if(p.amount) facts.push(`<span class="pr-fact">${drEsc(p.amount)}</span>`);
   if(p.deadline) facts.push(`<span class="pr-fact">Deadline: ${drEsc(p.deadline)}</span>`);
   if(p.geography) facts.push(`<span class="pr-fact">${drEsc(p.geography)}</span>`);
-  if(p.participation_cost) facts.push(`<span class="pr-fact warn">Cost to participate: ${drEsc(p.participation_cost)}</span>`);
+  if(p.participation_cost) facts.push(`<span class="pr-fact warn">Cost: ${drEsc(p.participation_cost)}</span>`);
   if(p.no_longer_listed) facts.push(`<span class="pr-fact warn">No longer listed</span>`);
   if(p.is_user_added) facts.push(`<span class="pr-fact">You added this one</span>`);
   document.getElementById('prProgram').innerHTML = `
