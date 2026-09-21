@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connect to FundBug</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/fundbug_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1a1a14;--green:#5a9e52;--green-dk:#3d7a38;--cream:#f7f5f0;--border:#d8d3c8;--white:#fff;--red:#a4261d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);font-family:'Jost',sans-serif;color:var(--ink);font-size:16px;line-height:1.6}
+.wrap{max-width:520px;margin:64px auto;padding:0 20px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:32px}
+h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:28px;margin:0 0 12px;color:var(--ink)}
+p{margin:0 0 16px;font-size:16px;color:var(--ink)}
+.who{font-size:15px;margin:0 0 20px;padding:12px 14px;background:var(--cream);border:1px solid var(--border);border-radius:6px}
+button{font-family:'Jost',sans-serif;font-size:16px;font-weight:600;background:var(--green-dk);color:#fff;border:0;border-radius:6px;padding:12px 22px;cursor:pointer}
+button:hover{background:var(--green)}
+button:disabled{opacity:.6;cursor:default}
+a{color:var(--green-dk);font-weight:500}
+.msg{margin-top:18px;font-size:15px}
+.msg.err{color:var(--red);font-weight:600}
+.msg.ok{color:var(--green-dk);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+  <h1>Connect to FundBug</h1>
+  <div id="body"><p>Checking your FundBug login...</p></div>
+  <div class="msg" id="msg" aria-live="polite"></div>
+</div></div>
+
+<script>
+// Hands the subscriber's existing portal session to the FundBug browser
+// extension, so they never type a password into the extension itself.
+//
+// SECURITY: the token only ever goes to an extension id on this list. Any
+// other extension could open this page with its own id in the address, and
+// without the list it would be handed a working login. Add the Chrome Web
+// Store id here once the store assigns it; keep the development id until the
+// store version replaces it.
+const ALLOWED_EXTENSION_IDS = [
+  'aplepciclenfefnipgmohcbeepgigikf',  // development build (fixed by the key in manifest.json)
+];
+const API = 'https://fundbug-production.up.railway.app';
+
+const bodyEl = document.getElementById('body');
+const msgEl  = document.getElementById('msg');
+function say(text, kind){ msgEl.textContent = text; msgEl.className = 'msg' + (kind ? ' ' + kind : ''); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+(async function init(){
+  const extId = new URLSearchParams(location.search).get('ext') || '';
+  if (!ALLOWED_EXTENSION_IDS.includes(extId)) {
+    bodyEl.innerHTML = '<p>Open this page from the FundBug extension: click the FundBug icon in your browser, then Connect to FundBug.</p>';
+    return;
+  }
+  if (!(window.chrome && chrome.runtime && chrome.runtime.sendMessage)) {
+    bodyEl.innerHTML = '<p>The FundBug extension is not installed in this browser, or this browser does not support it. It works in Google Chrome.</p>';
+    return;
+  }
+
+  let token = '';
+  try { token = localStorage.getItem('fb_token') || ''; } catch (e) {}
+  if (!token) {
+    bodyEl.innerHTML = '<p>You are not logged in to FundBug in this browser.</p>'
+      + '<p><a href="/portal" target="_blank" rel="noopener">Log in to FundBug</a>, then come back to this tab and reload it.</p>';
+    return;
+  }
+
+  // Confirm the session still works before handing it over, and show whose
+  // account this is so nobody connects the wrong one on a shared computer.
+  let profile = null;
+  try {
+    const r = await fetch(API + '/api/extension/profile', { headers: { 'Authorization': 'Bearer ' + token } });
+    if (r.status === 401 || r.status === 403) {
+      bodyEl.innerHTML = '<p>Your FundBug login has expired.</p>'
+        + '<p><a href="/portal" target="_blank" rel="noopener">Log in to FundBug again</a>, then come back to this tab and reload it.</p>';
+      return;
+    }
+    if (!r.ok) throw new Error('status ' + r.status);
+    profile = (await r.json()).profile || {};
+  } catch (e) {
+    bodyEl.innerHTML = '<p>FundBug could not be reached just now. Reload this page to try again.</p>';
+    return;
+  }
+
+  const name = [profile.first_name, profile.last_name].filter(Boolean).join(' ');
+  bodyEl.innerHTML =
+      '<p>This lets the FundBug extension draft answers on grant applications using your Funding Passport.</p>'
+    + '<div class="who">Connecting as <strong>' + esc(name || profile.email || 'your account') + '</strong>'
+    + (profile.business_name ? ', ' + esc(profile.business_name) : '') + '</div>'
+    + '<button id="go">Connect to FundBug</button>';
+
+  document.getElementById('go').addEventListener('click', () => {
+    const btn = document.getElementById('go');
+    btn.disabled = true;
+    say('Connecting...');
+    try {
+      chrome.runtime.sendMessage(extId, {
+        type: 'fundbug_connect',
+        token: token,
+        name: name,
+        business_name: profile.business_name || '',
+        email: profile.email || '',
+      }, (resp) => {
+        if (chrome.runtime.lastError || !resp || !resp.ok) {
+          btn.disabled = false;
+          say('The extension did not respond. Make sure it is installed and turned on, then try again.', 'err');
+          return;
+        }
+        bodyEl.innerHTML = '';
+        say('Connected. You can close this tab and go back to your application.', 'ok');
+      });
+    } catch (e) {
+      btn.disabled = false;
+      say('The extension did not respond. Make sure it is installed and turned on, then try again.', 'err');
+    }
+  });
+})();
+</script>
+</body>
+</html>
