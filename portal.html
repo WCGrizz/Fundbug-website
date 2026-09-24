@@ -513,6 +513,9 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .prep-panel{background:var(--white);width:min(100vw,620px);height:100vh;height:100dvh;overflow-y:auto;box-shadow:-8px 0 40px rgba(0,0,0,.2);display:flex;flex-direction:column;-webkit-overflow-scrolling:touch}
 .prep-header{background:var(--ink);padding:18px 24px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:10;padding-top:max(18px,var(--safe-top))}
 .prep-title{font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:var(--white);line-height:1.3;flex:1}
+.ag-modal{position:relative}
+.ag-x{position:absolute;top:10px;right:12px;background:none;border:none;font-size:28px;line-height:1;color:var(--ink);cursor:pointer;min-width:44px;min-height:44px;border-radius:50%}
+.ag-x:hover{background:rgba(0,0,0,.06)}
 .prep-close{background:none;border:none;color:var(--muted2);font-size:24px;cursor:pointer;padding:6px 10px;flex-shrink:0;line-height:1;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;margin:-6px -10px 0 0}
 .prep-close:hover{color:var(--white)}
 .prep-body{padding:24px;flex:1}
@@ -1286,7 +1289,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
           <div class="page-title">My Tracker</div>
           <div class="page-sub">Keep tabs on every opportunity — star the ones you're serious about and track your progress.</div>
           <div class="tracker-add-note">Found a grant we didn't send you? Track it here alongside everything else, and we'll take a look at adding it to FundBug.</div>
-          <button class="tracker-add-btn" onclick="openAddGrant()">+ Add a grant</button>
+          <button class="tracker-add-btn" onclick="openAddGrant()">+ Add A Grant</button>
         </div>
 
         <!-- FEEDBACK PENDING BAR (shown only via ?feedback=1 deep link) -->
@@ -2295,12 +2298,7 @@ async function confirmCancel() {
   }
 }
 
-// Close modal on overlay click
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('cancelModal').addEventListener('click', function(e) {
-    if (e.target === this) closeCancelModal();
-  });
-});
+// (The cancel box closes only with its own buttons, not a click outside. Sept 24 2026.)
 
 function showPage(id, el) {
   if (typeof event !== 'undefined' && event && event.preventDefault) event.preventDefault();
@@ -2795,7 +2793,7 @@ function openAddGrant(programId) {
   sel.innerHTML = Object.entries(STATUS_LABELS)
     .map(([v,l]) => `<option value="${v}">${l}</option>`).join('');
 
-  document.getElementById('agHeading').textContent = prog ? 'Edit grant' : 'Add a grant';
+  document.getElementById('agHeading').textContent = prog ? 'Edit Grant' : 'Add A Grant';
   document.getElementById('agSub').textContent = prog
     ? 'Update what you know about this one.'
     : 'Track something you found yourself, alongside the programs FundBug sends you.';
@@ -3398,9 +3396,12 @@ const _origSwitchTab = typeof switchTab === 'function' ? switchTab : null;
      description box, the link, deadline, whether it recurs, status, an
      optional fee, and whether that fee has been paid and when. Only the name
      is required; the rest is whatever they happen to know. -->
-<div class="ag-overlay" id="agOverlay" onclick="if(event.target===this)closeAddGrant()">
+<!-- Closes only with its X or Cancel (Sept 24 2026: a click outside the box
+     closed it, losing whatever had been typed). -->
+<div class="ag-overlay" id="agOverlay">
   <div class="ag-modal">
-    <h3 id="agHeading">Add a grant</h3>
+    <button type="button" class="ag-x" onclick="closeAddGrant()" aria-label="Close">&times;</button>
+    <h3 id="agHeading">Add A Grant</h3>
     <p class="ag-sub" id="agSub">Track something you found yourself, alongside the programs FundBug sends you.</p>
 
     <div class="ag-field">
@@ -3462,7 +3463,7 @@ const _origSwitchTab = typeof switchTab === 'function' ? switchTab : null;
   </div>
 </div>
 
-<div class="prep-overlay" id="prepOverlay" onclick="if(event.target===this)closePrepPanel()">
+<div class="prep-overlay" id="prepOverlay">
   <div class="prep-panel" id="prepPanel">
     <div class="prep-header">
       <div class="prep-title" id="prepPanelTitle">Application Prep</div>
@@ -3594,7 +3595,7 @@ async function openDigest(logId) {
   }
 }
 function closeDigest(){ document.getElementById('digestModal').style.display='none'; }
-document.getElementById('digestModal').addEventListener('click', function(e){ if(e.target===this) closeDigest(); });
+// (A click outside the digest no longer closes it; use its × button. Sept 24 2026.)
 
 // Option 1: clicking a program in a past digest jumps to that program in the
 // tracker (programs from digests are auto-populated there). Closes the modal,
@@ -4774,11 +4775,11 @@ function renderSlots(slots){
       ${drOutlinePanel(s.outline_text, s.outline_at)}
       ${prSuggestionBox(s)}
       <div class="dr-field-label">Answer ${n}</div>
-      <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="prMarkDirty('${drEsc(s.id)}');drAutosize(this);drWordCount(this);prHideSuggestion('${drEsc(s.id)}',this)" placeholder="${s.outline_text?'Write your answer here, using the outline above.':drIsOutline()?'Write your answer, or press Outline This Question.':'Write your answer, or press Adapt to this program.'}" aria-label="Answer ${n}">${drEsc(s.answer_text)}</textarea>
+      <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="prMarkDirty('${drEsc(s.id)}');drAutosize(this);drWordCount(this);prHideSuggestion('${drEsc(s.id)}',this)" placeholder="${s.outline_text?'Write your answer here, using the outline above.':drIsOutline()?'Write your answer, or press Outline This Question.':'Write your answer, or press Draft This Answer.'}" aria-label="Answer ${n}">${drEsc(s.answer_text)}</textarea>
       <div class="dr-wc" aria-live="polite"></div>
       <div class="dr-foot">
         <button class="dr-btn small" id="prsave-${drEsc(s.id)}" onclick="saveSlot('${drEsc(s.id)}')">Save</button>
-        <button class="dr-btn ghost small" onclick="adaptSlot('${drEsc(s.id)}')" ${ready?'':'disabled title="Complete your Passport first"'}>${drIsOutline()?(s.outline_text?'Redo The Outline':'Outline This Question'):'Adapt To This Program'}</button>
+        <button class="dr-btn ghost small" onclick="adaptSlot('${drEsc(s.id)}')" ${ready?'':'disabled title="Complete your Passport first"'}>${drIsOutline()?(s.outline_text?'Redo The Outline':'Outline This Question'):((s.answer_text||'').trim()?'Redraft This Answer':'Draft This Answer')}</button>
         <button class="dr-btn ghost small" onclick="undoSlot('${drEsc(s.id)}')">Undo</button>
         <button class="dr-btn ghost small" onclick="copySlot('${drEsc(s.id)}',this)">Copy</button>
         <button class="dr-btn ghost small" onclick="promoteSlot('${drEsc(s.id)}')">Save To My Answers</button>
@@ -4824,14 +4825,14 @@ async function saveSlot(sid){
   }catch(e){ prStatus(e.message, true); await loadProgramDrafting(prPid); }
 }
 async function adaptSlot(sid){
-  if(prDirty.has(sid) && !confirm('This answer has unsaved edits. Adapt anyway? Your unsaved text will be lost; the saved version stays in Undo.')) return;
-  prBusy(sid,'Adapting...');
+  if(prDirty.has(sid) && !confirm(drIsOutline()?'This answer has unsaved edits. Save them first, or they will be lost when the page refreshes. Continue?':'This answer has unsaved edits. Redraft anyway? Your unsaved text will be lost; the saved version stays in Undo.')) return;
+  prBusy(sid, drIsOutline()?'Outlining...':'Drafting...');
   prStatus('Rewriting this answer for this program. The current one is kept under Undo.');
   try{
     await apiFetch(prBase()+'/slots/'+encodeURIComponent(sid)+'/adapt','POST',{});
     prDirty.delete(sid);
     await loadProgramDrafting(prPid);
-    prStatus('Adapted. Read it, edit anything, then save.');
+    prStatus(drIsOutline()?'Outlined. Use the outline to write your answer, then save.':'Drafted. Read it, edit anything, then save.');
   }catch(e){
     if(e.status===409 && e.detail && e.detail.missing_for_drafting){
       prStatus('Add to your Funding Passport first: '+e.detail.missing_for_drafting.join(', ')+'.', true);
@@ -4943,7 +4944,7 @@ function downloadApplication(){
 // ── Draft every empty answer at once ────────────────────────────────────────
 async function draftAllSlots(){
   const empty=(prData&&prData.slots||[]).filter(s=>!(s.answer_text||'').trim());
-  if(!empty.length){ prStatus('Every question already has an answer. Use Adapt on one to redo it.'); return; }
+  if(!empty.length){ prStatus('Every question already has an answer. Use Redraft This Answer on one to redo it.'); return; }
   const btn=document.getElementById('prDraftAllBtn');
   btn.disabled=true; btn.textContent=drIsOutline()?'Outlining...':'Drafting...';
   prStatus(drIsOutline()
@@ -5072,7 +5073,7 @@ async function confirmExtracted(){
     document.getElementById('prFile').value='';
     prExtracted=[]; prUploadId=null;
     await loadProgramDrafting(prPid);
-    prStatus(`Added ${r.created} question${r.created===1?'':'s'}. Press Adapt on each one to draft an answer from your saved answers.`);
+    prStatus(`Added ${r.created} question${r.created===1?'':'s'}. Press ${drIsOutline()?'Outline This Question':'Draft This Answer'} on each one, or Add Questions to bring in answers you have saved.`);
   }catch(e){ prStatus(e.message, true); }
 }
 
