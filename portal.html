@@ -4325,6 +4325,18 @@ function prHideSuggestion(sid, el){
   if ((el.value||'').trim()){ const box = document.getElementById('prsug-' + sid); if (box) box.remove(); }
 }
 
+
+// Undo was removed from the question cards (Sept 24 2026), so anything that
+// would replace a SAVED answer asks first. Outlines never touch the answer,
+// so in Outlines mode only unsaved typing is at risk.
+function drConfirmReplace(dirty, savedAnswer){
+  if (drIsOutline())
+    return !dirty || confirm('You have unsaved changes to this answer. They will be lost when the page refreshes. Continue?');
+  if ((savedAnswer||'').trim())
+    return confirm('Replace your current answer with a new draft? Your current answer will not be kept on this page.');
+  return !dirty || confirm('You have unsaved changes to this answer. They will be lost. Continue?');
+}
+
 async function loadDrafting(){
   if (!(await drPrepare())) return;
   drStatus('Loading your answers...');
@@ -4401,7 +4413,6 @@ function renderDrafting(){
       <div class="dr-foot">
         <button class="dr-btn small" onclick="saveAnswer('${drEsc(qt)}')" id="drsave-${drEsc(qt)}">Save</button>
         <button class="dr-btn ghost small" onclick="regenerateAnswer('${drEsc(qt)}')" ${p.ready?'':'disabled title="Complete your Passport first"'}>Regenerate</button>
-        <button class="dr-btn ghost small" onclick="undoAnswer('${drEsc(qt)}')">Undo</button>
         <span class="spacer"></span>
         <span class="dr-meta">${isDraft?'Drafted':'Saved'} ${drEsc(drWhen(isDraft?a.generated_at:(a.reviewed_at||a.updated_at)))}</span>
         <button class="dr-btn danger small" onclick="deleteAnswer('${drEsc(qt)}')" title="Remove this question">Remove</button>
@@ -4492,9 +4503,9 @@ async function saveAnswer(qt){
 
 async function regenerateAnswer(qt){
   const c=drCard(qt); if(!c) return;
-  if(drDirty.has(qt) && !confirm('This answer has unsaved edits. Regenerate anyway? Your unsaved text will be lost; the saved version stays in Undo.')) return;
-  drBusy(qt,'Drafting...');
-  drStatus('Writing a new draft. The current one is kept under Undo.');
+  if(!drConfirmReplace(drDirty.has(qt), ((drData&&drData.answers||[]).find(a=>a.question_type===qt)||{}).answer_text)) return;
+  drBusy(qt, drIsOutline()?'Outlining...':'Drafting...');
+  drStatus(drIsOutline()?'Writing an outline for this question.':'Writing a new draft.');
   try{
     await apiFetch('/api/portal/drafts/library/'+encodeURIComponent(qt)+'/regenerate','POST',{});
     drDirty.delete(qt);
@@ -4780,8 +4791,6 @@ function renderSlots(slots){
       <div class="dr-foot">
         <button class="dr-btn small" id="prsave-${drEsc(s.id)}" onclick="saveSlot('${drEsc(s.id)}')">Save</button>
         <button class="dr-btn ghost small" onclick="adaptSlot('${drEsc(s.id)}')" ${ready?'':'disabled title="Complete your Passport first"'}>${drIsOutline()?(s.outline_text?'Redo The Outline':'Outline This Question'):((s.answer_text||'').trim()?'Redraft This Answer':'Draft This Answer')}</button>
-        <button class="dr-btn ghost small" onclick="undoSlot('${drEsc(s.id)}')">Undo</button>
-        <button class="dr-btn ghost small" onclick="copySlot('${drEsc(s.id)}',this)">Copy</button>
         <button class="dr-btn ghost small" onclick="promoteSlot('${drEsc(s.id)}')">Save To My Answers</button>
         <span class="spacer"></span>
         <span class="dr-meta">${isDraft?'Drafted':'Saved'} ${drEsc(drWhen(isDraft?s.generated_at:(s.reviewed_at||s.updated_at)))}</span>
@@ -4825,9 +4834,9 @@ async function saveSlot(sid){
   }catch(e){ prStatus(e.message, true); await loadProgramDrafting(prPid); }
 }
 async function adaptSlot(sid){
-  if(prDirty.has(sid) && !confirm(drIsOutline()?'This answer has unsaved edits. Save them first, or they will be lost when the page refreshes. Continue?':'This answer has unsaved edits. Redraft anyway? Your unsaved text will be lost; the saved version stays in Undo.')) return;
+  if(!drConfirmReplace(prDirty.has(sid), ((prData&&prData.slots||[]).find(x=>String(x.id)===String(sid))||{}).answer_text)) return;
   prBusy(sid, drIsOutline()?'Outlining...':'Drafting...');
-  prStatus('Rewriting this answer for this program. The current one is kept under Undo.');
+  prStatus(drIsOutline()?'Writing an outline for this question.':'Writing a draft for this program.');
   try{
     await apiFetch(prBase()+'/slots/'+encodeURIComponent(sid)+'/adapt','POST',{});
     prDirty.delete(sid);
