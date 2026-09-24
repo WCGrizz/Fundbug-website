@@ -384,6 +384,15 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .dr-terms-text{font-size:15.5px;color:var(--ink);line-height:1.65;margin:0 0 18px}
 .dr-terms-check{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:var(--ink);margin:0 0 20px;cursor:pointer}
 .dr-terms-check input{margin-top:4px;width:18px;height:18px}
+.dr-outline{background:#f4f8f2;border:1px solid #cfe2cb;border-left:4px solid var(--green);border-radius:8px;padding:12px 14px;margin:6px 0 14px}
+.dr-outline-h{font-size:15px;font-weight:600;color:var(--ink);margin:0 0 6px}
+.dr-outline-h span{font-weight:400;font-size:14px;color:var(--ink)}
+.dr-outline-body{font-size:15px;line-height:1.6;color:var(--ink)}
+.dr-outline-body ul{margin:2px 0 10px;padding-left:20px}
+.dr-outline-sub{font-weight:600;margin:8px 0 2px}
+.dr-suggest{background:#fdf6ea;border:1px solid #ecd9b6;border-radius:8px;padding:12px 14px;margin:0 0 14px;font-size:15px;line-height:1.55;color:var(--ink)}
+.dr-suggest-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.dr-suggest-text{white-space:pre-wrap;background:var(--white);border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-top:10px;font-size:15px;line-height:1.6;color:var(--ink)}
 .dr-q{width:100%;font-family:'Jost',sans-serif;font-size:15px;color:#3a3a33;font-weight:400;border:1px solid var(--border);border-radius:6px;padding:10px 12px;background:var(--cream);resize:vertical;min-height:72px;line-height:1.55;overflow:hidden}
 .dr-q:focus{border-color:var(--green);outline:none;color:var(--ink);background:var(--white)}
 .dr-a{width:100%;font-family:'Jost',sans-serif;font-size:16px;line-height:1.7;color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-top:10px;min-height:220px;resize:vertical;background:var(--white);overflow:hidden}
@@ -4217,6 +4226,73 @@ async function drPrepare(){
   return ok;
 }
 
+
+// ── Outline panel, badges and suggestions (added 2026-09-24) ────────────
+// Outlines sit ABOVE the answer box now, so the box only ever holds the
+// business's own words. A question with no answer yet may offer an earlier
+// answer of theirs (one they wrote, or a FundBug draft they edited) from My
+// Answers or another application, to use as a starting point.
+function drBadge(isDraft, answer, outline){
+  if (isDraft) return '<span class="dr-badge draft">Draft</span>';
+  if (!(answer||'').trim() && (outline||'').trim()) return '<span class="dr-badge draft">Outline</span>';
+  return '<span class="dr-badge yours">Yours</span>';
+}
+function drOutlinePanel(outline, at){
+  if (!(outline||'').trim()) return '';
+  return `<div class="dr-outline">
+    <div class="dr-outline-h">Outline <span>${at ? 'written ' + drEsc(drWhen(at)) : ''}</span></div>
+    <div class="dr-outline-body">${drOutlineHtml(outline)}</div>
+  </div>`;
+}
+// Headings (What To Cover, From Your Profile, You'll Need To Add) in bold,
+// "- " lines as a list; anything else as plain lines.
+function drOutlineHtml(text){
+  let html = '', open = false;
+  String(text).split(/\n/).forEach(raw => {
+    const line = raw.trim();
+    if (!line){ if (open){ html += '</ul>'; open = false; } return; }
+    if (/^[-\u2022*]\s+/.test(line)){
+      if (!open){ html += '<ul>'; open = true; }
+      html += '<li>' + drEsc(line.replace(/^[-\u2022*]\s+/, '')) + '</li>';
+    } else {
+      if (open){ html += '</ul>'; open = false; }
+      html += '<div class="dr-outline-sub">' + drEsc(line) + '</div>';
+    }
+  });
+  return html + (open ? '</ul>' : '');
+}
+function prSuggestionBox(s){
+  const g = s.suggestion;
+  if (!g || (s.answer_text||'').trim()) return '';
+  const where = g.in_library ? 'in My Answers' : (g.program_title ? 'for ' + drEsc(g.program_title) : 'on another application');
+  return `<div class="dr-suggest" id="prsug-${drEsc(s.id)}">
+    <div>You answered a question like this before: <b>\u201c${drEsc(g.label || 'an earlier question')}\u201d</b> ${where}.</div>
+    <div class="dr-suggest-actions">
+      <button class="dr-btn small" onclick="prUseSuggestion('${drEsc(s.id)}')">Use As A Starting Point</button>
+      <button class="dr-btn ghost small" onclick="prToggleSuggestion('${drEsc(s.id)}',this)">Show It</button>
+    </div>
+    <div class="dr-suggest-text" hidden>${drEsc(g.answer_text)}</div>
+  </div>`;
+}
+function prToggleSuggestion(sid, btn){
+  const box = document.querySelector('#prsug-' + CSS.escape(sid) + ' .dr-suggest-text'); if (!box) return;
+  box.hidden = !box.hidden; btn.textContent = box.hidden ? 'Show It' : 'Hide It';
+}
+function prUseSuggestion(sid){
+  const slot = (prData && prData.slots || []).find(x => String(x.id) === String(sid));
+  const card = document.getElementById('prc-' + sid);
+  if (!slot || !slot.suggestion || !card) return;
+  const a = card.querySelector('.dr-a');
+  a.value = slot.suggestion.answer_text || '';
+  prMarkDirty(sid); drAutosize(a); drWordCount(a);
+  const box = document.getElementById('prsug-' + sid); if (box) box.remove();
+  a.focus();
+  prStatus('Your earlier answer is in the box. Edit it for this program, then press Save.');
+}
+function prHideSuggestion(sid, el){
+  if ((el.value||'').trim()){ const box = document.getElementById('prsug-' + sid); if (box) box.remove(); }
+}
+
 async function loadDrafting(){
   if (!(await drPrepare())) return;
   drStatus('Loading your answers...');
@@ -4281,12 +4357,13 @@ function renderDrafting(){
           <div class="dr-field-label">Title</div>
           <input class="dr-label" value="${drEsc(a.label)}" maxlength="200" oninput="drMarkDirty('${drEsc(qt)}')" aria-label="Title">
         </div>
-        <span class="dr-badge ${isDraft?'draft':'yours'}">${isDraft?drVerb():'Yours'}</span>
+        ${drBadge(isDraft, a.answer_text, a.outline_text)}
       </div>
       <div class="dr-field-label">Question ${n}</div>
       <textarea class="dr-q" oninput="drMarkDirty('${drEsc(qt)}');drAutosize(this);drWordCount(this)" aria-label="Question ${n}">${drEsc(a.question_text)}</textarea>
+      ${drOutlinePanel(a.outline_text, a.outline_at)}
       <div class="dr-field-label">Answer ${n}</div>
-      <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="drMarkDirty('${drEsc(qt)}');drAutosize(this);drWordCount(this)" placeholder="${p.ready?'Write your answer, or press Regenerate to draft one.':'Write your answer here.'}" aria-label="Answer ${n}">${drEsc(a.answer_text)}</textarea>
+      <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="drMarkDirty('${drEsc(qt)}');drAutosize(this);drWordCount(this)" placeholder="${a.outline_text?'Write your answer here, using the outline above.':p.ready?(drIsOutline()?'Write your answer, or press Regenerate for an outline.':'Write your answer, or press Regenerate to draft one.'):'Write your answer here.'}" aria-label="Answer ${n}">${drEsc(a.answer_text)}</textarea>
       <div class="dr-wc" aria-live="polite"></div>
       ${stale?'<div class="dr-stale">Your Funding Passport has changed since this was written. Regenerate to use the new details, or leave it as is.</div>':''}
       <div class="dr-foot">
@@ -4294,7 +4371,7 @@ function renderDrafting(){
         <button class="dr-btn ghost small" onclick="regenerateAnswer('${drEsc(qt)}')" ${p.ready?'':'disabled title="Complete your Passport first"'}>Regenerate</button>
         <button class="dr-btn ghost small" onclick="undoAnswer('${drEsc(qt)}')">Undo</button>
         <span class="spacer"></span>
-        <span class="dr-meta">${isDraft?(drIsOutline()?'Outlined':'Drafted'):'Saved'} ${drEsc(drWhen(isDraft?a.generated_at:(a.reviewed_at||a.updated_at)))}</span>
+        <span class="dr-meta">${isDraft?'Drafted':'Saved'} ${drEsc(drWhen(isDraft?a.generated_at:(a.reviewed_at||a.updated_at)))}</span>
         <button class="dr-btn danger small" onclick="deleteAnswer('${drEsc(qt)}')" title="Remove this question">Remove</button>
       </div>
     </div>`;
@@ -4593,7 +4670,8 @@ function renderSlots(slots){
   const draftAll=document.getElementById('prDraftAllBtn');
   if(draftAll){
     const ready=(prData&&prData.passport&&prData.passport.ready);
-    draftAll.disabled=!ready || answered===(slots||[]).length;
+    const covered=(slots||[]).filter(s=>(s.answer_text||'').trim() || (drIsOutline() && (s.outline_text||'').trim())).length;
+    draftAll.disabled=!ready || covered===(slots||[]).length;
     draftAll.title=ready?'':'Complete your Funding Passport first';
   }
   if(!slots || !slots.length){
@@ -4613,21 +4691,23 @@ function renderSlots(slots){
           <div class="dr-field-label">Title</div>
           <input class="dr-label" value="${drEsc(s.label)}" maxlength="200" oninput="prMarkDirty('${drEsc(s.id)}')" aria-label="Title">
         </div>
-        <span class="dr-badge ${isDraft?'draft':'yours'}">${isDraft?drVerb():'Yours'}</span>
+        ${drBadge(isDraft, s.answer_text, s.outline_text)}
       </div>
       <div class="dr-field-label">Question ${n}</div>
       <textarea class="dr-q" oninput="prMarkDirty('${drEsc(s.id)}');drAutosize(this);drWordCount(this)" aria-label="Question ${n}">${drEsc(s.question_text)}</textarea>
+      ${drOutlinePanel(s.outline_text, s.outline_at)}
+      ${prSuggestionBox(s)}
       <div class="dr-field-label">Answer ${n}</div>
-      <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="prMarkDirty('${drEsc(s.id)}');drAutosize(this);drWordCount(this)" placeholder="Write your answer, or press Adapt to this program." aria-label="Answer ${n}">${drEsc(s.answer_text)}</textarea>
+      <textarea class="dr-a ${isDraft?'is-draft':''}" oninput="prMarkDirty('${drEsc(s.id)}');drAutosize(this);drWordCount(this);prHideSuggestion('${drEsc(s.id)}',this)" placeholder="${s.outline_text?'Write your answer here, using the outline above.':drIsOutline()?'Write your answer, or press Outline This Question.':'Write your answer, or press Adapt to this program.'}" aria-label="Answer ${n}">${drEsc(s.answer_text)}</textarea>
       <div class="dr-wc" aria-live="polite"></div>
       <div class="dr-foot">
         <button class="dr-btn small" id="prsave-${drEsc(s.id)}" onclick="saveSlot('${drEsc(s.id)}')">Save</button>
-        <button class="dr-btn ghost small" onclick="adaptSlot('${drEsc(s.id)}')" ${ready?'':'disabled title="Complete your Passport first"'}>Adapt To This Program</button>
+        <button class="dr-btn ghost small" onclick="adaptSlot('${drEsc(s.id)}')" ${ready?'':'disabled title="Complete your Passport first"'}>${drIsOutline()?(s.outline_text?'Redo The Outline':'Outline This Question'):'Adapt To This Program'}</button>
         <button class="dr-btn ghost small" onclick="undoSlot('${drEsc(s.id)}')">Undo</button>
         <button class="dr-btn ghost small" onclick="copySlot('${drEsc(s.id)}',this)">Copy</button>
         <button class="dr-btn ghost small" onclick="promoteSlot('${drEsc(s.id)}')">Save To My Answers</button>
         <span class="spacer"></span>
-        <span class="dr-meta">${isDraft?(drIsOutline()?'Outlined':'Drafted'):'Saved'} ${drEsc(drWhen(isDraft?s.generated_at:(s.reviewed_at||s.updated_at)))}</span>
+        <span class="dr-meta">${isDraft?'Drafted':'Saved'} ${drEsc(drWhen(isDraft?s.generated_at:(s.reviewed_at||s.updated_at)))}</span>
         <button class="dr-btn danger small" onclick="deleteSlot('${drEsc(s.id)}')">Remove</button>
       </div>
     </div>`;
