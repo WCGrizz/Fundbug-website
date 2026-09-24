@@ -471,6 +471,29 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .pr-desc.open{max-height:none}
 .pr-more{font-size:14px;font-weight:500;color:var(--green-dk);background:none;border:none;padding:0;cursor:pointer;margin-bottom:12px}
 .pr-more:hover{text-decoration:underline}
+/* Application Roadmap (added 2026-09-24) */
+.pr-roadmap{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:10px;padding:18px 22px;margin-bottom:18px}
+.rm-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.rm-head h3{font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600;color:var(--ink);margin:0}
+.pr-roadmap h4{font-family:'Jost',sans-serif;font-size:15px;font-weight:600;color:var(--ink);margin:16px 0 6px}
+.rm-intro{font-size:15px;color:var(--ink);line-height:1.55;margin:12px 0}
+.rm-note{font-size:14.5px;color:var(--ink);margin-left:10px}
+.rm-list{margin:0 0 4px;padding-left:22px}
+.rm-list li{font-size:15px;color:var(--ink);line-height:1.55;padding:3px 0}
+.rm-limit{font-size:14px;color:var(--green-dk);font-weight:600}
+.rm-personal{list-style:none;margin:0;padding:0}
+.rm-personal li{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:var(--ink);line-height:1.5;padding:4px 0}
+.rm-icon{flex:none;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;margin-top:1px}
+.rm-ok .rm-icon{background:var(--green)}
+.rm-check .rm-icon{background:#b8862c}
+.rm-no .rm-icon{background:#a4261d}
+.rm-warn{background:#fdf6ea;border:1px solid #ecd9b6;border-radius:6px;padding:10px 12px;font-size:15px;color:var(--ink);margin:12px 0 4px}
+.rm-sources{list-style:none;margin:0;padding:0}
+.rm-sources li{font-size:14.5px;color:var(--ink);line-height:1.5;padding:3px 0}
+.rm-srcmeta{color:var(--ink)}
+.rm-old{font-size:13.5px;font-weight:600;color:#7a4e0e;background:#fdf1dc;border-radius:4px;padding:1px 6px}
+.rm-foot{font-size:14.5px;color:var(--ink);margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.rm-foot .dr-btn{margin-left:auto}
 .pr-plan{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin-bottom:18px}
 .pr-plan h3{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;color:var(--ink);margin-bottom:12px}
 .pr-plan h4{font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
@@ -1394,6 +1417,8 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         <button class="pr-back" onclick="backToLibrary()">&larr; All My Answers</button>
         <div class="dr-modebar" id="prModeBar"></div>
         <div id="prProgram"></div>
+        <!-- Application Roadmap (added 2026-09-24) -->
+        <div class="pr-roadmap" id="prRoadmap" style="display:none"></div>
         <div class="dr-status" id="prStatus"></div>
 
         <!-- Adding questions (rebuilt 2026-09-24). One button, three clear
@@ -4661,6 +4686,7 @@ async function loadProgramDrafting(pid){
     renderProgramHeader(prData.program, prData.passport);
     renderLibraryPicker(prData.library);
     renderPlan(prData.plan || {});
+    renderRoadmap(prData.roadmap);
     renderSlots(prData.slots);
     prStatus('');
   }catch(e){
@@ -5055,6 +5081,85 @@ function renderPlan(data){
   }
   box.innerHTML=h;
   box.style.display='block';
+}
+
+
+// ── Application Roadmap (added 2026-09-24) ──────────────────────────────
+// Between the program details and the questions. The roadmap itself is built
+// once per program on a button press and shared by every business; the
+// Before You Start list is this business's own, from their profile.
+let prRoadmapOpen = true;
+function renderRoadmap(r){
+  const box = document.getElementById('prRoadmap');
+  if (!r || !r.available){ box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  const icon = {ok:'\u2713', check:'?', no:'\u2715'};
+  const personal = (r.personal||[]).length ? `<h4>Before You Start</h4><ul class="rm-personal">${
+    r.personal.map(p => `<li class="rm-${p.state}"><span class="rm-icon">${icon[p.state]||'?'}</span>${drEsc(p.text)}</li>`).join('')}</ul>` : '';
+  let body = personal;
+  if (!r.built){
+    body += `<p class="rm-intro">FundBug can read this program's pages, its guidelines and any application guides on file,
+      then lay out the documents to gather, the key dates and the steps to apply.</p>
+      <button class="dr-btn" id="rmBuild" onclick="buildRoadmap(this)">Build The Application Roadmap</button>
+      <span class="rm-note">Takes about a minute.</span>`;
+  } else {
+    const m = r.roadmap || {}, src = r.sources || [];
+    const list = (title, items, fmt, cls) => (items && items.length)
+      ? `<h4>${title}</h4><${cls==='ol'?'ol':'ul'} class="rm-list ${cls||''}">${items.map(fmt).join('')}</${cls==='ol'?'ol':'ul'}>` : '';
+    const refTitle = ref => { const x = src.find(s => s.ref === ref); return x ? (x.title || x.kind || '') : (ref === 'S0' ? 'FundBug program record' : ''); };
+    if (r.stale) body += `<div class="rm-warn">This program's dates have changed since the roadmap was built. Rebuild it to check for the current cycle.</div>`;
+    if (m.cycle_note) body += `<div class="rm-warn">${drEsc(m.cycle_note)}</div>`;
+    body += list('Documents To Gather', m.documents, d => `<li title="${drEsc(refTitle(d.ref))}">${drEsc(d.item)}</li>`, 'rm-docs');
+    body += list('Key Dates', m.key_dates, d => `<li title="${drEsc(refTitle(d.ref))}"><b>${drEsc(d.label)}</b>${d.date ? ': ' + drEsc(d.date) : ''}</li>`);
+    body += list('How To Apply', m.how_to_apply, d => `<li title="${drEsc(refTitle(d.ref))}">${drEsc(d.step || d)}</li>`, 'ol');
+    body += list('Who Can Apply', m.eligibility, d => `<li title="${drEsc(refTitle(d.ref))}">${drEsc(d.item || d)}</li>`);
+    if ((m.questions||[]).length){
+      body += list('Questions You\u2019ll Answer', m.questions, q => `<li>${drEsc(q.question)}${q.word_limit ? ` <span class="rm-limit">${q.word_limit} words</span>` : ''}</li>`);
+      body += `<button class="dr-btn ghost small" onclick="roadmapAddQuestions()">Add These Questions</button>`;
+    }
+    body += list('Worth Knowing', m.worth_knowing, d => `<li title="${drEsc(refTitle(d.ref))}">${drEsc(d.item || d)}</li>`);
+    if (src.length){
+      body += `<h4>Sources</h4><ul class="rm-sources">${src.map(s => {
+        const name = s.title || s.kind || 'Source';
+        const link = s.url ? `<a href="${drEsc(s.url)}" target="_blank" rel="noopener">${drEsc(name)}</a>` : drEsc(name);
+        const bits = [drEsc(s.kind || '')];
+        if (s.document_date) bits.push('dated ' + drEsc(s.document_date));
+        if (s.read_at) bits.push('read ' + drEsc(drWhen(s.read_at)));
+        return `<li>${link} <span class="rm-srcmeta">(${bits.filter(Boolean).join(', ')})</span>${
+          s.past_cycle ? ' <span class="rm-old">May describe an earlier cycle</span>' : ''}</li>`;
+      }).join('')}</ul>`;
+    }
+    body += `<div class="rm-foot">Built ${drEsc(drWhen(r.built_at))} from ${src.length} source${src.length===1?'':'s'}.
+      Always check the program's own page before you submit.
+      <button class="dr-btn ghost small" onclick="buildRoadmap(this)">Rebuild</button></div>`;
+  }
+  box.innerHTML = `<div class="rm-head"><h3>Application Roadmap</h3>
+      <button class="dr-btn ghost small" onclick="toggleRoadmap()">${prRoadmapOpen ? 'Hide' : 'Show'}</button></div>
+    <div class="rm-body"${prRoadmapOpen ? '' : ' hidden'}>${body}</div>`;
+  // With a roadmap built, the separate plan from an upload would repeat it.
+  if (r.built) document.getElementById('prPlan').style.display = 'none';
+}
+function toggleRoadmap(){ prRoadmapOpen = !prRoadmapOpen; renderRoadmap(prData && prData.roadmap); }
+async function buildRoadmap(btn){
+  btn.disabled = true; btn.textContent = 'Building\u2026 about a minute';
+  prStatus('Reading the program\u2019s pages, guidelines and any application guides on file.');
+  try {
+    const r = await apiFetch(prBase() + '/roadmap', 'POST', {});
+    prData.roadmap = r; prRoadmapOpen = true;
+    renderRoadmap(r);
+    prStatus('Roadmap ready.');
+  } catch(e){
+    prStatus(e.message, true);
+    btn.disabled = false; btn.textContent = 'Build The Application Roadmap';
+  }
+}
+function roadmapAddQuestions(){
+  const q = ((prData && prData.roadmap && prData.roadmap.roadmap) || {}).questions || [];
+  if (!q.length) return;
+  prExtracted = q.map(x => ({label: x.label || '', question: x.question, word_limit: x.word_limit || null}));
+  prUploadId = null;
+  renderExtracted();
+  document.getElementById('prFound').scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 function renderExtracted(){
