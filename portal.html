@@ -439,7 +439,20 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .pr-qlimit{font-size:13px;color:#4a4a42;font-weight:500;white-space:nowrap}
 .pr-slotnum{font-family:'Fraunces',Georgia,serif;font-size:15px;font-weight:600;color:var(--green-dk);margin-bottom:2px}
 .pr-pick{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
-.pr-pick select{font-family:'Jost',sans-serif;font-size:14px;color:var(--ink);border:1px solid var(--border);border-radius:5px;padding:9px 12px;background:var(--white);min-width:220px;min-height:42px}
+.pr-pick-note{font-size:15px;color:var(--ink)}
+.pr-addchoose{display:none;margin:-6px 0 14px}
+.pr-addchoose.show{display:block}
+.pr-libbox{border:1px dashed var(--border);border-radius:10px;padding:20px 22px;margin-bottom:18px;background:var(--white);display:none}
+.pr-libbox.show{display:block}
+.pr-libbox h3{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.pr-libbox p{font-size:15px;color:var(--ink);line-height:1.55;margin-bottom:12px}
+.pr-libitem{display:flex;gap:12px;align-items:flex-start;padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer;font-size:15px;color:var(--ink);line-height:1.5}
+.pr-libitem input{margin-top:5px;width:17px;height:17px;flex:none}
+.pr-libitem em{font-style:normal;font-size:14px;color:var(--green-dk);font-weight:600}
+.pr-libitem.used{cursor:default}
+.pr-libq{display:block;font-size:14.5px;color:var(--ink);margin-top:2px}
+.pr-liba{display:block;font-size:14.5px;color:#3a3a33;margin-top:4px;font-style:italic}
+.pr-lib-empty{font-size:15px;color:var(--ink)}
 .pr-progs{margin-top:8px}
 .pr-progrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border);cursor:pointer}
 .pr-progrow:first-of-type{border-top:none}
@@ -1380,8 +1393,33 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         <div id="prProgram"></div>
         <div class="dr-status" id="prStatus"></div>
 
+        <!-- Adding questions (rebuilt 2026-09-24). One button, three clear
+             choices. The old row had four controls, and "From My Answers"
+             silently added whatever a small dropdown beside it showed. -->
+        <div class="pr-pick" id="prPick">
+          <button class="dr-btn" id="prAddBtn" onclick="prAddToggle()">Add Questions</button>
+          <span class="pr-pick-note">Pull them from the application, pick from your saved answers, or type one in.</span>
+        </div>
+        <div class="pr-addchoose" id="prAddChoose">
+          <div class="dr-seg" role="group" aria-label="How to add questions">
+            <button type="button" data-add="app" onclick="prAddTab('app')">From The Application</button>
+            <button type="button" data-add="lib" onclick="prAddTab('lib')">From My Answers</button>
+            <button type="button" data-add="type" onclick="prAddTab('type')">Type A Question</button>
+          </div>
+        </div>
+
+        <div class="pr-libbox" id="prLibBox">
+          <h3>From My Answers</h3>
+          <p>Tick the answers to add. Each comes in as its own question, ready to adapt for this program.</p>
+          <div id="prLibList"></div>
+          <div class="dr-foot" style="margin-top:14px">
+            <button class="dr-btn" id="prLibAddBtn" onclick="prAddCheckedFromLibrary()">Add The Checked Answers</button>
+            <button class="dr-btn ghost" onclick="prAddClose()">Cancel</button>
+          </div>
+        </div>
+
         <div class="pr-import" id="prImport">
-          <h3>Relevant Files</h3>
+          <h3>From The Application</h3>
           <p>Upload the RFP, guidelines or application form, or paste the text. FundBug reads it and pulls out what you have to write, what to attach, the dates and who is eligible. You confirm the questions before anything is added. PDFs up to 25 pages.</p>
           <input type="file" id="prFile" accept="application/pdf,.pdf" class="pr-file">
           <div class="pr-or">or paste the text</div>
@@ -1389,6 +1427,15 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
           <div class="dr-foot" style="margin-top:14px">
             <button class="dr-btn" id="prExtractBtn" onclick="extractApplication()">Read It</button>
             <button class="dr-btn ghost" onclick="toggleImport(false)">Cancel</button>
+          </div>
+        </div>
+
+        <div class="dr-add" id="prAddBlank">
+          <div class="dr-field-label">The question, as the application asks it</div>
+          <textarea id="prBlankQ" rows="3" placeholder="For example: Describe the community impact of this project. (250 words)"></textarea>
+          <div class="dr-foot">
+            <button class="dr-btn small" onclick="submitBlankSlot()">Add This Question</button>
+            <button class="dr-btn ghost small" onclick="toggleAddBlank(false)">Cancel</button>
           </div>
         </div>
 
@@ -1404,22 +1451,6 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 
         <div class="pr-plan" id="prPlan" style="display:none"></div>
 
-        <div class="pr-pick" id="prPick">
-          <button class="dr-btn" onclick="toggleImport()">Add Relevant Files</button>
-          <span class="pr-or" style="margin:0">or add one at a time:</span>
-          <select id="prLibPick" aria-label="Add a question from your answers"></select>
-          <button class="dr-btn ghost" onclick="addSlotFromLibrary()">From My Answers</button>
-          <button class="dr-btn ghost" onclick="toggleAddBlank()">Write A New Question</button>
-        </div>
-
-        <div class="dr-add" id="prAddBlank">
-          <div class="dr-field-label">The question, as the application asks it</div>
-          <textarea id="prBlankQ" rows="3" placeholder="For example: Describe the community impact of this project. (250 words)"></textarea>
-          <div class="dr-foot">
-            <button class="dr-btn small" onclick="submitBlankSlot()">Add This Question</button>
-            <button class="dr-btn ghost small" onclick="toggleAddBlank(false)">Cancel</button>
-          </div>
-        </div>
 
         <div class="dr-toolbar" id="prToolbar" style="display:none">
           <button class="dr-btn" id="prDraftAllBtn" onclick="draftAllSlots()">Draft All Answers</button>
@@ -4649,15 +4680,60 @@ function renderProgramHeader(p, passport){
 }
 
 function renderLibraryPicker(lib){
-  const sel=document.getElementById('prLibPick');
+  // A checklist now (2026-09-24), filled whenever the application loads.
+  const box=document.getElementById('prLibList'); if(!box) return;
+  const used=new Set((prData&&prData.slots||[]).map(x=>String(x.base_answer_id||'')));
   const withAnswers=(lib||[]).filter(a=>(a.answer_text||'').trim());
   if(!withAnswers.length){
-    sel.innerHTML='<option value="">No saved answers yet</option>';
-    sel.disabled=true;
+    box.innerHTML='<p class="pr-lib-empty">You have no saved answers yet. Answers you write in My Answers, or save from an application, show up here.</p>';
+    document.getElementById('prLibAddBtn').disabled=true;
     return;
   }
-  sel.disabled=false;
-  sel.innerHTML=withAnswers.map(a=>`<option value="${drEsc(a.question_type)}">${drEsc(a.label)}</option>`).join('');
+  document.getElementById('prLibAddBtn').disabled=false;
+  box.innerHTML=withAnswers.map(a=>{
+    const already=used.has(String(a.id));
+    const q=(a.question_text||'').trim(), ans=(a.answer_text||'').trim();
+    return `<label class="pr-libitem${already?' used':''}">
+      <input type="checkbox" value="${drEsc(a.question_type)}" ${already?'disabled':''}>
+      <span><b>${drEsc(a.label||'Untitled')}</b>${already?' <em>Already on this application</em>':''}
+        ${q?`<span class="pr-libq">${drEsc(q.length>170?q.slice(0,167)+'\u2026':q)}</span>`:''}
+        <span class="pr-liba">${drEsc(ans.length>150?ans.slice(0,147)+'\u2026':ans)}</span></span>
+    </label>`;
+  }).join('');
+}
+
+// ── Add Questions chooser (added 2026-09-24) ─────────────────────────────
+function prAddToggle(){
+  const c=document.getElementById('prAddChoose');
+  if(c.classList.contains('show')){ prAddClose(); return; }
+  c.classList.add('show');
+  prAddTab((prData&&prData.slots&&prData.slots.length)?'lib':'app');
+}
+function prAddTab(which){
+  document.querySelectorAll('#prAddChoose [data-add]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.add===which)));
+  document.getElementById('prImport').classList.toggle('show', which==='app');
+  document.getElementById('prLibBox').classList.toggle('show', which==='lib');
+  document.getElementById('prAddBlank').classList.toggle('show', which==='type');
+  const focus={app:'prPaste', type:'prBlankQ'}[which];
+  if(focus) document.getElementById(focus).focus();
+}
+function prAddClose(){
+  document.getElementById('prAddChoose').classList.remove('show');
+  ['prImport','prLibBox','prAddBlank'].forEach(id=>document.getElementById(id).classList.remove('show'));
+}
+async function prAddCheckedFromLibrary(){
+  const picks=[...document.querySelectorAll('#prLibList input:checked')].map(x=>x.value);
+  if(!picks.length){ prStatus('Tick at least one answer to add.', true); return; }
+  const btn=document.getElementById('prLibAddBtn');
+  btn.disabled=true; btn.textContent='Adding...';
+  let added=0;
+  try{
+    for(const qt of picks){ await apiFetch(prBase()+'/slots','POST',{base_question_type:qt}); added++; }
+  }catch(e){ prStatus(e.message, true); }
+  btn.disabled=false; btn.textContent='Add The Checked Answers';
+  prAddClose();
+  await loadProgramDrafting(prPid);
+  if(added) prStatus(`Added ${added} ${added===1?'answer':'answers'}. Edit ${added===1?'it':'each one'} for this program, then save.`);
 }
 
 function renderSlots(slots){
@@ -4676,7 +4752,7 @@ function renderSlots(slots){
   }
   if(!slots || !slots.length){
     wrap.innerHTML=`<div class="card dr-empty"><h3>No questions yet</h3>
-      <p>Paste the application and FundBug will pull its questions out, or add them one at a time from the answers you already have.</p></div>`;
+      <p>Press <b>Add Questions</b> to pull them from the application, pick from answers you have saved, or type one in.</p></div>`;
     return;
   }
   wrap.innerHTML=slots.map((s,i)=>{
@@ -4734,15 +4810,6 @@ function prBusy(sid,label){
 }
 function prBase(){ return '/api/portal/drafts/program/'+encodeURIComponent(prPid); }
 
-async function addSlotFromLibrary(){
-  const sel=document.getElementById('prLibPick');
-  if(!sel.value){ prStatus('You have no saved answers to add yet.', true); return; }
-  try{
-    await apiFetch(prBase()+'/slots','POST',{base_question_type:sel.value});
-    await loadProgramDrafting(prPid);
-    prStatus('Added. Press Adapt to this program to tailor it, or edit it yourself.');
-  }catch(e){ prStatus(e.message, true); }
-}
 async function saveSlot(sid){
   const f=prSlotFields(sid); if(!f) return;
   if(!f.label){ prStatus('Give the question a name.', true); return; }
@@ -4901,6 +4968,7 @@ function toggleAddBlank(force){
   const box=document.getElementById('prAddBlank');
   const show=(force===undefined)?!box.classList.contains('show'):!!force;
   box.classList.toggle('show',show);
+  if(!show) prAddClose();
   if(show) document.getElementById('prBlankQ').focus();
 }
 async function submitBlankSlot(){
@@ -4923,6 +4991,7 @@ function toggleImport(force){
   const box=document.getElementById('prImport');
   const show=(force===undefined)?!box.classList.contains('show'):!!force;
   box.classList.toggle('show',show);
+  if(!show) prAddClose();
   if(show){ document.getElementById('prPaste').focus(); box.scrollIntoView({behavior:'smooth',block:'nearest'}); }
 }
 async function extractApplication(){
