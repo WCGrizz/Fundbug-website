@@ -371,6 +371,19 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .dr-badge{padding:5px 10px;border-radius:11px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:18px}
 .dr-badge.draft{background:#fbf1dc;color:#8a5a12}
 .dr-badge.yours{background:rgba(90,158,82,.14);color:var(--green-dk)}
+/* Outline or drafted answers, and the terms reminder (added 2026-09-24) */
+.dr-modebar{background:var(--white);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 18px}
+.dr-modebar-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.dr-modebar-label{font-size:15px;font-weight:600;color:var(--ink)}
+.dr-seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.dr-seg button{font-family:'Jost',sans-serif;font-size:15px;font-weight:500;padding:8px 16px;border:none;background:var(--white);color:var(--ink);cursor:pointer}
+.dr-seg button+button{border-left:1px solid var(--line)}
+.dr-seg button[aria-pressed="true"]{background:var(--green);color:#fff}
+.dr-modebar-note{font-size:15px;color:var(--ink);line-height:1.55;margin:10px 0 0}
+.dr-modebar-terms{font-size:14.5px;color:var(--ink);line-height:1.55;margin:8px 0 0}
+.dr-terms-text{font-size:15.5px;color:var(--ink);line-height:1.65;margin:0 0 18px}
+.dr-terms-check{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:var(--ink);margin:0 0 20px;cursor:pointer}
+.dr-terms-check input{margin-top:4px;width:18px;height:18px}
 .dr-q{width:100%;font-family:'Jost',sans-serif;font-size:15px;color:#3a3a33;font-weight:400;border:1px solid var(--border);border-radius:6px;padding:10px 12px;background:var(--cream);resize:vertical;min-height:72px;line-height:1.55;overflow:hidden}
 .dr-q:focus{border-color:var(--green);outline:none;color:var(--ink);background:var(--white)}
 .dr-a{width:100%;font-family:'Jost',sans-serif;font-size:16px;line-height:1.7;color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-top:10px;min-height:220px;resize:vertical;background:var(--white);overflow:hidden}
@@ -1220,7 +1233,19 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
       </div>
 
       <!-- WEBSITE SCAN REVIEW MODAL -->
-      <div class="modal-overlay" id="scanModal">
+      <!-- Drafting terms, accepted once per account (added 2026-09-24) -->
+<div class="modal-overlay" id="drTermsModal" role="dialog" aria-modal="true" aria-labelledby="drTermsTitle">
+  <div class="modal-box" style="max-width:540px">
+    <div class="modal-title" id="drTermsTitle">Before FundBug Helps With Applications</div>
+    <p class="dr-terms-text" id="drTermsText"></p>
+    <label class="dr-terms-check"><input type="checkbox" id="drTermsOk"><span>I have read this and I agree.</span></label>
+    <div class="modal-actions">
+      <button class="modal-btn-keep" id="drTermsGo" disabled>Continue</button>
+      <button class="dr-btn ghost" id="drTermsNo" style="min-height:48px">Not Now</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="scanModal">
         <div class="modal-box" style="max-width:560px">
           <div class="modal-title">Suggestions from your website</div>
           <div class="modal-sub" id="scanModalSub">Reading your site…</div>
@@ -1285,6 +1310,8 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
           <div class="page-sub">The questions nearly every grant asks, answered in your voice from your Funding Passport. Edit anything, add your own, and reuse them on every application.</div>
         </div>
 
+        <div class="dr-modebar" id="drModeBar"></div>
+
         <div class="dr-tabs">
           <button class="dr-tab active" id="drTabAnswers" onclick="drShowTab('answers')">My Answers</button>
           <button class="dr-tab" id="drTabApps" onclick="drShowTab('apps')">Applications</button>
@@ -1310,7 +1337,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         </div>
 
         <div class="dr-add" id="drAdd">
-          <input id="drAddLabel" placeholder="Name it (for example: Growth plan)" maxlength="120">
+          <input id="drAddLabel" placeholder="Name it (for example: Growth plan)" maxlength="200">
           <textarea id="drAddQuestion" rows="2" placeholder="The question, as a grant would ask it"></textarea>
           <textarea id="drAddAnswer" rows="4" placeholder="Your answer (optional; you can draft it later)"></textarea>
           <div class="dr-foot">
@@ -1340,6 +1367,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 
       <div class="page" id="page-program">
         <button class="pr-back" onclick="backToLibrary()">&larr; All My Answers</button>
+        <div class="dr-modebar" id="prModeBar"></div>
         <div id="prProgram"></div>
         <div class="dr-status" id="prStatus"></div>
 
@@ -4095,7 +4123,102 @@ function drShowTab(which){
   document.getElementById('drTabApps').classList.toggle('active', !answers);
 }
 
+// ── Outline or drafted answers, and the drafting terms (added 2026-09-24) ──
+// After the 1Berkshire demo. A business sent by an advisor (Help Them Apply)
+// gets outlines only; a subscriber chooses. The server decides who may get
+// drafted answers and refuses to generate anything before the terms are
+// accepted; this page asks once, the first time drafting is opened.
+let DR_SETTINGS = null;
+const drIsOutline = () => !!(DR_SETTINGS && DR_SETTINGS.mode === 'outline');
+const drVerb = () => drIsOutline() ? 'Outline' : 'Draft';
+
+async function drLoadSettings(){
+  try { DR_SETTINGS = await apiFetch('/api/portal/drafting/settings'); }
+  catch(e){ DR_SETTINGS = DR_SETTINGS || {terms_accepted: true, mode: 'draft', may_draft: true, terms_text: ''}; }
+  return DR_SETTINGS;
+}
+
+// Resolves true once the terms are accepted (at once if they already are),
+// false if the person chooses Not Now, which returns them to the Overview.
+function drEnsureTerms(){
+  if (DR_SETTINGS && DR_SETTINGS.terms_accepted) return Promise.resolve(true);
+  return new Promise(resolve => {
+    const m = document.getElementById('drTermsModal');
+    const ok = document.getElementById('drTermsOk'), go = document.getElementById('drTermsGo');
+    document.getElementById('drTermsText').textContent = (DR_SETTINGS && DR_SETTINGS.terms_text) || '';
+    ok.checked = false; go.disabled = true;
+    ok.onchange = () => { go.disabled = !ok.checked; };
+    go.onclick = async () => {
+      go.disabled = true; go.textContent = 'Saving...';
+      try {
+        await apiFetch('/api/portal/drafting/terms', 'POST', {});
+        DR_SETTINGS.terms_accepted = true;
+        m.classList.remove('open');
+        go.textContent = 'Continue';
+        resolve(true);
+      } catch(e){ go.disabled = false; go.textContent = 'Continue'; alert(e.message); }
+    };
+    document.getElementById('drTermsNo').onclick = () => {
+      m.classList.remove('open');
+      if (window.location.hash) history.replaceState(null, '', window.location.pathname);
+      const home = document.querySelector(".sidebar-nav a[onclick*=\"'overview'\"]");
+      if (home) showPage('overview', home);
+      resolve(false);
+    };
+    m.classList.add('open');
+    ok.focus();
+  });
+}
+
+function drRenderModeBars(){
+  const s = DR_SETTINGS || {};
+  const terms = '<p class="dr-modebar-terms">Suggestions can be wrong or incomplete. You are responsible for everything you submit, so read and approve every answer first.</p>';
+  const html = s.may_draft
+    ? `<div class="dr-modebar-row">
+         <span class="dr-modebar-label">How FundBug Helps</span>
+         <span class="dr-seg" role="group" aria-label="Outlines or drafted answers">
+           <button type="button" data-mode="outline" aria-pressed="${s.mode==='outline'}">Outlines</button>
+           <button type="button" data-mode="draft" aria-pressed="${s.mode!=='outline'}">Drafted Answers</button>
+         </span>
+       </div>
+       <p class="dr-modebar-note">${s.mode==='outline'
+         ? 'Each question gets an outline: what to cover, what your profile already says, and what you will need to add. You write the answer in your own words.'
+         : 'Each question gets a first draft written from your Funding Passport, with placeholders where details are missing. Edit every answer before you use it.'}</p>${terms}`
+    : `<p class="dr-modebar-note" style="margin:0">FundBug outlines each question for you: what to cover, what your profile already says, and what you will need to add. You write the answer in your own words.</p>${terms}`;
+  ['drModeBar','prModeBar'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = html;
+    el.querySelectorAll('button[data-mode]').forEach(b => b.onclick = () => drSetMode(b.dataset.mode));
+  });
+  const all = document.getElementById('prDraftAllBtn');
+  if (all && !all.disabled) all.textContent = drVerb() + ' All Answers';
+  const empty = document.getElementById('drEmptyBtn');
+  if (empty && !empty.disabled) empty.textContent = drVerb() + ' These For Me';
+  const std = document.getElementById('drDraftBtn');
+  if (std && !std.disabled) std.textContent = drVerb() + ' The Standard Questions';
+}
+
+async function drSetMode(mode){
+  if (!DR_SETTINGS || DR_SETTINGS.mode === mode) return;
+  try {
+    await apiFetch('/api/portal/drafting/mode', 'PATCH', {mode});
+    DR_SETTINGS.mode = mode;
+    drRenderModeBars();
+    if (document.getElementById('page-program').classList.contains('active') && prData) renderSlots(prData.slots);
+    else if (drData) renderDrafting();
+  } catch(e){ alert(e.message); }
+}
+
+// Runs before the drafting page or an application's page shows anything.
+async function drPrepare(){
+  await drLoadSettings();
+  const ok = await drEnsureTerms();
+  if (ok) drRenderModeBars();
+  return ok;
+}
+
 async function loadDrafting(){
+  if (!(await drPrepare())) return;
   drStatus('Loading your answers...');
   try{
     drData = await apiFetch('/api/portal/drafts/library');
@@ -4156,9 +4279,9 @@ function renderDrafting(){
       <div class="dr-head">
         <div style="flex:1;min-width:180px">
           <div class="dr-field-label">Title</div>
-          <input class="dr-label" value="${drEsc(a.label)}" maxlength="120" oninput="drMarkDirty('${drEsc(qt)}')" aria-label="Title">
+          <input class="dr-label" value="${drEsc(a.label)}" maxlength="200" oninput="drMarkDirty('${drEsc(qt)}')" aria-label="Title">
         </div>
-        <span class="dr-badge ${isDraft?'draft':'yours'}">${isDraft?'Draft':'Yours'}</span>
+        <span class="dr-badge ${isDraft?'draft':'yours'}">${isDraft?drVerb():'Yours'}</span>
       </div>
       <div class="dr-field-label">Question ${n}</div>
       <textarea class="dr-q" oninput="drMarkDirty('${drEsc(qt)}');drAutosize(this);drWordCount(this)" aria-label="Question ${n}">${drEsc(a.question_text)}</textarea>
@@ -4171,7 +4294,7 @@ function renderDrafting(){
         <button class="dr-btn ghost small" onclick="regenerateAnswer('${drEsc(qt)}')" ${p.ready?'':'disabled title="Complete your Passport first"'}>Regenerate</button>
         <button class="dr-btn ghost small" onclick="undoAnswer('${drEsc(qt)}')">Undo</button>
         <span class="spacer"></span>
-        <span class="dr-meta">${isDraft?'Drafted':'Saved'} ${drEsc(drWhen(isDraft?a.generated_at:(a.reviewed_at||a.updated_at)))}</span>
+        <span class="dr-meta">${isDraft?(drIsOutline()?'Outlined':'Drafted'):'Saved'} ${drEsc(drWhen(isDraft?a.generated_at:(a.reviewed_at||a.updated_at)))}</span>
         <button class="dr-btn danger small" onclick="deleteAnswer('${drEsc(qt)}')" title="Remove this question">Remove</button>
       </div>
     </div>`;
@@ -4230,12 +4353,12 @@ function drBusy(qt, label){
 
 async function draftLibrary(){
   const btns=[document.getElementById('drDraftBtn'),document.getElementById('drEmptyBtn')].filter(Boolean);
-  btns.forEach(b=>{b.disabled=true; b.dataset.was=b.textContent; b.textContent='Drafting...';});
-  drStatus('Writing first drafts from your Funding Passport. This takes about twenty seconds.');
+  btns.forEach(b=>{b.disabled=true; b.dataset.was=b.textContent; b.textContent=drIsOutline()?'Outlining...':'Drafting...';});
+  drStatus(drIsOutline()?'Writing outlines from your Funding Passport. This takes about twenty seconds.':'Writing first drafts from your Funding Passport. This takes about twenty seconds.');
   try{
     const r=await apiFetch('/api/portal/drafts/library/generate','POST',{});
     await loadDrafting();
-    drStatus(r.drafted&&r.drafted.length?`Drafted ${r.drafted.length} answer${r.drafted.length===1?'':'s'}. Read each one, edit anything, then save.`:(r.message||''));
+    drStatus(r.drafted&&r.drafted.length?(drIsOutline()?`Outlined ${r.drafted.length} question${r.drafted.length===1?'':'s'}. Use each outline to write your answer, then save.`:`Drafted ${r.drafted.length} answer${r.drafted.length===1?'':'s'}. Read each one, edit anything, then save.`):(r.message||''));
   }catch(e){
     if(e.status===409 && e.detail && e.detail.missing_for_drafting){
       drStatus('Add to your Funding Passport first: '+e.detail.missing_for_drafting.join(', ')+'.', true);
@@ -4405,6 +4528,7 @@ function showProgramView(pid){
 
 let prLoadToken = 0;
 async function loadProgramDrafting(pid){
+  if (!(await drPrepare())) return;
   const mine = ++prLoadToken;      // only the newest load may paint
   prPid = pid;
   prDirty.clear();
@@ -4487,9 +4611,9 @@ function renderSlots(slots){
         <div style="flex:1;min-width:180px">
           <div class="pr-slotnum">Question ${n}</div>
           <div class="dr-field-label">Title</div>
-          <input class="dr-label" value="${drEsc(s.label)}" maxlength="120" oninput="prMarkDirty('${drEsc(s.id)}')" aria-label="Title">
+          <input class="dr-label" value="${drEsc(s.label)}" maxlength="200" oninput="prMarkDirty('${drEsc(s.id)}')" aria-label="Title">
         </div>
-        <span class="dr-badge ${isDraft?'draft':'yours'}">${isDraft?'Draft':'Yours'}</span>
+        <span class="dr-badge ${isDraft?'draft':'yours'}">${isDraft?drVerb():'Yours'}</span>
       </div>
       <div class="dr-field-label">Question ${n}</div>
       <textarea class="dr-q" oninput="prMarkDirty('${drEsc(s.id)}');drAutosize(this);drWordCount(this)" aria-label="Question ${n}">${drEsc(s.question_text)}</textarea>
@@ -4503,7 +4627,7 @@ function renderSlots(slots){
         <button class="dr-btn ghost small" onclick="copySlot('${drEsc(s.id)}',this)">Copy</button>
         <button class="dr-btn ghost small" onclick="promoteSlot('${drEsc(s.id)}')">Save To My Answers</button>
         <span class="spacer"></span>
-        <span class="dr-meta">${isDraft?'Drafted':'Saved'} ${drEsc(drWhen(isDraft?s.generated_at:(s.reviewed_at||s.updated_at)))}</span>
+        <span class="dr-meta">${isDraft?(drIsOutline()?'Outlined':'Drafted'):'Saved'} ${drEsc(drWhen(isDraft?s.generated_at:(s.reviewed_at||s.updated_at)))}</span>
         <button class="dr-btn danger small" onclick="deleteSlot('${drEsc(s.id)}')">Remove</button>
       </div>
     </div>`;
@@ -4607,7 +4731,7 @@ async function promoteSlot(sid){
     <button class="dr-btn ghost small" data-mode="cancel">Never mind</button>
     <div class="pr-newname" style="display:none;margin-top:10px">
       <div class="dr-field-label" style="margin-top:0">Name it</div>
-      <input class="pr-newlabel" maxlength="120" value="${drEsc((slot&&slot.label)||'')}">
+      <input class="pr-newlabel" maxlength="200" value="${drEsc((slot&&slot.label)||'')}">
       <div class="dr-foot"><button class="dr-btn small" data-mode="confirm-new">Save it</button></div>
     </div>`;
   card.querySelector('.dr-foot').after(box);
@@ -4651,6 +4775,8 @@ function downloadApplication(){
   if(p.amount) lines.push('Amount: '+p.amount);
   if(p.source_url) lines.push('Program page: '+p.source_url);
   lines.push('', 'Prepared with FundBug on '+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}), '');
+  // Added 2026-09-24: the drafting terms travel with the file.
+  lines.push('IMPORTANT: '+((DR_SETTINGS&&DR_SETTINGS.terms_text)||'FundBug suggestions can be wrong or incomplete. You are responsible for everything you submit.'), '');
   (prData.slots||[]).forEach((s,i)=>{
     const f=prSlotFields(s.id);
     const q=f?f.question:s.question_text;
@@ -4672,18 +4798,22 @@ async function draftAllSlots(){
   const empty=(prData&&prData.slots||[]).filter(s=>!(s.answer_text||'').trim());
   if(!empty.length){ prStatus('Every question already has an answer. Use Adapt on one to redo it.'); return; }
   const btn=document.getElementById('prDraftAllBtn');
-  btn.disabled=true; btn.textContent='Drafting...';
-  prStatus(`Drafting ${empty.length} answer${empty.length===1?'':'s'} together, so they do not repeat each other. This takes up to a minute.`);
+  btn.disabled=true; btn.textContent=drIsOutline()?'Outlining...':'Drafting...';
+  prStatus(drIsOutline()
+    ? `Outlining ${empty.length} question${empty.length===1?'':'s'} together, so they do not repeat each other. This takes up to a minute.`
+    : `Drafting ${empty.length} answer${empty.length===1?'':'s'} together, so they do not repeat each other. This takes up to a minute.`);
   try{
     const r=await apiFetch(prBase()+'/draft-all','POST',{});
     await loadProgramDrafting(prPid);
     const prFailNote=r.failed?` ${r.failed} ${r.failed===1?'question':'questions'} could not be drafted; click Draft All Answers again to try ${r.failed===1?'it':'them'}.`:'';
-    prStatus(r.drafted?`Drafted ${r.drafted} answer${r.drafted===1?'':'s'}. Read each one, edit anything, then save.${prFailNote}`:(r.message||''));
+    prStatus(r.drafted?(drIsOutline()
+      ? `Outlined ${r.drafted} question${r.drafted===1?'':'s'}. Use each outline to write your answer, then save.${prFailNote}`
+      : `Drafted ${r.drafted} answer${r.drafted===1?'':'s'}. Read each one, edit anything, then save.${prFailNote}`):(r.message||''));
   }catch(e){
     if(e.status===409 && e.detail && e.detail.missing_for_drafting){
       prStatus('Add to your Funding Passport first: '+e.detail.missing_for_drafting.join(', ')+'.', true);
     } else prStatus(e.message, true);
-  }finally{ btn.disabled=false; btn.textContent='Draft All Answers'; }
+  }finally{ btn.disabled=false; btn.textContent=drVerb()+' All Answers'; }
 }
 
 // ── Write a new question, in the page rather than a browser prompt ──────────
