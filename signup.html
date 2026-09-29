@@ -132,6 +132,12 @@ function getAcquisitionSource() {
 
   <!-- FORM STATE -->
   <div id="formState">
+    <!-- Referral notice (Sept 29 2026): shown only when a referral code is in
+         use, so the person sees at once that their link worked. -->
+    <div id="refBanner" hidden style="background:#eef6ec; border:1px solid var(--green-lt); border-left:5px solid var(--green-dk); border-radius:8px; padding:14px 18px; margin-bottom:24px; color:var(--ink); font-size:15px; line-height:1.5;">
+      <div style="font-weight:700; font-size:16px; margin-bottom:2px;">&#10003; Referral Code Applied</div>
+      <div>You're signing up with referral code <strong id="refBannerCode"></strong>. It's already filled in below, so there's nothing else to do.</div>
+    </div>
     <div class="intro-eyebrow">14-day free trial</div>
     <h1 class="intro-title">Get your first funding digest</h1>
     <p class="intro-sub">A few quick questions and we'll email you grants, loans, tax credits, and rebates matched to your business. Start your 14-day free trial, cancel anytime. Takes two minutes.</p>
@@ -453,7 +459,11 @@ let stripe = null, cardEl = null, stripeReady = false;
 })();
 
 // Prefill referral code from ?ref= (still editable).
-if (REF) { const ri = document.getElementById('referral-code'); if (ri) ri.value = REF; }
+if (REF) {
+  const ri = document.getElementById('referral-code'); if (ri) ri.value = REF;
+  const rb = document.getElementById('refBanner');
+  if (rb) { document.getElementById('refBannerCode').textContent = REF; rb.hidden = false; }
+}
 
 // ── Comp code live check ─────────────────────────────────────────────────────
 let compValid = false, compTimer = null;
