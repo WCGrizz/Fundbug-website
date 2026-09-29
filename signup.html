@@ -385,8 +385,24 @@ function getAcquisitionSource() {
 <script>
 const API = 'https://fundbug-production.up.railway.app';
 
-// Carry an optional referral code from the URL (?ref=CODE).
-const REF = new URLSearchParams(window.location.search).get('ref') || null;
+// Carry an optional referral code: from this page's URL (?ref=CODE), or
+// remembered by the home page for 30 days (localStorage 'fundbug_ref').
+// CHANGED 2026-09-29: the home page used to drop the code before signup; it
+// now remembers it, and the line below that fills the Referral Code field
+// picks up either source.
+const REF = (function () {
+  function clean(v) { v = (v || '').trim(); return /^[A-Za-z0-9_-]{1,40}$/.test(v) ? v : null; }
+  var code = clean(new URLSearchParams(window.location.search).get('ref'));
+  try {
+    if (code) {
+      localStorage.setItem('fundbug_ref', JSON.stringify({ code: code, at: Date.now() }));
+    } else {
+      var saved = JSON.parse(localStorage.getItem('fundbug_ref') || 'null');
+      if (saved && Date.now() - saved.at < 30 * 864e5) code = clean(saved.code);
+    }
+  } catch (e) { /* storage blocked: the URL code alone still works */ }
+  return code;
+})();
 
 // Honour ?plan=annual from the homepage pricing table. Anything unrecognised
 // falls back to monthly rather than being passed through to Stripe.

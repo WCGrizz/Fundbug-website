@@ -2154,10 +2154,10 @@ async function consumeSeatInviteIfPresent() {
 async function loadReferral() {
   try {
     const data = await apiFetch('/api/portal/referral');
-    document.getElementById('refLink').textContent = data.referral_url || 'fundbug.net/ref/' + (data.referral_code || '...');
+    document.getElementById('refLink').textContent = data.referral_url || 'fundbug.net/signup?ref=' + (data.referral_code || '...');
     document.getElementById('refCount').textContent = data.referral_count ?? '0';
     document.getElementById('refCredits').textContent = '$' + ((data.credits_earned || 0) * 20);
-  } catch(e) { document.getElementById('refLink').textContent = 'fundbug.net/ref/YOUR-CODE'; }
+  } catch(e) { document.getElementById('refLink').textContent = 'fundbug.net/signup?ref=YOUR-CODE'; }
 }
 
 function copyRefLink() {
