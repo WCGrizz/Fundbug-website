@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="/fundbug_logo.png">
+<title>Sign Up For Nonprofits — FundBug</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!--
+  Nonprofit signup (Oct 3 2026). $50 a month or $500 a year, 14-day trial.
+  Backend: POST /api/nonprofit/subscribe (nonprofit/np_api.py). Signup stays
+  closed until Will sets NONPROFIT_SIGNUP_OPEN on Railway; while it is closed
+  this page says so and only a comp code gets through. Unlinked; noindex.
+-->
+<style>
+:root{--ink:#1a1a14;--green:#5a9e52;--green-lt:#7ab870;--green-dk:#3d7a38;--cream:#f7f5f0;--cream2:#ede9e0;--border:#d8d3c8;--white:#fff;--red:#c44b2a}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--cream);color:var(--ink);font-family:'Jost',sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--green-dk)}
+header{background:var(--ink);padding:0 24px;height:60px;display:flex;align-items:center;border-bottom:3px solid var(--green)}
+.logo{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--green);text-decoration:none;display:flex;align-items:center;gap:10px}
+.logo img{width:30px;height:30px;object-fit:contain}
+.hero{background:var(--ink);color:var(--white);padding:36px 24px 30px;text-align:center}
+.hero h1{font-family:'Fraunces',serif;font-size:34px;line-height:1.15;letter-spacing:-.02em;margin-bottom:8px}
+.hero p{font-size:16px;color:var(--cream);max-width:620px;margin:0 auto}
+main{max-width:760px;margin:0 auto;padding:28px 16px 60px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:24px 26px;margin-bottom:18px}
+.card h2{font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--green-dk);margin-bottom:6px}
+.lead{font-size:15px;margin-bottom:14px}
+label{display:block;font-size:14px;font-weight:500;margin-bottom:6px}
+input:not([type="checkbox"]):not([type="radio"]),select{width:100%;padding:12px 14px;background:var(--cream);border:1px solid var(--border);border-radius:5px;font-family:'Jost',sans-serif;font-size:16px;color:var(--ink);outline:none;appearance:none;-webkit-appearance:none;margin-bottom:16px;min-height:44px}
+input:focus,select:focus{border-color:var(--green);background:var(--white)}
+input[type="checkbox"],input[type="radio"]{accent-color:var(--green);width:18px;height:18px}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235c5747' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 16px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.pill{font-family:'Jost',sans-serif;font-size:14px;padding:7px 13px;border:1px solid var(--border);border-radius:20px;background:var(--cream);color:var(--ink);cursor:pointer;min-height:36px}
+.pill[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+details.more summary{font-size:14px;font-weight:500;color:var(--green-dk);cursor:pointer;padding:6px 0}
+details.more .pills{margin-top:8px}
+.chk{display:flex;align-items:flex-start;gap:10px;font-size:15px;margin:6px 0;cursor:pointer}
+.counties{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:2px 14px;margin:6px 0 10px}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.plan{border:2px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;background:var(--cream)}
+.plan[aria-pressed="true"]{border-color:var(--green);background:#eef5ec}
+.plan b{font-family:'Fraunces',serif;font-size:22px;display:block}
+.plan span{font-size:15px}
+#card-element{padding:13px 14px;background:var(--cream);border:1px solid var(--border);border-radius:5px;margin-bottom:8px}
+.err{font-size:15px;color:var(--red);min-height:22px;margin:6px 0}
+.btn{display:block;width:100%;background:var(--green);color:#fff;font-family:'Jost',sans-serif;font-size:17px;font-weight:500;padding:15px;border-radius:6px;border:none;cursor:pointer;min-height:50px}
+.btn:hover{background:var(--green-lt)}
+.btn:disabled{opacity:.6;cursor:default}
+.closed{text-align:center}
+.closed h2{font-family:'Fraunces',serif;font-size:24px;letter-spacing:0;text-transform:none;color:var(--ink);margin-bottom:8px}
+.done{text-align:center;padding:40px 26px}
+.done h2{font-family:'Fraunces',serif;font-size:28px;letter-spacing:0;text-transform:none;color:var(--ink);margin-bottom:10px}
+.foot{font-size:14.5px;text-align:center;margin-top:14px}
+@media (max-width:560px){.plans{grid-template-columns:1fr}.hero h1{font-size:28px}}
+</style>
+</head>
+<body>
+<header><a class="logo" href="/"><img src="/fundbug_logo.png" alt="">FundBug</a></header>
+<div class="hero">
+  <h1>Funding For Your Nonprofit, Matched</h1>
+  <p>The foundations and grant programs your organization can actually apply to, best fit first, with how to approach each one. 14 days free, then $50 a month or $500 a year.</p>
+</div>
+<main>
+  <div class="card closed" id="closedBox" hidden>
+    <h2>Signup Opens Soon</h2>
+    <p class="lead">FundBug for nonprofits is not open to new signups yet.</p>
+    <p class="lead">Have a code from FundBug? <a href="#" onclick="useCode(event)">Enter it here</a>.</p>
+  </div>
+
+  <form id="form" hidden onsubmit="submitSignup(event)">
+    <div class="card">
+      <h2>You</h2>
+      <div class="row">
+        <div><label for="first">First Name</label><input id="first" autocomplete="given-name" required></div>
+        <div><label for="last">Last Name</label><input id="last" autocomplete="family-name" required></div>
+      </div>
+      <label for="email">Email</label><input id="email" type="email" autocomplete="email" placeholder="you@yourorganization.org" required>
+    </div>
+
+    <div class="card">
+      <h2>Your Organization</h2>
+      <label for="org">Organization Name</label><input id="org" autocomplete="organization" required>
+      <div class="row">
+        <div><label for="orgType">Kind Of Organization</label>
+          <select id="orgType" required>
+            <option value="">Choose one</option>
+            <option value="nonprofit_501c3">501(c)(3) public charity</option>
+            <option value="fiscally_sponsored">Fiscally sponsored project</option>
+            <option value="nonprofit_501c4">501(c)(4)</option>
+            <option value="nonprofit_501c6">501(c)(6)</option>
+            <option value="nonprofit_other">Other nonprofit</option>
+          </select></div>
+        <div><label for="ein">EIN (Optional)</label><input id="ein" inputmode="numeric" placeholder="XX-XXXXXXX"></div>
+      </div>
+      <div class="row">
+        <div><label for="zip">ZIP Code</label><input id="zip" inputmode="numeric" maxlength="10" required></div>
+        <div><label for="budget">Annual Budget ($)</label><input id="budget" inputmode="numeric" placeholder="300000"></div>
+        <div><label for="web">Website (Optional)</label><input id="web" type="url" placeholder="https://"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Where You Work</h2>
+      <p class="lead">Every county you serve, beyond your own address, so local funders find you.</p>
+      <div class="row"><div><label for="areaState">State</label><select id="areaState" onchange="drawCounties()"></select></div></div>
+      <label class="chk"><input type="checkbox" id="wholeState" onchange="toggleWholeState()"> The whole state</label>
+      <div class="counties" id="countyBox"></div>
+    </div>
+
+    <div class="card">
+      <h2>What You Work On</h2>
+      <p class="lead">Pick every subject that fits; more is better here.</p>
+      <div class="pills" id="pSubjects1"></div>
+      <details class="more"><summary>More Subjects</summary><div class="pills" id="pSubjects2"></div></details>
+    </div>
+    <div class="card">
+      <h2>Who You Serve</h2>
+      <div class="pills" id="pPopulations1"></div>
+      <details class="more"><summary>More Groups</summary><div class="pills" id="pPopulations2"></div></details>
+    </div>
+    <div class="card">
+      <h2>What You Need Funding For</h2>
+      <div class="pills" id="pPurposes1"></div>
+      <details class="more"><summary>More Kinds Of Support</summary><div class="pills" id="pPurposes2"></div></details>
+      <p class="foot" id="pcsCredit"></p>
+    </div>
+
+    <div class="card">
+      <h2>Your Plan</h2>
+      <div class="plans" id="plans">
+        <div class="plan" role="button" tabindex="0" data-plan="monthly" aria-pressed="true" onclick="pickPlan('monthly')"><b>$50</b><span>a month</span></div>
+        <div class="plan" role="button" tabindex="0" data-plan="annual" aria-pressed="false" onclick="pickPlan('annual')"><b>$500</b><span>a year (two months free)</span></div>
+      </div>
+      <p class="lead">Your first 14 days are free. Cancel before then and you pay nothing.</p>
+      <div id="payBox">
+        <label>Card</label>
+        <div id="card-element"></div>
+        <div class="err" id="card-errors"></div>
+      </div>
+      <div class="row">
+        <div><label for="comp">Code From FundBug (Optional)</label><input id="comp" autocomplete="off" oninput="checkComp()"><div class="err" id="compNote" style="color:var(--green-dk)"></div></div>
+        <div><label for="ref">Referral Code (Optional)</label><input id="ref" autocomplete="off"></div>
+      </div>
+      <label class="chk"><input type="checkbox" id="adult" required> I am 18 or older and agree to the <a href="/terms" target="_blank">terms</a> and <a href="/privacy" target="_blank">privacy policy</a>.</label>
+      <div class="err" id="err"></div>
+      <button class="btn" id="go" type="submit">Start My Free Trial</button>
+    </div>
+  </form>
+
+  <div class="card done" id="doneBox" hidden>
+    <h2>You're In</h2>
+    <p class="lead">Check your email for a link to your portal. It works once and expires in 30 minutes; you can always get a new one from the sign-in page.</p>
+    <p><a href="/nonprofit-portal">Go to the sign-in page</a></p>
+  </div>
+</main>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+const API = 'https://fundbug-production.up.railway.app';
+const params = new URLSearchParams(location.search);
+let TERMS = null, PLACES = null, plan = params.get('plan') === 'annual' ? 'annual' : 'monthly';
+let picks = {subjects: new Set(), populations: new Set(), funding_purposes: new Set()}, serviceRegions = [];
+let stripe = null, cardEl = null, stripeReady = false, compValid = false, compTimer = null, OPEN = false;
+
+function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+async function getJson(path) { const r = await fetch(API + path); if (!r.ok) throw new Error('The server answered ' + r.status); return r.json(); }
+
+async function start() {
+  let status = {open: false};
+  try { status = await getJson('/api/nonprofit/signup-status'); } catch (e) {}
+  OPEN = !!status.open;
+  if (params.get('ref')) document.getElementById('ref').value = params.get('ref');
+  if (params.get('code')) { document.getElementById('comp').value = params.get('code'); }
+  if (!OPEN && !params.get('code')) { document.getElementById('closedBox').hidden = false; return; }
+  await showForm();
+  if (params.get('code')) checkComp();
+}
+function useCode(e) { e.preventDefault(); document.getElementById('closedBox').hidden = true; showForm().then(() => document.getElementById('comp').focus()); }
+
+async function showForm() {
+  document.getElementById('form').hidden = false;
+  pickPlan(plan);
+  try { [TERMS, PLACES] = await Promise.all([getJson('/api/nonprofit/terms'), getJson('/api/nonprofit/places')]); }
+  catch (e) { document.getElementById('err').textContent = 'Could not load the choices. Refresh and try again.'; return; }
+  const withCounties = PLACES.states.filter(([c]) => PLACES.counties[c]), others = PLACES.states.filter(([c]) => !PLACES.counties[c]);
+  document.getElementById('areaState').innerHTML = withCounties.map(([c, n]) => `<option value="${c}">${escHtml(n)}</option>`).join('') +
+    '<option disabled>──────────</option>' + others.map(([c, n]) => `<option value="${c}">${escHtml(n)} (whole state only)</option>`).join('');
+  document.getElementById('areaState').value = 'MA';
+  drawCounties();
+  for (const [field, base] of [['subjects', 'pSubjects'], ['populations', 'pPopulations'], ['funding_purposes', 'pPurposes']])
+    for (const tier of [1, 2])
+      document.getElementById(base + tier).innerHTML = TERMS[field].filter(t => t.tier === tier).map(t =>
+        `<button type="button" class="pill" data-field="${field}" data-code="${t.code}" aria-pressed="false" title="${escHtml(t.definition)}">${escHtml(t.label)}</button>`).join('');
+  document.querySelectorAll('.pill').forEach(b => b.addEventListener('click', () => {
+    const set = picks[b.dataset.field], on = !set.has(b.dataset.code);
+    on ? set.add(b.dataset.code) : set.delete(b.dataset.code);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }));
+  document.getElementById('pcsCredit').textContent = TERMS.credit || '';
+  initStripe();
+}
+
+function drawCounties() {
+  const st = document.getElementById('areaState').value, list = PLACES.counties[st] || [];
+  const whole = serviceRegions.some(r => r.type === 'state' && r.value === st);
+  document.getElementById('wholeState').checked = whole;
+  document.getElementById('countyBox').innerHTML = list.map(c => {
+    const on = serviceRegions.some(r => r.type === 'county' && r.fips === c.fips);
+    return `<label class="chk"><input type="checkbox" data-fips="${c.fips}" ${on ? 'checked' : ''} ${whole ? 'disabled' : ''} onchange="toggleCounty(this,'${st}')"> ${escHtml(c.name)}</label>`;
+  }).join('') || '<p class="lead">No county list for this state yet; tick the whole state.</p>';
+}
+function toggleCounty(el, st) {
+  serviceRegions = serviceRegions.filter(r => !(r.type === 'county' && r.fips === el.dataset.fips));
+  if (el.checked) serviceRegions.push({type: 'county', state: st, fips: el.dataset.fips});
+}
+function toggleWholeState() {
+  const st = document.getElementById('areaState').value, on = document.getElementById('wholeState').checked;
+  serviceRegions = serviceRegions.filter(r => !(r.type === 'state' && r.value === st) && !(on && r.type === 'county' && r.state === st));
+  if (on) serviceRegions.push({type: 'state', value: st});
+  drawCounties();
+}
+
+function pickPlan(p) {
+  plan = p;
+  document.querySelectorAll('.plan').forEach(el => el.setAttribute('aria-pressed', el.dataset.plan === p ? 'true' : 'false'));
+}
+async function initStripe() {
+  if (stripeReady) return;
+  try {
+    const cfg = await getJson('/api/config');
+    stripe = Stripe(cfg.stripe_publishable_key);
+    cardEl = stripe.elements().create('card', {style: {base: {fontSize: '16px', color: '#1a1a14', fontFamily: 'inherit'}}});
+    cardEl.mount('#card-element');
+    cardEl.on('change', e => { document.getElementById('card-errors').textContent = e.error ? e.error.message : ''; });
+    stripeReady = true;
+  } catch (e) { document.getElementById('card-errors').textContent = 'Could not load the payment field. Refresh and try again.'; }
+}
+function checkComp() {
+  clearTimeout(compTimer);
+  compTimer = setTimeout(async () => {
+    const code = document.getElementById('comp').value.trim();
+    compValid = false;
+    if (code) { try { compValid = !!(await getJson('/api/comp-code/' + encodeURIComponent(code))).valid; } catch (e) {} }
+    document.getElementById('compNote').textContent = code ? (compValid ? 'Code accepted: no card needed.' : 'That code is not one we know.') : '';
+    document.getElementById('payBox').hidden = compValid;
+    document.getElementById('go').textContent = compValid ? 'Create My Account' : 'Start My Free Trial';
+  }, 350);
+}
+
+async function submitSignup(e) {
+  e.preventDefault();
+  const err = document.getElementById('err'), btn = document.getElementById('go');
+  err.textContent = '';
+  if (!picks.subjects.size) { err.textContent = 'Pick at least one subject your organization works on.'; return; }
+  if (!OPEN && !compValid) { err.textContent = 'Signup is not open yet; a code from FundBug is needed.'; return; }
+  const budget = document.getElementById('budget').value.replace(/[^0-9]/g, '');
+  const body = {
+    email: document.getElementById('email').value.trim(), first_name: document.getElementById('first').value.trim(),
+    last_name: document.getElementById('last').value.trim(), org_name: document.getElementById('org').value.trim(),
+    org_type: document.getElementById('orgType').value, ein: document.getElementById('ein').value.trim(),
+    zip_code: document.getElementById('zip').value.trim(), website_url: document.getElementById('web').value.trim(),
+    annual_budget: budget ? parseInt(budget, 10) : null, service_regions: serviceRegions,
+    subjects: [...picks.subjects], populations: [...picks.populations], funding_purposes: [...picks.funding_purposes],
+    plan, comp_code: document.getElementById('comp').value.trim() || null, referral_code: document.getElementById('ref').value.trim() || null,
+    acquisition_source: params.get('src') || params.get('utm_source') || null,
+    certified_adult: document.getElementById('adult').checked,
+  };
+  btn.disabled = true; btn.textContent = 'Creating your account…';
+  try {
+    if (!compValid) {
+      if (!stripeReady) throw new Error('The payment field is still loading. Try again in a moment.');
+      const {paymentMethod, error} = await stripe.createPaymentMethod({type: 'card', card: cardEl, billing_details: {email: body.email}});
+      if (error) { document.getElementById('card-errors').textContent = error.message; throw new Error('Please check your card.'); }
+      body.payment_method_id = paymentMethod.id;
+    }
+    const r = await fetch(API + '/api/nonprofit/subscribe', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+    const data = await r.json().catch(() => ({}));
+    if (r.status === 402) { document.getElementById('card-errors').textContent = data.detail || 'Your card was declined.'; throw new Error('Please check your card.'); }
+    if (!r.ok) throw new Error(data.detail || 'Signup failed. Please try again.');
+    document.getElementById('form').hidden = true;
+    document.getElementById('doneBox').hidden = false;
+    window.scrollTo(0, 0);
+  } catch (ex) {
+    err.textContent = ex.message;
+    btn.disabled = false; btn.textContent = compValid ? 'Create My Account' : 'Start My Free Trial';
+  }
+}
+start();
+</script>
+</body>
+</html>

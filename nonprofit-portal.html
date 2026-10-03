@@ -45,6 +45,11 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .gate-logo{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:var(--green);margin-bottom:2px}
 .gate-sub{font-size:15px;color:var(--ink);margin-bottom:24px}
 .err{font-size:14px;color:var(--red);min-height:20px;margin-bottom:8px}
+.ok{font-size:15px;color:var(--green-dk);min-height:20px;margin-bottom:8px}
+details.staff{margin-top:22px;border-top:1px solid var(--border);padding-top:14px}
+details.staff summary{font-size:14px;cursor:pointer;color:var(--ink)}
+body.mode-account .preview-only{display:none}
+body.mode-preview .acct-only{display:none}
 
 /* chrome */
 #app{display:none}
@@ -138,36 +143,58 @@ details.more .pills{margin-top:8px}
 </head>
 <body>
 
-<div class="gate" id="gate">
+<div class="gate" id="gate" style="display:none">
   <div class="gate-card">
     <div class="gate-logo">FundBug</div>
-    <div class="gate-sub">Nonprofit Portal preview. Signup is not open yet; enter the review secret to see what an organization would see.</div>
-    <label for="secretIn">Review Secret</label>
-    <input id="secretIn" type="password" autocomplete="off">
-    <div class="err" id="gateErr"></div>
-    <button class="btn" style="width:100%" onclick="enterPreview()">Open Preview</button>
+    <div class="gate-sub">Sign in to your nonprofit portal. We'll email you a link; no password needed.</div>
+    <label for="emailIn">Email</label>
+    <input id="emailIn" type="email" autocomplete="email" placeholder="you@yourorganization.org">
+    <div class="err" id="signErr"></div>
+    <div class="ok" id="signOk"></div>
+    <button class="btn" style="width:100%" onclick="requestLink()">Email Me A Login Link</button>
+    <details class="staff"><summary>FundBug Preview</summary>
+      <div class="gate-sub" style="margin-top:10px">Enter the review secret to see what an organization would see.</div>
+      <label for="secretIn">Review Secret</label>
+      <input id="secretIn" type="password" autocomplete="off">
+      <div class="err" id="gateErr"></div>
+      <button class="btn ghost" style="width:100%" onclick="enterPreview()">Open Preview</button>
+    </details>
   </div>
 </div>
 
 <div id="app">
   <nav>
     <a class="nav-logo" href="/"><img src="/fundbug_logo.png" alt="">FundBug</a>
-    <span class="nav-tag">Nonprofit Portal · Preview</span>
-    <div class="nav-right"><button onclick="leavePreview()">Close Preview</button></div>
+    <span class="nav-tag" id="navTag">Nonprofit Portal</span>
+    <div class="nav-right"><button id="navOut" onclick="signOut()">Sign Out</button></div>
   </nav>
   <div class="wrap">
     <div class="sidebar">
       <a data-page="matches" onclick="showPage('matches')">Matches</a>
       <a data-page="profile" onclick="showPage('profile')">Organization Profile</a>
-      <a data-page="leftout" onclick="showPage('leftout')">Left Out</a>
+      <a data-page="subscription" class="acct-only" onclick="showPage('subscription'); loadSubscription()">Subscription</a>
+      <a data-page="leftout" class="preview-only" onclick="showPage('leftout')">Left Out</a>
     </div>
     <div class="main">
 
       <div class="page" id="page-profile">
         <div class="hero">
-          <div class="eyebrow">Sample Organization</div>
+          <div class="eyebrow" id="profEyebrow">Sample Organization</div>
           <h1>Organization Profile</h1>
-          <p>Fill this in as an organization would at signup. Matches shows what it would see; nothing here is saved anywhere but this browser.</p>
+          <p id="profSub">Fill this in as an organization would at signup. Matches shows what it would see; nothing here is saved anywhere but this browser.</p>
+        </div>
+
+        <div class="card acct-only">
+          <h2>Your Organization</h2>
+          <div class="row">
+            <div><label for="fFirst">First Name</label><input id="fFirst" autocomplete="given-name"></div>
+            <div><label for="fLast">Last Name</label><input id="fLast" autocomplete="family-name"></div>
+            <div><label for="fOrg">Organization Name</label><input id="fOrg" autocomplete="organization"></div>
+          </div>
+          <div class="row">
+            <div><label for="fEin">EIN</label><input id="fEin" inputmode="numeric" placeholder="XX-XXXXXXX"></div>
+            <div><label for="fWeb">Website</label><input id="fWeb" type="url" placeholder="https://"></div>
+          </div>
         </div>
 
         <div class="card">
@@ -221,28 +248,37 @@ details.more .pills{margin-top:8px}
           <p class="src" id="pcsCredit"></p>
         </div>
 
-        <div class="card">
+        <div class="card preview-only">
           <h2>Preview Options</h2>
           <label class="chk"><input type="checkbox" id="fPending" checked> Include listings not reviewed yet (marked Not Reviewed Yet). Subscribers see reviewed listings only.</label>
         </div>
 
-        <div class="savebar"><span id="saveNote">Saved in this browser as you go.</span><button class="btn" onclick="runMatches()">Show Matches</button></div>
+        <div class="savebar"><span id="saveNote">Saved in this browser as you go.</span><button class="btn" id="saveBtn" onclick="saveAction()">Show Matches</button></div>
       </div>
 
       <div class="page" id="page-matches">
         <div class="hero">
-          <div class="eyebrow">For The Sample Organization</div>
+          <div class="eyebrow" id="matchesEyebrow">For The Sample Organization</div>
           <h1>Matches</h1>
           <p id="matchesSub">Every listing this organization can apply to, best fit first.</p>
         </div>
         <div class="toolbar">
           <input id="mSearch" placeholder="Search titles" oninput="drawMatches()">
           <select id="mKind" onchange="drawMatches()"><option value="">Funders And Opportunities</option><option value="funder">Funders</option><option value="opportunity">Opportunities</option></select>
-          <select id="mReviewed" onchange="drawMatches()"><option value="">Reviewed Or Not</option><option value="yes">Reviewed Only</option><option value="no">Not Reviewed Yet</option></select>
+          <select id="mReviewed" class="preview-only" onchange="drawMatches()"><option value="">Reviewed Or Not</option><option value="yes">Reviewed Only</option><option value="no">Not Reviewed Yet</option></select>
         </div>
         <div class="summary" id="mSummary"></div>
         <div id="mList"></div>
         <div style="text-align:center;margin-top:10px"><button class="btn ghost" id="mMore" onclick="moreMatches()" style="display:none">Show More</button></div>
+      </div>
+
+      <div class="page" id="page-subscription">
+        <div class="hero">
+          <div class="eyebrow">Your Account</div>
+          <h1>Subscription</h1>
+          <p>Your plan, and a link to Stripe's billing page to change your card, see invoices or cancel.</p>
+        </div>
+        <div class="card" id="subBox"><div class="empty">Loading…</div></div>
       </div>
 
       <div class="page" id="page-leftout">
@@ -269,6 +305,10 @@ const API_BASE = (location.hostname === 'localhost' || location.hostname === '12
   ? (localStorage.getItem('fb_np_api') || 'https://fundbug-production.up.railway.app')
   : 'https://fundbug-production.up.railway.app';
 const SECRET_KEY = 'fb_np_review_secret', PROFILE_KEY = 'fb_np_preview_profile';
+// The portal's own session (portal.html sets the same keys; the login is shared).
+const TOKEN_KEY = 'fb_token', SUB_KEY = 'fb_sub';
+const NONPROFIT_ORG_TYPES = ['nonprofit_501c3', 'nonprofit_501c4', 'nonprofit_501c6', 'nonprofit_other', 'fiscally_sponsored'];
+let MODE = null, ACCOUNT = null;
 const PAGE_SIZE = 50;
 let TERMS = null, PLACES = null, RESULT = null, shownCount = PAGE_SIZE;
 let picks = {subjects: new Set(), populations: new Set(), funding_purposes: new Set()};
@@ -280,7 +320,8 @@ function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
 function money(n) { return n == null ? '' : '$' + Number(n).toLocaleString('en-US'); }
 
 async function apiFetch(path, method, body) {
-  const opts = {method: method || 'GET', headers: {'X-Review-Secret': load(SECRET_KEY) || ''}};
+  const opts = {method: method || 'GET',
+    headers: MODE === 'account' ? {'Authorization': 'Bearer ' + (load(TOKEN_KEY) || '')} : {'X-Review-Secret': load(SECRET_KEY) || ''}};
   if (body !== undefined) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
   const r = await fetch(API_BASE + path, opts);
   let data = null;
@@ -293,7 +334,37 @@ async function apiFetch(path, method, body) {
   return data;
 }
 
-// ── gate ────────────────────────────────────────────────────────────────
+// ── sign-in and preview ─────────────────────────────────────────────────
+function showGate(note) {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('gate').style.display = 'flex';
+  if (note) document.getElementById('signErr').textContent = note;
+}
+async function requestLink() {
+  const email = document.getElementById('emailIn').value.trim();
+  const err = document.getElementById('signErr'), ok = document.getElementById('signOk');
+  err.textContent = ''; ok.textContent = '';
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Enter the email you signed up with.'; return; }
+  try {
+    await fetch(API_BASE + '/api/portal/request-login-link', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email})});
+    ok.textContent = 'Check your email for a login link. It works once and expires in 30 minutes.';
+  } catch (e) { err.textContent = 'Could not reach FundBug. Try again in a moment.'; }
+}
+async function consumeLink(loginToken) {
+  history.replaceState(null, '', location.pathname);
+  const r = await fetch(API_BASE + '/api/portal/consume-login-link', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({token: loginToken})});
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.detail || 'This login link is invalid or expired.');
+  store(TOKEN_KEY, data.token);
+  store(SUB_KEY, JSON.stringify({id: data.subscriber_id, email: data.email, first_name: data.first_name || '',
+    business_name: data.business_name || '', subscription_status: data.subscription_status || 'trial', org_type: data.org_type || 'for_profit'}));
+  return data.org_type;
+}
+function signOut() {
+  if (MODE === 'account') { store(TOKEN_KEY, null); store(SUB_KEY, null); }
+  else store(SECRET_KEY, null);
+  location.replace(location.pathname);
+}
 async function enterPreview() {
   const s = document.getElementById('secretIn').value.trim();
   const errEl = document.getElementById('gateErr');
@@ -303,15 +374,56 @@ async function enterPreview() {
   try {
     await apiFetch('/api/nonprofit/preview/matches', 'POST', {state: 'MA', limit: 1, include_pending: false});
     errEl.textContent = '';
-    openApp();
+    openApp('preview');
   } catch (e) {
     store(SECRET_KEY, null);
     errEl.textContent = e.status === 401 ? 'That secret was not accepted.' : ('Could not reach FundBug: ' + e.message);
   }
 }
-function leavePreview() { store(SECRET_KEY, null); location.reload(); }
+function setMode(mode) {
+  MODE = mode;
+  document.body.classList.toggle('mode-account', mode === 'account');
+  document.body.classList.toggle('mode-preview', mode === 'preview');
+  document.getElementById('navTag').textContent = mode === 'preview' ? 'Nonprofit Portal · Preview' : 'Nonprofit Portal';
+  document.getElementById('navOut').textContent = mode === 'preview' ? 'Close Preview' : 'Sign Out';
+  if (mode === 'account') {
+    document.getElementById('profEyebrow').textContent = 'Your Organization';
+    document.getElementById('profSub').textContent = 'What your organization does and where. Your matches come from this; the more it says, the better they fit.';
+    document.getElementById('matchesEyebrow').textContent = 'For Your Organization';
+    document.getElementById('saveBtn').textContent = 'Save Changes';
+    document.getElementById('saveNote').textContent = 'Changes are saved when you press Save Changes.';
+  }
+}
 
-async function openApp() {
+async function openAccount() {
+  setMode('account');
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  try {
+    [TERMS, PLACES, ACCOUNT] = await Promise.all([apiFetch('/api/nonprofit/terms'), apiFetch('/api/nonprofit/places'), apiFetch('/api/nonprofit/me')]);
+  } catch (e) {
+    if (e.status === 403) { location.replace('/portal'); return; }        // a business account: its own portal
+    if (e.status === 401) { store(TOKEN_KEY, null); showGate('Your session ended. Enter your email for a new login link.'); return; }
+    document.getElementById('mSummary').textContent = 'Could not load your account: ' + e.message;
+    return;
+  }
+  drawProfileForm();
+  fillProfile(accountToForm(ACCOUNT));
+  showPage('matches');
+  runMatches();
+}
+
+function accountToForm(a) {
+  const s = a.subscriber || {}, p = a.profile || {};
+  return {org_type: s.org_type, zip_code: s.zip_code, state: null, first_name: s.first_name, last_name: s.last_name,
+    org_name: s.business_name, ein: s.ein, website_url: s.website_url, service_regions: p.service_regions || [],
+    annual_budget: p.annual_budget, tax_exempt_since: p.tax_exempt_since, has_audited_financials: p.has_audited_financials,
+    ny_prequalified: p.ny_prequalified, subjects: p.subjects || [], populations: p.populations || [],
+    funding_purposes: p.funding_purposes || []};
+}
+
+async function openApp(mode) {
+  setMode(mode || 'preview');
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   try {
@@ -407,13 +519,37 @@ function currentProfile() {
     has_audited_financials: yn('fAudit'), ny_prequalified: yn('fNy'),
     subjects: [...picks.subjects], populations: [...picks.populations], funding_purposes: [...picks.funding_purposes],
     include_pending: document.getElementById('fPending').checked, limit: 2000,
+    first_name: document.getElementById('fFirst').value.trim(), last_name: document.getElementById('fLast').value.trim(),
+    org_name: document.getElementById('fOrg').value.trim(), ein: document.getElementById('fEin').value.trim(),
+    website_url: document.getElementById('fWeb').value.trim(),
   };
 }
-function saveProfile() { store(PROFILE_KEY, JSON.stringify(currentProfile())); document.getElementById('saveNote').textContent = 'Saved in this browser.'; }
+function saveProfile() {
+  if (MODE === 'account') { document.getElementById('saveNote').textContent = 'You have changes to save.'; return; }
+  store(PROFILE_KEY, JSON.stringify(currentProfile())); document.getElementById('saveNote').textContent = 'Saved in this browser.';
+}
+function saveAction() { MODE === 'account' ? saveAccount() : runMatches(); }
+async function saveAccount() {
+  const p = currentProfile();
+  const changes = {first_name: p.first_name, last_name: p.last_name, org_name: p.org_name, org_type: p.org_type,
+    ein: p.ein, zip_code: p.zip_code, website_url: p.website_url, annual_budget: p.annual_budget,
+    tax_exempt_since: p.tax_exempt_since, has_audited_financials: p.has_audited_financials, ny_prequalified: p.ny_prequalified,
+    service_regions: p.service_regions, subjects: p.subjects, populations: p.populations, funding_purposes: p.funding_purposes};
+  const note = document.getElementById('saveNote');
+  note.textContent = 'Saving…';
+  try {
+    const out = await apiFetch('/api/nonprofit/profile', 'POST', changes);
+    ACCOUNT = await apiFetch('/api/nonprofit/me');
+    note.textContent = (out.subscriber.length || out.profile.length) ? 'Saved. Your matches are updated.' : 'Nothing had changed.';
+    if (out.zip_changed) note.textContent += ' Your new ZIP code is placed within a minute.';
+    runMatches(true);
+  } catch (e) { note.textContent = 'Not saved: ' + e.message; }
+}
 function readSaved() { try { return JSON.parse(load(PROFILE_KEY) || 'null'); } catch (e) { return null; } }
 function fillProfile(p) {
   const set = (id, v) => { document.getElementById(id).value = v == null ? '' : v; };
   set('fOrgType', p.org_type || 'nonprofit_501c3'); set('fZip', p.zip_code); set('fState', p.state || '');
+  set('fFirst', p.first_name); set('fLast', p.last_name); set('fOrg', p.org_name); set('fEin', p.ein); set('fWeb', p.website_url);
   set('fBudget', p.annual_budget); set('fSince', p.tax_exempt_since);
   set('fAudit', p.has_audited_financials === true ? 'yes' : p.has_audited_financials === false ? 'no' : '');
   set('fNy', p.ny_prequalified === true ? 'yes' : p.ny_prequalified === false ? 'no' : '');
@@ -425,8 +561,20 @@ function fillProfile(p) {
 }
 
 // ── matches ─────────────────────────────────────────────────────────────
-async function runMatches() {
+async function runMatches(stay) {
   const p = currentProfile();
+  if (MODE === 'account') {
+    if (!stay) showPage('matches');
+    document.getElementById('mSummary').textContent = 'Matching…';
+    try {
+      const r = await apiFetch('/api/nonprofit/matches?limit=2000');
+      RESULT = {...r, left_out: [], counts: {...r.counts, left_out: 0}};
+    } catch (e) { document.getElementById('mSummary').textContent = 'Could not match: ' + e.message; return; }
+    shownCount = PAGE_SIZE;
+    document.getElementById('matchesSub').textContent = 'Every listing your organization can apply to, best fit first.';
+    drawMatches();
+    return;
+  }
   saveProfile();
   showPage('matches');
   if (!p.zip_code && !p.state) { document.getElementById('mSummary').textContent = 'Add a ZIP code or a state in Organization Profile first.'; return; }
@@ -481,7 +629,8 @@ function drawMatches() {
   const list = filtered();
   const c = RESULT.counts;
   document.getElementById('mSummary').textContent =
-    `${c.shown.toLocaleString()} of ${c.listings.toLocaleString()} listings fit; ${c.left_out.toLocaleString()} left out (see Left Out).` +
+    (MODE === 'account' ? `${c.shown.toLocaleString()} funders and programs fit your organization.`
+      : `${c.shown.toLocaleString()} of ${c.listings.toLocaleString()} listings fit; ${c.left_out.toLocaleString()} left out (see Left Out).`) +
     (list.length !== RESULT.shown.length ? ` Showing ${list.length.toLocaleString()} with these filters.` : '');
   document.getElementById('mList').innerHTML = list.slice(0, shownCount).map(matchCard).join('') ||
     '<div class="empty">Nothing fits these filters.</div>';
@@ -515,7 +664,10 @@ async function openListing(id) {
   document.getElementById('panelTitle').textContent = 'Loading…';
   document.getElementById('panelBody').innerHTML = '';
   let L;
-  try { L = await apiFetch('/api/nonprofit/preview/listing/' + encodeURIComponent(id)); }
+  try {
+    L = MODE === 'account' ? await apiFetch('/api/nonprofit/listing/' + encodeURIComponent(id))
+      : await apiFetch('/api/nonprofit/preview/listing/' + encodeURIComponent(id));
+  }
   catch (e) { document.getElementById('panelTitle').textContent = 'Could not load this listing'; document.getElementById('panelBody').textContent = e.message; return; }
   document.getElementById('panelTitle').textContent = L.title;
   const out = [];
@@ -575,11 +727,45 @@ async function openListing(id) {
   document.getElementById('panelBody').innerHTML = out.join('');
   document.getElementById('panelBody').scrollTop = 0;
 }
+// ── subscription ────────────────────────────────────────────────────────
+function niceDate(iso) { try { return new Date(iso).toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'}); } catch (e) { return iso; } }
+async function loadSubscription() {
+  const box = document.getElementById('subBox');
+  box.innerHTML = '<div class="empty">Loading…</div>';
+  let s;
+  try { s = await apiFetch('/api/portal/subscription'); }
+  catch (e) { box.innerHTML = '<div class="empty">Could not load your subscription: ' + escHtml(e.message) + '</div>'; return; }
+  const plan = s.plan === 'comp' ? 'Complimentary' : s.plan === 'annual' ? 'Annual, $500 a year' : s.plan === 'monthly' ? 'Monthly, $50 a month' : 'Free trial';
+  const lines = [`<p><b>Plan:</b> ${escHtml(plan)}</p>`];
+  if (s.trial_ends_at && (s.status === 'trialing' || s.plan === 'trial')) lines.push(`<p><b>Trial Ends:</b> ${escHtml(niceDate(s.trial_ends_at))}</p>`);
+  if (s.next_billing_date && s.plan !== 'comp') lines.push(`<p><b>Next Payment:</b> ${escHtml(niceDate(s.next_billing_date))}</p>`);
+  if (s.cancel_at) lines.push(`<p><b>Ends:</b> ${escHtml(niceDate(s.cancel_at))}</p>`);
+  if (s.plan !== 'comp') lines.push('<p style="margin-top:14px"><button class="btn" onclick="openBilling()">Manage Billing</button></p>' +
+    '<p class="src" style="margin-top:8px">Change your card, see invoices or cancel, on Stripe\'s secure page.</p>');
+  box.innerHTML = lines.join('');
+}
+async function openBilling() {
+  try { const r = await apiFetch('/api/portal/billing-portal-session', 'POST'); location.href = r.url; }
+  catch (e) { document.getElementById('subBox').insertAdjacentHTML('beforeend', '<p class="err">' + escHtml(e.message) + '</p>'); }
+}
+
 function hostOf(u) { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } }
 
 // ── start ───────────────────────────────────────────────────────────────
 document.getElementById('secretIn').addEventListener('keydown', e => { if (e.key === 'Enter') enterPreview(); });
-if (load(SECRET_KEY)) openApp();
+document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key === 'Enter') requestLink(); });
+(async function start() {
+  const loginToken = new URLSearchParams(location.search).get('login_token');
+  if (loginToken) {
+    try {
+      const orgType = await consumeLink(loginToken);
+      if (!NONPROFIT_ORG_TYPES.includes(orgType)) { location.replace('/portal'); return; }
+    } catch (e) { showGate(e.message + ' Enter your email for a new one.'); return; }
+  }
+  if (load(TOKEN_KEY)) return openAccount();
+  if (load(SECRET_KEY)) return openApp('preview');
+  showGate();
+})();
 </script>
 </body>
 </html>
