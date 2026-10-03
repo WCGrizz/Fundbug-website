@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="/fundbug_logo.png">
+<title>Unsubscribe — FundBug</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<!--
+  Unsubscribe from FundBug digests (Oct 3 2026; backend fundbug_unsubscribe.py).
+  The link only shows this page; the Confirm button unsubscribes, so an email
+  security scanner opening the link changes nothing. No address in the URL.
+-->
+<style>
+:root{--ink:#1a1a14;--green:#5a9e52;--green-dk:#3d7a38;--cream:#f7f5f0;--border:#d8d3c8;--red:#c44b2a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--cream);color:var(--ink);font-family:'Jost',sans-serif;font-size:16px;line-height:1.6;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:40px 36px;max-width:480px;width:100%;text-align:center}
+.logo{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:var(--green);margin-bottom:18px}
+h1{font-family:'Fraunces',serif;font-size:24px;margin-bottom:10px}
+p{font-size:15px;margin-bottom:14px}
+.btn{background:var(--green);color:#fff;border:none;border-radius:6px;padding:13px 28px;font-size:16px;font-family:inherit;cursor:pointer;min-height:48px}
+.btn:disabled{opacity:.6;cursor:default}
+.err{color:var(--red);min-height:22px}
+a{color:var(--green-dk)}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">FundBug</div>
+  <h1 id="headline">Unsubscribe From Digests</h1>
+  <p id="who">Checking your link…</p>
+  <div id="actions" hidden>
+    <p>This stops FundBug digest emails to this address. It does not cancel a subscription; you can do that in your <a href="/portal">portal</a>.</p>
+    <button class="btn" id="go">Unsubscribe</button>
+  </div>
+  <p class="err" id="err"></p>
+  <p><a href="https://fundbug.net">FundBug, funding intelligence for small businesses</a></p>
+</div>
+<script>
+const API = 'https://fundbug-production.up.railway.app';
+const q = new URLSearchParams(location.search);
+const body = {a: q.get('a') || '', k: q.get('k') || '', t: q.get('t') || ''};
+const who = document.getElementById('who'), err = document.getElementById('err');
+(async function () {
+  if (!body.a || !body.k || !body.t) {
+    who.textContent = 'This link is missing its details. Reply to any digest and we will unsubscribe you by hand.';
+    return;
+  }
+  try {
+    const r = await fetch(`${API}/api/unsubscribe/check?a=${encodeURIComponent(body.a)}&k=${encodeURIComponent(body.k)}&t=${encodeURIComponent(body.t)}`);
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.detail || 'This link is not valid.');
+    who.textContent = `Digests to ${d.email}`;
+    document.getElementById('actions').hidden = false;
+  } catch (e) {
+    who.textContent = e.message + ' Reply to any digest and we will unsubscribe you by hand.';
+  }
+})();
+document.getElementById('go').addEventListener('click', async function () {
+  this.disabled = true; err.textContent = '';
+  try {
+    const r = await fetch(API + '/api/unsubscribe', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.detail || 'That did not work. Please try again.');
+    document.getElementById('headline').textContent = 'You Are Unsubscribed';
+    who.textContent = `${d.email} will not get FundBug digests any more.`;
+    document.getElementById('actions').hidden = true;
+  } catch (e) { err.textContent = e.message; this.disabled = false; }
+});
+</script>
+</body>
+</html>

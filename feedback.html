@@ -173,6 +173,11 @@
 
   <div class="divider"></div>
 
+  <div id="confirmWrap" style="display:none;margin:4px 0 16px">
+    <button type="button" id="confirmBtn" style="background:#5a9e52;color:#fff;border:none;border-radius:6px;padding:12px 26px;font-size:16px;font-family:inherit;cursor:pointer;min-height:46px">Confirm</button>
+    <p class="sub" id="confirmErr" style="color:#c44b2a;min-height:20px;margin-top:8px"></p>
+  </div>
+
   <p class="community-note" id="communityNote">—</p>
 
   <a href="https://fundbug.net" class="back-link">← Back to FundBug</a>
@@ -180,6 +185,9 @@
 </div>
 
 <script>
+  // Oct 3 2026: a link only asks; the Confirm button records the feedback, so
+  // an email security scanner opening the link records nothing.
+  const API = 'https://fundbug-production.up.railway.app';
   const params = new URLSearchParams(window.location.search);
   const signal = params.get('signal');
   const program = params.get('program');
@@ -198,26 +206,52 @@
     progWrap.style.display = 'block';
   }
 
-  if (error) {
+  function thanks(sig) {
+    if (sig === 'up') {
+      icon.textContent = '👍';
+      headline.textContent = 'Good to know!';
+      subtext.textContent = program
+        ? 'We\'ll factor that in when building your next digest.'
+        : 'That signal helps us tune your future matches.';
+      community.innerHTML = '<strong>Every thumbs-up helps.</strong> The more subscribers share feedback, the smarter FundBug gets at finding programs that are actually relevant, for you and for businesses like yours in your area.';
+    } else {
+      icon.textContent = '👎';
+      headline.textContent = 'Noted. We\'ll do better.';
+      subtext.textContent = program
+        ? 'We won\'t show you this program again.'
+        : 'That signal helps us filter out programs that aren\'t a fit for you.';
+      community.innerHTML = '<strong>Negative feedback is the most valuable kind.</strong> Knowing what doesn\'t fit is just as useful as knowing what does: it sharpens your matches and helps other businesses in your area too.';
+    }
+  }
+
+  if (!error && params.get('confirm') === '1' && (signal === 'up' || signal === 'down')) {
+    icon.textContent = signal === 'up' ? '👍' : '👎';
+    headline.textContent = signal === 'up' ? 'Is this a good fit?' : 'Not a fit for you?';
+    subtext.textContent = signal === 'up'
+      ? 'Confirm and we\'ll favor programs like this in your next digests.'
+      : 'Confirm and we won\'t show you this program again.';
+    community.textContent = '';
+    document.getElementById('confirmWrap').style.display = 'block';
+    document.getElementById('confirmBtn').addEventListener('click', async function () {
+      const btn = this, err = document.getElementById('confirmErr');
+      btn.disabled = true; err.textContent = '';
+      try {
+        const r = await fetch(API + '/api/feedback/confirm', {method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({subscriber_id: params.get('s'), program_id: params.get('p'), signal, token: params.get('t')})});
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.detail || 'That didn\'t save. Please try again.');
+        document.getElementById('confirmWrap').style.display = 'none';
+        thanks(signal);
+      } catch (e) { err.textContent = e.message; btn.disabled = false; }
+    });
+  } else if (error) {
     card.classList.add('error');
     icon.textContent = '🔗';
     headline.textContent = 'That link didn\'t work';
-    subtext.textContent = 'This feedback link may have expired or already been used. No worries — just hit reply to your digest email if you have thoughts to share.';
+    subtext.textContent = 'This feedback link may have expired or already been used. No worries: just hit reply to your digest email if you have thoughts to share.';
     community.textContent = 'Questions? Reach us at hello@fundbug.net';
-  } else if (signal === 'up') {
-    icon.textContent = '👍';
-    headline.textContent = 'Good to know!';
-    subtext.textContent = program
-      ? 'We\'ll factor that in when building your next digest.'
-      : 'That signal helps us tune your future matches.';
-    community.innerHTML = '<strong>Every thumbs-up helps.</strong> The more subscribers share feedback, the smarter FundBug gets at finding programs that are actually relevant — for you and for businesses like yours in your area.';
-  } else if (signal === 'down') {
-    icon.textContent = '👎';
-    headline.textContent = 'Noted — we\'ll do better.';
-    subtext.textContent = program
-      ? 'We\'ll deprioritize programs like this for your profile going forward.'
-      : 'That signal helps us filter out programs that aren\'t a fit for you.';
-    community.innerHTML = '<strong>Negative feedback is the most valuable kind.</strong> Knowing what doesn\'t fit is just as useful as knowing what does — it sharpens your matches and helps other businesses in your area too.';
+  } else if (signal === 'up' || signal === 'down') {
+    thanks(signal);                         // an older link, recorded as it was clicked
   } else {
     icon.textContent = '✓';
     headline.textContent = 'Thanks for the feedback';
