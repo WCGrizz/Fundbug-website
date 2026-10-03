@@ -113,6 +113,17 @@ details.more .pills{margin-top:8px}
 .left-group li{font-size:14.5px;margin-left:18px}
 .left-group a{cursor:pointer}
 
+/* tracker */
+.t-row{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px}
+.t-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.t-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0 14px;margin-top:10px}
+.t-grid select,.t-grid input{margin-bottom:8px}
+.t-notes{width:100%;min-height:64px;padding:10px 12px;border:1px solid var(--border);border-radius:5px;background:var(--cream);font-family:'Jost',sans-serif;font-size:15px;color:var(--ink);resize:vertical}
+.star{background:none;border:none;font-size:22px;cursor:pointer;color:var(--clay);min-height:40px;padding:0 6px}
+.soon{color:var(--red);font-weight:500}
+.m-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.btn.saved{background:var(--green-dk)}
+
 /* panel */
 .scrim{position:fixed;inset:0;background:rgba(26,26,20,.45);display:none;z-index:200}
 .panel{position:fixed;top:0;right:0;bottom:0;width:min(760px,100%);background:var(--cream);z-index:201;transform:translateX(100%);transition:transform .2s ease;display:flex;flex-direction:column}
@@ -172,6 +183,7 @@ details.more .pills{margin-top:8px}
     <div class="sidebar">
       <a data-page="matches" onclick="showPage('matches')">Matches</a>
       <a data-page="profile" onclick="showPage('profile')">Organization Profile</a>
+      <a data-page="tracker" class="acct-only" onclick="showPage('tracker'); loadTracker()">Tracker</a>
       <a data-page="subscription" class="acct-only" onclick="showPage('subscription'); loadSubscription()">Subscription</a>
       <a data-page="leftout" class="preview-only" onclick="showPage('leftout')">Left Out</a>
     </div>
@@ -270,6 +282,37 @@ details.more .pills{margin-top:8px}
         <div class="summary" id="mSummary"></div>
         <div id="mList"></div>
         <div style="text-align:center;margin-top:10px"><button class="btn ghost" id="mMore" onclick="moreMatches()" style="display:none">Show More</button></div>
+      </div>
+
+      <div class="page" id="page-tracker">
+        <div class="hero">
+          <div class="eyebrow">Your Organization</div>
+          <h1>Tracker</h1>
+          <p>The funders and programs you saved, where each one stands, and when to follow up.</p>
+        </div>
+        <div class="toolbar">
+          <select id="tStage" onchange="drawTracker()"></select>
+          <select id="tKind" onchange="drawTracker()"><option value="">Funders And Programs</option><option value="funder">Funders</option><option value="opportunity">Opportunities</option><option value="own">Added By You</option></select>
+          <label class="chk" style="margin:0"><input type="checkbox" id="tFav" onchange="drawTracker()"> Starred Only</label>
+          <button class="btn ghost sm" onclick="toggleAddOwn()">Add Your Own</button>
+        </div>
+        <div class="card" id="addOwn" hidden>
+          <h2>Add A Funder Or Program</h2>
+          <p class="lead">One FundBug doesn't list yet. It goes in your Tracker, and we'll look into adding it for everyone.</p>
+          <div class="row">
+            <div><label for="oTitle">Name</label><input id="oTitle"></div>
+            <div><label for="oUrl">Website</label><input id="oUrl" type="url" placeholder="https://"></div>
+          </div>
+          <div class="row">
+            <div><label for="oDeadline">Deadline (If Any)</label><input id="oDeadline" placeholder="e.g. March 1, or rolling"></div>
+            <div><label for="oFollow">Follow Up On</label><input id="oFollow" type="date"></div>
+          </div>
+          <label for="oNotes">Notes</label><textarea class="t-notes" id="oNotes"></textarea>
+          <div class="err" id="oErr"></div>
+          <div style="display:flex;gap:10px"><button class="btn" onclick="addOwn()">Add It</button><button class="btn ghost" onclick="toggleAddOwn()">Cancel</button></div>
+        </div>
+        <div class="summary" id="tSummary"></div>
+        <div id="tList"></div>
       </div>
 
       <div class="page" id="page-subscription">
@@ -618,7 +661,7 @@ function matchCard(m) {
       <div class="badges"><span class="badge ${m.kind === 'funder' ? 'funder' : 'opp'}">${m.kind === 'funder' ? 'Funder' : 'Opportunity'}</span>
         ${m.reviewed ? '' : '<span class="badge pending">Not Reviewed Yet</span>'}
         ${m.provided_by ? `<span class="badge">From ${escHtml(m.provided_by)}</span>` : ''}</div>
-    </div><button class="btn ghost sm" onclick="openListing('${m.id}')">Open</button></div>
+    </div><div class="m-actions">${MODE === 'account' ? `<button class="btn sm ${m.saved ? 'saved' : ''}" onclick="saveListing('${m.id}')">${m.saved ? 'Saved ✓' : 'Save'}</button><button class="btn ghost sm" onclick="hideListing('${m.id}')">Hide</button>` : ''}<button class="btn ghost sm" onclick="openListing('${m.id}')">Open</button></div></div>
     <div class="facts">${facts.join('')}</div>
     ${m.why && m.why.length ? '<ul class="why">' + m.why.map(w => `<li>${escHtml(w)}</li>`).join('') + '</ul>' : ''}
     ${m.description ? `<div class="desc">${escHtml(m.description.length > 360 ? m.description.slice(0, 360).replace(/\s+\S*$/, '') + '…' : m.description)}</div>` : ''}
@@ -672,6 +715,10 @@ async function openListing(id) {
   document.getElementById('panelTitle').textContent = L.title;
   const out = [];
   out.push(`<div class="badges"><span class="badge ${L.kind === 'funder' ? 'funder' : 'opp'}">${L.kind === 'funder' ? 'Funder' : 'Opportunity'}</span>${L.reviewed ? '' : '<span class="badge pending">Not Reviewed Yet</span>'}</div>`);
+  if (MODE === 'account') {
+    const saved = ((RESULT && RESULT.shown) || []).some(m => m.id === id && m.saved);
+    out.push(`<div class="m-actions" style="justify-content:flex-start;margin:4px 0 12px"><button class="btn sm ${saved ? 'saved' : ''}" id="pSave" onclick="saveListing('${id}')">${saved ? 'Saved ✓' : 'Save To Tracker'}</button><button class="btn ghost sm" onclick="hideListing('${id}'); closePanel()">Hide From Matches</button></div>`);
+  }
   if (L.description) out.push(line('What It Is', `<p>${escHtml(L.description)}</p>`));
   if (L.provided_by && L.provided_by.name) out.push(line('Provided By', `<p>${L.provided_by.listing_id ? `<a onclick="openListing('${L.provided_by.listing_id}')" style="cursor:pointer">${escHtml(L.provided_by.name)}</a>` : escHtml(L.provided_by.name)}</p>`));
   const f = L.funder;
@@ -727,6 +774,92 @@ async function openListing(id) {
   document.getElementById('panelBody').innerHTML = out.join('');
   document.getElementById('panelBody').scrollTop = 0;
 }
+// ── tracker ─────────────────────────────────────────────────────────────
+let TRACKER = null;
+async function saveListing(id) {
+  try {
+    await apiFetch('/api/nonprofit/tracker', 'POST', {group_id: id});
+    const m = ((RESULT && RESULT.shown) || []).find(x => x.id === id);
+    if (m) m.saved = true;
+    drawMatches();
+    const b = document.getElementById('pSave'); if (b) { b.textContent = 'Saved ✓'; b.classList.add('saved'); }
+    TRACKER = null;
+  } catch (e) { alertLine('Could not save: ' + e.message); }
+}
+async function hideListing(id) {
+  try {
+    await apiFetch('/api/nonprofit/tracker/hide', 'POST', {group_id: id});
+    if (RESULT) { RESULT.shown = RESULT.shown.filter(x => x.id !== id); RESULT.counts.shown = RESULT.shown.length; }
+    drawMatches();
+    TRACKER = null;
+  } catch (e) { alertLine('Could not hide: ' + e.message); }
+}
+function alertLine(msg) { document.getElementById('mSummary').textContent = msg; }
+async function loadTracker() {
+  document.getElementById('tSummary').textContent = 'Loading…';
+  try { TRACKER = await apiFetch('/api/nonprofit/tracker'); }
+  catch (e) { document.getElementById('tSummary').textContent = 'Could not load your Tracker: ' + e.message; return; }
+  const sel = document.getElementById('tStage'), keep = sel.value;
+  sel.innerHTML = '<option value="">Every Stage</option>' + TRACKER.stages.map(s => `<option value="${s.code}">${escHtml(s.label)}</option>`).join('');
+  sel.value = keep;
+  drawTracker();
+}
+function stageLabel(code) { return ((TRACKER && TRACKER.stages) || []).find(s => s.code === code)?.label || code; }
+function drawTracker() {
+  if (!TRACKER) return;
+  const st = document.getElementById('tStage').value, kind = document.getElementById('tKind').value, fav = document.getElementById('tFav').checked;
+  const items = TRACKER.items.filter(i => (!st || i.status === st) && (!kind || i.kind === kind) && (!fav || i.is_favorite))
+    .sort((a, b) => (a.follow_up_date || '9999') .localeCompare(b.follow_up_date || '9999') || String(b.created_at).localeCompare(String(a.created_at)));
+  document.getElementById('tSummary').textContent = TRACKER.items.length
+    ? `${TRACKER.items.length} saved` + (items.length !== TRACKER.items.length ? `; ${items.length} shown` : '') + '. Those with a follow-up date come first.'
+    : 'Nothing saved yet. Press Save on any match to keep it here.';
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('tList').innerHTML = items.map(i => {
+    const kindBadge = i.kind === 'funder' ? '<span class="badge funder">Funder</span>' : i.kind === 'own' ? '<span class="badge">Added By You</span>' : '<span class="badge opp">Opportunity</span>';
+    const dl = i.deadline ? `<span><b>Deadline:</b> ${escHtml(i.deadline)}${i.days_until_deadline != null ? ` <span class="${i.days_until_deadline <= 14 ? 'soon' : ''}">(${i.days_until_deadline < 0 ? 'passed' : i.days_until_deadline + ' days'})</span>` : ''}</span>` : '';
+    const due = i.follow_up_date && i.follow_up_date <= today ? ' <span class="soon">Follow up today or earlier</span>' : '';
+    const pid = escHtml(i.program_id);
+    return `<div class="t-row">
+      <div class="t-top"><div>
+        <div class="m-title">${i.group_id ? `<a onclick="openListing('${i.group_id}')">${escHtml(i.title)}</a>` : (i.source_url ? `<a href="${escHtml(i.source_url)}" target="_blank" rel="noopener">${escHtml(i.title)}</a>` : escHtml(i.title))}</div>
+        <div class="badges">${kindBadge}${i.provided_by ? `<span class="badge">From ${escHtml(i.provided_by)}</span>` : ''}${i.under_review ? '<span class="badge pending">FundBug Is Looking Into It</span>' : ''}</div>
+        <div class="facts">${i.amount ? `<span><b>Amount:</b> ${escHtml(i.amount)}</span>` : ''}${dl}${due}</div>
+      </div><button class="star" title="Star" onclick="updateItem('${pid}', {is_favorite: ${!i.is_favorite}})">${i.is_favorite ? '★' : '☆'}</button></div>
+      <div class="t-grid">
+        <div><label>Stage</label><select onchange="updateItem('${pid}', {status: this.value})">${TRACKER.stages.map(s => `<option value="${s.code}" ${s.code === i.status ? 'selected' : ''}>${escHtml(s.label)}</option>`).join('')}</select></div>
+        <div><label>Follow Up On</label><input type="date" value="${escHtml(i.follow_up_date || '')}" onchange="updateItem('${pid}', {follow_up_date: this.value || null})"></div>
+      </div>
+      <label>Notes</label><textarea class="t-notes" onblur="if (this.value !== this.defaultValue) updateItem('${pid}', {notes: this.value})">${escHtml(i.notes)}</textarea>
+      <div style="text-align:right;margin-top:8px"><button class="btn ghost sm" onclick="removeItem('${pid}')">Remove</button></div>
+    </div>`;
+  }).join('');
+}
+async function updateItem(pid, changes) {
+  try {
+    await apiFetch('/api/nonprofit/tracker/' + encodeURIComponent(pid), 'PATCH', changes);
+    const i = TRACKER.items.find(x => x.program_id === pid);
+    if (i) Object.assign(i, changes);
+    if (!('notes' in changes)) drawTracker();
+  } catch (e) { document.getElementById('tSummary').textContent = 'Not saved: ' + e.message; }
+}
+async function removeItem(pid) {
+  await updateItem(pid, {dismissed: true});
+  TRACKER.items = TRACKER.items.filter(x => x.program_id !== pid);
+  drawTracker();
+}
+function toggleAddOwn() { const c = document.getElementById('addOwn'); c.hidden = !c.hidden; }
+async function addOwn() {
+  const v = id => document.getElementById(id).value.trim();
+  const err = document.getElementById('oErr');
+  if (!v('oTitle')) { err.textContent = 'Give it a name.'; return; }
+  try {
+    await apiFetch('/api/nonprofit/tracker/custom', 'POST', {title: v('oTitle'), source_url: v('oUrl'), deadline_text: v('oDeadline'),
+      notes: v('oNotes'), follow_up_date: v('oFollow') || null});
+    ['oTitle', 'oUrl', 'oDeadline', 'oNotes', 'oFollow'].forEach(id => { document.getElementById(id).value = ''; });
+    err.textContent = ''; toggleAddOwn(); loadTracker();
+  } catch (e) { err.textContent = 'Not added: ' + e.message; }
+}
+
 // ── subscription ────────────────────────────────────────────────────────
 function niceDate(iso) { try { return new Date(iso).toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'}); } catch (e) { return iso; } }
 async function loadSubscription() {
