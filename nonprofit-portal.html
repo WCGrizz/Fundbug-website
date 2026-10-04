@@ -466,7 +466,7 @@ async function openAccount() {
     [TERMS, PLACES, ACCOUNT] = await Promise.all([apiFetch('/api/nonprofit/terms'), apiFetch('/api/nonprofit/places'), apiFetch('/api/nonprofit/me')]);
   } catch (e) {
     if (e.status === 403) { location.replace('/portal'); return; }        // a business account: its own portal
-    if (e.status === 401) { store(TOKEN_KEY, null); showGate('Your session ended. Enter your email for a new login link.'); return; }
+    if (e.status === 401) { keepDigestLink(); store(TOKEN_KEY, null); showGate('Your session ended. Enter your email for a new login link.'); return; }
     document.getElementById('mSummary').textContent = 'Could not load your account: ' + e.message;
     return;
   }
@@ -925,8 +925,15 @@ async function openDigest(id) {
 }
 
 // ── links from a digest email (#listing=ID, #save=ID) ───────────────────
+// A link followed while signed out is kept (Oct 4 2026) and carried out after
+// sign-in: the login link goes through portal.html, which loses the #.
+const PENDING_KEY = 'fb_np_pending_link';
+function keepDigestLink() {
+  if (/^#(listing|save)=[0-9a-f-]{36}$/.test(location.hash || '')) store(PENDING_KEY, location.hash);
+}
 async function followDigestLink() {
-  const m = /^#(listing|save)=([0-9a-f-]{36})$/.exec(location.hash || '');
+  const m = /^#(listing|save)=([0-9a-f-]{36})$/.exec(location.hash || load(PENDING_KEY) || '');
+  store(PENDING_KEY, null);
   if (!m) return;
   history.replaceState(null, '', location.pathname);
   if (m[1] === 'save') await saveListing(m[2]);
@@ -969,6 +976,7 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
     } catch (e) { showGate(e.message + ' Enter your email for a new one.'); return; }
   }
   if (load(TOKEN_KEY)) return openAccount();
+  keepDigestLink();
   if (load(SECRET_KEY)) return openApp('preview');
   showGate();
 })();
