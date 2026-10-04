@@ -102,6 +102,8 @@ details.more .pills{margin-top:8px}
 .badge.funder{background:#e6efe4;border-color:#b9d2b4;color:var(--green-dk)}
 .badge.opp{background:#f3e9df;border-color:#e0c7b0;color:var(--clay)}
 .badge.pending{background:#fff6dc;border-color:#e8d38a;color:#7a5b00}
+.badge.digest{background:#e7eef9;border-color:#b6c6e6;color:#24447e}
+.why-not{font-size:14.5px;color:#7a5b00;margin-top:6px}
 .facts{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14.5px;margin:4px 0}
 .facts b{font-weight:500}
 .why{font-size:14.5px;color:var(--ink);margin-top:6px}
@@ -181,9 +183,10 @@ details.more .pills{margin-top:8px}
   </nav>
   <div class="wrap">
     <div class="sidebar">
-      <a data-page="matches" onclick="showPage('matches')">Matches</a>
+      <a data-page="matches" id="navMatches" onclick="showPage('matches')">Matches</a>
       <a data-page="profile" onclick="showPage('profile')">Organization Profile</a>
       <a data-page="tracker" class="acct-only" onclick="showPage('tracker'); loadTracker()">Tracker</a>
+      <a data-page="digests" class="acct-only" onclick="showPage('digests'); loadDigests()">Digests</a>
       <a data-page="subscription" class="acct-only" onclick="showPage('subscription'); loadSubscription()">Subscription</a>
       <a data-page="leftout" class="preview-only" onclick="showPage('leftout')">Left Out</a>
     </div>
@@ -271,12 +274,13 @@ details.more .pills{margin-top:8px}
       <div class="page" id="page-matches">
         <div class="hero">
           <div class="eyebrow" id="matchesEyebrow">For The Sample Organization</div>
-          <h1>Matches</h1>
+          <h1 id="matchesTitle">Matches</h1>
           <p id="matchesSub">Every listing this organization can apply to, best fit first.</p>
         </div>
         <div class="toolbar">
           <input id="mSearch" placeholder="Search titles" oninput="drawMatches()">
           <select id="mKind" onchange="drawMatches()"><option value="">Funders And Opportunities</option><option value="funder">Funders</option><option value="opportunity">Opportunities</option></select>
+          <label class="chk acct-only" style="margin:0"><input type="checkbox" id="mFits" onchange="drawMatches()"> Fits Only</label>
           <select id="mReviewed" class="preview-only" onchange="drawMatches()"><option value="">Reviewed Or Not</option><option value="yes">Reviewed Only</option><option value="no">Not Reviewed Yet</option></select>
         </div>
         <div class="summary" id="mSummary"></div>
@@ -313,6 +317,20 @@ details.more .pills{margin-top:8px}
         </div>
         <div class="summary" id="tSummary"></div>
         <div id="tList"></div>
+        <div id="tSeenWrap" hidden>
+          <h2 style="font-family:'Fraunces',serif;font-size:22px;margin:26px 0 6px">Seen In Your Digest</h2>
+          <p class="summary">Everything your digests sent you. Add one to your Tracker to give it a stage, notes and a follow-up date.</p>
+          <div id="tSeen"></div>
+        </div>
+      </div>
+
+      <div class="page" id="page-digests">
+        <div class="hero">
+          <div class="eyebrow">Your Organization</div>
+          <h1>Digests</h1>
+          <p>Every digest we've sent you, newest first. Open one to see its funders and programs as they stand today.</p>
+        </div>
+        <div id="dList"><div class="empty">Loading…</div></div>
       </div>
 
       <div class="page" id="page-subscription">
@@ -433,6 +451,8 @@ function setMode(mode) {
     document.getElementById('profEyebrow').textContent = 'Your Organization';
     document.getElementById('profSub').textContent = 'What your organization does and where. Your matches come from this; the more it says, the better they fit.';
     document.getElementById('matchesEyebrow').textContent = 'For Your Organization';
+    document.getElementById('matchesTitle').textContent = 'Library';
+    document.getElementById('navMatches').textContent = 'Library';
     document.getElementById('saveBtn').textContent = 'Save Changes';
     document.getElementById('saveNote').textContent = 'Changes are saved when you press Save Changes.';
   }
@@ -453,7 +473,8 @@ async function openAccount() {
   drawProfileForm();
   fillProfile(accountToForm(ACCOUNT));
   showPage('matches');
-  runMatches();
+  await runMatches();
+  followDigestLink();
 }
 
 function accountToForm(a) {
@@ -610,11 +631,11 @@ async function runMatches(stay) {
     if (!stay) showPage('matches');
     document.getElementById('mSummary').textContent = 'Matching…';
     try {
-      const r = await apiFetch('/api/nonprofit/matches?limit=2000');
-      RESULT = {...r, left_out: [], counts: {...r.counts, left_out: 0}};
+      const r = await apiFetch('/api/nonprofit/library');
+      RESULT = {shown: r.items, left_out: [], counts: {listings: r.counts.listings, shown: r.counts.fit, left_out: r.counts.listings - r.counts.fit}};
     } catch (e) { document.getElementById('mSummary').textContent = 'Could not match: ' + e.message; return; }
     shownCount = PAGE_SIZE;
-    document.getElementById('matchesSub').textContent = 'Every listing your organization can apply to, best fit first.';
+    document.getElementById('matchesSub').textContent = 'Every funder and program in FundBug: the ones that fit your organization first, best fit first.';
     drawMatches();
     return;
   }
@@ -643,8 +664,9 @@ function filtered() {
   if (!RESULT) return [];
   const q = document.getElementById('mSearch').value.trim().toLowerCase();
   const kind = document.getElementById('mKind').value, rev = document.getElementById('mReviewed').value;
+  const fitsOnly = MODE === 'account' && document.getElementById('mFits').checked;
   return RESULT.shown.filter(m => (!q || m.title.toLowerCase().includes(q) || (m.provided_by || '').toLowerCase().includes(q))
-    && (!kind || m.kind === kind) && (!rev || (rev === 'yes') === m.reviewed));
+    && (!kind || m.kind === kind) && (!rev || (rev === 'yes') === m.reviewed) && (!fitsOnly || m.fits !== false));
 }
 const MODES = {open_call: 'Open call', loi: 'Letter of inquiry first', rolling: 'Rolling', invitation_only: 'By invitation'};
 function matchCard(m) {
@@ -660,10 +682,13 @@ function matchCard(m) {
       <div class="m-title"><a onclick="openListing('${m.id}')">${escHtml(m.title)}</a></div>
       <div class="badges"><span class="badge ${m.kind === 'funder' ? 'funder' : 'opp'}">${m.kind === 'funder' ? 'Funder' : 'Opportunity'}</span>
         ${m.reviewed ? '' : '<span class="badge pending">Not Reviewed Yet</span>'}
+        ${m.in_digest ? '<span class="badge digest">In Your Digest</span>' : ''}
+        ${m.fits === false ? '<span class="badge pending">May Not Fit</span>' : ''}
         ${m.provided_by ? `<span class="badge">From ${escHtml(m.provided_by)}</span>` : ''}</div>
     </div><div class="m-actions">${MODE === 'account' ? `<button class="btn sm ${m.saved ? 'saved' : ''}" onclick="saveListing('${m.id}')">${m.saved ? 'Saved ✓' : 'Save'}</button><button class="btn ghost sm" onclick="hideListing('${m.id}')">Hide</button>` : ''}<button class="btn ghost sm" onclick="openListing('${m.id}')">Open</button></div></div>
     <div class="facts">${facts.join('')}</div>
     ${m.why && m.why.length ? '<ul class="why">' + m.why.map(w => `<li>${escHtml(w)}</li>`).join('') + '</ul>' : ''}
+    ${m.fits === false && m.why_not ? `<div class="why-not">May not fit: ${escHtml(m.why_not)}</div>` : ''}
     ${m.description ? `<div class="desc">${escHtml(m.description.length > 360 ? m.description.slice(0, 360).replace(/\s+\S*$/, '') + '…' : m.description)}</div>` : ''}
   </div>`;
 }
@@ -672,7 +697,7 @@ function drawMatches() {
   const list = filtered();
   const c = RESULT.counts;
   document.getElementById('mSummary').textContent =
-    (MODE === 'account' ? `${c.shown.toLocaleString()} funders and programs fit your organization.`
+    (MODE === 'account' ? `${c.listings.toLocaleString()} funders and programs in the library; ${c.shown.toLocaleString()} fit your organization.`
       : `${c.shown.toLocaleString()} of ${c.listings.toLocaleString()} listings fit; ${c.left_out.toLocaleString()} left out (see Left Out).`) +
     (list.length !== RESULT.shown.length ? ` Showing ${list.length.toLocaleString()} with these filters.` : '');
   document.getElementById('mList').innerHTML = list.slice(0, shownCount).map(matchCard).join('') ||
@@ -808,11 +833,19 @@ function stageLabel(code) { return ((TRACKER && TRACKER.stages) || []).find(s =>
 function drawTracker() {
   if (!TRACKER) return;
   const st = document.getElementById('tStage').value, kind = document.getElementById('tKind').value, fav = document.getElementById('tFav').checked;
-  const items = TRACKER.items.filter(i => (!st || i.status === st) && (!kind || i.kind === kind) && (!fav || i.is_favorite))
+  const seen = TRACKER.items.filter(i => i.seen_in_digest);
+  const tracked = TRACKER.items.filter(i => !i.seen_in_digest);
+  document.getElementById('tSeenWrap').hidden = !seen.length;
+  document.getElementById('tSeen').innerHTML = seen.map(i => `<div class="t-row"><div class="t-top"><div>
+      <div class="m-title">${i.group_id ? `<a onclick="openListing('${i.group_id}')">${escHtml(i.title)}</a>` : escHtml(i.title)}</div>
+      <div class="badges">${i.kind === 'funder' ? '<span class="badge funder">Funder</span>' : '<span class="badge opp">Opportunity</span>'}<span class="badge digest">In Your Digest</span></div>
+      <div class="facts">${i.amount ? `<span><b>Amount:</b> ${escHtml(i.amount)}</span>` : ''}${i.deadline ? `<span><b>Deadline:</b> ${escHtml(i.deadline)}</span>` : ''}</div>
+    </div><div class="m-actions">${i.group_id ? `<button class="btn sm" onclick="addSeen('${i.group_id}')">Add To Tracker</button>` : ''}<button class="btn ghost sm" onclick="removeItem('${escHtml(i.program_id)}')">Remove</button></div></div></div>`).join('');
+  const items = tracked.filter(i => (!st || i.status === st) && (!kind || i.kind === kind) && (!fav || i.is_favorite))
     .sort((a, b) => (a.follow_up_date || '9999') .localeCompare(b.follow_up_date || '9999') || String(b.created_at).localeCompare(String(a.created_at)));
-  document.getElementById('tSummary').textContent = TRACKER.items.length
-    ? `${TRACKER.items.length} saved` + (items.length !== TRACKER.items.length ? `; ${items.length} shown` : '') + '. Those with a follow-up date come first.'
-    : 'Nothing saved yet. Press Save on any match to keep it here.';
+  document.getElementById('tSummary').textContent = tracked.length
+    ? `${tracked.length} saved` + (items.length !== tracked.length ? `; ${items.length} shown` : '') + '. Those with a follow-up date come first.'
+    : 'Nothing saved yet. Press Save on any listing to keep it here.';
   const today = new Date().toISOString().slice(0, 10);
   document.getElementById('tList').innerHTML = items.map(i => {
     const kindBadge = i.kind === 'funder' ? '<span class="badge funder">Funder</span>' : i.kind === 'own' ? '<span class="badge">Added By You</span>' : '<span class="badge opp">Opportunity</span>';
@@ -833,6 +866,10 @@ function drawTracker() {
       <div style="text-align:right;margin-top:8px"><button class="btn ghost sm" onclick="removeItem('${pid}')">Remove</button></div>
     </div>`;
   }).join('');
+}
+async function addSeen(groupId) {
+  try { await apiFetch('/api/nonprofit/tracker', 'POST', {group_id: groupId}); await loadTracker(); }
+  catch (e) { document.getElementById('tSummary').textContent = 'Could not add it: ' + e.message; }
 }
 async function updateItem(pid, changes) {
   try {
@@ -858,6 +895,42 @@ async function addOwn() {
     ['oTitle', 'oUrl', 'oDeadline', 'oNotes', 'oFollow'].forEach(id => { document.getElementById(id).value = ''; });
     err.textContent = ''; toggleAddOwn(); loadTracker();
   } catch (e) { err.textContent = 'Not added: ' + e.message; }
+}
+
+// ── past digests ────────────────────────────────────────────────────────
+async function loadDigests() {
+  const box = document.getElementById('dList');
+  box.innerHTML = '<div class="empty">Loading…</div>';
+  let r;
+  try { r = await apiFetch('/api/nonprofit/digests'); }
+  catch (e) { box.innerHTML = '<div class="empty">Could not load your digests: ' + escHtml(e.message) + '</div>'; return; }
+  box.innerHTML = r.digests.length ? r.digests.map(d => `<div class="m"><div class="m-top"><div>
+      <div class="m-title"><a onclick="openDigest('${escHtml(d.id)}')">${escHtml(d.subject || 'Your digest')}</a></div>
+      <div class="facts"><span>${escHtml(niceDate(d.sent_at))}</span><span>${d.slot_count || 0} funders and programs</span></div>
+    </div><button class="btn ghost sm" onclick="openDigest('${escHtml(d.id)}')">Open</button></div></div>`).join('')
+    : '<div class="empty">No digests yet. Your first one comes on the next 1st or 3rd Tuesday.</div>';
+}
+async function openDigest(id) {
+  document.getElementById('scrim').style.display = 'block';
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('panelTitle').textContent = 'Loading…';
+  document.getElementById('panelBody').innerHTML = '';
+  let d;
+  try { d = await apiFetch('/api/nonprofit/digests/' + encodeURIComponent(id)); }
+  catch (e) { document.getElementById('panelTitle').textContent = 'Could not load this digest'; document.getElementById('panelBody').textContent = e.message; return; }
+  document.getElementById('panelTitle').textContent = d.subject || 'Your digest';
+  document.getElementById('panelBody').innerHTML = `<p class="summary">Sent ${escHtml(niceDate(d.sent_at))}. Each one as it stands today.</p>` +
+    d.items.map(i => `<div class="line"><h4>${i.kind === 'funder' ? 'Funder' : 'Opportunity'}${i.no_longer_listed ? ' · No Longer Listed' : ''}</h4>
+      <p>${i.id && !i.no_longer_listed ? `<a onclick="openListing('${i.id}')" style="cursor:pointer">${escHtml(i.title)}</a>` : escHtml(i.title)}</p></div>`).join('');
+}
+
+// ── links from a digest email (#listing=ID, #save=ID) ───────────────────
+async function followDigestLink() {
+  const m = /^#(listing|save)=([0-9a-f-]{36})$/.exec(location.hash || '');
+  if (!m) return;
+  history.replaceState(null, '', location.pathname);
+  if (m[1] === 'save') await saveListing(m[2]);
+  openListing(m[2]);
 }
 
 // ── subscription ────────────────────────────────────────────────────────
