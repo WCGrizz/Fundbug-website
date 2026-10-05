@@ -104,6 +104,11 @@ details.more .pills{margin-top:8px}
 .badge.pending{background:#fff6dc;border-color:#e8d38a;color:#7a5b00}
 .badge.digest{background:#e7eef9;border-color:#b6c6e6;color:#24447e}
 .why-not{font-size:14.5px;color:#7a5b00;margin-top:6px}
+.fit-read{font-size:14.5px;color:var(--ink);margin-top:6px}
+.badge.strong{background:#e3f0e0;color:#2f6a2b}
+#fAbout{width:100%;padding:12px 14px;background:var(--cream);border:1px solid var(--border);border-radius:5px;font-family:inherit;font-size:16px;color:var(--ink);resize:vertical;margin-bottom:6px}
+details.nfy{margin-top:18px}
+details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:pointer;padding:8px 0}
 .facts{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14.5px;margin:4px 0}
 .facts b{font-weight:500}
 .why{font-size:14.5px;color:var(--ink);margin-top:6px}
@@ -210,6 +215,9 @@ details.more .pills{margin-top:8px}
             <div><label for="fEin">EIN</label><input id="fEin" inputmode="numeric" placeholder="XX-XXXXXXX"></div>
             <div><label for="fWeb">Website</label><input id="fWeb" type="url" placeholder="https://"></div>
           </div>
+          <label for="fAbout">About Your Organization</label>
+          <textarea id="fAbout" rows="5" maxlength="3000" placeholder="What you do, your programs, who you serve and where" oninput="saveProfile()"></textarea>
+          <p class="src" style="font-size:14.5px;color:var(--ink)">In your own words. FundBug reads this beside each funder and program to judge whether it fits you.</p>
         </div>
 
         <div class="card">
@@ -483,7 +491,7 @@ function accountToForm(a) {
     org_name: s.business_name, ein: s.ein, website_url: s.website_url, service_regions: p.service_regions || [],
     annual_budget: p.annual_budget, tax_exempt_since: p.tax_exempt_since, has_audited_financials: p.has_audited_financials,
     ny_prequalified: p.ny_prequalified, subjects: p.subjects || [], populations: p.populations || [],
-    funding_purposes: p.funding_purposes || []};
+    funding_purposes: p.funding_purposes || [], description: p.description || ''};
 }
 
 async function openApp(mode) {
@@ -586,6 +594,7 @@ function currentProfile() {
     first_name: document.getElementById('fFirst').value.trim(), last_name: document.getElementById('fLast').value.trim(),
     org_name: document.getElementById('fOrg').value.trim(), ein: document.getElementById('fEin').value.trim(),
     website_url: document.getElementById('fWeb').value.trim(),
+    description: document.getElementById('fAbout').value.trim(),
   };
 }
 function saveProfile() {
@@ -598,7 +607,8 @@ async function saveAccount() {
   const changes = {first_name: p.first_name, last_name: p.last_name, org_name: p.org_name, org_type: p.org_type,
     ein: p.ein, zip_code: p.zip_code, website_url: p.website_url, annual_budget: p.annual_budget,
     tax_exempt_since: p.tax_exempt_since, has_audited_financials: p.has_audited_financials, ny_prequalified: p.ny_prequalified,
-    service_regions: p.service_regions, subjects: p.subjects, populations: p.populations, funding_purposes: p.funding_purposes};
+    service_regions: p.service_regions, subjects: p.subjects, populations: p.populations, funding_purposes: p.funding_purposes,
+    description: p.description};
   const note = document.getElementById('saveNote');
   note.textContent = 'Saving…';
   try {
@@ -614,7 +624,7 @@ function fillProfile(p) {
   const set = (id, v) => { document.getElementById(id).value = v == null ? '' : v; };
   set('fOrgType', p.org_type || 'nonprofit_501c3'); set('fZip', p.zip_code); set('fState', p.state || '');
   set('fFirst', p.first_name); set('fLast', p.last_name); set('fOrg', p.org_name); set('fEin', p.ein); set('fWeb', p.website_url);
-  set('fBudget', p.annual_budget); set('fSince', p.tax_exempt_since);
+  set('fBudget', p.annual_budget); set('fSince', p.tax_exempt_since); set('fAbout', p.description);
   set('fAudit', p.has_audited_financials === true ? 'yes' : p.has_audited_financials === false ? 'no' : '');
   set('fNy', p.ny_prequalified === true ? 'yes' : p.ny_prequalified === false ? 'no' : '');
   document.getElementById('fPending').checked = p.include_pending !== false;
@@ -684,10 +694,12 @@ function matchCard(m) {
         ${m.reviewed ? '' : '<span class="badge pending">Not Reviewed Yet</span>'}
         ${m.in_digest ? '<span class="badge digest">In Your Digest</span>' : ''}
         ${m.fits === false ? '<span class="badge pending">May Not Fit</span>' : ''}
+        ${m.verdict === 'strong' ? '<span class="badge strong">Strong Fit</span>' : ''}
         ${m.provided_by ? `<span class="badge">From ${escHtml(m.provided_by)}</span>` : ''}</div>
     </div><div class="m-actions">${MODE === 'account' ? `<button class="btn sm ${m.saved ? 'saved' : ''}" onclick="saveListing('${m.id}')">${m.saved ? 'Saved ✓' : 'Save'}</button><button class="btn ghost sm" onclick="hideListing('${m.id}')">Hide</button>` : ''}<button class="btn ghost sm" onclick="openListing('${m.id}')">Open</button></div></div>
     <div class="facts">${facts.join('')}</div>
     ${m.why && m.why.length ? '<ul class="why">' + m.why.map(w => `<li>${escHtml(w)}</li>`).join('') + '</ul>' : ''}
+    ${m.verdict_reason ? `<div class="fit-read"><b>Our Read:</b> ${escHtml(m.verdict_reason)}</div>` : ''}
     ${m.fits === false && m.why_not ? `<div class="why-not">May not fit: ${escHtml(m.why_not)}</div>` : ''}
     ${m.description ? `<div class="desc">${escHtml(m.description.length > 360 ? m.description.slice(0, 360).replace(/\s+\S*$/, '') + '…' : m.description)}</div>` : ''}
   </div>`;
@@ -700,9 +712,15 @@ function drawMatches() {
     (MODE === 'account' ? `${c.listings.toLocaleString()} funders and programs in the library; ${c.shown.toLocaleString()} fit your organization.`
       : `${c.shown.toLocaleString()} of ${c.listings.toLocaleString()} listings fit; ${c.left_out.toLocaleString()} left out (see Left Out).`) +
     (list.length !== RESULT.shown.length ? ` Showing ${list.length.toLocaleString()} with these filters.` : '');
-  document.getElementById('mList').innerHTML = list.slice(0, shownCount).map(matchCard).join('') ||
-    '<div class="empty">Nothing fits these filters.</div>';
-  document.getElementById('mMore').style.display = list.length > shownCount ? 'inline-block' : 'none';
+  // Probably Not For You (Will, Oct 5 2026): the fit judge's "no" listings,
+  // in a collapsed list after the rest, never hidden.
+  const main = list.filter(m => !m.not_for_you), nfy = list.filter(m => m.not_for_you);
+  document.getElementById('mList').innerHTML = (main.slice(0, shownCount).map(matchCard).join('') ||
+    '<div class="empty">Nothing fits these filters.</div>') +
+    (nfy.length ? `<details class="nfy"><summary>Probably Not For You (${nfy.length.toLocaleString()})</summary>
+      <p class="src" style="font-size:14.5px;color:var(--ink)">These pass the rules (who can apply, where, when) but our read of each one says it does not fit your work. Open any of them if you disagree.</p>
+      ${nfy.map(matchCard).join('')}</details>` : '');
+  document.getElementById('mMore').style.display = main.length > shownCount ? 'inline-block' : 'none';
 }
 function moreMatches() { shownCount += PAGE_SIZE; drawMatches(); }
 
