@@ -928,12 +928,15 @@ async function openDigest(id) {
 // A link followed while signed out is kept (Oct 4 2026) and carried out after
 // sign-in: the login link goes through portal.html, which loses the #.
 const PENDING_KEY = 'fb_np_pending_link';
+// #tracker (Oct 5 2026): the digest footer's "Applied to any of these?".
 function keepDigestLink() {
-  if (/^#(listing|save)=[0-9a-f-]{36}$/.test(location.hash || '')) store(PENDING_KEY, location.hash);
+  if (/^#(listing|save)=[0-9a-f-]{36}$|^#tracker$/.test(location.hash || '')) store(PENDING_KEY, location.hash);
 }
 async function followDigestLink() {
-  const m = /^#(listing|save)=([0-9a-f-]{36})$/.exec(location.hash || load(PENDING_KEY) || '');
+  const link = location.hash || load(PENDING_KEY) || '';
   store(PENDING_KEY, null);
+  if (link === '#tracker') { history.replaceState(null, '', location.pathname); showPage('tracker'); loadTracker(); return; }
+  const m = /^#(listing|save)=([0-9a-f-]{36})$/.exec(link);
   if (!m) return;
   history.replaceState(null, '', location.pathname);
   if (m[1] === 'save') await saveListing(m[2]);
