@@ -48,6 +48,14 @@ details.more .pills{margin-top:8px}
 .plan[aria-pressed="true"]{border-color:var(--green);background:#eef5ec}
 .plan b{font-family:'Fraunces',serif;font-size:22px;display:block}
 .plan span{font-size:15px}
+.scan{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:18px}
+.scanrow{display:flex;gap:10px;align-items:flex-start}
+.scanrow input{margin-bottom:8px}
+.btn2{font-family:'Jost',sans-serif;font-size:15px;font-weight:600;padding:11px 16px;min-height:44px;border-radius:5px;border:1px solid var(--green-dk);background:var(--white);color:var(--green-dk);cursor:pointer;white-space:nowrap}
+.btn2:disabled{opacity:.6;cursor:default}
+.note{font-size:14.5px;color:var(--ink);margin:-8px 0 14px}
+textarea{width:100%;padding:12px 14px;background:var(--cream);border:1px solid var(--border);border-radius:5px;font-family:'Jost',sans-serif;font-size:16px;color:var(--ink);outline:none;margin-bottom:16px;resize:vertical}
+textarea:focus{border-color:var(--green);background:var(--white)}
 #card-element{padding:13px 14px;background:var(--cream);border:1px solid var(--border);border-radius:5px;margin-bottom:8px}
 .err{font-size:15px;color:var(--red);min-height:22px;margin:6px 0}
 .btn{display:block;width:100%;background:var(--green);color:#fff;font-family:'Jost',sans-serif;font-size:17px;font-weight:500;padding:15px;border-radius:6px;border:none;cursor:pointer;min-height:50px}
@@ -86,6 +94,11 @@ details.more .pills{margin-top:8px}
 
     <div class="card">
       <h2>Your Organization</h2>
+      <div class="scan">
+        <label for="scanUrl">Have A Website? Let It Fill This In</label>
+        <div class="scanrow"><input id="scanUrl" type="url" placeholder="https://yourorganization.org"><button type="button" class="btn2" id="scanBtn" onclick="scanSite()">Fill It In</button></div>
+        <p class="note" id="scanNote">We read your site and fill in what is empty below: your name, ZIP, a description of your work, and the subjects and people you serve. Check everything before you sign up.</p>
+      </div>
       <label for="org">Organization Name</label><input id="org" autocomplete="organization" required>
       <div class="row">
         <div><label for="orgType">Kind Of Organization</label>
@@ -97,13 +110,17 @@ details.more .pills{margin-top:8px}
             <option value="nonprofit_501c6">501(c)(6)</option>
             <option value="nonprofit_other">Other nonprofit</option>
           </select></div>
-        <div><label for="ein">EIN (Optional)</label><input id="ein" inputmode="numeric" placeholder="XX-XXXXXXX"></div>
+        <div><label for="ein">EIN (Optional)</label><input id="ein" inputmode="numeric" placeholder="XX-XXXXXXX" onchange="lookupEin()"></div>
       </div>
+      <p class="note" id="einNote" hidden></p>
       <div class="row">
         <div><label for="zip">ZIP Code</label><input id="zip" inputmode="numeric" maxlength="10" required></div>
         <div><label for="budget">Annual Budget ($)</label><input id="budget" inputmode="numeric" placeholder="300000"></div>
         <div><label for="web">Website (Optional)</label><input id="web" type="url" placeholder="https://"></div>
       </div>
+      <label for="about">About Your Organization</label>
+      <textarea id="about" rows="5" maxlength="3000" placeholder="What you do, your programs, who you serve and where" oninput="descSource = 'person'"></textarea>
+      <p class="note">A few sentences in your own words. FundBug reads them, alongside your answers below, to judge which funders and programs fit you.</p>
     </div>
 
     <div class="card">
@@ -168,6 +185,7 @@ const params = new URLSearchParams(location.search);
 let TERMS = null, PLACES = null, plan = params.get('plan') === 'annual' ? 'annual' : 'monthly';
 let picks = {subjects: new Set(), populations: new Set(), funding_purposes: new Set()}, serviceRegions = [];
 let stripe = null, cardEl = null, stripeReady = false, compValid = false, compTimer = null, OPEN = false;
+let descSource = '';
 
 function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 async function getJson(path) { const r = await fetch(API + path); if (!r.ok) throw new Error('The server answered ' + r.status); return r.json(); }
@@ -227,6 +245,67 @@ function toggleWholeState() {
   drawCounties();
 }
 
+// ── Prefill from the website and the EIN (Oct 5 2026): fills only what is
+// empty, never overwrites what the organization typed.
+function fillEmpty(id, value) {
+  const el = document.getElementById(id);
+  if (value && el && !String(el.value || '').trim()) { el.value = value; return true; }
+  return false;
+}
+function pressTerms(field, items) {
+  if (!items || !items.length || picks[field].size) return false;
+  let hit = false;
+  for (const x of items) {
+    const b = document.querySelector(`.pill[data-field="${field}"][data-code="${x.code}"]`);
+    if (!b) continue;
+    picks[field].add(x.code); b.setAttribute('aria-pressed', 'true'); hit = true;
+    const d = b.closest('details'); if (d) d.open = true;
+  }
+  return hit;
+}
+async function scanSite() {
+  const note = document.getElementById('scanNote'), btn = document.getElementById('scanBtn');
+  const url = document.getElementById('scanUrl').value.trim();
+  if (!url) { note.textContent = 'Paste your website address first.'; return; }
+  btn.disabled = true; btn.textContent = 'Reading your site…';
+  note.textContent = 'This usually takes 20 to 40 seconds.';
+  try {
+    const r = await fetch(API + '/api/nonprofit/scan-website', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({url})});
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.detail || 'We could not read that website.');
+    const p = data.proposals || {}, filled = [];
+    if (fillEmpty('org', p.name)) filled.push('name');
+    if (fillEmpty('zip', p.zip_code)) filled.push('ZIP code');
+    if (fillEmpty('web', url)) filled.push('website');
+    if (fillEmpty('ein', p.ein)) { filled.push('EIN'); lookupEin(); }
+    if (fillEmpty('about', p.description)) { descSource = 'website'; filled.push('a description of your work'); }
+    if (pressTerms('subjects', p.subjects)) filled.push('subjects');
+    if (pressTerms('populations', p.populations)) filled.push('who you serve');
+    if (pressTerms('funding_purposes', p.funding_purposes)) filled.push('what you need funding for');
+    note.textContent = filled.length ? 'Filled in: ' + filled.join(', ') + '. Check each one, and change anything that is not right.'
+      : 'We read your site but found nothing new to fill in.';
+  } catch (e) { note.textContent = e.message; }
+  finally { btn.disabled = false; btn.textContent = 'Fill It In'; }
+}
+const SUBSECTION_KIND = {3: 'nonprofit_501c3', 4: 'nonprofit_501c4', 6: 'nonprofit_501c6'};
+async function lookupEin() {
+  const note = document.getElementById('einNote'), ein = document.getElementById('ein').value.replace(/[^0-9]/g, '');
+  if (ein.length !== 9) { note.hidden = true; return; }
+  try {
+    const r = await fetch(API + '/api/nonprofit/irs-lookup', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ein})});
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.detail || 'We found no IRS record for that EIN.');
+    const x = data.irs || {}, filled = [];
+    if (fillEmpty('org', x.name)) filled.push('name');
+    if (fillEmpty('zip', x.zip_code)) filled.push('ZIP code');
+    if (x.annual_budget && fillEmpty('budget', String(x.annual_budget))) filled.push(`budget (your ${x.filing_year || 'latest'} expenses)`);
+    if (SUBSECTION_KIND[x.subsection] && fillEmpty('orgType', SUBSECTION_KIND[x.subsection])) filled.push('kind of organization');
+    note.textContent = `IRS record: ${x.name || 'found'}${x.subsection ? `, a 501(c)(${x.subsection})` : ''}${x.tax_exempt_since ? ` since ${x.tax_exempt_since}` : ''}.`
+      + (filled.length ? ' Filled in: ' + filled.join(', ') + '.' : '');
+    note.hidden = false;
+  } catch (e) { note.textContent = e.message; note.hidden = false; }
+}
+
 function pickPlan(p) {
   plan = p;
   document.querySelectorAll('.plan').forEach(el => el.setAttribute('aria-pressed', el.dataset.plan === p ? 'true' : 'false'));
@@ -271,6 +350,8 @@ async function submitSignup(e) {
     plan, comp_code: document.getElementById('comp').value.trim() || null, referral_code: document.getElementById('ref').value.trim() || null,
     acquisition_source: params.get('src') || params.get('utm_source') || null,
     certified_adult: document.getElementById('adult').checked,
+    description: document.getElementById('about').value.trim(),
+    description_source: document.getElementById('about').value.trim() ? (descSource || 'person') : '',
   };
   btn.disabled = true; btn.textContent = 'Creating your account…';
   try {
