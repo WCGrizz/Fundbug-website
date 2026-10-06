@@ -141,6 +141,7 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 .panel-body{overflow-y:auto;padding:20px 22px 40px}
 .line{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:10px}
 .line h4{font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--green-dk);margin-bottom:4px}
+.group-head{font-family:Georgia,serif;font-size:19px;font-weight:bold;color:var(--ink);margin:22px 0 10px;padding-top:14px;border-top:1px solid var(--border)}
 .line p,.line li{font-size:15px}
 .line ul{margin-left:18px}
 .section-text{white-space:pre-wrap;font-size:15px}
@@ -808,7 +809,9 @@ async function openListing(id) {
     if (facts.length) out.push(line('Key Facts', '<p class="section-text">' + escHtml(facts.join('\n')) + '</p>'));
   }
   if (L.where) out.push(line('Where', `<p>${escHtml(L.where)}</p>`));
+  let group = null;
   for (const s of L.sections || []) {
+    if (s.group && s.group !== group) { group = s.group; out.push(`<h3 class="group-head">${escHtml(group)}</h3>`); }
     const src = s.source_url ? `<div class="src"><a href="${escHtml(s.source_url)}" target="_blank" rel="noopener">From ${escHtml(hostOf(s.source_url))}</a></div>` : '';
     out.push(line(escHtml(s.label) + (s.heading && s.heading.toLowerCase() !== s.label.toLowerCase() ? ': ' + escHtml(s.heading) : ''),
       `<div class="section-text">${escHtml(s.text)}</div>${src}`));
