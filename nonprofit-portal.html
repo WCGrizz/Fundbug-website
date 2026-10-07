@@ -684,6 +684,7 @@ function matchCard(m) {
   const facts = [];
   if (m.kind === 'funder' && (m.typical_min || m.typical_max))
     facts.push(`<span><b>Typical Grant:</b> ${m.typical_min && m.typical_max && m.typical_min !== m.typical_max ? money(m.typical_min) + ' to ' + money(m.typical_max) : money(m.typical_max || m.typical_min)}</span>`);
+  if (m.kind === 'funder' && m.first_grant) facts.push(`<span><b>First Grant:</b> ${escHtml(m.first_grant)}</span>`);
   if (m.kind !== 'funder' && m.amount) facts.push(`<span><b>Amount:</b> ${escHtml(m.amount)}</span>`);
   if (m.kind !== 'funder' && (m.deadline || m.deadline_date)) facts.push(`<span><b>Deadline:</b> ${escHtml(m.deadline || m.deadline_date)}</span>`);
   if (m.mode) facts.push(`<span><b>How:</b> ${escHtml(MODES[m.mode] || m.mode)}</span>`);
@@ -771,6 +772,13 @@ async function openListing(id) {
     const g = f.giving || {};
     const recent = g.count ? `${g.count} grants to organizations, ${money(g.total)} in all (${g.year} filing)` : '';
     out.push(line('Typical Grant', typical || recent ? `<p>${typical ? escHtml(typical) : ''}${typical && recent ? '<br>' : ''}${escHtml(recent)}</p>` : ''));
+    // What it gives an organization it has not funded before (Oct 7 2026, Will).
+    const fg = f.first_grants;
+    if (fg && fg.median) {
+      const span = String(fg.years || '').replace('-', ' to ');
+      const rng = fg.low !== fg.high ? ` (${money(fg.low)} to ${money(fg.high)})` : '';
+      out.push(line('First Grants', `<p>${escHtml(`Typically ${money(fg.median)}${rng} to an organization it had not funded before, from ${fg.count} first-time grantees, ${span}.`)}${fg.repeat_median ? '<br>' + escHtml(`Organizations it has funded before: typically ${money(fg.repeat_median)}.`) : ''}</p>`));
+    }
     const gp = L.giving_places;
     const oneAddress = !!(gp && gp.one_address);
     if (oneAddress) {
