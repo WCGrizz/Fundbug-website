@@ -174,6 +174,12 @@
   <div class="divider"></div>
 
   <div id="confirmWrap" style="display:none;margin:4px 0 16px">
+    <fieldset id="reasonWrap" style="display:none;border:none;padding:0;margin:0 0 14px;text-align:left">
+      <legend style="font-size:15px;color:#2a2a2a;font-weight:bold;margin-bottom:8px">Why Not? (Optional)</legend>
+      <div id="reasons"></div>
+      <textarea id="reasonText" maxlength="250" rows="2" placeholder="Anything else you'd like us to know (optional)"
+        style="width:100%;box-sizing:border-box;margin-top:8px;font:15px inherit;font-family:inherit;color:#2a2a2a;padding:8px;border:1px solid #d8d0c4;border-radius:6px"></textarea>
+    </fieldset>
     <button type="button" id="confirmBtn" style="background:#5a9e52;color:#fff;border:none;border-radius:6px;padding:12px 26px;font-size:16px;font-family:inherit;cursor:pointer;min-height:46px">Confirm</button>
     <p class="sub" id="confirmErr" style="color:#c44b2a;min-height:20px;margin-top:8px"></p>
   </div>
@@ -192,6 +198,10 @@
   const signal = params.get('signal');
   const program = params.get('program');
   const error = params.get('error');
+  const demo = params.get('demo') === '1';
+  // Not A Fit's reasons (Oct 13 2026, from Katie at Community Health Programs:
+  // "a feedback loop for your program"); saved word for word in feedback.note.
+  const REASONS = ['Looked At It Before', 'Not Eligible', 'Not Our Focus', "Grant Size Doesn't Fit", 'Deadline Too Soon', 'Something Else'];
 
   const icon      = document.getElementById('icon');
   const headline  = document.getElementById('headline');
@@ -204,6 +214,12 @@
   if (program) {
     progName.textContent = decodeURIComponent(program);
     progWrap.style.display = 'block';
+  }
+
+  function reasonNote() {
+    const picked = document.querySelector('input[name="reason"]:checked');
+    const text = document.getElementById('reasonText').value.trim();
+    return [picked ? picked.value : '', text].filter(Boolean).join(': ') || null;
   }
 
   function thanks(sig) {
@@ -224,20 +240,39 @@
     }
   }
 
-  if (!error && params.get('confirm') === '1' && (signal === 'up' || signal === 'down')) {
-    icon.textContent = signal === 'up' ? '👍' : '👎';
+  if (demo) {
+    icon.textContent = '−';
+    headline.textContent = 'Not A Fit';
+    subtext.textContent = 'In your own digest, this removes the program for good and makes room for others. You can say why, and that helps FundBug find better matches for you.';
+    community.textContent = 'This is a sample digest, so nothing was saved.';
+  } else if (!error && params.get('confirm') === '1' && (signal === 'up' || signal === 'down')) {
+    icon.textContent = signal === 'up' ? '👍' : '−';
     headline.textContent = signal === 'up' ? 'Is this a good fit?' : 'Not a fit for you?';
     subtext.textContent = signal === 'up'
       ? 'Confirm and we\'ll favor programs like this in your next digests.'
       : 'Confirm and we won\'t show you this program again.';
     community.textContent = '';
     document.getElementById('confirmWrap').style.display = 'block';
+    if (signal === 'down') {
+      document.getElementById('confirmBtn').textContent = 'Remove It From My Digests';
+      document.getElementById('reasonWrap').style.display = 'block';
+      const box = document.getElementById('reasons');
+      REASONS.forEach((label, i) => {
+        const row = document.createElement('label');
+        row.style.cssText = 'display:block;font-size:15px;color:#2a2a2a;padding:5px 0;cursor:pointer';
+        const input = document.createElement('input');
+        input.type = 'radio'; input.name = 'reason'; input.value = label; input.style.marginRight = '8px';
+        row.appendChild(input); row.appendChild(document.createTextNode(label));
+        box.appendChild(row);
+      });
+    }
     document.getElementById('confirmBtn').addEventListener('click', async function () {
       const btn = this, err = document.getElementById('confirmErr');
       btn.disabled = true; err.textContent = '';
       try {
         const r = await fetch(API + '/api/feedback/confirm', {method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({subscriber_id: params.get('s'), program_id: params.get('p'), signal, token: params.get('t')})});
+          body: JSON.stringify({subscriber_id: params.get('s'), program_id: params.get('p'), signal, token: params.get('t'),
+                                note: signal === 'down' ? reasonNote() : null})});
         const data = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(data.detail || 'That didn\'t save. Please try again.');
         document.getElementById('confirmWrap').style.display = 'none';
