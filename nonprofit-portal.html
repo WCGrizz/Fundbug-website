@@ -144,6 +144,21 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 .group-head{font-family:Georgia,serif;font-size:19px;font-weight:bold;color:var(--ink);margin:22px 0 10px;padding-top:14px;border-top:1px solid var(--border)}
 .line p,.line li{font-size:15px}
 .line ul{margin-left:18px}
+.gp-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:6px 0 8px}
+.gp-tile{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:var(--cream)}
+.gp-tile b{display:block;font-family:'Fraunces',serif;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.gp-tile span{font-size:14px;color:var(--ink)}
+.gp-legend{display:flex;flex-wrap:wrap;gap:16px;font-size:14px;margin:8px 0 4px}
+.gp-legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.gp-scopes{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
+.gp-scopes .btn.on{background:var(--green-dk);color:var(--white);border-color:var(--green-dk)}
+.gp-search{width:100%;box-sizing:border-box;font:inherit;font-size:15px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;margin-bottom:10px;background:var(--white);color:var(--ink)}
+.gp-table{overflow-x:auto}
+.gp-table table{border-collapse:collapse;width:100%;min-width:540px;font-size:14px}
+.gp-table th,.gp-table td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+.gp-table th{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--green-dk)}
+.gp-table .num{text-align:right;font-variant-numeric:tabular-nums}
+.gp-method{font-size:14px;color:var(--ink);margin:4px 2px 14px}
 .section-text{white-space:pre-wrap;font-size:15px}
 .src{font-size:14px;margin-top:4px}
 
@@ -771,10 +786,10 @@ async function openListing(id) {
     const typical = f.typical_min || f.typical_max ? (f.typical_min && f.typical_max && f.typical_min !== f.typical_max ? money(f.typical_min) + ' to ' + money(f.typical_max) : money(f.typical_max || f.typical_min)) : '';
     const g = f.giving || {};
     const recent = g.count ? `${g.count} grants to organizations, ${money(g.total)} in all (${g.year} filing)` : '';
-    out.push(line('Typical Grant', typical || recent ? `<p>${typical ? escHtml(typical) : ''}${typical && recent ? '<br>' : ''}${escHtml(recent)}</p>` : ''));
+    if (!L.giving) out.push(line('Typical Grant', typical || recent ? `<p>${typical ? escHtml(typical) : ''}${typical && recent ? '<br>' : ''}${escHtml(recent)}</p>` : ''));
     // What it gives an organization it has not funded before (Oct 7 2026, Will).
     const fg = f.first_grants;
-    if (fg && fg.median) {
+    if (fg && fg.median && !L.giving) {
       const span = String(fg.years || '').replace('-', ' to ');
       const rng = fg.low !== fg.high ? ` (${money(fg.low)} to ${money(fg.high)})` : '';
       out.push(line('First Grants', `<p>${escHtml(`Typically ${money(fg.median)}${rng} to an organization it had not funded before, from ${fg.count} first-time grantees, ${span}.`)}${fg.repeat_median ? '<br>' + escHtml(`Organizations it has funded before: typically ${money(fg.repeat_median)}.`) : ''}</p>`));
@@ -789,8 +804,9 @@ async function openListing(id) {
     } else if (gp && gp.states && gp.states.length) {
       out.push(line('Where It Gives', `<p>Share of its ${gp.tax_year} grant dollars: ${escHtml(gp.states.slice(0, 5).map(s => `${s.state}: ${Math.round(s.share * 100)}%`).join('; '))}</p>`));
     }
-    if (g.purposes && g.purposes.length) out.push(line('Gives To', '<ul>' + g.purposes.map(p => `<li>${escHtml(p.purpose)} (${p.grants} grants, ${money(p.dollars)})</li>`).join('') + '</ul>'));
-    if (g.largest && g.largest.length) out.push(line('Largest Recent Grants', '<ul>' + g.largest.map(x => `<li>${escHtml(x.name)}${x.city && !oneAddress ? ', ' + escHtml(x.city) : ''}: ${money(x.amount)}${x.purpose ? ' (' + escHtml(x.purpose) + ')' : ''}</li>`).join('') + '</ul>'));
+    if (L.giving) out.push(givingSection(L.giving));
+    if (g.purposes && g.purposes.length && !L.giving) out.push(line('Gives To', '<ul>' + g.purposes.map(p => `<li>${escHtml(p.purpose)} (${p.grants} grants, ${money(p.dollars)})</li>`).join('') + '</ul>'));
+    if (g.largest && g.largest.length && !L.giving) out.push(line('Largest Recent Grants', '<ul>' + g.largest.map(x => `<li>${escHtml(x.name)}${x.city && !oneAddress ? ', ' + escHtml(x.city) : ''}: ${money(x.amount)}${x.purpose ? ' (' + escHtml(x.purpose) + ')' : ''}</li>`).join('') + '</ul>'));
     const apply = [];
     if (f.accepts_unsolicited === true) apply.push('Accepts applications.');
     if (f.accepts_unsolicited === false) apply.push('Does not accept unsolicited applications' + (f.closed_reason ? ': ' + f.closed_reason : '.'));
@@ -827,6 +843,110 @@ async function openListing(id) {
   if (L.page_url) out.push(line('Main Page', `<p><a href="${escHtml(L.page_url)}" target="_blank" rel="noopener">${escHtml(L.page_url)}</a></p>`));
   document.getElementById('panelBody').innerHTML = out.join('');
   document.getElementById('panelBody').scrollTop = 0;
+  if (L.giving) loadGrantees(id, 'county', '', 0);
+}
+
+// ── A funder's giving (Oct 13 2026, Will: "a page with the charts and graphs
+// and such, similar to instrumentl"; np_giving_profile, np_funder_page) ────────
+const titleCase = s => String(s || '').toLowerCase().replace(/\b([a-z])/g, c => c.toUpperCase()).replace(/\bDba\b/g, 'dba').replace(/'S\b/g, "'s");
+const sentenceCase = s => { const t = String(s || '').toLowerCase().trim(); return t.charAt(0).toUpperCase() + t.slice(1); };
+const shortMoney = n => n >= 1e6 ? '$' + (n / 1e6).toFixed(n >= 1e7 ? 0 : 2).replace(/\.?0+$/, '') + 'M' : n >= 1e3 ? '$' + Math.round(n / 1e3) + 'K' : money(n);
+function gpBars(rows, opts) {
+  // rows: [{label, a, b}] (b: the lighter, stacked part); drawn to one scale.
+  const W = 640, rowH = 34, labelW = opts.labelW || 190, bar = W - labelW - 90, H = rows.length * rowH + 6;
+  const max = Math.max(1, ...rows.map(r => (r.a || 0) + (r.b || 0)));
+  const out = [`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${escHtml(opts.label)}" style="width:100%;height:auto;display:block">`];
+  rows.forEach((r, i) => {
+    const y = 4 + i * rowH, wa = bar * (r.a || 0) / max, wb = bar * (r.b || 0) / max, tot = (r.a || 0) + (r.b || 0);
+    out.push(`<text x="0" y="${y + 21}" style="font:15px Jost,sans-serif;fill:var(--ink)">${escHtml(r.label)}</text>`,
+      `<rect x="${labelW}" y="${y + 6}" width="${bar}" height="22" rx="3" style="fill:var(--cream2)"></rect>`,
+      wa ? `<rect x="${labelW}" y="${y + 6}" width="${wa}" height="22" rx="3" style="fill:var(--green-dk)"></rect>` : '',
+      wb ? `<rect x="${labelW + wa}" y="${y + 6}" width="${wb}" height="22" rx="3" style="fill:var(--green-lt)"></rect>` : '',
+      `<text x="${labelW + bar + 10}" y="${y + 21}" style="font:500 15px Jost,sans-serif;fill:var(--ink)">${escHtml(opts.fmt ? opts.fmt(tot) : tot.toLocaleString())}</text>`);
+  });
+  out.push('</svg>');
+  return out.join('');
+}
+function gpColumns(cols, label, fmt) {
+  // cols: [{label, a, b}] vertical bars, b stacked on a.
+  const W = 640, H = 230, L = 10, T = 26, B = 28, max = Math.max(1, ...cols.map(c => (c.a || 0) + (c.b || 0)));
+  const step = (W - L) / cols.length, bw = Math.min(70, step * 0.6), y = v => T + (H - T - B) * (1 - v / max);
+  const out = [`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${escHtml(label)}" style="width:100%;height:auto;display:block">`,
+    `<line x1="${L}" x2="${W}" y1="${y(0)}" y2="${y(0)}" style="stroke:var(--border)"></line>`];
+  cols.forEach((c, i) => {
+    const x = L + step * i + (step - bw) / 2, a = c.a || 0, b = c.b || 0;
+    out.push(`<rect x="${x}" y="${y(a)}" width="${bw}" height="${y(0) - y(a)}" rx="3" style="fill:var(--green-dk)"></rect>`);
+    if (b) out.push(`<rect x="${x}" y="${y(a + b)}" width="${bw}" height="${y(a) - y(a + b)}" rx="3" style="fill:var(--green-lt)"></rect>`);
+    out.push(`<text x="${x + bw / 2}" y="${y(a + b) - 8}" text-anchor="middle" style="font:500 14px Jost,sans-serif;fill:var(--ink)">${escHtml(fmt(c))}</text>`,
+      `<text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle" style="font:15px Jost,sans-serif;fill:var(--ink)">${escHtml(c.label)}</text>`);
+  });
+  out.push('</svg>');
+  return out.join('');
+}
+const legend = (a, b) => `<div class="gp-legend"><span><i style="background:var(--green-dk)"></i>${a}</span><span><i style="background:var(--green-lt)"></i>${b}</span></div>`;
+function givingSection(p) {
+  const r = p.recent || {}, out = ['<h3 class="group-head">Its Giving</h3>'];
+  const last = p.years[p.years.length - 1], lastYear = (p.by_year || {})[last] || {};
+  const span = p.latest_years.length > 1 ? `${p.latest_years[0]} to ${p.latest_years[p.latest_years.length - 1]}` : String(p.latest_years[0]);
+  const tiles = [[money(r.median), `median grant, ${span}`], [r.grants.toLocaleString(), `grants, ${span}`]];
+  if (r.first_time_share != null) tiles.push([Math.round(r.first_time_share * 100) + '%', 'to first-time grantees']);
+  if (lastYear.dollars) tiles.push([shortMoney(lastYear.dollars), `given in ${last}`]);
+  out.push(line('At A Glance', `<div class="gp-tiles">${tiles.map(t => `<div class="gp-tile"><b>${escHtml(t[0])}</b><span>${escHtml(t[1])}</span></div>`).join('')}</div>`));
+  out.push(line('Your History With This Funder', '<p id="gpYours">Looking for grants to your organization…</p>'));
+  const counted = (p.years || []).filter(y => p.by_year[y] && p.by_year[y].first_time != null);
+  if (counted.length) {
+    out.push(line('Openness To New Grantees', `<p>In ${escHtml(span)}, <strong>${Math.round(r.first_time_share * 100)}%</strong> of its grants went to organizations it had not funded in the two years before.</p>` +
+      legend('Repeat grantees', 'First-time grantees') +
+      gpColumns(counted.map(y => ({label: String(y), a: p.by_year[y].repeat, b: p.by_year[y].first_time})), 'Grants per year, repeat and first-time grantees',
+        c => Math.round(100 * c.b / ((c.a + c.b) || 1)) + '% new')));
+  }
+  out.push(line('Grant Range', `<div class="gp-tiles">${[['Smallest', r.min], ['Median', r.median], ['Average', r.average], ['Largest', r.max]]
+    .map(t => `<div class="gp-tile"><b>${money(t[1])}</b><span>${t[0]}</span></div>`).join('')}</div><p>${r.grants.toLocaleString()} grants, ${escHtml(span)}.${p.first_time_median ? ` First-time grantees' median: ${money(p.first_time_median)}; repeat grantees': ${money(p.repeat_median)}.` : ''}</p>`));
+  const bands = (p.bands || []);
+  if (bands.length) out.push(line('Grant Sizes', legend('Repeat', 'First-time or not counted') +
+    gpBars(bands.map(b => ({label: b.label, a: b.repeat, b: b.grants - b.repeat})), {label: 'Grants by size', labelW: 170})));
+  out.push(line('Total Giving', gpColumns(p.years.map(y => ({label: String(y), a: p.by_year[y].dollars})), 'Dollars granted each year', c => shortMoney(c.a))));
+  const st = (p.states || []).slice(0, 6);
+  if (st.length > 1) out.push(line('Grants By State', gpBars(st.map(x => ({label: x.state, a: x.grants})), {label: 'Grants by state', labelW: 110})));
+  const pu = (p.purposes || []).slice(0, 6);
+  if (pu.length) {
+    const camp = pu.some(x => /campership/i.test(x.purpose));
+    out.push(line('What It Funds', `<p>The purpose its filing gives for each grant, ${escHtml(span)}.${camp ? ' A campership is a camp scholarship: it pays part or all of a child\'s way to summer camp.' : ''}</p>` +
+      gpBars(pu.map(x => ({label: sentenceCase(x.purpose).slice(0, 34), a: x.grants})), {label: 'Grants by purpose', labelW: 280, fmt: n => n + ' grants'})));
+  }
+  out.push(line('Grantees', `<div class="gp-scopes" id="gpScopes"></div><input type="search" id="gpSearch" class="gp-search" placeholder="Search by name, town or purpose" aria-label="Search grantees">
+    <div class="gp-table"><table><thead><tr><th>Name</th><th>Year</th><th>Town</th><th class="num">Amount</th><th>Purpose</th></tr></thead><tbody id="gpRows"></tbody></table></div>
+    <div id="gpMore"></div>`));
+  out.push(`<p class="gp-method">${escHtml(p.method || '')}</p>`);
+  return out.join('');
+}
+let GP = {id: null, scope: 'county', q: '', rows: [], timer: null};
+async function loadGrantees(id, scope, q, offset) {
+  GP = Object.assign(GP, {id, scope, q});
+  let url = '/api/nonprofit/' + (MODE === 'account' ? '' : 'preview/') + 'listing/' + encodeURIComponent(id) + '/grantees?scope=' + encodeURIComponent(scope) +
+    '&q=' + encodeURIComponent(q) + '&offset=' + offset;
+  if (MODE !== 'account') { const p = currentProfile(); url += '&zip=' + encodeURIComponent(p.zip_code || '') + '&state=' + encodeURIComponent(p.state || ''); }
+  let r;
+  try { r = await apiFetch(url); }
+  catch (e) { const t = document.getElementById('gpRows'); if (t) t.innerHTML = `<tr><td colspan="5">The grantee list could not be loaded: ${escHtml(e.message)}</td></tr>`; return; }
+  if (GP.id !== id || !document.getElementById('gpRows')) return;            // another listing was opened meanwhile
+  GP.rows = offset ? GP.rows.concat(r.rows) : r.rows;
+  document.getElementById('gpScopes').innerHTML = r.scopes.map(s => `<button type="button" class="btn ghost sm ${s.scope === r.scope ? 'on' : ''}" onclick="loadGrantees('${id}', '${s.scope}', document.getElementById('gpSearch').value, 0)">${escHtml(s.label)} (${s.count.toLocaleString()})</button>`).join('');
+  GP.scope = r.scope;
+  document.getElementById('gpRows').innerHTML = GP.rows.length ? GP.rows.map(g => `<tr><td>${escHtml(titleCase(g.recipient_name))}</td><td>${g.tax_year}</td><td>${escHtml(titleCase(g.city))}${g.state && r.scope === 'all' ? ', ' + escHtml(g.state) : ''}</td><td class="num">${money(g.amount)}</td><td>${escHtml(sentenceCase(g.purpose))}</td></tr>`).join('')
+    : `<tr><td colspan="5">${r.q ? 'No grants match that search here.' : 'No grants here in its filings on file.'}</td></tr>`;
+  document.getElementById('gpMore').innerHTML = r.more ? `<button type="button" class="btn ghost sm" onclick="loadGrantees('${id}', GP.scope, GP.q, ${GP.rows.length})">Show More (${(r.total - GP.rows.length).toLocaleString()} more)</button>` : '';
+  const search = document.getElementById('gpSearch');
+  if (!search.dataset.wired) {
+    search.dataset.wired = '1';
+    search.addEventListener('input', () => { clearTimeout(GP.timer); GP.timer = setTimeout(() => loadGrantees(id, GP.scope, search.value.trim(), 0), 350); });
+  }
+  if (r.yours !== null && r.yours !== undefined) {
+    const y = document.getElementById('gpYours');
+    if (y) y.innerHTML = r.yours.length
+      ? 'Grants to an organization with your name: ' + r.yours.map(g => `<strong>${money(g.amount)}</strong> in ${g.tax_year}${g.purpose ? ' (' + escHtml(sentenceCase(g.purpose)) + ')' : ''}`).join('; ') + '.'
+      : (MODE === 'account' ? 'No grants to an organization with your name in its filings on file.' : 'Sign in as an organization to see its own grants from this funder.');
+  }
 }
 // ── tracker ─────────────────────────────────────────────────────────────
 let TRACKER = null;
