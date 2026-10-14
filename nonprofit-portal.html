@@ -159,6 +159,7 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 .gp-table th{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--green-dk)}
 .gp-table .num{text-align:right;font-variant-numeric:tabular-nums}
 .gp-method{font-size:14px;color:var(--ink);margin:4px 2px 14px}
+.no-site{font-size:15px;color:var(--ink);background:#f4efe3;border-left:3px solid #c9a227;padding:8px 12px;margin:0 0 14px;border-radius:3px}
 .gp-parts{font-size:15px;color:var(--ink);margin:8px 0 0;padding-left:20px}.gp-parts li{margin:4px 0}
 .section-text{white-space:pre-wrap;font-size:15px}
 .src{font-size:14px;margin-top:4px}
@@ -780,6 +781,12 @@ async function openListing(id) {
     const saved = ((RESULT && RESULT.shown) || []).some(m => m.id === id && m.saved);
     out.push(`<div class="m-actions" style="justify-content:flex-start;margin:4px 0 12px"><button class="btn sm ${saved ? 'saved' : ''}" id="pSave" onclick="saveListing('${id}')">${saved ? 'Saved ✓' : 'Save To Tracker'}</button><button class="btn ghost sm" onclick="hideListing('${id}'); closePanel()">Hide From Matches</button></div>`);
   }
+  // A foundation whose only page is its tax filing on ProPublica (Oct 14 2026, Will: a brief banner saying there
+  // is no public website); its filing's contact and instructions are below.
+  const onFiling = /(^|\.)propublica\.org$/i.test(hostOf(L.page_url || ''));
+  if (L.kind === 'funder' && onFiling && !(L.funder && (L.funder.website || L.funder.grants_page))) {
+    out.push('<div class="no-site">This foundation has no public website. How to reach it comes from its tax filing: see How To Apply and Contact below.</div>');
+  }
   if (L.description) out.push(line('What It Is', `<p>${escHtml(L.description)}</p>`));
   if (L.provided_by && L.provided_by.name) out.push(line('Provided By', `<p>${L.provided_by.listing_id ? `<a onclick="openListing('${L.provided_by.listing_id}')" style="cursor:pointer">${escHtml(L.provided_by.name)}</a>` : escHtml(L.provided_by.name)}</p>`));
   const f = L.funder;
@@ -843,7 +850,7 @@ async function openListing(id) {
     out.push(line(escHtml(s.label) + (s.heading && s.heading.toLowerCase() !== s.label.toLowerCase() ? ': ' + escHtml(s.heading) : ''),
       `<div class="section-text">${escHtml(s.text)}</div>${src}`));
   }
-  if (L.page_url) out.push(line('Main Page', `<p><a href="${escHtml(L.page_url)}" target="_blank" rel="noopener">${escHtml(L.page_url)}</a></p>`));
+  if (L.page_url) out.push(line(onFiling ? 'Its Tax Filing (ProPublica)' : 'Main Page', `<p><a href="${escHtml(L.page_url)}" target="_blank" rel="noopener">${escHtml(L.page_url)}</a></p>`));
   document.getElementById('panelBody').innerHTML = out.join('');
   document.getElementById('panelBody').scrollTop = 0;
   if (L.giving) loadGrantees(id, 'county', '', 0);
