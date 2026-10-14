@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <!--
-  Nonprofit signup (Oct 3 2026). $50 a month or $500 a year, 14-day trial.
+  Nonprofit signup (Oct 3 2026). $45 a month or $450 a year (Oct 14 2026), 14-day trial.
   Backend: POST /api/nonprofit/subscribe (nonprofit/np_api.py). Signup stays
   closed until Will sets NONPROFIT_SIGNUP_OPEN on Railway; while it is closed
   this page says so and only a comp code gets through. Unlinked; noindex.
@@ -73,7 +73,7 @@ textarea:focus{border-color:var(--green);background:var(--white)}
 <header><a class="logo" href="/"><img src="/fundbug_logo.png" alt="">FundBug</a></header>
 <div class="hero">
   <h1>Funding For Your Nonprofit, Matched</h1>
-  <p>The foundations and grant programs your organization can actually apply to, best fit first, with how to approach each one. 14 days free, then $50 a month or $500 a year.</p>
+  <p>The foundations and grant programs your organization can actually apply to, best fit first, with how to approach each one. 14 days free, then $45 a month or $450 a year.</p>
 </div>
 <main>
   <div class="card closed" id="closedBox" hidden>
@@ -152,8 +152,8 @@ textarea:focus{border-color:var(--green);background:var(--white)}
     <div class="card">
       <h2>Your Plan</h2>
       <div class="plans" id="plans">
-        <div class="plan" role="button" tabindex="0" data-plan="monthly" aria-pressed="true" onclick="pickPlan('monthly')"><b>$50</b><span>a month</span></div>
-        <div class="plan" role="button" tabindex="0" data-plan="annual" aria-pressed="false" onclick="pickPlan('annual')"><b>$500</b><span>a year (two months free)</span></div>
+        <div class="plan" role="button" tabindex="0" data-plan="monthly" aria-pressed="true" onclick="pickPlan('monthly')"><b>$45</b><span>a month</span></div>
+        <div class="plan" role="button" tabindex="0" data-plan="annual" aria-pressed="false" onclick="pickPlan('annual')"><b>$450</b><span>a year (two months free)</span></div>
       </div>
       <p class="lead">Your first 14 days are free. Cancel before then and you pay nothing.</p>
       <div id="payBox">

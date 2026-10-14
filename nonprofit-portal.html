@@ -1100,7 +1100,7 @@ async function loadSubscription() {
   let s;
   try { s = await apiFetch('/api/portal/subscription'); }
   catch (e) { box.innerHTML = '<div class="empty">Could not load your subscription: ' + escHtml(e.message) + '</div>'; return; }
-  const plan = s.plan === 'comp' ? 'Complimentary' : s.plan === 'annual' ? 'Annual, $500 a year' : s.plan === 'monthly' ? 'Monthly, $50 a month' : 'Free trial';
+  const plan = s.plan === 'comp' ? 'Complimentary' : s.plan === 'annual' ? 'Annual, $450 a year' : s.plan === 'monthly' ? 'Monthly, $45 a month' : 'Free trial';
   const lines = [`<p><b>Plan:</b> ${escHtml(plan)}</p>`];
   if (s.trial_ends_at && (s.status === 'trialing' || s.plan === 'trial')) lines.push(`<p><b>Trial Ends:</b> ${escHtml(niceDate(s.trial_ends_at))}</p>`);
   if (s.next_billing_date && s.plan !== 'comp') lines.push(`<p><b>Next Payment:</b> ${escHtml(niceDate(s.next_billing_date))}</p>`);
