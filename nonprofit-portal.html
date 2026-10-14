@@ -914,6 +914,21 @@ function givingSection(p) {
     out.push(line('What It Funds', `<p>The purpose its filing gives for each grant, ${escHtml(span)}.${camp ? ' A campership is a camp scholarship: it pays part or all of a child\'s way to summer camp.' : ''}</p>` +
       gpBars(pu.map(x => ({label: sentenceCase(x.purpose).slice(0, 34), a: x.grants})), {label: 'Grants by purpose', labelW: 280, fmt: n => n + ' grants'})));
   }
+  // The subjects of its grantees (Oct 14 2026, np_grantee_subjects): the IRS's subject
+  // code of each organization it funded, matched by name; the share matched is said.
+  const sj = p.subjects && (p.subjects.groups || []).slice(0, 8);
+  // Shown only when at least SUBJECTS_MIN of its grants matched (Oct 14 2026: 40 of 270 live
+  // funders were under 30%; a mix read from so few grantees would mislead).
+  const SUBJECTS_MIN = 0.3;
+  if (sj && sj.length && p.subjects.matched_grants < SUBJECTS_MIN) {
+    out.push(line('Subjects Of Its Grantees', `<p>Too few of the organizations it funded could be matched to the IRS's subject codes (${Math.round(p.subjects.matched_grants * 100)}% of its grants) to say what it funds by subject.</p>`));
+  } else if (sj && sj.length) {
+    const tot = sj.reduce((a, x) => a + x.dollars, 0) || 1, all = p.subjects.groups.reduce((a, x) => a + x.dollars, 0) || 1;
+    out.push(line('Subjects Of Its Grantees', `<p>What the organizations it funded work on, ${escHtml(span)}, by the IRS's subject code for each. ` +
+      `${Math.round(p.subjects.matched_grants * 100)}% of its grants could be matched to an organization; the rest are not counted.</p>` +
+      gpBars(sj.map(x => ({label: x.label.slice(0, 40), a: x.dollars})), {label: 'Grant dollars by grantee subject', labelW: 300,
+        fmt: d => Math.round(100 * d / all) + '% of dollars'})));
+  }
   out.push(line('Grantees', `<div class="gp-scopes" id="gpScopes"></div><input type="search" id="gpSearch" class="gp-search" placeholder="Search by name, town or purpose" aria-label="Search grantees">
     <div class="gp-table"><table><thead><tr><th>Name</th><th>Year</th><th>Town</th><th class="num">Amount</th><th>Purpose</th></tr></thead><tbody id="gpRows"></tbody></table></div>
     <div id="gpMore"></div>`));
