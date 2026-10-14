@@ -820,6 +820,7 @@ async function openListing(id) {
     if (f.how_to_apply) apply.push(f.how_to_apply);
     out.push(line('How To Apply', apply.length ? '<p class="section-text">' + escHtml(apply.join('\n')) + '</p>' : ''));
     if (f.website) out.push(line('Website', `<p><a href="${escHtml(f.website)}" target="_blank" rel="noopener">${escHtml(f.website)}</a></p>`));
+    if (f.grants_page && f.grants_page !== f.website) out.push(line('Grants Page', `<p><a href="${escHtml(f.grants_page)}" target="_blank" rel="noopener">${escHtml(f.grants_page)}</a></p>`));
     const contacts = ((f.contact && f.contact.contacts) || []).map(c =>
       [c.label ? c.label + ':' : '', c.name, c.address, c.phone, c.email].filter(Boolean).join(' '));
     for (const w of f.website_contacts || []) contacts.push(w.text);
