@@ -159,6 +159,7 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 .gp-table th{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--green-dk)}
 .gp-table .num{text-align:right;font-variant-numeric:tabular-nums}
 .gp-method{font-size:14px;color:var(--ink);margin:4px 2px 14px}
+.gp-parts{font-size:15px;color:var(--ink);margin:8px 0 0;padding-left:20px}.gp-parts li{margin:4px 0}
 .section-text{white-space:pre-wrap;font-size:15px}
 .src{font-size:14px;margin-top:4px}
 
@@ -934,13 +935,24 @@ function givingSection(p) {
     out.push(line('Subjects Of Its Grantees', `<p>What the organizations it funded work on, ${escHtml(span)}, by the IRS's subject code for each. ` +
       `${Math.round(p.subjects.matched_grants * 100)}% of its grants could be matched to an organization; the rest are not counted.</p>` +
       gpBars(sj.map(x => ({label: x.label.slice(0, 40), a: x.dollars})), {label: 'Grant dollars by grantee subject', labelW: 300,
-        fmt: d => Math.round(100 * d / all) + '% of dollars'})));
+        fmt: d => Math.round(100 * d / all) + '% of dollars'}) + subjectParts(sj)));
   }
   out.push(line('Grantees', `<div class="gp-scopes" id="gpScopes"></div><input type="search" id="gpSearch" class="gp-search" placeholder="Search by name, town or purpose" aria-label="Search grantees">
     <div class="gp-table"><table><thead><tr><th>Name</th><th>Year</th><th>Town</th><th class="num">Amount</th><th>Purpose</th></tr></thead><tbody id="gpRows"></tbody></table></div>
     <div id="gpMore"></div>`));
   out.push(`<p class="gp-method">${escHtml(p.method || '')}</p>`);
   return out.join('');
+}
+// The narrower subjects inside each group (Oct 14 2026, Will: "yes"; profile version 4): named only when
+// PART_MIN grants or more back one, at most three a group, so a single grant never reads as a focus.
+const PART_MIN = 3;
+function subjectParts(groups) {
+  const join = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+  const lines = groups.map(g => {
+    const parts = (g.parts || []).filter(x => x.grants >= PART_MIN).slice(0, 3);
+    return parts.length ? `<li><strong>${escHtml(g.label)}</strong>, including ${escHtml(join(parts.map(x => `${x.label} (${x.grants} grants)`)))}</li>` : '';
+  }).filter(Boolean);
+  return lines.length ? '<ul class="gp-parts">' + lines.join('') + '</ul>' : '';
 }
 let GP = {id: null, scope: 'county', q: '', rows: [], timer: null};
 async function loadGrantees(id, scope, q, offset) {
