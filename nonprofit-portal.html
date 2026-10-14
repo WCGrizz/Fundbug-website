@@ -804,7 +804,8 @@ async function openListing(id) {
     } else if (gp && gp.states && gp.states.length) {
       out.push(line('Where It Gives', `<p>Share of its ${gp.tax_year} grant dollars: ${escHtml(gp.states.slice(0, 5).map(s => `${s.state}: ${Math.round(s.share * 100)}%`).join('; '))}</p>`));
     }
-    if (L.giving) out.push(givingSection(L.giving));
+    window.__YOUR_SUBJECTS = L.your_subjects || null;
+  if (L.giving) out.push(givingSection(L.giving));
     if (g.purposes && g.purposes.length && !L.giving) out.push(line('Gives To', '<ul>' + g.purposes.map(p => `<li>${escHtml(p.purpose)} (${p.grants} grants, ${money(p.dollars)})</li>`).join('') + '</ul>'));
     if (g.largest && g.largest.length && !L.giving) out.push(line('Largest Recent Grants', '<ul>' + g.largest.map(x => `<li>${escHtml(x.name)}${x.city && !oneAddress ? ', ' + escHtml(x.city) : ''}: ${money(x.amount)}${x.purpose ? ' (' + escHtml(x.purpose) + ')' : ''}</li>`).join('') + '</ul>'));
     const apply = [];
@@ -892,6 +893,11 @@ function givingSection(p) {
   if (r.first_time_share != null) tiles.push([Math.round(r.first_time_share * 100) + '%', 'to first-time grantees']);
   if (lastYear.dollars) tiles.push([shortMoney(lastYear.dollars), `given in ${last}`]);
   out.push(line('At A Glance', `<div class="gp-tiles">${tiles.map(t => `<div class="gp-tile"><b>${escHtml(t[0])}</b><span>${escHtml(t[1])}</span></div>`).join('')}</div>`));
+  // Your subjects (Oct 14 2026, Will): a share of its latest year's grants, "at least" since unmatched grantees never
+  // count; said only when there is a share (a recommendation already says it fits).
+  if (window.__YOUR_SUBJECTS && window.__YOUR_SUBJECTS.share) {
+    out.push(line('Your Subjects', `<p>In ${window.__YOUR_SUBJECTS.year}, at least <strong>${Math.round(window.__YOUR_SUBJECTS.share * 100)}%</strong> of its grants went to organizations working on subjects you chose as your focus.</p>`));
+  }
   out.push(line('Your History With This Funder', '<p id="gpYours">Looking for grants to your organization…</p>'));
   const counted = (p.years || []).filter(y => p.by_year[y] && p.by_year[y].first_time != null);
   if (counted.length) {
