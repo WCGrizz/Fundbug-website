@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Draft (Oct 15 2026). Kept out of search while nonprofit signup is closed;
+     take this line out the day Will opens signup (NONPROFIT_SIGNUP_OPEN on Railway). -->
+<meta name="robots" content="noindex">
+<title>FundBug For Nonprofits: Grants And Funders Matched To Your Organization</title>
+<meta name="description" content="A twice-monthly digest of grant programs and foundations matched to your nonprofit, with funder pages built from IRS filings. Massachusetts first. 14-day free trial.">
+<link rel="canonical" href="https://fundbug.net/nonprofits">
+<link rel="icon" type="image/png" href="/fundbug_logo.png">
+<link rel="apple-touch-icon" href="/fundbug_logo.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="FundBug For Nonprofits: Grants And Funders Matched To Your Organization">
+<meta property="og:description" content="A twice-monthly digest of grant programs and foundations matched to your nonprofit, with funder pages built from IRS filings. Massachusetts first. 14-day free trial.">
+<meta property="og:url" content="https://fundbug.net/nonprofits">
+<meta property="og:image" content="https://fundbug.net/og-preview.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Jost:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a14;
+  --ink2: #2d2d24;
+  --green: #5a9e52;
+  --green-lt: #7ab870;
+  --green-dk: #3d7a38;
+  --cream: #f7f5f0;
+  --cream2: #ede9e0;
+  --cream3: #e2ddd4;
+  --border: #d8d3c8;
+  --white: #ffffff;
+  --red: #c44b2a;
+  --clay: #a8643a;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--cream); color: var(--ink); font-family: 'Jost', sans-serif; font-size: 16px; line-height: 1.6; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, h4 { font-family: 'Fraunces', serif; line-height: 1.15; }
+a { color: var(--green-dk); }
+
+/* Audience switch: the same bar the business home page shows once signup opens */
+.aud-switch { position: sticky; top: 0; z-index: 101; height: 36px; background: var(--cream2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; color: var(--ink); }
+.aud-switch a { color: #2f6230; text-decoration: none; font-weight: 600; }
+.aud-switch a:hover { text-decoration: underline; }
+.aud-switch [aria-current] { font-weight: 600; }
+
+/* Nav */
+nav { position: sticky; top: 36px; z-index: 100; background: var(--ink); padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-logo img { width: 44px; height: 44px; object-fit: contain; border-radius: 4px; }
+.nav-logo-text { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--green); }
+.nav-tag { font-size: 14px; font-weight: 500; color: var(--cream); background: rgba(90,158,82,.25); border: 1px solid var(--green); border-radius: 20px; padding: 2px 11px; }
+.nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+.nav-links a { font-size: 14px; font-weight: 500; letter-spacing: .04em; color: var(--cream2); text-decoration: none; }
+.nav-links a:hover { color: var(--white); }
+
+/* Buttons (a trial button without an href is the closed state) */
+.btn-primary { display: inline-block; background: var(--green-dk); color: var(--white); font-family: 'Jost', sans-serif; font-size: 16px; font-weight: 500; padding: 14px 30px; border-radius: 5px; text-decoration: none; border: 1px solid var(--green-dk); cursor: pointer; transition: background .15s, transform .1s; text-align: center; }
+.btn-primary:hover { background: #2f6230; transform: translateY(-1px); }
+.btn-primary.is-closed, .btn-primary.is-closed:hover { background: transparent; color: var(--green-dk); border: 1px dashed var(--green-dk); cursor: default; transform: none; }
+.hero .btn-primary.is-closed, .hero .btn-primary.is-closed:hover, nav .btn-primary.is-closed { color: var(--cream); border-color: var(--green-lt); }
+.nav-links .btn-primary { font-size: 14px; padding: 8px 16px; letter-spacing: 0; color: var(--white); }
+
+/* Hero */
+.hero { background: var(--ink); position: relative; overflow: hidden; padding: 96px 32px 88px; text-align: center; }
+.hero::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(ellipse 60% 60% at 50% 40%, rgba(90,158,82,.10) 0%, transparent 70%); pointer-events: none; }
+.hero::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,.03) 1px, transparent 1px); background-size: 28px 28px; pointer-events: none; }
+.hero-inner { position: relative; z-index: 1; max-width: 820px; margin: 0 auto; }
+.eyebrow { font-size: 14px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--green); margin-bottom: 18px; }
+.hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5.4vw, 64px); font-weight: 900; color: var(--white); line-height: 1.08; letter-spacing: -.02em; margin-bottom: 22px; }
+.hero h1 span { color: var(--green); }
+.hero-sub { font-size: 19px; font-weight: 400; color: var(--cream); line-height: 1.65; max-width: 640px; margin: 0 auto 34px; }
+.hero-price { font-size: 15px; color: var(--cream); margin-top: 16px; }
+.hero-local { margin: 30px auto 0; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.14); max-width: 560px; }
+.hero-made { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; color: var(--cream); margin: 0 0 6px; }
+.hero-coverage { font-size: 15px; color: var(--cream); line-height: 1.6; margin: 0; }
+.closed-note { font-size: 15px; color: var(--cream); margin-top: 10px; }
+/* Hero in two columns: the promise and what sets FundBug apart, beside a sample digest entry (Oct 15 2026). */
+.hero-grid { max-width: 1160px; display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr); gap: 56px; align-items: center; text-align: left; }
+.hero-grid .hero-sub { margin: 0 0 22px; max-width: 600px; }
+.hero-why { list-style: none; margin: 0 0 30px; padding: 0; display: grid; gap: 12px; }
+.hero-why li { position: relative; padding-left: 30px; font-size: 16px; line-height: 1.6; color: var(--cream); }
+.hero-why li::before { content: '✓'; position: absolute; left: 0; top: 0; color: var(--green-lt); font-weight: 700; }
+.hero-why strong { color: var(--white); font-weight: 600; }
+.hero-sample { position: relative; }
+.hero-sample .mail { box-shadow: 0 24px 60px rgba(0,0,0,.35); }
+.hero-sample .mail-why { margin-bottom: 12px; }
+.hero-sample-tag { position: absolute; top: -12px; right: 14px; z-index: 2; }
+.hero > .hero-inner + .hero-inner { margin-top: 8px; }
+/* Phone menu, as on the business page; hidden on wider screens. */
+.nav-hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 10px; margin-right: -10px; }
+.nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--cream2); border-radius: 2px; transition: all .25s; }
+.nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.mobile-menu { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--ink); border-top: 1px solid rgba(255,255,255,.08); flex-direction: column; padding: 8px 0 20px; box-shadow: 0 16px 40px rgba(0,0,0,.4); }
+.mobile-menu.open { display: flex; }
+.mobile-menu a { padding: 14px 24px; font-size: 16px; color: var(--cream2); text-decoration: none; }
+.mobile-menu a:hover { color: var(--white); background: rgba(255,255,255,.04); }
+.mobile-menu .mobile-menu-cta { margin: 12px 24px 0; text-align: center; }
+.closed-note[hidden] { display: none; }
+
+/* Sections */
+section { padding: 96px 80px; }
+section[id] { scroll-margin-top: 96px; }
+.section-inner { max-width: 1080px; margin: 0 auto; }
+.section-eyebrow { font-size: 14px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--green-dk); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.section-eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--green); }
+.section-title { font-size: clamp(30px, 3.5vw, 46px); font-weight: 700; color: var(--ink); margin-bottom: 16px; letter-spacing: -.02em; }
+.section-subtitle { font-size: 18px; color: var(--ink); max-width: 640px; line-height: 1.7; font-weight: 400; }
+.centered { text-align: center; }
+.centered .section-eyebrow { justify-content: center; }
+.centered .section-subtitle { margin: 0 auto; }
+
+/* What You Get */
+.get-section { background: var(--white); }
+.get-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; }
+.get-card { border: 1px solid var(--border); border-radius: 10px; padding: 30px 28px; background: var(--cream); }
+.get-icon { width: 40px; height: 40px; border-radius: 8px; background: var(--white); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+.get-card h3 { font-size: 21px; font-weight: 700; margin-bottom: 10px; }
+.get-card p { font-size: 16px; color: var(--ink); line-height: 1.7; margin-bottom: 10px; }
+.get-card ul { list-style: none; margin-top: 4px; }
+.get-card li { font-size: 15px; color: var(--ink); padding: 6px 0 6px 22px; position: relative; border-top: 1px solid var(--cream3); }
+.get-card li::before { content: '✓'; position: absolute; left: 0; color: var(--green-dk); font-weight: 700; }
+.portal-note { margin-top: 28px; font-size: 16px; color: var(--ink); max-width: 760px; }
+
+/* Samples */
+.sample-section { background: var(--cream); }
+.sample-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 56px; align-items: start; }
+.sample-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.sample-label h3 { font-size: 20px; font-weight: 700; }
+.sample-tag { font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #7a4424; background: #f3e9df; border: 1px solid #e0c7b0; border-radius: 12px; padding: 2px 10px; flex-shrink: 0; }
+.sample-caption { font-size: 15px; color: var(--ink); margin-top: 12px; }
+
+/* The digest card, styled as np_digest._card renders it */
+.mail { background: #ffffff; border: 1px solid #e8e0d5; border-radius: 8px; overflow: hidden; box-shadow: 0 16px 44px rgba(26,26,20,.10); font-family: Verdana, Geneva, Tahoma, sans-serif; }
+.mail-head { background: #1a1a1a; border-bottom: 3px solid #5a9e52; padding: 14px 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mail-brand { display: flex; align-items: center; gap: 10px; font-family: Georgia, serif; font-size: 19px; font-weight: bold; color: #ffffff; }
+.mail-brand img { width: 36px; height: 36px; object-fit: contain; }
+.mail-kicker { font-size: 14px; color: #e0e0e0; text-align: right; }
+.mail-body { padding: 20px 22px 6px; }
+.mail-section-title { font-size: 14px; letter-spacing: 1px; color: #3a7a32; font-weight: bold; margin-bottom: 6px; }
+.mail-section-note { font-size: 14px; color: #1a1a1a; line-height: 1.6; margin-bottom: 16px; }
+.mail-card { border: 1px solid #e8e0d5; border-radius: 6px; padding: 20px 22px; margin-bottom: 16px; }
+.mail-title { font-family: Georgia, serif; font-size: 18px; font-weight: bold; color: #1a1a1a; margin-bottom: 10px; line-height: 1.3; }
+.pill { display: inline-block; background: #e8e0d5; color: #1a1a1a; padding: 3px 10px; border-radius: 3px; font-size: 14px; margin: 0 6px 6px 0; }
+.pill.solid { background: #3a7a32; color: #ffffff; font-weight: bold; }
+.mail-line { font-size: 14px; color: #1a1a1a; margin-bottom: 6px; line-height: 1.55; }
+.mail-why { font-size: 14px; color: #1a1a1a; line-height: 1.7; margin: 8px 0 10px; }
+.mail-next { font-size: 14px; color: #8a5a1e; font-style: italic; line-height: 1.6; margin-bottom: 12px; }
+.mail-links { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.mail-links span { font-size: 14px; color: #3a7a32; }
+.mail-links .main { font-weight: bold; }
+
+/* The funder page excerpt, styled as the portal's listing panel */
+.fp { background: var(--cream); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 16px 44px rgba(26,26,20,.10); }
+.fp-head { background: var(--ink); border-bottom: 3px solid var(--green); padding: 16px 20px; }
+.fp-head h4 { font-family: 'Fraunces', serif; font-size: 22px; color: var(--white); line-height: 1.25; }
+.fp-body { padding: 16px 16px 8px; }
+.badge { display: inline-block; font-size: 14px; font-weight: 500; padding: 2px 10px; border-radius: 12px; border: 1px solid #b9d2b4; background: #e6efe4; color: var(--green-dk); margin-bottom: 10px; }
+.line { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+.line h5 { font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--green-dk); margin-bottom: 6px; }
+.line p { font-size: 15px; }
+.section-text { white-space: pre-line; font-size: 15px; }
+.group-head { font-family: Georgia, serif; font-size: 19px; font-weight: bold; color: var(--ink); margin: 16px 0 10px; padding-top: 12px; border-top: 1px solid var(--border); }
+.gp-tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.gp-tile { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; background: var(--cream); }
+.gp-tile b { display: block; font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.gp-tile span { font-size: 14px; color: var(--ink); }
+.gp-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px; margin: 8px 0 4px; }
+.gp-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.gp-scopes { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px; }
+.gp-scope { font-size: 14px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); color: var(--ink); }
+.gp-scope.on { background: var(--green-dk); border-color: var(--green-dk); color: var(--white); }
+.gp-table table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.gp-table th, .gp-table td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.gp-table th { font-size: 14px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--green-dk); }
+.gp-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fp-more { font-size: 15px; color: var(--ink); padding: 4px 2px 10px; }
+
+/* How It Works */
+.how-section { background: var(--white); }
+.how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; margin-top: 56px; }
+.step-num { font-family: 'Fraunces', serif; font-size: 72px; font-weight: 700; color: var(--cream3); line-height: 1; margin-bottom: 14px; letter-spacing: -.04em; }
+.step-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--green-dk); margin-bottom: 10px; }
+.step-body { font-size: 17px; color: var(--ink); line-height: 1.75; font-weight: 400; }
+
+/* Pricing */
+.pricing-section { background: var(--cream); }
+.pricing-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 760px; margin: 56px auto 0; }
+.pricing-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 40px 36px; position: relative; display: flex; flex-direction: column; }
+.pricing-card.featured { border: 2px solid var(--green); }
+.pricing-badge { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: var(--green-dk); color: var(--white); font-size: 14px; font-weight: 600; letter-spacing: .04em; padding: 3px 14px; border-radius: 20px; white-space: nowrap; }
+.pricing-name { font-size: 14px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; color: var(--green-dk); margin-bottom: 14px; }
+.pricing-price { font-family: 'Fraunces', serif; font-size: 48px; font-weight: 700; color: var(--ink); line-height: 1; margin-bottom: 6px; letter-spacing: -.03em; }
+.pricing-price sup { font-size: 22px; vertical-align: super; }
+.pricing-period { font-size: 15px; color: var(--ink); margin-bottom: 24px; }
+.pricing-features { list-style: none; margin-bottom: 28px; flex: 1; }
+.pricing-features li { font-size: 15px; color: var(--ink); padding: 8px 0 8px 22px; border-bottom: 1px solid var(--cream2); position: relative; }
+.pricing-features li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+.pricing-card .btn-primary { display: block; width: 100%; }
+.pricing-trial { font-size: 14px; color: var(--ink); text-align: center; margin-top: 12px; }
+
+/* FAQ */
+.faq-section { background: var(--white); }
+.faq-inner { max-width: 760px; margin: 0 auto; }
+.faq-list { margin-top: 40px; }
+.faq-list details { border-bottom: 1px solid var(--border); }
+.faq-list details:first-child { border-top: 1px solid var(--border); }
+.faq-list summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 22px 0; font-family: 'Fraunces', serif; font-size: 19px; font-weight: 700; color: var(--ink); }
+.faq-list summary::-webkit-details-marker { display: none; }
+.faq-list summary::after { content: '+'; font-family: 'Jost', sans-serif; font-size: 24px; font-weight: 300; color: var(--green); flex-shrink: 0; transition: transform .2s; line-height: 1; }
+.faq-list details[open] summary::after { transform: rotate(45deg); }
+.faq-list summary:hover { color: var(--green-dk); }
+.faq-list details p { font-size: 16px; color: var(--ink); line-height: 1.8; padding-bottom: 22px; }
+
+/* Closing call */
+.cta-section { background: var(--ink); text-align: center; padding: 80px 32px; }
+.cta-section h2 { font-size: clamp(28px, 3.4vw, 42px); color: var(--white); margin-bottom: 14px; }
+.cta-section p { font-size: 17px; color: var(--cream); max-width: 560px; margin: 0 auto 28px; }
+.cta-section .btn-primary.is-closed { color: var(--cream); border-color: var(--green-lt); }
+
+/* Footer */
+footer { background: var(--ink); border-top: 1px solid rgba(255,255,255,.08); padding: 56px 80px 40px; }
+.footer-inner { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+.footer-brand { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+.footer-brand a { color: var(--green); text-decoration: none; }
+.footer-tagline { font-size: 15px; color: var(--cream2); line-height: 1.6; max-width: 340px; }
+.footer-col-title { font-size: 14px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--green-lt); margin-bottom: 16px; }
+.footer-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.footer-links a { font-size: 15px; color: var(--cream2); text-decoration: none; }
+.footer-links a:hover { color: var(--white); }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,.08); padding-top: 24px; display: flex; justify-content: space-between; gap: 24px; }
+.footer-legal, .footer-disclaimer { font-size: 14px; color: var(--cream2); line-height: 1.6; }
+.footer-legal a { color: var(--cream2); }
+.footer-disclaimer { max-width: 480px; text-align: right; }
+
+@media (max-width: 900px) {
+  nav { padding: 0 16px; height: 56px; }
+  .nav-logo img { width: 36px; height: 36px; }
+  .nav-logo-text { font-size: 18px; }
+  .nav-links li.wide { display: none; }
+  .nav-tag { display: none; }
+  .hero { padding: 56px 16px 56px; }
+  .hero-grid { grid-template-columns: 1fr; gap: 40px; text-align: center; }
+  .hero-grid .hero-sub { margin: 0 auto 22px; }
+  .hero-why { text-align: left; max-width: 520px; margin: 0 auto 28px; }
+  .hero-sample { max-width: 460px; width: 100%; margin: 0 auto; text-align: left; }
+  .nav-hamburger { display: flex; }
+  .nav-links li:not(.wide) a { display: inline-block; padding: 10px 8px; }
+  .aud-switch { position: static; }
+  nav { top: 0; }
+  .hero-sub { font-size: 17px; }
+  section { padding: 64px 16px; }
+  .get-grid, .how-grid, .sample-grid { grid-template-columns: 1fr; }
+  .how-grid { gap: 36px; }
+  .pricing-wrapper { grid-template-columns: 1fr; max-width: 420px; gap: 32px; }
+  .pricing-card { padding: 36px 24px; }
+  .footer-inner { grid-template-columns: 1fr; gap: 32px; }
+  footer { padding: 48px 16px 32px; }
+  .footer-bottom { flex-direction: column; text-align: center; }
+  .footer-disclaimer { text-align: center; max-width: none; }
+}
+@media (max-width: 480px) {
+  .mail-head { padding: 12px 14px; }
+  .mail-body { padding: 16px 12px 4px; }
+  .mail-card { padding: 16px 14px; }
+  .fp-body { padding: 12px 10px 6px; }
+  .line { padding: 12px 12px; }
+  .gp-tile b { font-size: 20px; }
+}
+</style>
+</head>
+<body>
+
+<div class="aud-switch" role="navigation" aria-label="Audience">
+  <a href="/">For Businesses</a>
+  <span aria-hidden="true">|</span>
+  <span aria-current="page">For Nonprofits</span>
+</div>
+
+<nav>
+  <a href="/nonprofits" class="nav-logo">
+    <img src="/fundbug_logo.png" alt="">
+    <span class="nav-logo-text">FundBug</span>
+    <span class="nav-tag">For Nonprofits</span>
+  </a>
+  <ul class="nav-links">
+    <li class="wide"><a href="#how">How It Works</a></li>
+    <li class="wide"><a href="#pricing">Pricing</a></li>
+    <li class="wide"><a href="#faq">FAQ</a></li>
+    <li><a href="/nonprofit-portal">Sign In</a></li>
+    <li class="wide"><a class="btn-primary is-closed" data-trial="/nonprofit-signup" aria-disabled="true">Signup Opens Soon</a></li>
+  </ul>
+  <button class="nav-hamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </button>
+  <!-- Phone menu. Closes with its button or a link, never on a tap elsewhere (FundBug rule for panels). -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#how" onclick="closeMenu()">How It Works</a>
+    <a href="#pricing" onclick="closeMenu()">Pricing</a>
+    <a href="#faq" onclick="closeMenu()">FAQ</a>
+    <a href="/nonprofit-portal" onclick="closeMenu()">Sign In</a>
+    <a href="/" onclick="closeMenu()">For Businesses</a>
+    <a class="btn-primary is-closed mobile-menu-cta" data-trial="/nonprofit-signup" aria-disabled="true">Signup Opens Soon</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner hero-grid">
+    <div class="hero-copy">
+      <div class="eyebrow">Grants And Funders For Massachusetts Nonprofits</div>
+      <h1>The Grants And Funders That <span>Fit Your Nonprofit</span></h1>
+      <p class="hero-sub">Twice a month, FundBug sends your organization the grant programs and foundations that fit its work.</p>
+      <!-- What sets it apart from a grant database (Will, Oct 15 2026: emphasize how we are different). -->
+      <ul class="hero-why">
+        <li><strong>No searching.</strong> Your matches come to you, so your hours go to applications, not databases.</li>
+        <li><strong>Checked by a person.</strong> Every listing is reviewed before it reaches you.</li>
+        <li><strong>Why it fits, in plain words,</strong> from the funder's own guidelines and your organization's profile.</li>
+        <li><strong>Funder pages built from tax filings:</strong> what a foundation gives organizations it has not funded before, and how much of its giving stays in your county.</li>
+      </ul>
+      <a class="btn-primary is-closed" data-trial="/nonprofit-signup" aria-disabled="true">Signup Opens Soon</a>
+      <p class="closed-note" data-closed-note>FundBug for nonprofits is not open to new signups yet. Check back soon.</p>
+      <p class="hero-price">14 days free, then $45 a month or $450 a year.</p>
+    </div>
+    <!-- The product up front (NN/g: show real examples high on the page); a shorter copy of the sample below. -->
+    <div class="hero-sample">
+      <span class="sample-tag hero-sample-tag">Sample</span>
+      <div class="mail" aria-label="Sample digest entry">
+        <div class="mail-head">
+          <div class="mail-brand"><img src="/fundbug_logo.png" alt="">FundBug</div>
+          <div class="mail-kicker">Your Funding Digest</div>
+        </div>
+        <div class="mail-body">
+          <div class="mail-section-title">Funders To Know</div>
+          <div class="mail-card">
+            <div class="mail-title">Sample Family Foundation</div>
+            <div><span class="pill solid">Funder</span><span class="pill">Berkshire County, MA</span></div>
+            <div class="mail-line">Typical grant: $5,000 to $15,000</div>
+            <div class="mail-line">35% of its grants went to organizations it had not funded before</div>
+            <div class="mail-why">Its guidelines name after-school arts programs for young people in Berkshire County as a priority, the kind of work your organization does, and it often funds organizations for the first time.</div>
+            <div class="mail-links">
+              <span class="main">Funder Website →</span>
+              <span>+ Save To Tracker</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-inner">
+    <div class="hero-local">
+      <p class="hero-made">Made In Massachusetts For Massachusetts Nonprofits</p>
+      <p class="hero-coverage">Hundreds of funders and programs for Massachusetts nonprofits, every one checked by a person before it reaches you.</p>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT YOU GET -->
+<section class="get-section" id="get">
+  <div class="section-inner">
+    <div class="section-eyebrow">What You Get</div>
+    <h2 class="section-title">A Digest, Funder Pages, And A Tracker</h2>
+    <p class="section-subtitle">Big tools for small nonprofits. Focus on your mission while FundBug finds the grants and funding partners aligned with your goals and sends them to you. No more hours searching massive databases. Includes application tracking and detailed funder pages.</p>
+
+    <div class="get-grid">
+      <div class="get-card">
+        <div class="get-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green-dk)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M7 2v4M13 2v4"/></svg>
+        </div>
+        <h3>Your Funding Digest</h3>
+        <p>An email on the 1st and 3rd Tuesday of every month, in three parts:</p>
+        <ul>
+          <li><strong>New Matches:</strong> up to five Opportunities, programs with their own guidelines and deadlines.</li>
+          <li><strong>Coming Up:</strong> deadlines you saved that fall in the next 30 days.</li>
+          <li><strong>Funders To Know:</strong> up to five foundations to approach directly.</li>
+        </ul>
+        <p style="margin-top:12px">Every entry has a full write-up of why it fits, drawn from the program's own words and your organization's profile.</p>
+      </div>
+
+      <div class="get-card">
+        <div class="get-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green-dk)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16V9M8.5 16V5M13 16v-5M17 16H2"/></svg>
+        </div>
+        <h3>Funder Pages</h3>
+        <p>A page for each foundation, built from its IRS 990-PF and Schedule I filings and its own website:</p>
+        <ul>
+          <li>Giving by year, its typical grant, and its first grants to new grantees.</li>
+          <li>Where it gives, with its grantee list filtered to your county, your state, or all states.</li>
+          <li>The subjects of the organizations it funds.</li>
+          <li>How to apply as filed, the contact on file, and the pages from its own website.</li>
+        </ul>
+      </div>
+
+      <div class="get-card">
+        <div class="get-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green-dk)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10l4 4 8-9"/></svg>
+        </div>
+        <h3>Your Tracker</h3>
+        <p>Save any match from your digest or your portal with one click, and its deadline shows up in Coming Up.</p>
+        <ul>
+          <li>Keep what you are applying to in one place between digests.</li>
+          <li>Mark a listing Not A Fit and tell us why, so your matches improve.</li>
+          <li>Foundations that do not accept unsolicited applications never appear in your digest.</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="portal-note">Your portal holds it all: your Matches, your Tracker, every funder page, past digests, and your Organization Profile.</p>
+  </div>
+</section>
+
+<!-- SAMPLES -->
+<section class="sample-section" id="sample">
+  <div class="section-inner">
+    <div class="section-eyebrow">Sample</div>
+    <h2 class="section-title">See What Arrives</h2>
+    <p class="section-subtitle">Part of a digest and part of a funder page, laid out as they look. The foundation, its grantees and every figure below are made up for illustration.</p>
+
+    <div class="sample-grid">
+      <!-- Sample digest card: the layout of np_digest._card (a Funders To Know entry) -->
+      <div>
+        <div class="sample-label"><h3>A Digest Entry</h3><span class="sample-tag">Sample</span></div>
+        <div class="mail" aria-label="Sample digest entry">
+          <div class="mail-head">
+            <div class="mail-brand"><img src="/fundbug_logo.png" alt="">FundBug</div>
+            <div class="mail-kicker">Your Funding Digest</div>
+          </div>
+          <div class="mail-body">
+            <div class="mail-section-title">Funders To Know</div>
+            <div class="mail-section-note">Foundations that fit your work, and how to approach them.</div>
+            <div class="mail-card">
+              <div class="mail-title">Sample Family Foundation</div>
+              <div><span class="pill solid">Funder</span><span class="pill">Berkshire County, MA</span><span class="pill">Letter of Inquiry First</span></div>
+              <div class="mail-line">Typical grant: $5,000 to $15,000; first grants typically $5,000 ($2,500 to $10,000)</div>
+              <div class="mail-line">Gives 62% of its grants in Berkshire County (2024)</div>
+              <div class="mail-line">35% of its grants in 2022 to 2024 went to organizations it had not funded before; 48 grants to Berkshire County organizations in its 2021 to 2024 filings</div>
+              <div class="mail-why">The Sample Family Foundation funds arts and education programs for young people in Berkshire County, and its guidelines name after-school programs as a priority. Your after-school arts classes for middle schoolers in Pittsfield are the kind of work it describes, and it often funds organizations for the first time.</div>
+              <div class="mail-next">Its guidelines ask for a one-page letter of inquiry first; letters are due March 1 and September 1.</div>
+              <div class="mail-links">
+                <span class="main">Funder Website →</span>
+                <span>+ Save To Tracker</span>
+                <span>− Not A Fit</span>
+                <span>👍 Good Match</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="sample-caption">Not A Fit asks you why, and that listing stays out of your digests from then on.</p>
+      </div>
+
+      <!-- Sample funder page: the layout of the portal's listing panel and givingSection -->
+      <div>
+        <div class="sample-label"><h3>Part Of A Funder Page</h3><span class="sample-tag">Sample</span></div>
+        <div class="fp" aria-label="Sample funder page excerpt">
+          <div class="fp-head"><h4>Sample Family Foundation</h4></div>
+          <div class="fp-body">
+            <span class="badge">Funder</span>
+            <div class="line"><h5>Where It Gives</h5><p>Share of its 2024 grant dollars: Berkshire, MA: 62%; Hampden, MA: 21%; Columbia, NY: 9%</p></div>
+
+            <h3 class="group-head">Its Giving</h3>
+            <div class="line"><h5>At A Glance</h5>
+              <div class="gp-tiles">
+                <div class="gp-tile"><b>$7,500</b><span>median grant, 2022 to 2024</span></div>
+                <div class="gp-tile"><b>46</b><span>grants, 2022 to 2024</span></div>
+                <div class="gp-tile"><b>35%</b><span>to first-time grantees</span></div>
+                <div class="gp-tile"><b>$160K</b><span>given in 2024</span></div>
+              </div>
+            </div>
+
+            <div class="line"><h5>Openness To New Grantees</h5>
+              <p>In 2022 to 2024, <strong>35%</strong> of its grants went to organizations it had not funded in the two years before.</p>
+              <div class="gp-legend"><span><i style="background:var(--green-dk)"></i>Repeat grantees</span><span><i style="background:var(--green-lt)"></i>First-time grantees</span></div>
+              <svg viewBox="0 0 360 200" role="img" aria-label="Grants per year, repeat and first-time grantees" style="width:100%;height:auto;display:block">
+                <line x1="10" x2="360" y1="172" y2="172" style="stroke:var(--border)"></line>
+                <rect x="33" y="80.75" width="70" height="91.25" rx="3" style="fill:var(--green-dk)"></rect>
+                <rect x="33" y="35.13" width="70" height="45.62" rx="3" style="fill:var(--green-lt)"></rect>
+                <text x="68" y="27" text-anchor="middle" style="font:500 16px Jost,sans-serif;fill:var(--ink)">33% new</text>
+                <text x="68" y="194" text-anchor="middle" style="font:16px Jost,sans-serif;fill:var(--ink)">2022</text>
+                <rect x="150" y="80.75" width="70" height="91.25" rx="3" style="fill:var(--green-dk)"></rect>
+                <rect x="150" y="35.13" width="70" height="45.62" rx="3" style="fill:var(--green-lt)"></rect>
+                <text x="185" y="27" text-anchor="middle" style="font:500 16px Jost,sans-serif;fill:var(--ink)">33% new</text>
+                <text x="185" y="194" text-anchor="middle" style="font:16px Jost,sans-serif;fill:var(--ink)">2023</text>
+                <rect x="267" y="80.75" width="70" height="91.25" rx="3" style="fill:var(--green-dk)"></rect>
+                <rect x="267" y="26" width="70" height="54.75" rx="3" style="fill:var(--green-lt)"></rect>
+                <text x="302" y="18" text-anchor="middle" style="font:500 16px Jost,sans-serif;fill:var(--ink)">38% new</text>
+                <text x="302" y="194" text-anchor="middle" style="font:16px Jost,sans-serif;fill:var(--ink)">2024</text>
+              </svg>
+            </div>
+
+            <div class="line"><h5>Grantees</h5>
+              <div class="gp-scopes"><span class="gp-scope on">Berkshire County (48)</span><span class="gp-scope">MA (61)</span><span class="gp-scope">All States (78)</span></div>
+              <div class="gp-table"><table>
+                <thead><tr><th>Name</th><th>Town</th><th class="num">Amount</th></tr></thead>
+                <tbody>
+                  <tr><td>Sample Youth Theater</td><td>Pittsfield</td><td class="num">$12,000</td></tr>
+                  <tr><td>Sample Community Kitchen</td><td>North Adams</td><td class="num">$10,000</td></tr>
+                  <tr><td>Sample Literacy Project</td><td>Great Barrington</td><td class="num">$7,500</td></tr>
+                  <tr><td>Sample Watershed Council</td><td>Lee</td><td class="num">$5,000</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+
+            <div class="line"><h5>How To Apply</h5>
+              <p class="section-text">Accepts applications.
+How: Letter of inquiry first.
+What to send: A one-page letter describing the organization and the project.
+Deadlines: March 1 and September 1 (as filed for 2024)</p>
+            </div>
+            <p class="fp-more">The full page also shows its grant range and grant sizes, its total giving each year, the subjects of its grantees, the contact on file, and the pages from its own website.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div class="section-inner">
+    <div class="section-eyebrow">How It Works</div>
+    <h2 class="section-title">Three Steps To Your First Digest</h2>
+    <p class="section-subtitle">Tell us about your organization once. FundBug does the searching and sends you what fits.</p>
+    <div class="how-grid">
+      <div>
+        <div class="step-num">01</div>
+        <div class="step-title">Tell Us About Your Organization</div>
+        <div class="step-body">Where you work, the subjects you work on, the people you serve, and what you need funding for. Have a website or an EIN? Signup can fill some of it in for you.</div>
+      </div>
+      <div>
+        <div class="step-num">02</div>
+        <div class="step-title">Get Matches Twice A Month</div>
+        <div class="step-body">On the 1st and 3rd Tuesday, your digest arrives with new Opportunities, your deadlines coming up, and funders to know, each with a write-up of why it fits.</div>
+      </div>
+      <div>
+        <div class="step-num">03</div>
+        <div class="step-title">Track What You Apply To</div>
+        <div class="step-body">Save matches to your Tracker so their deadlines show up in Coming Up, and mark anything Not A Fit, with a reason, so your matches improve.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section" id="pricing">
+  <div class="centered">
+    <div class="section-eyebrow">Pricing</div>
+    <h2 class="section-title">One Service, Two Ways To Pay</h2>
+    <p class="section-subtitle">Try it free for 14 days. Cancel before your trial ends and you pay nothing.</p>
+  </div>
+  <div class="pricing-wrapper">
+    <div class="pricing-card">
+      <div class="pricing-name">Monthly</div>
+      <div class="pricing-price"><sup>$</sup>45</div>
+      <div class="pricing-period">per month · cancel anytime</div>
+      <ul class="pricing-features">
+        <li>Digest on the 1st and 3rd Tuesday of every month</li>
+        <li>Up to five new Opportunities and five funders to know in each digest</li>
+        <li>A full write-up of why each one fits</li>
+        <li>Funder pages built from IRS filings</li>
+        <li>Tracker with your saved deadlines</li>
+        <li>Not A Fit, with reasons, so matches improve</li>
+      </ul>
+      <a class="btn-primary is-closed" data-trial="/nonprofit-signup?plan=monthly" aria-disabled="true">Signup Opens Soon</a>
+      <div class="pricing-trial">14-day free trial</div>
+    </div>
+    <div class="pricing-card featured">
+      <div class="pricing-badge">Best Value: Two Months Free</div>
+      <div class="pricing-name">Annual</div>
+      <div class="pricing-price"><sup>$</sup>450</div>
+      <div class="pricing-period">per year · two months free</div>
+      <ul class="pricing-features">
+        <li>Everything in the monthly plan</li>
+        <li>Two months free compared with paying monthly</li>
+      </ul>
+      <a class="btn-primary is-closed" data-trial="/nonprofit-signup?plan=annual" aria-disabled="true">Signup Opens Soon</a>
+      <div class="pricing-trial">14-day free trial</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section" id="faq">
+  <div class="faq-inner">
+    <div class="section-eyebrow">FAQ</div>
+    <h2 class="section-title">Frequently Asked Questions</h2>
+    <div class="faq-list">
+      <details>
+        <summary>Where Do The Funders Come From?</summary>
+        <p>From two places: the tax filings foundations send the IRS each year (Form 990-PF, and Schedule I for public charities that make grants), and the funders' own websites. The filings show who a foundation funded, how much and where, how it says to apply, and the contact it gives. Its website adds its current guidelines and programs.</p>
+      </details>
+      <details>
+        <summary>How Is This Different From A Grant Database?</summary>
+        <p>A grant database waits for you to search it. FundBug does the searching: twice a month it sends the programs and funders that fit your organization, each with a write-up of why it fits and how to approach it. Its funder pages show what you would otherwise piece together from years of tax filings, such as what a foundation gives an organization it has not funded before, how much of its giving stays in your county, and the subjects of the organizations it funds.</p>
+      </details>
+      <details>
+        <summary>Which States Do You Cover?</summary>
+        <p>Massachusetts first, starting in the Berkshires, then New York. Organizations in any state can sign up, but coverage is deepest in Massachusetts.</p>
+      </details>
+      <details>
+        <summary>Who Is FundBug For?</summary>
+        <p>Community nonprofits, especially small and mid-sized ones without a full-time grants team, that look for grants from foundations and funding programs.</p>
+      </details>
+      <details>
+        <summary>Will I See Foundations That Do Not Take Applications?</summary>
+        <p>No. A foundation that does not accept unsolicited applications never appears in your digest.</p>
+      </details>
+      <details>
+        <summary>What Happens After The Trial?</summary>
+        <p>Your first 14 days are free. If you keep FundBug, your plan starts when the trial ends: $45 a month or $450 a year, whichever you chose. You add a card when you sign up, and it is not charged until the trial ends. Cancel before the trial ends and you pay nothing.</p>
+      </details>
+      <details>
+        <summary>Does FundBug Guarantee I Will Be Funded?</summary>
+        <p>No. FundBug finds funders and programs that fit your work and helps you prepare, but funding decisions belong to each funder, and we cannot promise any grant. Our information comes from funders' own pages and tax filings, which can change, and a funder may ask applicants for things it has not published. Always check a funder's current guidelines before you apply.</p>
+      </details>
+      <details>
+        <summary>Can I Cancel Anytime?</summary>
+        <p>Yes. Cancel anytime from Manage Billing in your portal.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSING CALL -->
+<section class="cta-section">
+  <h2>Find The Funders That Fit Your Work</h2>
+  <p>14 days free, then $45 a month or $450 a year.</p>
+  <a class="btn-primary is-closed" data-trial="/nonprofit-signup" aria-disabled="true">Signup Opens Soon</a>
+  <p class="closed-note" data-closed-note style="margin:12px auto 0">FundBug for nonprofits is not open to new signups yet. Check back soon.</p>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand"><a href="https://fundbug.net">FundBug, funding intelligence for nonprofits</a></div>
+      <div class="footer-tagline">Grants and funders matched to community nonprofits, starting in Massachusetts.</div>
+    </div>
+    <div>
+      <div class="footer-col-title">Product</div>
+      <ul class="footer-links">
+        <li><a href="#how">How It Works</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="/nonprofit-portal">Sign In</a></li>
+        <li><a href="/">For Businesses</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Company</div>
+      <ul class="footer-links">
+        <li><a href="/about">About</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/privacy">Privacy Policy</a></li>
+        <li><a href="/terms">Terms Of Service</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-legal">© 2026 FundBug LLC · <a href="https://fundbug.net">fundbug.net</a> · 82 Wendell Ave, Suite 100, Pittsfield, MA 01201</div>
+    <div class="footer-disclaimer">FundBug matches funding to your organization's profile. We do not endorse specific funders and cannot promise an award; always check requirements with the funder.</div>
+  </div>
+</footer>
+
+<script>
+/* Signup gating (Oct 15 2026). Every trial button starts closed in the HTML
+   (no href, "Signup Opens Soon"); only a clear {"open": true} from
+   /api/nonprofit/signup-status turns them into links to the signup form. A
+   failed, slow or unreadable call leaves them closed. A referral code or a
+   source on this page's URL is carried to the signup form, which reads both. */
+(function () {
+  var API = 'https://fundbug-production.up.railway.app';
+  var carry = new URLSearchParams();
+  var here = new URLSearchParams(window.location.search);
+  ['ref', 'src', 'utm_source'].forEach(function (k) {
+    var v = (here.get(k) || '').trim();
+    if (/^[A-Za-z0-9_.-]{1,60}$/.test(v)) carry.set(k, v);
+  });
+
+  function enable() {
+    document.querySelectorAll('[data-trial]').forEach(function (el) {
+      var href = el.getAttribute('data-trial');
+      var extra = carry.toString();
+      if (extra) href += (href.indexOf('?') >= 0 ? '&' : '?') + extra;
+      el.setAttribute('href', href);
+      el.removeAttribute('aria-disabled');
+      el.classList.remove('is-closed');
+      el.textContent = 'Start Your Free Trial';
+    });
+    document.querySelectorAll('[data-closed-note]').forEach(function (n) { n.hidden = true; });
+  }
+
+  var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+  var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 8000) : null;
+  fetch(API + '/api/nonprofit/signup-status', ctrl ? { signal: ctrl.signal } : {})
+    .then(function (r) { if (!r.ok) throw new Error('status ' + r.status); return r.json(); })
+    .then(function (d) { if (d && d.open === true) enable(); })
+    .catch(function () { /* closed state stands */ })
+    .then(function () { if (timer) clearTimeout(timer); });
+})();
+</script>
+<script>
+function toggleMenu() {
+  var btn = document.querySelector('.nav-hamburger');
+  var open = document.getElementById('mobileMenu').classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+}
+function closeMenu() {
+  var btn = document.querySelector('.nav-hamburger');
+  document.getElementById('mobileMenu').classList.remove('open');
+  btn.classList.remove('open');
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-label', 'Open menu');
+}
+</script>
+</body>
+</html>
