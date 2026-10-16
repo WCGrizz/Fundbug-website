@@ -47,7 +47,7 @@ function drawLandscape(keepFocus) {
   h.push(`<div class="toolbar">
       <div class="dr-seg" role="group" aria-label="Which organizations">
         <button type="button" aria-pressed="${LAND_VIEW === 'community'}" onclick="setLandView('community')">Community Organizations</button>
-        <button type="button" aria-pressed="${LAND_VIEW === 'all'}" onclick="setLandView('all')">Including Colleges And Schools</button>
+        <button type="button" aria-pressed="${LAND_VIEW === 'all'}" onclick="setLandView('all')">Including Colleges, Hospitals And Grantmakers</button>
       </div>
       <select id="lSubject" onchange="setLandSubject(this.value)" aria-label="Subject">
         <option value="">All Subjects</option>${L.subjects.map(s => `<option value="${s.code}" ${s.code === subj ? 'selected' : ''}>${escHtml(s.label)}</option>`).join('')}
