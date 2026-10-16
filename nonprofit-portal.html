@@ -162,6 +162,7 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 .no-site{font-size:15px;color:var(--ink);background:#f4efe3;border-left:3px solid #c9a227;padding:8px 12px;margin:0 0 14px;border-radius:3px}
 .gp-parts{font-size:15px;color:var(--ink);margin:8px 0 0;padding-left:20px}.gp-parts li{margin:4px 0}
 .section-text{white-space:pre-wrap;font-size:15px}
+.l-bar{height:6px;background:var(--cream2);border-radius:3px;margin-top:4px;max-width:260px}.l-bar i{display:block;height:100%;background:var(--green-dk);border-radius:3px}
 .src{font-size:14px;margin-top:4px}
 
 /* My Answers and Prep Application (Oct 15 2026): the business portal's drafting and roadmap pages, for
@@ -354,6 +355,7 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
       <a data-page="profile" onclick="showPage('profile')">Organization Profile</a>
       <a data-page="tracker" class="acct-only" onclick="showPage('tracker'); loadTracker()">Tracker</a>
       <a data-page="answers" class="acct-only" onclick="openAnswers()">My Answers</a>
+      <a data-page="landscape" onclick="openLandscape()">Funding Landscape</a>
       <a data-page="digests" class="acct-only" onclick="showPage('digests'); loadDigests()">Digests</a>
       <a data-page="subscription" class="acct-only" onclick="showPage('subscription'); loadSubscription()">Subscription</a>
       <a data-page="leftout" class="preview-only" onclick="showPage('leftout')">Left Out</a>
@@ -620,6 +622,15 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
           <span class="dr-meta" id="prProgress"></span>
         </div>
         <div id="prSlots"></div>
+      </div>
+
+      <div class="page" id="page-landscape">
+        <div class="hero">
+          <div class="eyebrow">Funding Landscape</div>
+          <h1 id="lTitle">Who Funds Your County</h1>
+          <p id="lSub">Every foundation and grantmaking charity that gave to organizations in your county, from their IRS filings.</p>
+        </div>
+        <div id="lBody"><div class="empty">Loading…</div></div>
       </div>
 
       <div class="page" id="page-digests">
@@ -1466,5 +1477,6 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 })();
 </script>
 <script src="/nonprofit-drafting.js"></script>
+<script src="/nonprofit-landscape.js"></script>
 </body>
 </html>
