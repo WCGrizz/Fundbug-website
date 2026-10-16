@@ -23,6 +23,7 @@ button:hover{background:var(--green)}
 button:disabled{opacity:.6;cursor:default}
 a{color:var(--green-dk);font-weight:500}
 .msg{margin-top:18px;font-size:15px}
+.not-you{margin-left:6px;white-space:nowrap}
 .msg.err{color:var(--red);font-weight:600}
 .msg.ok{color:var(--green-dk);font-weight:600}
 </style>
@@ -64,11 +65,14 @@ function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&
     return;
   }
 
+  // Business accounts log in at /portal, nonprofits at /nonprofit-portal; both keep the login under fb_token
+  // (Oct 16 2026: Will, logged in as a business, had no way here to switch to his nonprofit test account).
+  const LOGIN_LINKS = '<p>Log in to <a href="/portal" target="_blank" rel="noopener">your business account</a> or '
+    + '<a href="/nonprofit-portal" target="_blank" rel="noopener">your nonprofit account</a>, then come back to this tab and reload it.</p>';
   let token = '';
   try { token = localStorage.getItem('fb_token') || ''; } catch (e) {}
   if (!token) {
-    bodyEl.innerHTML = '<p>You are not logged in to FundBug in this browser.</p>'
-      + '<p><a href="/portal" target="_blank" rel="noopener">Log in to FundBug</a>, then come back to this tab and reload it.</p>';
+    bodyEl.innerHTML = '<p>You are not logged in to FundBug in this browser.</p>' + LOGIN_LINKS;
     return;
   }
 
@@ -78,8 +82,7 @@ function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&
   try {
     const r = await fetch(API + '/api/extension/profile', { headers: { 'Authorization': 'Bearer ' + token } });
     if (r.status === 401 || r.status === 403) {
-      bodyEl.innerHTML = '<p>Your FundBug login has expired.</p>'
-        + '<p><a href="/portal" target="_blank" rel="noopener">Log in to FundBug again</a>, then come back to this tab and reload it.</p>';
+      bodyEl.innerHTML = '<p>Your FundBug login has expired.</p>' + LOGIN_LINKS;
       return;
     }
     if (!r.ok) throw new Error('status ' + r.status);
@@ -93,8 +96,17 @@ function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&
   bodyEl.innerHTML =
       '<p>This lets the FundBug extension draft answers on grant applications using your Funding Passport.</p>'
     + '<div class="who">Connecting as <strong>' + esc(name || profile.email || 'your account') + '</strong>'
-    + (profile.business_name ? ', ' + esc(profile.business_name) : '') + '</div>'
+    + (profile.business_name ? ', ' + esc(profile.business_name) : '')
+    + ' <a href="#" id="notYou" class="not-you">Not You?</a></div>'
     + '<button id="go">Connect to FundBug</button>';
+
+  // Not You?: log this browser out of FundBug (the same two keys the portals' Log Out clears), then log in again.
+  document.getElementById('notYou').addEventListener('click', (e) => {
+    e.preventDefault();
+    try { localStorage.removeItem('fb_token'); localStorage.removeItem('fb_sub'); } catch (err) {}
+    say('');
+    bodyEl.innerHTML = '<p>You are logged out of FundBug in this browser.</p>' + LOGIN_LINKS;
+  });
 
   document.getElementById('go').addEventListener('click', () => {
     const btn = document.getElementById('go');
