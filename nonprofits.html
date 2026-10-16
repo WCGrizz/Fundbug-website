@@ -80,6 +80,7 @@ nav { position: sticky; top: 36px; z-index: 100; background: var(--ink); padding
 /* Hero in two columns: the promise and what sets FundBug apart, beside a sample digest entry (Oct 15 2026). */
 .hero-grid { max-width: 1160px; display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr); gap: 56px; align-items: center; text-align: left; }
 .hero-grid .hero-sub { margin: 0 0 22px; max-width: 600px; }
+.hero-grid.no-sample { grid-template-columns: 1fr; max-width: 820px; }
 .hero-why { list-style: none; margin: 0 0 30px; padding: 0; display: grid; gap: 12px; }
 .hero-why li { position: relative; padding-left: 30px; font-size: 16px; line-height: 1.6; color: var(--cream); }
 .hero-why li::before { content: '✓'; position: absolute; left: 0; top: 0; color: var(--green-lt); font-weight: 700; }
@@ -182,6 +183,8 @@ section[id] { scroll-margin-top: 96px; }
 
 /* How It Works */
 .how-section { background: var(--white); }
+.apply-section { background: var(--white); border-top: 1px solid var(--border); }
+.apply-note { font-size: 16px; color: var(--ink); line-height: 1.7; max-width: 760px; margin-top: 40px; }
 .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; margin-top: 56px; }
 .step-num { font-family: 'Fraunces', serif; font-size: 72px; font-weight: 700; color: var(--cream3); line-height: 1; margin-bottom: 14px; letter-spacing: -.04em; }
 .step-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--green-dk); margin-bottom: 10px; }
@@ -310,7 +313,7 @@ footer { background: var(--ink); border-top: 1px solid rgba(255,255,255,.08); pa
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-inner hero-grid">
+  <div class="hero-inner hero-grid no-sample">
     <div class="hero-copy">
       <div class="eyebrow">Grants And Funders For Massachusetts Nonprofits</div>
       <h1>The Grants And Funders That <span>Fit Your Nonprofit</span></h1>
@@ -326,30 +329,8 @@ footer { background: var(--ink); border-top: 1px solid rgba(255,255,255,.08); pa
       <p class="closed-note" data-closed-note>FundBug for nonprofits is not open to new signups yet. Check back soon.</p>
       <p class="hero-price">14 days free, then $45 a month or $450 a year.</p>
     </div>
-    <!-- The product up front (NN/g: show real examples high on the page); a shorter copy of the sample below. -->
-    <div class="hero-sample">
-      <span class="sample-tag hero-sample-tag">Sample</span>
-      <div class="mail" aria-label="Sample digest entry">
-        <div class="mail-head">
-          <div class="mail-brand"><img src="/fundbug_logo.png" alt="">FundBug</div>
-          <div class="mail-kicker">Your Funding Digest</div>
-        </div>
-        <div class="mail-body">
-          <div class="mail-section-title">Funders To Know</div>
-          <div class="mail-card">
-            <div class="mail-title">Sample Family Foundation</div>
-            <div><span class="pill solid">Funder</span><span class="pill">Berkshire County, MA</span></div>
-            <div class="mail-line">Typical grant: $5,000 to $15,000</div>
-            <div class="mail-line">35% of its grants went to organizations it had not funded before</div>
-            <div class="mail-why">Its guidelines name after-school arts programs for young people in Berkshire County as a priority, the kind of work your organization does, and it often funds organizations for the first time.</div>
-            <div class="mail-links">
-              <span class="main">Funder Website →</span>
-              <span>+ Save To Tracker</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- The sample digest beside the headline is off for now (Will, Oct 15 2026: he did not like how it looked at
+         the top). The sample further down the page stays. -->
   </div>
   <div class="hero-inner">
     <div class="hero-local">
@@ -364,7 +345,7 @@ footer { background: var(--ink); border-top: 1px solid rgba(255,255,255,.08); pa
   <div class="section-inner">
     <div class="section-eyebrow">What You Get</div>
     <h2 class="section-title">A Digest, Funder Pages, And A Tracker</h2>
-    <p class="section-subtitle">Big tools for small nonprofits. Focus on your mission while FundBug finds the grants and funding partners aligned with your goals and sends them to you. No more hours searching massive databases. Includes application tracking and detailed funder pages.</p>
+    <p class="section-subtitle">Big tools for small nonprofits. Focus on your mission while FundBug finds the grants and funding partners aligned with your goals and sends them to you. No more hours searching massive databases. Includes application tracking, roadmaps and drafting support, and detailed funder pages.</p>
 
     <div class="get-grid">
       <div class="get-card">
@@ -409,7 +390,7 @@ footer { background: var(--ink); border-top: 1px solid rgba(255,255,255,.08); pa
       </div>
     </div>
 
-    <p class="portal-note">Your portal holds it all: your Matches, your Tracker, every funder page, past digests, and your Organization Profile.</p>
+    <p class="portal-note">Your portal holds it all: your Matches, your Tracker, every funder page, past digests, your Organization Profile, and your answers to the questions foundations ask most.</p>
   </div>
 </section>
 
@@ -544,6 +525,34 @@ Deadlines: March 1 and September 1 (as filed for 2024)</p>
   </div>
 </section>
 
+<!-- FROM MATCH TO SUBMITTED (Oct 15 2026, plan Phase 5): roadmaps and drafting. A fourth step, the browser
+     extension filling the funder's form, goes in when the extension is in the Chrome Web Store. -->
+<section class="how-section apply-section" id="apply">
+  <div class="section-inner">
+    <div class="section-eyebrow">Applying</div>
+    <h2 class="section-title">From Match To Submitted</h2>
+    <p class="section-subtitle">When a funder fits, FundBug helps you get the application ready.</p>
+    <div class="how-grid">
+      <div>
+        <div class="step-num">01</div>
+        <div class="step-title">See What It Takes</div>
+        <div class="step-body">For any funder or program you save, an Application Roadmap lays out the documents to gather, the key dates, how to apply and who can apply, from its guidelines and, for a foundation, the instructions in its tax filing.</div>
+      </div>
+      <div>
+        <div class="step-num">02</div>
+        <div class="step-title">Bring In The Application</div>
+        <div class="step-body">Upload it, paste its web address, or paste the text. FundBug pulls out the questions you have to write, what to attach and the dates, and you confirm them.</div>
+      </div>
+      <div>
+        <div class="step-num">03</div>
+        <div class="step-title">Draft Your Answers</div>
+        <div class="step-body">FundBug drafts each answer from your Organization Profile, with placeholders where it needs your details, or outlines it if you would rather write it yourself. Save the good ones and reuse them on the next application.</div>
+      </div>
+    </div>
+    <p class="apply-note">Roadmaps and drafts are a starting point. A funder can ask for things it has not published, so read every answer and check the funder's current instructions before you submit.</p>
+  </div>
+</section>
+
 <!-- PRICING -->
 <section class="pricing-section" id="pricing">
   <div class="centered">
@@ -611,6 +620,10 @@ Deadlines: March 1 and September 1 (as filed for 2024)</p>
       <details>
         <summary>What Happens After The Trial?</summary>
         <p>Your first 14 days are free. If you keep FundBug, your plan starts when the trial ends: $45 a month or $450 a year, whichever you chose. You add a card when you sign up, and it is not charged until the trial ends. Cancel before the trial ends and you pay nothing.</p>
+      </details>
+      <details>
+        <summary>Does FundBug Write Our Applications?</summary>
+        <p>It drafts them with you. FundBug writes first drafts of the questions foundations ask most, and of each application's own questions, from your Organization Profile, leaving a placeholder wherever it needs a detail only you know. Prefer to write in your own words? Choose outlines instead. You edit and approve everything, and FundBug never submits anything for you.</p>
       </details>
       <details>
         <summary>Does FundBug Guarantee I Will Be Funded?</summary>
