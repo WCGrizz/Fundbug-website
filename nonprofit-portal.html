@@ -405,6 +405,12 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
             <div><label for="fNy">NY Prequalified</label>
               <select id="fNy"><option value="">Not answered</option><option value="yes">Yes</option><option value="no">No</option></select></div>
           </div>
+          <div class="row acct-only">
+            <div><label for="fFounded">Year Founded</label><input id="fFounded" inputmode="numeric" maxlength="4" placeholder="1998"></div>
+            <div><label for="fStaff">Paid Staff</label><input id="fStaff" inputmode="numeric" maxlength="7" placeholder="12"></div>
+            <div><label for="fVolunteers">Volunteers</label><input id="fVolunteers" inputmode="numeric" maxlength="8" placeholder="40"></div>
+          </div>
+          <p class="src acct-only" style="font-size:14.5px;color:var(--ink)">Exact numbers. FundBug uses them when it drafts your answers and fills application forms.</p>
         </div>
 
         <div class="card">
@@ -791,7 +797,8 @@ function accountToForm(a) {
     org_name: s.business_name, ein: s.ein, website_url: s.website_url, service_regions: p.service_regions || [],
     annual_budget: p.annual_budget, tax_exempt_since: p.tax_exempt_since, has_audited_financials: p.has_audited_financials,
     ny_prequalified: p.ny_prequalified, subjects: p.subjects || [], populations: p.populations || [],
-    funding_purposes: p.funding_purposes || [], description: p.description || ''};
+    funding_purposes: p.funding_purposes || [], description: p.description || '',
+    year_founded: p.year_founded, staff_count: p.staff_count, volunteer_count: p.volunteer_count};
 }
 
 async function openApp(mode) {
@@ -841,7 +848,7 @@ function drawProfileForm() {
     saveProfile();
   }));
   document.getElementById('pcsCredit').textContent = TERMS.credit || '';
-  ['fOrgType', 'fZip', 'fState', 'fBudget', 'fSince', 'fAudit', 'fNy', 'fPending'].forEach(id =>
+  ['fOrgType', 'fZip', 'fState', 'fBudget', 'fSince', 'fAudit', 'fNy', 'fPending', 'fFounded', 'fStaff', 'fVolunteers'].forEach(id =>
     document.getElementById(id).addEventListener('change', saveProfile));
 }
 
@@ -895,6 +902,7 @@ function currentProfile() {
     org_name: document.getElementById('fOrg').value.trim(), ein: document.getElementById('fEin').value.trim(),
     website_url: document.getElementById('fWeb').value.trim(),
     description: document.getElementById('fAbout').value.trim(),
+    year_founded: num('fFounded'), staff_count: num('fStaff'), volunteer_count: num('fVolunteers'),
   };
 }
 function saveProfile() {
@@ -908,7 +916,7 @@ async function saveAccount() {
     ein: p.ein, zip_code: p.zip_code, website_url: p.website_url, annual_budget: p.annual_budget,
     tax_exempt_since: p.tax_exempt_since, has_audited_financials: p.has_audited_financials, ny_prequalified: p.ny_prequalified,
     service_regions: p.service_regions, subjects: p.subjects, populations: p.populations, funding_purposes: p.funding_purposes,
-    description: p.description};
+    description: p.description, year_founded: p.year_founded, staff_count: p.staff_count, volunteer_count: p.volunteer_count};
   const note = document.getElementById('saveNote');
   note.textContent = 'Saving…';
   try {
@@ -925,6 +933,7 @@ function fillProfile(p) {
   set('fOrgType', p.org_type || 'nonprofit_501c3'); set('fZip', p.zip_code); set('fState', p.state || '');
   set('fFirst', p.first_name); set('fLast', p.last_name); set('fOrg', p.org_name); set('fEin', p.ein); set('fWeb', p.website_url);
   set('fBudget', p.annual_budget); set('fSince', p.tax_exempt_since); set('fAbout', p.description);
+  set('fFounded', p.year_founded); set('fStaff', p.staff_count); set('fVolunteers', p.volunteer_count);
   set('fAudit', p.has_audited_financials === true ? 'yes' : p.has_audited_financials === false ? 'no' : '');
   set('fNy', p.ny_prequalified === true ? 'yes' : p.ny_prequalified === false ? 'no' : '');
   document.getElementById('fPending').checked = p.include_pending !== false;

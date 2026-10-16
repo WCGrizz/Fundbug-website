@@ -472,6 +472,8 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .pr-more{font-size:14px;font-weight:500;color:var(--green-dk);background:none;border:none;padding:0;cursor:pointer;margin-bottom:12px}
 .pr-more:hover{text-decoration:underline}
 /* Application Roadmap (added 2026-09-24) */
+.fig-note{font-size:14px;color:var(--ink);margin:6px 0 0;max-width:320px;line-height:1.5}
+.fig-note:empty{display:none}
 .pr-roadmap{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:10px;padding:18px 22px;margin-bottom:18px}
 .rm-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .rm-head h3{font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600;color:var(--ink);margin:0}
@@ -994,30 +996,17 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
               <div class="tag-count-hint" id="prof-industry-count">Select up to 3</div>
             </div>
             <div class="form-group">
-              <label>Employees</label>
-              <select id="prof-employees">
-                <option value="">Select…</option>
-                <option value="1">Just me</option>
-                <option value="2-5">2–5</option>
-                <option value="6-10">6–10</option>
-                <option value="11-25">11–25</option>
-                <option value="26-50">26–50</option>
-                <option value="50+">50+</option>
-              </select>
+              <label for="prof-employees">Number Of Employees</label>
+              <input type="text" id="prof-employees" maxlength="7" inputmode="numeric" placeholder="Including you, e.g. 4" style="max-width:220px">
+              <p class="fig-note" id="prof-employees-note"></p>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group"><label>Business ZIP code</label><input type="text" id="prof-zip" inputmode="numeric" maxlength="10" placeholder="01201" style="max-width:180px"></div>
             <div class="form-group">
-              <label>Annual revenue</label>
-              <select id="prof-revenue">
-                <option value="">Prefer not to say</option>
-                <option value="under_100k">Under $100K</option>
-                <option value="100k_500k">$100K – $500K</option>
-                <option value="500k_1m">$500K – $1M</option>
-                <option value="1m_5m">$1M – $5M</option>
-                <option value="over_5m">Over $5M</option>
-              </select>
+              <label for="prof-revenue">Annual Revenue In Dollars</label>
+              <input type="text" id="prof-revenue" inputmode="numeric" maxlength="15" placeholder="Last year's, e.g. 240000 (optional)" style="max-width:260px">
+              <p class="fig-note" id="prof-revenue-note"></p>
             </div>
           </div>
           <div class="form-group">
@@ -3892,10 +3881,10 @@ async function loadPassport(){
     setTags('prof-industry-tags', indVals);
     const indCount=document.getElementById('prof-industry-count');
     if(indCount) indCount.textContent=indVals.length?indVals.length+' of 3 selected':'Select up to 3';
-    const empReverseMap={1:'1',3:'2-5',8:'6-10',15:'11-25',35:'26-50',60:'50+'};
-    const revReverseMap={50000:'under_100k',100000:'100k_500k',500000:'500k_1m',1000000:'1m_5m',5000000:'over_5m'};
-    document.getElementById('prof-employees').value = p.employee_count!=null ? (empReverseMap[p.employee_count]||'') : '';
-    document.getElementById('prof-revenue').value = p.annual_revenue!=null ? (revReverseMap[p.annual_revenue]||'') : '';
+    // Exact numbers since Oct 15 2026 (Will: exact, not ranges). An older range pick shows as a note, never as a
+    // number in the box, and stays as it is until a number is typed.
+    setFigure('prof-employees', p.employee_count_exact, p.employee_count_range);
+    setFigure('prof-revenue', p.annual_revenue_exact, p.annual_revenue_range);
     document.getElementById('prof-yearsInBusiness').value=(p.years_in_business??'');
     document.getElementById('prof-is-startup').checked=p.is_startup||false;
     // Your story
@@ -3971,8 +3960,6 @@ async function savePassport(){
     last_name: lastName||null,
     industry: tagVals('prof-industry-tags'),
     zip_code: txt('prof-zip'),
-    employee_count: sel('prof-employees'),
-    annual_revenue: document.getElementById('prof-revenue').value||null,
     years_in_business: yr?parseInt(yr,10):null,
     is_startup: document.getElementById('prof-is-startup').checked,
     description: txt('cp-description'),
@@ -4010,8 +3997,16 @@ async function savePassport(){
   // send (empty = cleared on purpose).
   const alwaysSend=new Set(['owner_demographics','funding_purpose','certifications','industry','peak_season_months','third_party_platforms']);
   Object.keys(payload).forEach(k=>{ if(payload[k]===null&&!alwaysSend.has(k)) delete payload[k]; });
+  // The exact numbers go only when their box changed; an emptied box clears the figure on purpose.
+  for(const [id,key] of [['prof-employees','employee_count_exact'],['prof-revenue','annual_revenue_exact']]){
+    const v=figureChange(id);
+    if(v===false){ document.getElementById(id).scrollIntoView({behavior:'smooth',block:'center'}); document.getElementById(id).focus();
+      alert('Enter a whole number for '+(key==='employee_count_exact'?'Number Of Employees':'Annual Revenue')+', or leave it empty.'); return; }
+    if(v!==undefined) payload[key]=v;
+  }
   try{
     const updated=await apiFetch('/api/portal/profile','PATCH',payload);
+    ['prof-employees','prof-revenue'].forEach(id=>{ const el=document.getElementById(id); el.dataset.loaded=figureText(el.value); });
     const c=document.getElementById('cp-confirm'); c.style.display='inline'; setTimeout(()=>c.style.display='none',3000);
     clearPassportDirty();
     renderSetupCard(updated);
@@ -4161,6 +4156,22 @@ function applyScanProposals(){
     markPassportDirty();
     document.getElementById('prof-businessName').scrollIntoView({behavior:'smooth',block:'start'});
   }
+}
+// Number Of Employees and Annual Revenue (Oct 15 2026): what the box held when loaded, so only a change is sent.
+function figureText(v){ return String(v==null?'':v).replace(/[,$\s]/g,''); }
+function setFigure(id, exact, range){
+  const el=document.getElementById(id), note=document.getElementById(id+'-note');
+  el.value = exact!=null ? exact : '';
+  el.dataset.loaded = figureText(el.value);
+  note.textContent = (exact==null && range) ? 'Earlier you chose '+range+'. Enter the exact number so FundBug can match and fill applications with it.' : '';
+}
+// undefined: unchanged; null: emptied on purpose; a number; false: not a whole number.
+function figureChange(id){
+  const raw=figureText(document.getElementById(id).value);
+  if(raw===(document.getElementById(id).dataset.loaded||'')) return undefined;
+  if(raw==='') return null;
+  if(!/^\d+$/.test(raw)) return false;
+  return parseInt(raw,10);
 }
 function closeScanModal(){
   document.getElementById('scanModal').classList.remove('open');
