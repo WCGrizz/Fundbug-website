@@ -4229,6 +4229,8 @@ function drEnsureTerms(){
     const m = document.getElementById('drTermsModal');
     const ok = document.getElementById('drTermsOk'), go = document.getElementById('drTermsGo');
     document.getElementById('drTermsText').textContent = (DR_SETTINGS && DR_SETTINGS.terms_text) || '';
+    // The terms changed since this account accepted them (Oct 16 2026): say so.
+    document.getElementById('drTermsTitle').textContent = (DR_SETTINGS && DR_SETTINGS.terms_updated) ? 'We Have Updated These Terms' : 'Before FundBug Helps With Applications';
     ok.checked = false; go.disabled = true;
     ok.onchange = () => { go.disabled = !ok.checked; };
     go.onclick = async () => {
@@ -5149,7 +5151,7 @@ function renderRoadmap(r){
       }).join('')}</ul>`;
     }
     body += `<div class="rm-foot">Built ${drEsc(drWhen(r.built_at))} from ${src.length} source${src.length===1?'':'s'}.
-      Always check the program's own page before you submit.
+      Programs can change their requirements or ask for things they have not published, so always check the program's own page before you submit.
       <button class="dr-btn ghost small" onclick="buildRoadmap(this)">Rebuild</button></div>`;
   }
   box.innerHTML = `<div class="rm-head"><h3>Application Roadmap</h3>

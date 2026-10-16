@@ -39,6 +39,9 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
 .pill{font-family:'Jost',sans-serif;font-size:14px;padding:7px 13px;border:1px solid var(--border);border-radius:20px;background:var(--cream);color:var(--ink);cursor:pointer;min-height:36px}
 .pill[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+.cat{font-size:15px;padding:9px 15px;min-height:42px}
+.narrow{margin:12px 0 4px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:var(--white)}
+.narrow h3{font-size:15px;font-weight:600;margin:0 0 8px}
 details.more summary{font-size:14px;font-weight:500;color:var(--green-dk);cursor:pointer;padding:6px 0}
 details.more .pills{margin-top:8px}
 .chk{display:flex;align-items:flex-start;gap:10px;font-size:15px;margin:6px 0;cursor:pointer}
@@ -133,9 +136,11 @@ textarea:focus{border-color:var(--green);background:var(--white)}
 
     <div class="card">
       <h2>What You Work On</h2>
-      <p class="lead">Pick every subject that fits; more is better here.</p>
-      <div class="pills" id="pSubjects1"></div>
-      <details class="more"><summary>More Subjects</summary><div class="pills" id="pSubjects2"></div></details>
+      <p class="lead">Pick every area that fits; more is better here. Then narrow each one down if you like.</p>
+      <p class="note" id="catNote" hidden></p>
+      <div class="pills" id="pCats"></div>
+      <div id="pNarrow"></div>
+      <details class="more"><summary>Every Subject, In Candid's Terms</summary><div class="pills" id="pSubjects1" style="margin-top:8px"></div><div class="pills" id="pSubjects2"></div></details>
     </div>
     <div class="card">
       <h2>Who You Serve</h2>
@@ -216,11 +221,8 @@ async function showForm() {
     for (const tier of [1, 2])
       document.getElementById(base + tier).innerHTML = TERMS[field].filter(t => t.tier === tier).map(t =>
         `<button type="button" class="pill" data-field="${field}" data-code="${t.code}" aria-pressed="false" title="${escHtml(t.definition)}">${escHtml(t.label)}</button>`).join('');
-  document.querySelectorAll('.pill').forEach(b => b.addEventListener('click', () => {
-    const set = picks[b.dataset.field], on = !set.has(b.dataset.code);
-    on ? set.add(b.dataset.code) : set.delete(b.dataset.code);
-    b.setAttribute('aria-pressed', on ? 'true' : 'false');
-  }));
+  document.querySelectorAll('.pill').forEach(b => b.addEventListener('click', () => togglePick(b.dataset.field, b.dataset.code)));
+  drawCats();
   document.getElementById('pcsCredit').textContent = TERMS.credit || '';
   initStripe();
 }
@@ -245,6 +247,64 @@ function toggleWholeState() {
   drawCounties();
 }
 
+// ── Subjects in plain words (Oct 16 2026; Will, Oct 8: a plain-language category picker in our own wording, each
+// mapped to Candid's subject codes, with the IRS record's subject as a first guess). Picking a category picks its
+// codes; "narrow it down" offers the subjects inside it; the full list below stays in step.
+const CATS = [
+  {label: 'Arts And Culture', codes: ['SA000000']},
+  {label: 'Education', codes: ['SB000000']},
+  {label: 'Youth And Families', codes: ['SS050000', 'SS040000', 'SB100000']},
+  {label: 'Human Services And Basic Needs', codes: ['SS000000']},
+  {label: 'Health And Mental Health', codes: ['SE000000']},
+  {label: 'Housing', codes: ['SN040000', 'SS070000']},
+  {label: 'Food And Farming', codes: ['SM000000']},
+  {label: 'Environment And Animals', codes: ['SC000000']},
+  {label: 'Community And Economic Development', codes: ['SN000000']},
+  {label: 'Civic Life, Rights And Justice', codes: ['SR000000', 'SK000000', 'SJ040000']},
+  {label: 'Public Safety And Disaster Relief', codes: ['SJ000000']},
+  {label: 'Sports And Recreation', codes: ['SQ000000']},
+  {label: 'Media, News And Libraries', codes: ['SH000000']},
+  {label: 'Science And Technology', codes: ['SF000000']},
+  {label: 'Religion', codes: ['SP000000']},
+  {label: 'International', codes: ['ST000000']},
+  {label: 'Philanthropy And Nonprofit Support', codes: ['SD000000']},
+  {label: 'Social Sciences', codes: ['SG000000']},
+];
+function subjectTerm(code) { return (TERMS.subjects || []).find(t => t.code === code); }
+function inCat(code, cat) {
+  if (cat.codes.includes(code)) return true;
+  const t = subjectTerm(code);
+  // A subject another category names itself belongs there only (youth services light Youth And Families, not Human Services).
+  return !!(t && cat.codes.includes(t.parent) && !CATS.some(o => o !== cat && o.codes.includes(code)));
+}
+function catOn(cat) { return [...picks.subjects].some(c => inCat(c, cat)); }
+function togglePick(field, code) {
+  const set = picks[field];
+  set.has(code) ? set.delete(code) : set.add(code);
+  syncPills();
+}
+function toggleCat(i) {
+  const cat = CATS[i];
+  if (catOn(cat)) [...picks.subjects].forEach(c => { if (inCat(c, cat)) picks.subjects.delete(c); });
+  else cat.codes.forEach(c => picks.subjects.add(c));
+  syncPills();
+}
+function syncPills() {
+  document.querySelectorAll('.pill[data-code]').forEach(b => b.setAttribute('aria-pressed', picks[b.dataset.field].has(b.dataset.code) ? 'true' : 'false'));
+  drawCats();
+}
+function drawCats() {
+  if (!TERMS) return;
+  document.getElementById('pCats').innerHTML = CATS.map((c, i) =>
+    `<button type="button" class="pill cat" aria-pressed="${catOn(c)}" onclick="toggleCat(${i})">${escHtml(c.label)}</button>`).join('');
+  document.getElementById('pNarrow').innerHTML = CATS.filter(catOn).map(c => {
+    const kids = (TERMS.subjects || []).filter(t => t.tier === 2 && (c.codes.includes(t.parent) || c.codes.includes(t.code)));
+    if (!kids.length) return '';
+    return `<div class="narrow"><h3>${escHtml(c.label)}: Narrow It Down (Optional)</h3><div class="pills">${kids.map(t =>
+      `<button type="button" class="pill" aria-pressed="${picks.subjects.has(t.code)}" onclick="togglePick('subjects','${t.code}')" title="${escHtml(t.definition)}">${escHtml(t.label)}</button>`).join('')}</div></div>`;
+  }).join('');
+}
+
 // ── Prefill from the website and the EIN (Oct 5 2026): fills only what is
 // empty, never overwrites what the organization typed.
 function fillEmpty(id, value) {
@@ -259,8 +319,9 @@ function pressTerms(field, items) {
     const b = document.querySelector(`.pill[data-field="${field}"][data-code="${x.code}"]`);
     if (!b) continue;
     picks[field].add(x.code); b.setAttribute('aria-pressed', 'true'); hit = true;
-    const d = b.closest('details'); if (d) d.open = true;
+    if (field !== 'subjects') { const d = b.closest('details'); if (d) d.open = true; }
   }
+  if (hit && field === 'subjects') syncPills();
   return hit;
 }
 async function scanSite() {
@@ -300,6 +361,14 @@ async function lookupEin() {
     if (fillEmpty('zip', x.zip_code)) filled.push('ZIP code');
     if (x.annual_budget && fillEmpty('budget', String(x.annual_budget))) filled.push(`budget (your ${x.filing_year || 'latest'} expenses)`);
     if (SUBSECTION_KIND[x.subsection] && fillEmpty('orgType', SUBSECTION_KIND[x.subsection])) filled.push('kind of organization');
+    // The subject on its IRS record, as a first guess when nothing is picked yet (the organization checks it).
+    const guess = x.pcs_subject && subjectTerm(x.pcs_subject);
+    if (guess && !picks.subjects.size) {
+      picks.subjects.add(guess.code); syncPills(); filled.push('a subject');
+      const cn = document.getElementById('catNote');
+      cn.textContent = `Your IRS record lists your work as ${guess.label.toLowerCase()}, so we picked it. Add every other area that fits.`;
+      cn.hidden = false;
+    }
     note.textContent = `IRS record: ${x.name || 'found'}${x.subsection ? `, a 501(c)(${x.subsection})` : ''}${x.tax_exempt_since ? ` since ${x.tax_exempt_since}` : ''}.`
       + (filled.length ? ' Filled in: ' + filled.join(', ') + '.' : '');
     note.hidden = false;

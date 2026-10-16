@@ -58,6 +58,7 @@ function drEnsureTerms() {
   return new Promise(resolve => {
     const m = document.getElementById('drTermsModal'), ok = document.getElementById('drTermsOk'), go = document.getElementById('drTermsGo');
     document.getElementById('drTermsText').textContent = (DR_SETTINGS && DR_SETTINGS.terms_text) || '';
+    document.getElementById('drTermsTitle').textContent = (DR_SETTINGS && DR_SETTINGS.terms_updated) ? 'We Have Updated These Terms' : 'Before FundBug Helps With Applications';
     ok.checked = false; go.disabled = true;
     ok.onchange = () => { go.disabled = !ok.checked; };
     go.onclick = async () => {
