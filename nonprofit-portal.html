@@ -1121,6 +1121,10 @@ async function openListing(id) {
     const apply = [];
     if (f.accepts_unsolicited === true) apply.push('Accepts applications.');
     if (f.accepts_unsolicited === false) apply.push('Does not accept unsolicited applications' + (f.closed_reason ? ': ' + f.closed_reason : '.'));
+    // Worth knowing anyway (Will, Oct 16 2026: "if they can start to build a relationship, that is beneficial and can
+    // get you on the grant radar").
+    if (f.accepts_unsolicited === false || L.mode === 'invitation_only' || f.application_mode === 'invitation_only')
+      apply.push('By invitation: start with a relationship. Learn its priorities, follow its news, and ask its staff how it finds the organizations it funds.');
     if (f.application_mode) apply.push('How: ' + (MODES[f.application_mode] || f.application_mode) + '.');
     for (const a of f.applications || []) {
       if (a.form_and_materials) apply.push('What to send: ' + a.form_and_materials);
@@ -1135,7 +1139,11 @@ async function openListing(id) {
       [c.label ? c.label + ':' : '', c.name, c.address, c.phone, c.email].filter(Boolean).join(' '));
     for (const w of f.website_contacts || []) contacts.push(w.text);
     out.push(line('Contact', contacts.length ? '<ul>' + contacts.map(c => `<li>${escHtml(c)}</li>`).join('') + '</ul>' : ''));
-    if (f.opportunities && f.opportunities.length) out.push(line('Its Opportunities', '<ul>' + f.opportunities.map(o =>
+    // Its programs (Will, Oct 16 2026, on Kresge: "the funder profile should reference that they have many programs").
+    if (L.programs && L.programs.length) {
+      out.push(line(`Its Programs (${L.programs.length})`, '<ul>' + L.programs.map(o =>
+        `<li><a onclick="openListing('${o.id}')" style="cursor:pointer">${escHtml(o.title)}</a>: ${escHtml(o.open_as)}${o.deadline ? ', ' + escHtml(o.deadline) : ''}</li>`).join('') + '</ul>'));
+    } else if (f.opportunities && f.opportunities.length) out.push(line('Its Opportunities', '<ul>' + f.opportunities.map(o =>
       `<li><a onclick="openListing('${o.id}')" style="cursor:pointer">${escHtml(o.title)}</a>${o.deadline ? ' (deadline ' + escHtml(o.deadline) + ')' : ''}</li>`).join('') + '</ul>'));
   } else {
     const facts = [];
