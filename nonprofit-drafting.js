@@ -465,13 +465,15 @@ async function prAddCheckedFromLibrary() {
   if (!picks.length) { prStatus('Tick at least one answer to add.', true); return; }
   const btn = document.getElementById('prLibAddBtn');
   btn.disabled = true; btn.textContent = 'Adding…';
-  let added = 0;
+  let added = 0, err = null;
   try { for (const qt of picks) { await apiFetch(prBase() + '/slots', 'POST', {base_question_type: qt}); added++; } }
-  catch (e) { prStatus(e.message, true); }
+  catch (e) { err = e; }
   btn.disabled = false; btn.textContent = 'Add The Checked Answers';
   prAddClose();
-  await loadPrep(prPid);
-  if (added) prStatus(`Added ${added} ${added === 1 ? 'answer' : 'answers'}. Edit ${added === 1 ? 'it' : 'each one'} for this application, then save.`);
+  await loadPrep(prPid);   // reload first: it clears the status line
+  const done = added ? `Added ${added} ${added === 1 ? 'answer' : 'answers'}. Edit ${added === 1 ? 'it' : 'each one'} for this application, then save.` : '';
+  if (err) prStatus((done ? done + ' ' : '') + err.message, true);
+  else if (done) prStatus(done);
 }
 
 function renderSlots(slots) {

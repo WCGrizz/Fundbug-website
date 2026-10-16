@@ -4540,7 +4540,7 @@ async function saveAnswer(qt){
     drDirty.delete(qt);
     await loadDrafting();
     drStatus('Saved.');
-  }catch(e){ drStatus(e.message, true); await loadDrafting(); }
+  }catch(e){ await loadDrafting(); drStatus(e.message, true); }
 }
 
 async function regenerateAnswer(qt){
@@ -4554,10 +4554,10 @@ async function regenerateAnswer(qt){
     await loadDrafting();
     drStatus('New draft ready. Read it, edit anything, then save.');
   }catch(e){
+    await loadDrafting();
     if(e.status===409 && e.detail && e.detail.missing_for_drafting){
       drStatus('Add to your Funding Passport first: '+e.detail.missing_for_drafting.join(', ')+'.', true);
     } else drStatus(e.message, true);
-    await loadDrafting();
   }
 }
 
@@ -4569,8 +4569,8 @@ async function undoAnswer(qt){
     await loadDrafting();
     drStatus('Restored the previous version. Undo again to switch back.');
   }catch(e){
-    drStatus(e.status===404?'Nothing to undo yet.':e.message, e.status!==404);
     await loadDrafting();
+    drStatus(e.status===404?'Nothing to undo yet.':e.message, e.status!==404);
   }
 }
 
@@ -4584,7 +4584,7 @@ async function deleteAnswer(qt){
     drDirty.delete(qt);
     await loadDrafting();
     drStatus('Removed.');
-  }catch(e){ drStatus(e.message, true); await loadDrafting(); }
+  }catch(e){ await loadDrafting(); drStatus(e.message, true); }
 }
 
 function toggleAddQuestion(force){
@@ -4781,14 +4781,16 @@ async function prAddCheckedFromLibrary(){
   if(!picks.length){ prStatus('Tick at least one answer to add.', true); return; }
   const btn=document.getElementById('prLibAddBtn');
   btn.disabled=true; btn.textContent='Adding...';
-  let added=0;
+  let added=0, err=null;
   try{
     for(const qt of picks){ await apiFetch(prBase()+'/slots','POST',{base_question_type:qt}); added++; }
-  }catch(e){ prStatus(e.message, true); }
+  }catch(e){ err=e; }
   btn.disabled=false; btn.textContent='Add The Checked Answers';
   prAddClose();
-  await loadProgramDrafting(prPid);
-  if(added) prStatus(`Added ${added} ${added===1?'answer':'answers'}. Edit ${added===1?'it':'each one'} for this program, then save.`);
+  await loadProgramDrafting(prPid);   // reload first: it clears the status line
+  const done=added?`Added ${added} ${added===1?'answer':'answers'}. Edit ${added===1?'it':'each one'} for this program, then save.`:'';
+  if(err) prStatus((done?done+' ':'')+err.message, true);
+  else if(done) prStatus(done);
 }
 
 function renderSlots(slots){
@@ -4874,7 +4876,7 @@ async function saveSlot(sid){
     prDirty.delete(sid);
     await loadProgramDrafting(prPid);
     prStatus('Saved.');
-  }catch(e){ prStatus(e.message, true); await loadProgramDrafting(prPid); }
+  }catch(e){ await loadProgramDrafting(prPid); prStatus(e.message, true); }
 }
 async function adaptSlot(sid){
   if(!drConfirmReplace(prDirty.has(sid), ((prData&&prData.slots||[]).find(x=>String(x.id)===String(sid))||{}).answer_text)) return;
@@ -4886,10 +4888,10 @@ async function adaptSlot(sid){
     await loadProgramDrafting(prPid);
     prStatus(drIsOutline()?'Outlined. Use the outline to write your answer, then save.':'Drafted. Read it, edit anything, then save.');
   }catch(e){
+    await loadProgramDrafting(prPid);
     if(e.status===409 && e.detail && e.detail.missing_for_drafting){
       prStatus('Add to your Funding Passport first: '+e.detail.missing_for_drafting.join(', ')+'.', true);
     } else prStatus(e.message, true);
-    await loadProgramDrafting(prPid);
   }
 }
 async function undoSlot(sid){
@@ -4900,8 +4902,8 @@ async function undoSlot(sid){
     await loadProgramDrafting(prPid);
     prStatus('Restored the previous version. Undo again to switch back.');
   }catch(e){
-    prStatus(e.status===404?'Nothing to undo yet.':e.message, e.status!==404);
     await loadProgramDrafting(prPid);
+    prStatus(e.status===404?'Nothing to undo yet.':e.message, e.status!==404);
   }
 }
 async function deleteSlot(sid){
@@ -4912,7 +4914,7 @@ async function deleteSlot(sid){
     prDirty.delete(sid);
     await loadProgramDrafting(prPid);
     prStatus('Removed.');
-  }catch(e){ prStatus(e.message, true); await loadProgramDrafting(prPid); }
+  }catch(e){ await loadProgramDrafting(prPid); prStatus(e.message, true); }
 }
 async function promoteSlot(sid){
   // Three real choices. This used to be a confirm() where Cancel meant
@@ -4952,7 +4954,7 @@ async function doPromote(sid, mode, label){
     const r=await apiFetch(prBase()+'/slots/'+encodeURIComponent(sid)+'/promote','POST',{mode,label});
     await loadProgramDrafting(prPid);
     prStatus(r.mode==='update'?'Updated in your answers.':'Saved to your answers as a new entry.');
-  }catch(e){ prStatus(e.message, true); await loadProgramDrafting(prPid); }
+  }catch(e){ await loadProgramDrafting(prPid); prStatus(e.message, true); }
 }
 
 // ── Getting the answers out ─────────────────────────────────────────────────
