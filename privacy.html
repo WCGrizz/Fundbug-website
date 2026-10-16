@@ -56,6 +56,14 @@
     .legal-section p { font-size: 16px; font-weight: 300; color: var(--ink2); line-height: 1.8; margin-bottom: 14px; }
     .legal-section p:last-child { margin-bottom: 0; }
     .legal-section ul, .legal-section ol { padding-left: 20px; margin-bottom: 14px; }
+    .highlight-box {
+      background: var(--ink); color: var(--white);
+      border-radius: 8px; padding: 28px 32px; margin: 24px 0;
+    }
+    .highlight-box p { color: var(--cream3) !important; font-size: 14px !important; line-height: 1.7 !important; margin-bottom: 10px; }
+    .highlight-box p:last-child { margin-bottom: 0; }
+    .highlight-box strong { color: var(--white); font-weight: 600; }
+
     .legal-section li { font-size: 16px; font-weight: 300; color: var(--ink2); line-height: 1.8; margin-bottom: 6px; }
     .legal-section h3 { font-size: 16px; font-weight: 600; color: var(--ink); margin: 20px 0 8px; font-family: 'Jost', sans-serif; }
 
@@ -130,124 +138,161 @@
 <div class="page-hero">
   <div class="eyebrow">Legal</div>
   <h1>Privacy Policy</h1>
-  <p class="updated">Effective date: September 22, 2026 · FundBug LLC · Pittsfield, MA</p>
+  <p class="updated">Effective date: October 16, 2026 · FundBug LLC · Pittsfield, MA</p>
 </div>
 
 <div class="content-wrap">
+
+  <div class="highlight-box">
+    <p><strong>In plain words.</strong> FundBug makes its money from subscriptions. We do not sell your information, we do not use it for advertising, and we do not use it to train AI models. We collect what we need to match you with funding and help you prepare applications, we share it only with the companies that run the Service for us (listed below), and you can ask us to see, correct or delete it at any time.</p>
+  </div>
 
   <div class="toc">
     <h3>Contents</h3>
     <ol>
       <li><a href="#p1">What Information We Collect</a></li>
-      <li><a href="#p2">How We Use Your Information</a></li>
-      <li><a href="#p3">How We Share Your Information</a></li>
-      <li><a href="#p4">Data Retention</a></li>
-      <li><a href="#p5">Your Rights and Choices</a></li>
-      <li><a href="#p6">Security</a></li>
-      <li><a href="#p7">Age Requirement</a></li>
-      <li><a href="#p8">Changes to This Policy</a></li>
-      <li><a href="#p9">Contact</a></li>
+      <li><a href="#p2">The FundBug Browser Extension</a></li>
+      <li><a href="#p3">How We Use Your Information</a></li>
+      <li><a href="#p4">How We Share Your Information</a></li>
+      <li><a href="#p5">Public Records About Funders and Their People</a></li>
+      <li><a href="#p6">Data Retention</a></li>
+      <li><a href="#p7">Your Rights and Choices</a></li>
+      <li><a href="#p8">Security</a></li>
+      <li><a href="#p9">Age Requirement</a></li>
+      <li><a href="#p10">Changes to This Policy</a></li>
+      <li><a href="#p11">Contact</a></li>
     </ol>
   </div>
 
   <div class="legal-section" id="p1">
     <h2><span class="section-num">1.</span>What Information We Collect</h2>
-    <h3>Information you provide at signup</h3>
-    <p>When you create a FundBug account, we collect your name, email address, and business profile information including your industry, business location, number of employees, annual revenue, years in operation, business ownership characteristics (such as woman-owned or minority-owned status), and other details you provide to improve your matching results.</p>
+    <h3>Information you provide at signup and in your profile</h3>
+    <p><strong>Businesses:</strong> your name, email address, and business profile information including your industry, business location, number of employees, annual revenue, years in operation, business ownership characteristics (such as woman-owned or minority-owned status), and other details you provide to improve your matching results.</p>
+    <p><strong>Nonprofit organizations:</strong> your name and email address, and your organization's name, EIN, location, annual budget, the subjects you work on, the people you serve, what you need funding for, where you work, and details such as your year founded, staff and volunteer counts, and audited financials. At signup we may suggest some of these from your organization's public website and its public IRS records, for you to review and change.</p>
     <h3>Information entered by an advisor</h3>
-    <p>Some organizations that support small businesses, such as economic councils, chambers of commerce and small business development centers, use FundBug's advisor tools to find funding for the businesses they work with. When an advisor enters details about a business on the owner's behalf, we collect the same kinds of business profile information described above. Advisors agree to enter a business's information only with the owner's permission.</p>
+    <p>Some organizations that support small businesses and nonprofits, such as economic councils, chambers of commerce and small business development centers, use FundBug's advisor tools to find funding for the businesses and organizations they work with. When an advisor enters details on someone's behalf, we collect the same kinds of profile information described above. Advisors agree to enter information only with permission.</p>
     <h3>Sponsored memberships</h3>
-    <p>If your FundBug account is provided through an organization, such as a membership benefit, we record which organization sponsors your account so that it can be billed and so that we can report to it as described in Section 3.</p>
+    <p>If your FundBug account is provided through an organization, such as a membership benefit, we record which organization sponsors your account so that it can be billed and so that we can report to it as described in Section 4.</p>
+    <h3>Applications and answers</h3>
+    <p>When you upload an application, paste its text or give us its web address, we store the document or text, and what we read from it (its questions, attachments, dates and requirements), with your account so you can draft your answers. We also store the answers you write, edit or save, and the drafts and outlines FundBug produces for you.</p>
     <h3>Payment information</h3>
     <p>All payment processing is handled by Stripe. FundBug does not store your credit card number, CVV, or full payment card details. We receive and retain transaction records including the amount charged, billing date, and last four digits of your card for account management purposes.</p>
     <h3>Usage data</h3>
-    <p>We collect information about how you interact with FundBug, including digest delivery timestamps, email open and click events (through SendGrid), feedback signals such as thumbs-up and thumbs-down responses to programs, programs you track or star in My Tracker, application status updates you make, and Application Prep answers you save. This data is used to improve your match results, personalize future Application Prep drafts, and maintain the quality of our program database.</p>
+    <p>We collect information about how you interact with FundBug, including digest delivery timestamps, email open and click events (through SendGrid), feedback such as Good Match and Not A Fit responses and the reasons you give, the funders and programs you save or star in your Tracker, the stages and notes you record, and the answers you save. This data is used to improve your matches, personalize future drafts, and maintain the quality of our database.</p>
     <h3>Technical data</h3>
-    <p>Standard server and access logs may include your IP address, browser type, and referring URLs when you access fundbug.net. This data is used for security and operational monitoring and is not linked to your subscriber profile for marketing purposes.</p>
+    <p>Standard server and access logs may include your IP address, browser type, and referring URLs when you access fundbug.net or the Service. This data is used for security and operational monitoring and is not linked to your subscriber profile for marketing purposes. Our website loads its fonts from Google Fonts, which receives your IP address when a page loads.</p>
     <h3>Browser storage</h3>
-    <p>We use your browser's local storage (localStorage) to keep you signed in to your subscriber portal. We store an authentication token and a small profile cache (your name, email, business name, and subscription status) so the portal loads quickly and doesn't ask you to sign in on every visit. We do not use cookies, localStorage, or any similar mechanism for advertising, third-party tracking, or analytics.</p>
+    <p>We use your browser's local storage (localStorage) to keep you signed in to your portal. We store an authentication token and a small profile cache (your name, email, business or organization name, and subscription status) so the portal loads quickly and doesn't ask you to sign in on every visit. We do not use cookies, localStorage, or any similar mechanism for advertising, third-party tracking, or analytics.</p>
     <h3>Address geocoding</h3>
-    <p>If you provide a business address at signup, we send the address to the U.S. Census Bureau's public geocoding service to derive county, census tract, latitude, longitude, and HUBZone designation. We use this information to filter eligibility for location-based programs (such as HUBZone-restricted federal contracts and Opportunity Zone incentives). The Census Geocoder is a free public service operated by the U.S. federal government; we do not use any commercial geocoding provider, and your address is not sent to advertising networks.</p>
+    <p>If you provide an address or ZIP code, we send it to the U.S. Census Bureau's public geocoding service to derive county, census tract, latitude, longitude, and HUBZone designation. We use this information to match you with location-based programs and funders. The Census Geocoder is a free public service operated by the U.S. federal government; we do not use any commercial geocoding provider, and your address is not sent to advertising networks.</p>
   </div>
 
   <div class="legal-section" id="p2">
-    <h2><span class="section-num">2.</span>How We Use Your Information</h2>
-    <p>We use the information we collect to:</p>
+    <h2><span class="section-num">2.</span>The FundBug Browser Extension</h2>
+    <p>The FundBug extension for Chrome helps you complete a grant application on the funder's own website. It has one purpose: to draft answers to the application's questions and fill its fields from your FundBug profile.</p>
+    <h3>What it reads, and when</h3>
+    <p>The extension does nothing on a page until you open it there. When you do, it reads that page's address, its title and heading, and the questions and field labels of its form, so it can recognize the program and find what you need to write. It does not read what you have typed into the form. When you click Fill The Form, it checks whether each field is empty, and that check stays in the page. It does not track your browsing, read other tabs, or collect anything on pages where you do not open it.</p>
+    <h3>What it sends and receives</h3>
+    <p>It sends the page address, title, heading and form questions to FundBug, to match the page to a program and to draft your answers. If the application is for a funder or program FundBug does not yet list, we add it to your Tracker as one you added, and review its public details to consider adding it to our database. It receives your profile details and saved answers from FundBug and enters them, when you click, into the empty fields of that page. Whatever you then submit goes to the site you are on, under that site's own policies.</p>
+    <h3>What it stores</h3>
+    <p>It keeps your FundBug sign-in (a login token, your name, organization name and email) in the extension's own storage in your browser, which websites cannot read, until you disconnect it. It stores no passwords or credentials for any other site.</p>
+    <h3>Permissions</h3>
     <ul>
-      <li>Deliver and personalize your twice-a-month funding digest</li>
-      <li>Match your business profile against programs in our database</li>
-      <li>Generate AI-assisted content including match explanations, eligibility assessments, and Application Prep draft answers</li>
-      <li>Improve Application Prep drafts over time using answers you have previously saved</li>
-      <li>Power My Tracker — storing and displaying programs you are pursuing and their status</li>
-      <li>Process payments and manage your subscription</li>
-      <li>Respond to your support inquiries</li>
-      <li>Improve matching accuracy and the quality of our program database</li>
-      <li>Detect and prevent fraud or abuse</li>
+      <li><strong>Active tab and scripting:</strong> to read and fill the form on the page where you opened FundBug, and only that page.</li>
+      <li><strong>Side panel:</strong> to show FundBug beside the application.</li>
+      <li><strong>Storage:</strong> to keep you signed in.</li>
+      <li><strong>Access to a site:</strong> asked for one site at a time, only when a form needs it, and only with your approval.</li>
     </ul>
-    <p>We do not use your information for advertising purposes. We do not sell your data. We do not use your business information to solicit you on behalf of third parties.</p>
-    <h3>De-identified and aggregate information</h3>
-    <p>We may combine information from many subscribers into totals and statistics that do not identify any person or business, such as the number of businesses matched to a type of program, or trends in funding by region or industry. We may use and share this de-identified information for any lawful purpose, including reports to sponsoring organizations, research, and publications. We do not attempt to re-identify de-identified information, and we require anyone we share it with not to attempt to either.</p>
-    <p>AI-generated content (match explanations, eligibility scores, Application Prep answers) is produced by sending relevant portions of your business profile and program data to Anthropic's Claude API. Your data is processed by Anthropic solely to generate a response and is subject to Anthropic's data use policies. We do not use your data to train Anthropic's models.</p>
+    <h3>Chrome Web Store limited use</h3>
+    <p>The use of information received from the FundBug browser extension adheres to the Chrome Web Store User Data Policy, including the Limited Use requirements. In practice: we use it only to provide the extension's single purpose; we share it only as needed to provide that purpose (with the service providers in Section 4), for security, or as the law requires; we never use it for advertising, and never to decide creditworthiness or for lending; and no person reads it unless you ask us to, it is needed for security, or the law requires it.</p>
   </div>
 
   <div class="legal-section" id="p3">
-    <h2><span class="section-num">3.</span>How We Share Your Information</h2>
+    <h2><span class="section-num">3.</span>How We Use Your Information</h2>
+    <p>We use the information we collect to:</p>
+    <ul>
+      <li>Deliver and personalize your twice-a-month funding digest</li>
+      <li>Match your profile against the programs and funders in our database</li>
+      <li>Produce AI-assisted content, including match explanations, eligibility assessments, Application Roadmaps, and drafts and outlines of your answers</li>
+      <li>Read the applications you bring in or scan, and fill application forms from your profile when you ask the browser extension to</li>
+      <li>Improve your drafts over time using answers you have previously saved</li>
+      <li>Power your Tracker: storing and displaying the funders and programs you are pursuing and their status</li>
+      <li>Process payments and manage your subscription</li>
+      <li>Respond to your support inquiries</li>
+      <li>Improve matching accuracy and the quality of our database</li>
+      <li>Detect and prevent fraud or abuse</li>
+    </ul>
+    <p>We do not use your information for advertising purposes. We do not sell your data. We do not use your information to solicit you on behalf of third parties.</p>
+    <h3>AI processing</h3>
+    <p>AI-assisted content is produced by sending the relevant parts of your profile, your applications and answers, and our program and funder data to Anthropic's Claude, through Anthropic's commercial service. Anthropic processes this data to produce a response and does not use it to train its models under its commercial terms. FundBug does not use your information to train any AI model.</p>
+    <h3>De-identified and aggregate information</h3>
+    <p>We may combine information from many subscribers into totals and statistics that do not identify any person, business or organization, such as the number of organizations matched to a type of program, or trends in funding by region or subject. We may use and share this de-identified information for any lawful purpose, including reports to sponsoring organizations, research, and publications. We do not attempt to re-identify de-identified information, and we require anyone we share it with not to attempt to either.</p>
+  </div>
+
+  <div class="legal-section" id="p4">
+    <h2><span class="section-num">4.</span>How We Share Your Information</h2>
     <p>We share information only in the ways described in this section.</p>
     <h3>Service providers</h3>
     <p>We use the following service providers to operate FundBug:</p>
     <ul>
-      <li><strong>Supabase</strong> — database hosting for your subscriber profile and program data</li>
-      <li><strong>SendGrid</strong> — email delivery for your digest and transactional emails</li>
-      <li><strong>Stripe</strong> — payment processing</li>
-      <li><strong>Railway</strong> — backend application hosting</li>
-      <li><strong>Cloudflare Pages</strong> — website hosting</li>
-      <li><strong>Anthropic</strong> — AI processing for match explanations, eligibility assessments, and Application Prep drafts (subject to Anthropic's data use policies; see Section 2 for details)</li>
-      <li><strong>U.S. Census Bureau</strong> — public address geocoding service used to derive county and census tract from the address you provide (see Section 1)</li>
+      <li>Supabase: database hosting for your profile, applications, answers and our program data</li>
+      <li>Railway: backend application hosting, including the server the browser extension talks to</li>
+      <li>Cloudflare Pages: website hosting</li>
+      <li>SendGrid: email delivery for your digest and other emails</li>
+      <li>Stripe: payment processing</li>
+      <li>Anthropic: AI processing for match explanations, eligibility assessments, Application Roadmaps and drafts (see Section 3)</li>
+      <li>U.S. Census Bureau: public address geocoding (see Section 1)</li>
+      <li>Google Fonts: the fonts on our website (see Section 1)</li>
     </ul>
-    <p>Each of these providers receives only the data necessary to perform their function.</p>
+    <p>Each of these providers receives only the data necessary to perform its function.</p>
     <h3>Sponsoring organizations and advisors</h3>
-    <p>If an organization sponsors your account, we share with it totals about the sponsored accounts as a group, such as how many members have enrolled, programs matched, and applications and awards reported. We do not share your individual profile, tracker, or application answers with a sponsoring organization unless you give us permission to do so. If an advisor created your business's profile, that advisor's organization can see the profile and the programs matched to it.</p>
+    <p>If an organization sponsors your account, we share with it totals about the sponsored accounts as a group, such as how many members have enrolled, programs matched, and applications and awards reported. We do not share your individual profile, tracker, applications or answers with a sponsoring organization unless you give us permission to do so. If an advisor created your profile, that advisor's organization can see the profile and the programs matched to it.</p>
     <h3>With your consent</h3>
-    <p>We share your personal or business information with other organizations, such as a lender or program administrator you ask us to connect you with, only when you direct us to or give us permission to do so.</p>
+    <p>We share your personal, business or organization information with other organizations, such as a lender, funder or program administrator you ask us to connect you with, only when you direct us to or give us permission to do so.</p>
     <h3>Business transfers</h3>
     <p>If FundBug LLC is involved in a merger, acquisition, financing, reorganization, bankruptcy, or sale of all or part of its business or assets, subscriber information may be transferred to the successor or acquiring organization as part of that transaction, and may be reviewed by a prospective buyer or partner under a duty of confidentiality before the transaction closes. Any successor must handle your information in a way consistent with this Privacy Policy. If a successor intends to use your information in a way that differs materially from this policy, we or the successor will notify you by email beforehand, and you may ask to have your account and information deleted.</p>
     <h3>What we never do</h3>
-    <p>We do not sell, rent, or share your personal or business information with any third party for marketing or advertising purposes. A transfer as part of a business transaction described above is not a sale of your data.</p>
+    <p>We do not sell, rent, or share your personal, business or organization information with any third party for marketing or advertising purposes. A transfer as part of a business transaction described above is not a sale of your data.</p>
     <h3>Legal requirements</h3>
     <p>We may disclose information if required to do so by law, court order, or regulatory process, or if we believe disclosure is necessary to protect the rights, property, or safety of FundBug, our subscribers, or the public.</p>
   </div>
 
-  <div class="legal-section" id="p4">
-    <h2><span class="section-num">4.</span>Data Retention</h2>
-    <p>We retain your subscriber data for as long as your account is active. If you cancel your subscription, we retain your account data for a reasonable period (typically 12 months) in case you choose to reactivate, after which it may be deleted or anonymized.</p>
-    <p>Payment records are retained as required for tax and accounting compliance. Feedback signals (thumbs-up/thumbs-down), Tracker data, and Application Prep saved answers are retained to maintain the accuracy of your match preferences and to improve future drafts, even after account cancellation, unless you request deletion.</p>
-  </div>
-
   <div class="legal-section" id="p5">
-    <h2><span class="section-num">5.</span>Your Rights and Choices</h2>
-    <p>You may request access to, correction of, or deletion of your personal data at any time by emailing hello@fundbug.net. We will respond within a reasonable timeframe. This includes any profile an advisor created for your business.</p>
-    <p>You may cancel your subscription at any time through your subscriber portal. You may opt out of non-essential email communications (such as product updates) while remaining subscribed to service-essential emails (such as your digest and billing receipts).</p>
-    <p>Massachusetts residents have rights under Massachusetts law regarding their personal information. Contact us to exercise any of these rights.</p>
+    <h2><span class="section-num">5.</span>Public Records About Funders and Their People</h2>
+    <p>Our funder profiles are built from public records: the tax returns foundations and charities file with the IRS (such as Form 990-PF and Schedule I to Form 990), and funders' own websites. These records can name people, such as a foundation's officers, trustees and contacts, and the organizations that received grants. We show this information to subscribers because it is how a funder says to reach it and what it has funded. We do not combine it with other information about those people or use it for any other purpose. If you are named in a funder profile and something is wrong, or you would like it removed, write to hello@fundbug.net and we will review the request.</p>
   </div>
 
   <div class="legal-section" id="p6">
-    <h2><span class="section-num">6.</span>Security</h2>
+    <h2><span class="section-num">6.</span>Data Retention</h2>
+    <p>We retain your subscriber data for as long as your account is active. If you cancel your subscription, we retain your account data for a reasonable period (typically 12 months) in case you choose to reactivate, after which it may be deleted or anonymized. If you delete your account from your portal, or ask us to, we delete your account and the information tied to it, except what we must keep by law.</p>
+    <p>Payment records are retained as required for tax and accounting compliance. Feedback signals (such as Good Match and Not A Fit), Tracker data, saved answers and the applications you bring in are retained with your account to keep your matches and drafts accurate, even after cancellation, unless you request deletion. The browser extension's sign-in stays in your browser until you disconnect the extension or remove it.</p>
+  </div>
+
+  <div class="legal-section" id="p7">
+    <h2><span class="section-num">7.</span>Your Rights and Choices</h2>
+    <p>You may request access to, correction of, export of, or deletion of your personal data at any time by emailing hello@fundbug.net. We will respond within 30 days. This includes any profile an advisor created for your business or organization.</p>
+    <p>You may cancel your subscription at any time through your portal. You may opt out of non-essential email communications (such as product updates) while remaining subscribed to service-essential emails (such as your digest and billing receipts).</p>
+    <p>Massachusetts residents have rights under Massachusetts law regarding their personal information, and residents of other states may have rights under their own state's privacy laws. Contact us to exercise any of these rights; we will not treat you differently for doing so.</p>
+  </div>
+
+  <div class="legal-section" id="p8">
+    <h2><span class="section-num">8.</span>Security</h2>
     <p>We use industry-standard security practices to protect your data, including encrypted data storage and transmission. Access to subscriber data is restricted to authorized personnel. However, no system is completely secure, and we cannot guarantee the absolute security of your information.</p>
     <p>If you believe your account has been compromised, contact us immediately at hello@fundbug.net.</p>
   </div>
 
-  <div class="legal-section" id="p7">
-    <h2><span class="section-num">7.</span>Age Requirement</h2>
-    <p>FundBug is a business-to-business service intended for adults operating small businesses. You must be at least 18 years of age to subscribe, and we ask you to confirm this at signup. We do not knowingly collect or store information from individuals under the age of 18. If we learn that we have inadvertently collected information from a minor, we will delete it promptly.</p>
+  <div class="legal-section" id="p9">
+    <h2><span class="section-num">9.</span>Age Requirement</h2>
+    <p>FundBug is a service for businesses and organizations, intended for adults. You must be at least 18 years of age to subscribe, and we ask you to confirm this at signup. We do not knowingly collect or store information from individuals under the age of 18. If we learn that we have inadvertently collected information from a minor, we will delete it promptly.</p>
   </div>
 
-  <div class="legal-section" id="p8">
-    <h2><span class="section-num">8.</span>Changes to This Policy</h2>
+  <div class="legal-section" id="p10">
+    <h2><span class="section-num">10.</span>Changes to This Policy</h2>
     <p>We may update this Privacy Policy from time to time. When we do, we will update the effective date above. For material changes, we will notify active subscribers by email. Continued use of the Service after any update constitutes acceptance of the revised policy.</p>
   </div>
 
-  <div class="legal-section" id="p9">
-    <h2><span class="section-num">9.</span>Contact</h2>
+  <div class="legal-section" id="p11">
+    <h2><span class="section-num">11.</span>Contact</h2>
     <p>Privacy questions or data requests:</p>
     <p><strong>FundBug LLC</strong><br>
     82 Wendell Ave, Suite 100<br>
