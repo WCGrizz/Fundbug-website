@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sample Grant Application</title>
+<style>body{font-family:sans-serif;color:#1f2a1f;background:#fff;max-width:720px;margin:24px auto;padding:0 16px} label{display:block;margin-top:12px} input,select,textarea{width:100%;padding:6px;font-size:15px} textarea{height:90px}</style>
+</head>
+<body>
+<!-- A sample application for trying the FundBug extension (Oct 16 2026). A copy of fundbug-extension/tests/forms/sample_application.html,
+     without its test scripts, so the extension can draft on a page with a web address. Unlinked; noindex. -->
+<p style="background:#f3f0e8;border:1px solid #ddd6c8;border-radius:6px;padding:10px 12px;font-size:15px">A sample application for trying the FundBug browser extension. Nothing typed here is sent anywhere, and the form does not submit.</p>
+<h1>Sample Community Grant Application</h1>
+<form onsubmit="window.__submitted = true; return false;">
+  <label for="org">Organization Name *</label><input id="org" type="text">
+  <label for="ein">EIN</label><input id="ein" type="text">
+  <label for="fn">First Name</label><input id="fn" type="text">
+  <label for="ln">Last Name</label><input id="ln" type="text">
+  <label for="em">Email</label><input id="em" type="email">
+  <label for="ph">Phone</label><input id="ph" type="tel">
+  <label for="web">Website</label><input id="web" type="url">
+  <label for="st">Street Address</label><input id="st" type="text">
+  <label for="city">City</label><input id="city" type="text" value="Typed By Applicant">
+  <label for="state">State</label>
+  <select id="state"><option value="">Choose a state</option><option value="CT">Connecticut</option><option value="MA">Massachusetts</option><option value="NY">New York</option></select>
+  <label for="zip">ZIP Code</label><input id="zip" type="text">
+  <label for="yr">Year founded</label><input id="yr" type="number">
+  <label for="bud">Annual operating budget</label><input id="bud" type="text">
+  <label for="pbud">Total project budget</label><input id="pbud" type="text">
+  <label for="staff">Number of staff</label><input id="staff" type="number">
+  <label for="mission">State your mission in one sentence.</label><textarea id="mission"></textarea>
+  <label for="prog">Describe the program you are asking us to fund, who it serves, and what you hope it will achieve. (250 words)</label><textarea id="prog"></textarea>
+  <label for="pw">Password</label><input id="pw" type="password">
+  <label for="cc">Card number</label><input id="cc" type="text" autocomplete="cc-number">
+  <label for="sig">Signature (type your full name)</label><input id="sig" type="text">
+  <label><input id="cert" type="checkbox"> I certify that the information above is true</label>
+  <label for="upl">Upload your budget</label><input id="upl" type="file">
+  <button type="submit">Submit Application</button>
+</form>
+<iframe id="inner" style="width:100%;height:160px;border:1px solid #ccc;margin-top:16px" srcdoc="&lt;label for='q'&gt;Briefly describe your organization's history. (100 words)&lt;/label&gt;&lt;textarea id='q' style='width:95%;height:80px'&gt;&lt;/textarea&gt;"></iframe>
+</body>
+</html>
