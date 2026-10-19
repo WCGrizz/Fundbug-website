@@ -6,7 +6,7 @@
 <!-- An organization's private funder snapshot, linked from an outreach email (Oct 19 2026, nonprofit/np_outreach.py).
      Never indexed: each page is one organization's. -->
 <meta name="robots" content="noindex, nofollow">
-<title>Funders That Fit Your Organization | FundBug</title>
+<title>Grants And Funders For Your Organization | FundBug</title>
 <link rel="icon" type="image/png" href="/fundbug_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -61,6 +61,19 @@ function card(f) {
     + (f.site ? '<a class="site" href="' + esc(f.site) + '" target="_blank" rel="noopener">' + (filing ? 'Its Tax Filing' : 'Funder Website') + ' &rarr;</a>' : '')
     + '</div>';
 }
+function program(f) {
+  var pills = [];
+  if (f.where) pills.push(f.where);
+  if (MODES[f.mode]) pills.push(MODES[f.mode]);
+  var lines = [f.amount ? 'Amount: ' + f.amount : '', f.deadline ? 'Deadline: ' + f.deadline : '',
+               f.provided_by && String(f.title || '').toLowerCase().indexOf(String(f.provided_by).toLowerCase()) < 0 ? 'From ' + f.provided_by : ''].filter(Boolean);
+  return '<div class="card"><h2>' + esc(f.title) + '</h2>'
+    + '<div>' + pills.map(function (p) { return '<span class="pill">' + esc(p) + '</span>'; }).join('') + '</div>'
+    + lines.map(function (l) { return '<div class="line">' + esc(l) + '</div>'; }).join('')
+    + (f.description ? '<p class="desc">' + esc(short(f.description, 420)) + '</p>' : '')
+    + (f.site ? '<a class="site" href="' + esc(f.site) + '" target="_blank" rel="noopener">Program Website &rarr;</a>' : '')
+    + '</div>';
+}
 (function () {
   var t = new URLSearchParams(location.search).get('t') || '';
   var el = document.getElementById('body');
@@ -74,9 +87,11 @@ function card(f) {
     return r.json();
   }).then(function (d) {
     var where = d.county ? ' in ' + esc(d.county) : '';
-    el.innerHTML = '<h1>Funders That Fit ' + esc(d.name) + '</h1>'
-      + '<p class="lead">' + d.funders.length + ' foundations that fit your work' + where + ', from their IRS filings and their own websites. FundBug picked them the way it picks funders for a subscriber\'s digest. Check each funder\'s own guidelines before you apply.</p>'
-      + d.funders.map(card).join('')
+    var programs = d.programs || [], funders = d.funders || [];
+    el.innerHTML = '<h1>Grants And Funders For ' + esc(d.name) + '</h1>'
+      + '<p class="lead">A sample of what FundBug finds for your work' + where + ': open programs and foundations, from the funders\' own guidelines, their IRS filings and their websites, picked the way FundBug picks them for a subscriber\'s digest. Check each one\'s own guidelines before you apply.</p>'
+      + (programs.length ? '<h2 style="font-size:22px;margin:22px 0 10px">Open Programs</h2>' + programs.map(program).join('') : '')
+      + (funders.length ? '<h2 style="font-size:22px;margin:22px 0 10px">Funders To Know</h2>' + funders.map(card).join('') : '')
       + '<div class="cta"><h2>Get funders and open grants like these, every other Tuesday</h2>'
       + '<p>FundBug matches your organization to foundations and grant programs, with deadlines, how each funder takes applications, and its giving history. It also drafts application answers from your profile. 14 days free, then $45 a month.</p>'
       + '<a class="btn" href="' + signup + '">Start Your Free Trial</a></div>'
