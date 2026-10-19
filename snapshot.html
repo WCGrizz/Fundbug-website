@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- An organization's private funder snapshot, linked from an outreach email (Oct 19 2026, nonprofit/np_outreach.py).
+     Never indexed: each page is one organization's. -->
+<meta name="robots" content="noindex, nofollow">
+<title>Funders That Fit Your Organization | FundBug</title>
+<link rel="icon" type="image/png" href="/fundbug_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root { --ink: #1a1a14; --green: #5a9e52; --green-dk: #3d7a38; --cream: #f7f5f0; --cream2: #ede9e0; --border: #d8d3c8; --white: #fff; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--cream); color: var(--ink); font-family: 'Jost', sans-serif; font-size: 16px; line-height: 1.6; }
+h1, h2 { font-family: 'Fraunces', serif; line-height: 1.2; }
+.wrap { max-width: 780px; margin: 0 auto; padding: 28px 16px 48px; }
+.brand { font-family: 'Fraunces', serif; font-weight: 700; color: var(--green-dk); font-size: 22px; text-decoration: none; }
+h1 { font-size: 30px; margin: 18px 0 8px; }
+.lead { font-size: 16px; margin-bottom: 22px; }
+.card { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; margin-bottom: 14px; }
+.card h2 { font-size: 20px; margin-bottom: 6px; }
+.pill { display: inline-block; font-size: 14px; border: 1px solid var(--border); border-radius: 999px; padding: 1px 10px; margin: 0 6px 6px 0; background: var(--cream); }
+.line { font-size: 15px; margin-bottom: 6px; }
+.desc { font-size: 15px; margin: 8px 0; }
+.card a.site { font-size: 15px; font-weight: 600; color: var(--green-dk); }
+.cta { background: var(--ink); color: var(--cream); border-radius: 8px; padding: 22px 20px; margin-top: 24px; }
+.cta h2 { font-size: 22px; margin-bottom: 6px; }
+.cta p { font-size: 15px; margin-bottom: 14px; }
+.btn { display: inline-block; background: var(--green); color: var(--white); font-weight: 600; padding: 11px 20px; border-radius: 6px; text-decoration: none; }
+.btn:hover { background: var(--green-dk); }
+.note { font-size: 14px; margin-top: 22px; }
+.note a { color: var(--ink); }
+.missing { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="brand" href="https://fundbug.net/nonprofits">FundBug</a>
+  <div id="body"><p class="lead" style="margin-top:20px">Loading your snapshot...</p></div>
+</div>
+<script>
+var API = 'https://fundbug-production.up.railway.app';
+var MODES = { loi: 'Letter of Inquiry First', open_call: 'Open Application Round', rolling: 'Rolling Applications' };
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function short(t, n) { t = String(t || ''); if (t.length <= n) return t; var cut = t.slice(0, n); var dot = cut.lastIndexOf('. '); return (dot > n * 0.5 ? cut.slice(0, dot + 1) : cut.replace(/\s+\S*$/, '') + '...'); }
+function card(f) {
+  var pills = [];
+  if (f.where) pills.push(f.where);
+  pills.push(f.relationship ? 'By Invitation: Build A Relationship' : (MODES[f.mode] || ''));
+  var money = f.stated ? 'Grants: ' + f.stated + ' (its website)' : (f.typical ? 'Typical grant: ' + f.typical : '');
+  var lines = [money, f.where_gives ? f.where_gives.replace(' grant dollars ', ' grants ') : '', f.giving_line].filter(Boolean);
+  var filing = /projects\.propublica\.org/.test(f.site || '');
+  return '<div class="card"><h2>' + esc(f.title) + '</h2>'
+    + '<div>' + pills.filter(Boolean).map(function (p) { return '<span class="pill">' + esc(p) + '</span>'; }).join('') + '</div>'
+    + lines.map(function (l) { return '<div class="line">' + esc(l) + '</div>'; }).join('')
+    + (f.description ? '<p class="desc">' + esc(short(f.description, 420)) + '</p>' : '')
+    + (f.relationship ? '<p class="desc">It does not take unsolicited applications; it is worth knowing and building a relationship with.</p>' : '')
+    + (f.site ? '<a class="site" href="' + esc(f.site) + '" target="_blank" rel="noopener">' + (filing ? 'Its Tax Filing' : 'Funder Website') + ' &rarr;</a>' : '')
+    + '</div>';
+}
+(function () {
+  var t = new URLSearchParams(location.search).get('t') || '';
+  var el = document.getElementById('body');
+  var signup = '/nonprofit-signup' + (t ? '?t=' + encodeURIComponent(t) : '');
+  if (!/^[A-Za-z0-9_-]{8,40}$/.test(t)) {
+    el.innerHTML = '<div class="missing" style="margin-top:20px"><h2>This link is not complete</h2><p class="lead" style="margin:8px 0 0">Check that the whole link from the email was opened, or see what FundBug does at <a href="/nonprofits">fundbug.net/nonprofits</a>.</p></div>';
+    return;
+  }
+  fetch(API + '/api/nonprofit/snapshot/' + encodeURIComponent(t)).then(function (r) {
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  }).then(function (d) {
+    var where = d.county ? ' in ' + esc(d.county) : '';
+    el.innerHTML = '<h1>Funders That Fit ' + esc(d.name) + '</h1>'
+      + '<p class="lead">' + d.funders.length + ' foundations that fit your work' + where + ', from their IRS filings and their own websites. FundBug picked them the way it picks funders for a subscriber\'s digest. Check each funder\'s own guidelines before you apply.</p>'
+      + d.funders.map(card).join('')
+      + '<div class="cta"><h2>Get funders and open grants like these, every other Tuesday</h2>'
+      + '<p>FundBug matches your organization to foundations and grant programs, with deadlines, how each funder takes applications, and its giving history. It also drafts application answers from your profile. 14 days free, then $45 a month.</p>'
+      + '<a class="btn" href="' + signup + '">Start Your Free Trial</a></div>'
+      + '<p class="note">FundBug, funding intelligence for nonprofits, Pittsfield, Massachusetts. <a href="/nonprofits">What FundBug does</a>. Questions: reply to the email this link came in.</p>';
+  }).catch(function () {
+    el.innerHTML = '<div class="missing" style="margin-top:20px"><h2>This snapshot is not available</h2><p class="lead" style="margin:8px 0 0">The link may have expired. See what FundBug does at <a href="/nonprofits">fundbug.net/nonprofits</a>.</p></div>';
+  });
+})();
+</script>
+</body>
+</html>
