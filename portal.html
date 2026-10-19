@@ -356,6 +356,9 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .dr-btn.small{padding:7px 12px;font-size:13px;min-height:34px}
 .dr-status{font-size:15px;color:var(--ink);font-weight:400;margin:4px 0 14px;min-height:20px}
 .dr-status.err{color:#a33}
+.dr-card-msg{font-size:15px;color:var(--ink);font-weight:400;margin-top:10px}
+.dr-card-msg.is-err{color:#a33}
+.dr-card-msg a{color:var(--green-dk);font-weight:500;margin-left:4px}
 .dr-empty{text-align:center;padding:36px 20px}
 .dr-empty h3{font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:600;margin-bottom:8px;color:var(--ink)}
 .dr-empty p{font-size:15px;color:var(--ink);font-weight:400;line-height:1.6;max-width:560px;margin:0 auto 18px}
@@ -4191,6 +4194,30 @@ function drStatus(msg, isErr){
   const el=document.getElementById('drStatus'); if(!el) return;
   el.textContent=msg||''; el.className='dr-status'+(isErr?' err':'');
 }
+// A card button's error also shows under that card's buttons (Oct 16 2026):
+// the status line sits above every card, off screen when the card pressed is
+// further down. Call it after any reload, since the reload redraws the cards.
+// gate: the Funding Passport refusal, which gets the link to the Passport.
+function drCardMsg(cardId, msg, isErr, gate){
+  const card=document.getElementById(cardId); if(!card) return;
+  const old=card.querySelector('.dr-card-msg'); if(old) old.remove();
+  const box=document.createElement('div');
+  box.className='dr-card-msg'+(isErr?' is-err':'');
+  box.setAttribute('role', isErr?'alert':'status');
+  box.textContent=msg;
+  if(gate){
+    const a=document.createElement('a');
+    a.href='#'; a.textContent='Open the Passport \u2192';
+    a.onclick=()=>{ showPage('complete',document.getElementById('nav-complete')); return false; };
+    box.appendChild(a);
+  }
+  card.querySelector('.dr-foot').after(box);
+  // A frame later: the redraw grows each answer box to fit its text in the
+  // next frame, which would push the message back out of view.
+  requestAnimationFrame(()=>box.scrollIntoView({block:'nearest'}));
+}
+const drIsGate=e=>!!(e && e.status===409 && e.detail && e.detail.missing_for_drafting);
+const drGateText=e=>'Add to your Funding Passport first: '+e.detail.missing_for_drafting.join(', ')+'.';
 function drEsc(t){ return (t==null?'':String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function drWhen(iso){
   if(!iso) return '';
@@ -4534,15 +4561,15 @@ async function draftLibrary(){
 
 async function saveAnswer(qt){
   const c=drCard(qt); if(!c) return;
-  if(!c.label){ drStatus('Give the question a name.', true); return; }
-  if(!c.question){ drStatus('The question cannot be empty.', true); return; }
+  if(!c.label){ drStatus('Give the question a name.', true); drCardMsg('drc-'+qt, 'Give the question a name.', true); return; }
+  if(!c.question){ drStatus('The question cannot be empty.', true); drCardMsg('drc-'+qt, 'The question cannot be empty.', true); return; }
   drBusy(qt,'Saving...');
   try{
     await apiFetch('/api/portal/drafts/library/'+encodeURIComponent(qt),'PATCH',{label:c.label,question_text:c.question,answer_text:c.answer});
     drDirty.delete(qt);
     await loadDrafting();
     drStatus('Saved.');
-  }catch(e){ await loadDrafting(); drStatus(e.message, true); }
+  }catch(e){ await loadDrafting(); drStatus(e.message, true); drCardMsg('drc-'+qt, e.message, true); }
 }
 
 async function regenerateAnswer(qt){
@@ -4557,9 +4584,8 @@ async function regenerateAnswer(qt){
     drStatus('New draft ready. Read it, edit anything, then save.');
   }catch(e){
     await loadDrafting();
-    if(e.status===409 && e.detail && e.detail.missing_for_drafting){
-      drStatus('Add to your Funding Passport first: '+e.detail.missing_for_drafting.join(', ')+'.', true);
-    } else drStatus(e.message, true);
+    const msg=drIsGate(e)?drGateText(e):e.message;
+    drStatus(msg, true); drCardMsg('drc-'+qt, msg, true, drIsGate(e));
   }
 }
 
@@ -4586,7 +4612,7 @@ async function deleteAnswer(qt){
     drDirty.delete(qt);
     await loadDrafting();
     drStatus('Removed.');
-  }catch(e){ await loadDrafting(); drStatus(e.message, true); }
+  }catch(e){ await loadDrafting(); drStatus(e.message, true); drCardMsg('drc-'+qt, e.message, true); }
 }
 
 function toggleAddQuestion(force){
@@ -4869,8 +4895,8 @@ function prBase(){ return '/api/portal/drafts/program/'+encodeURIComponent(prPid
 
 async function saveSlot(sid){
   const f=prSlotFields(sid); if(!f) return;
-  if(!f.label){ prStatus('Give the question a name.', true); return; }
-  if(!f.question){ prStatus('The question cannot be empty.', true); return; }
+  if(!f.label){ prStatus('Give the question a name.', true); drCardMsg('prc-'+sid, 'Give the question a name.', true); return; }
+  if(!f.question){ prStatus('The question cannot be empty.', true); drCardMsg('prc-'+sid, 'The question cannot be empty.', true); return; }
   prBusy(sid,'Saving...');
   try{
     await apiFetch(prBase()+'/slots/'+encodeURIComponent(sid),'PATCH',
@@ -4878,7 +4904,7 @@ async function saveSlot(sid){
     prDirty.delete(sid);
     await loadProgramDrafting(prPid);
     prStatus('Saved.');
-  }catch(e){ await loadProgramDrafting(prPid); prStatus(e.message, true); }
+  }catch(e){ await loadProgramDrafting(prPid); prStatus(e.message, true); drCardMsg('prc-'+sid, e.message, true); }
 }
 async function adaptSlot(sid){
   if(!drConfirmReplace(prDirty.has(sid), ((prData&&prData.slots||[]).find(x=>String(x.id)===String(sid))||{}).answer_text)) return;
@@ -4891,9 +4917,8 @@ async function adaptSlot(sid){
     prStatus(drIsOutline()?'Outlined. Use the outline to write your answer, then save.':'Drafted. Read it, edit anything, then save.');
   }catch(e){
     await loadProgramDrafting(prPid);
-    if(e.status===409 && e.detail && e.detail.missing_for_drafting){
-      prStatus('Add to your Funding Passport first: '+e.detail.missing_for_drafting.join(', ')+'.', true);
-    } else prStatus(e.message, true);
+    const msg=drIsGate(e)?drGateText(e):e.message;
+    prStatus(msg, true); drCardMsg('prc-'+sid, msg, true, drIsGate(e));
   }
 }
 async function undoSlot(sid){
@@ -4916,7 +4941,7 @@ async function deleteSlot(sid){
     prDirty.delete(sid);
     await loadProgramDrafting(prPid);
     prStatus('Removed.');
-  }catch(e){ await loadProgramDrafting(prPid); prStatus(e.message, true); }
+  }catch(e){ await loadProgramDrafting(prPid); prStatus(e.message, true); drCardMsg('prc-'+sid, e.message, true); }
 }
 async function promoteSlot(sid){
   // Three real choices. This used to be a confirm() where Cancel meant
@@ -4945,7 +4970,7 @@ async function promoteSlot(sid){
     if(mode==='cancel'){ box.remove(); return; }
     if(mode==='new'){ box.querySelector('.pr-newname').style.display='block'; box.querySelector('.pr-newlabel').focus(); return; }
     const label = mode==='confirm-new' ? box.querySelector('.pr-newlabel').value.trim() : null;
-    if(mode==='confirm-new' && !label){ prStatus('Give it a name first.', true); return; }
+    if(mode==='confirm-new' && !label){ prStatus('Give it a name first.', true); drCardMsg('prc-'+sid, 'Give it a name first.', true); return; }
     box.remove();
     await doPromote(sid, mode==='update'?'update':'new', label);
   });
@@ -4956,7 +4981,7 @@ async function doPromote(sid, mode, label){
     const r=await apiFetch(prBase()+'/slots/'+encodeURIComponent(sid)+'/promote','POST',{mode,label});
     await loadProgramDrafting(prPid);
     prStatus(r.mode==='update'?'Updated in your answers.':'Saved to your answers as a new entry.');
-  }catch(e){ await loadProgramDrafting(prPid); prStatus(e.message, true); }
+  }catch(e){ await loadProgramDrafting(prPid); prStatus(e.message, true); drCardMsg('prc-'+sid, e.message, true); }
 }
 
 // ── Getting the answers out ─────────────────────────────────────────────────

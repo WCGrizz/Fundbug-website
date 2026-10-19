@@ -26,6 +26,27 @@ const drEsc = escHtml;
 
 function drStatus(msg, isErr) { const el = document.getElementById('drStatus'); el.textContent = msg || ''; el.className = 'dr-status' + (isErr ? ' err' : ''); }
 function prStatus(msg, isErr) { const el = document.getElementById('prStatus'); el.textContent = msg || ''; el.className = 'dr-status' + (isErr ? ' err' : ''); }
+// A card button's error also shows under that card's buttons (Oct 16 2026): the status line sits above every
+// card, off screen when the card pressed is further down. Call it after any reload, since the reload redraws the
+// cards. gate: the Organization Profile refusal, which gets the link to the profile.
+function drCardMsg(cardId, msg, isErr, gate) {
+  const card = document.getElementById(cardId); if (!card) return;
+  const old = card.querySelector('.dr-card-msg'); if (old) old.remove();
+  const box = document.createElement('div');
+  box.className = 'dr-card-msg' + (isErr ? ' is-err' : '');
+  box.setAttribute('role', isErr ? 'alert' : 'status');
+  box.textContent = msg;
+  if (gate) {
+    const a = document.createElement('a');
+    a.textContent = 'Open the Organization Profile';
+    a.onclick = () => showPage('profile');
+    box.appendChild(a);
+  }
+  card.querySelector('.dr-foot').after(box);
+  // A frame later: the redraw grows each answer box to fit its text in the next frame, which would push the message
+  // back out of view.
+  requestAnimationFrame(() => box.scrollIntoView({block: 'nearest'}));
+}
 function drWhen(iso) {
   if (!iso) return '';
   const d = new Date(iso); if (isNaN(d)) return '';
@@ -37,6 +58,7 @@ function drGateMessage(e) {
   if (e && e.status === 409 && d && d.missing_for_drafting) return 'Add to your Organization Profile first: ' + d.missing_for_drafting.join(', ') + '.';
   return (e && e.message) || 'Something went wrong. Try again in a moment.';
 }
+const drIsGate = e => !!(e && e.status === 409 && e.detail && e.detail.missing_for_drafting);
 function drShowTab(which) {
   const answers = which === 'answers';
   document.getElementById('drPaneAnswers').classList.toggle('active', answers);
@@ -175,7 +197,10 @@ async function drCopy(text, btn, statusFn) {
   try {
     await navigator.clipboard.writeText(text || '');
     const was = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = was; }, 1400);
-  } catch (_) { statusFn('Your browser would not let FundBug copy. Select the text and copy it yourself.', true); }
+  } catch (_) {
+    statusFn('Your browser would not let FundBug copy. Select the text and copy it yourself.', true);
+    const card = btn.closest('.dr-card'); if (card) drCardMsg(card.id, 'Your browser would not let FundBug copy. Select the text and copy it yourself.', true);
+  }
 }
 
 // ── My Answers ─────────────────────────────────────────────────────────
@@ -277,13 +302,13 @@ async function draftLibrary() {
 }
 async function saveAnswer(qt) {
   const c = drCard(qt); if (!c) return;
-  if (!c.label) { drStatus('Give the question a name.', true); return; }
-  if (!c.question) { drStatus('The question cannot be empty.', true); return; }
+  if (!c.label) { drStatus('Give the question a name.', true); drCardMsg('drc-' + qt, 'Give the question a name.', true); return; }
+  if (!c.question) { drStatus('The question cannot be empty.', true); drCardMsg('drc-' + qt, 'The question cannot be empty.', true); return; }
   drBusy(qt, 'Saving…');
   try {
     await apiFetch('/api/portal/drafts/library/' + encodeURIComponent(qt), 'PATCH', {label: c.label, question_text: c.question, answer_text: c.answer});
     drDirty.delete(qt); await loadDrafting(); drStatus('Saved.');
-  } catch (e) { await loadDrafting(); drStatus(e.message, true); }
+  } catch (e) { await loadDrafting(); drStatus(e.message, true); drCardMsg('drc-' + qt, e.message, true); }
 }
 async function regenerateAnswer(qt) {
   if (!drConfirmReplace(drDirty.has(qt), ((drData && drData.answers || []).find(a => a.question_type === qt) || {}).answer_text)) return;
@@ -293,14 +318,14 @@ async function regenerateAnswer(qt) {
     await apiFetch('/api/portal/drafts/library/' + encodeURIComponent(qt) + '/regenerate', 'POST', {});
     drDirty.delete(qt); await loadDrafting();
     drStatus(drIsOutline() ? 'Outlined. Use the outline to write your answer, then save.' : 'New draft ready. Read it, edit anything, then save.');
-  } catch (e) { await loadDrafting(); drStatus(drGateMessage(e), true); }
+  } catch (e) { await loadDrafting(); drStatus(drGateMessage(e), true); drCardMsg('drc-' + qt, drGateMessage(e), true, drIsGate(e)); }
 }
 async function deleteAnswer(qt) {
   const a = (drData && drData.answers || []).find(x => x.question_type === qt);
   if (!confirm(`Remove "${a ? a.label : 'this question'}" and its history? A standard question comes back empty the next time you draft.`)) return;
   drBusy(qt, 'Removing…');
   try { await apiFetch('/api/portal/drafts/library/' + encodeURIComponent(qt), 'DELETE'); drDirty.delete(qt); await loadDrafting(); drStatus('Removed.'); }
-  catch (e) { await loadDrafting(); drStatus(e.message, true); }
+  catch (e) { await loadDrafting(); drStatus(e.message, true); drCardMsg('drc-' + qt, e.message, true); }
 }
 function toggleAddQuestion(force) {
   const box = document.getElementById('drAdd');
@@ -556,11 +581,11 @@ function prBusy(sid, label) {
 }
 async function saveSlot(sid) {
   const f = prSlotFields(sid); if (!f) return;
-  if (!f.label) { prStatus('Give the question a name.', true); return; }
-  if (!f.question) { prStatus('The question cannot be empty.', true); return; }
+  if (!f.label) { prStatus('Give the question a name.', true); drCardMsg('prc-' + sid, 'Give the question a name.', true); return; }
+  if (!f.question) { prStatus('The question cannot be empty.', true); drCardMsg('prc-' + sid, 'The question cannot be empty.', true); return; }
   prBusy(sid, 'Saving…');
   try { await apiFetch(prBase() + '/slots/' + encodeURIComponent(sid), 'PATCH', {label: f.label, question_text: f.question, answer_text: f.answer}); prDirty.delete(sid); await loadPrep(prPid); prStatus('Saved.'); }
-  catch (e) { await loadPrep(prPid); prStatus(e.message, true); }
+  catch (e) { await loadPrep(prPid); prStatus(e.message, true); drCardMsg('prc-' + sid, e.message, true); }
 }
 async function adaptSlot(sid) {
   if (!drConfirmReplace(prDirty.has(sid), (((prData && prData.slots) || []).find(x => String(x.id) === String(sid)) || {}).answer_text)) return;
@@ -570,13 +595,13 @@ async function adaptSlot(sid) {
     await apiFetch(prBase() + '/slots/' + encodeURIComponent(sid) + '/adapt', 'POST', {});
     prDirty.delete(sid); await loadPrep(prPid);
     prStatus(drIsOutline() ? 'Outlined. Use the outline to write your answer, then save.' : 'Drafted. Read it, edit anything, then save.');
-  } catch (e) { await loadPrep(prPid); prStatus(drGateMessage(e), true); }
+  } catch (e) { await loadPrep(prPid); prStatus(drGateMessage(e), true); drCardMsg('prc-' + sid, drGateMessage(e), true, drIsGate(e)); }
 }
 async function deleteSlot(sid) {
   if (!confirm('Remove this question from this application? Your saved answers are not affected.')) return;
   prBusy(sid, 'Removing…');
   try { await apiFetch(prBase() + '/slots/' + encodeURIComponent(sid), 'DELETE'); prDirty.delete(sid); await loadPrep(prPid); prStatus('Removed.'); }
-  catch (e) { await loadPrep(prPid); prStatus(e.message, true); }
+  catch (e) { await loadPrep(prPid); prStatus(e.message, true); drCardMsg('prc-' + sid, e.message, true); }
 }
 // Three real choices, never a confirm() where Cancel means "save as new" (the business page's Sept 17 2026 lesson).
 function promoteSlot(sid) {
@@ -598,14 +623,14 @@ function promoteSlot(sid) {
     if (mode === 'cancel') { box.remove(); return; }
     if (mode === 'new') { box.querySelector('.pr-newname').style.display = 'block'; box.querySelector('.pr-newlabel').focus(); return; }
     const label = mode === 'confirm-new' ? box.querySelector('.pr-newlabel').value.trim() : null;
-    if (mode === 'confirm-new' && !label) { prStatus('Give it a name first.', true); return; }
+    if (mode === 'confirm-new' && !label) { prStatus('Give it a name first.', true); drCardMsg('prc-' + sid, 'Give it a name first.', true); return; }
     box.remove();
     prBusy(sid, 'Saving…');
     try {
       const r = await apiFetch(prBase() + '/slots/' + encodeURIComponent(sid) + '/promote', 'POST', {mode: mode === 'update' ? 'update' : 'new', label});
       await loadPrep(prPid);
       prStatus(r.mode === 'update' ? 'Updated in My Answers.' : 'Saved to My Answers as a new answer.');
-    } catch (e) { await loadPrep(prPid); prStatus(e.message, true); }
+    } catch (e) { await loadPrep(prPid); prStatus(e.message, true); drCardMsg('prc-' + sid, e.message, true); }
   });
 }
 async function draftAllSlots() {
