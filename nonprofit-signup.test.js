@@ -125,4 +125,117 @@ ok(/catch \(e\) \{ JOINED = null; document\.getElementById\('joinBad'\)\.hidden 
    /id="joinBad"[^>]*hidden><p class="lead">This join link is not valid or has expired/.test(html), 'a bad link is said plainly, and the normal signup goes on');
 ok(/JSON\.stringify\(withJoin\(body, JOINED \? JOIN : ''\)\)/.test(html), 'the form is sent with join_token after the card step, so nothing is lost');
 ok(/if \(JOINED && !compValid\) \{ err\.textContent = 'A valid code from FundBug is needed/.test(html), 'a join needs a valid code, said before any card is asked for');
-process.exit(fails ? 1 : 0);
+
+// The EIN from the website scan (Oct 19 2026, Will: "if there is any doubt at all, we should make sure they double
+// check it"). The page's prefill code runs here against a stand-in page and a stand-in API: nothing fills the EIN
+// box without the click, an EIN already typed hides the suggestion, Not Ours clears it, Use This EIN fills the box
+// and runs Fill It In From The EIN.
+const pa = html.indexOf('// ── PREFILL START'), pb = html.indexOf('// ── PREFILL END');
+ok(pa > 0 && pb > pa, 'the signup marks its prefill code');
+ok(!/fillEmpty\('ein'/.test(html), 'the scan never fills the EIN box by itself');
+ok(/<input id="ein"[^>]*oninput="if \(this\.value\.trim\(\)\) dropEinSuggestion\(\)"/.test(html), 'typing an EIN hides the suggestion');
+ok(/<div class="suggest" id="einSuggest" role="status" hidden><\/div>/.test(html) &&
+   html.indexOf('id="einSuggest"') > html.indexOf('id="ein"') && html.indexOf('id="einSuggest"') < html.indexOf('id="einNote"'),
+   'the suggestion sits under the EIN box');
+ok(/if \(ind\) dropEinSuggestion\(\);/.test(html), 'choosing Individual clears a suggestion');
+ok(/\.suggest\{[^}]*font-size:15px;color:var\(--ink\)/.test(html), 'the suggestion is 15px, in ink');
+
+function page(over) {
+  const els = {};
+  const el = id => els[id] || (els[id] = {id, value: '', hidden: false, textContent: '', innerHTML: '', disabled: false});
+  const calls = [];
+  const replies = Object.assign({
+    '/api/nonprofit/scan-website': {proposals: {name: 'Community Health Programs', ein: '999999999'}},
+    '/api/nonprofit/prefill/ein': {proposals: {name: 'COMMUNITY HEALTH PROGRAMS INC', zip_code: '01230'}},
+  }, over || {});
+  const pctx = {
+    document: {getElementById: el}, API: '', TERMS: null, picks: {subjects: new Set()}, descSource: '',
+    isIndividual: () => el('orgType').value === 'individual', subjectTerm: () => null, applyKind() {},
+    fetch: async (url, opts) => { calls.push({url, body: JSON.parse(opts.body)}); return {ok: true, json: async () => replies[url]}; },
+  };
+  vm.createContext(pctx);
+  vm.runInContext(html.match(/function escHtml\(s\) \{[^\n]*\}/)[0] + '\n' + html.slice(pa, pb), pctx);
+  el('scanUrl').value = 'chp.org';
+  return {ctx: pctx, el, calls};
+}
+const SITE = {source: 'site', choices: [{ein: '042104397', name: 'COMMUNITY HEALTH PROGRAMS INC', city: 'Great Barrington', state: 'MA'}], note: '', failed: false};
+const SEARCH = {source: 'search', note: '', failed: false, choices: [
+  {ein: '010000001', name: 'Health Group <b>One</b>', city: 'Pittsfield', state: 'MA'},
+  {ein: '010000002', name: 'Health Group Two', city: 'Lee', state: 'MA'},
+  {ein: '010000003', name: 'Health Group Three', city: null, state: 'MA'}]};
+const tick = () => new Promise(r => setTimeout(r, 0));
+
+(async () => {
+  // Nothing fills without the click, even when the site shows an EIN (and the model read one).
+  let pg = page({'/api/nonprofit/scan-website': {proposals: {name: 'Community Health Programs', ein: '999999999'}, ein_suggestion: SITE}});
+  pg.el('orgType').value = 'nonprofit_501c3';
+  await pg.ctx.scanSite(); await tick();
+  const box = pg.el('einSuggest');
+  ok(pg.el('ein').value === '' && pg.calls.length === 1 && pg.calls[0].url === '/api/nonprofit/scan-website',
+     'after the scan the EIN box is still empty and Fill It In From The EIN has not run');
+  ok(pg.calls[0].body.org_type === 'nonprofit_501c3', 'the scan sends the kind of applicant');
+  ok(!box.hidden && box.innerHTML.startsWith('<p>We found EIN 04-2104397 on your website. The IRS lists it for COMMUNITY HEALTH PROGRAMS INC, Great Barrington, MA. Is this your organization?</p>'),
+     'the site\'s EIN is shown with its IRS name and place, as a question');
+  ok(box.innerHTML.includes('onclick="useEin(0)">Use This EIN</button>') && box.innerHTML.includes('onclick="dropEinSuggestion()">Not Ours</button>'),
+     'Use This EIN and Not Ours');
+  ok(pg.el('org').value === 'Community Health Programs' && pg.el('scanNote').textContent.endsWith('We may have found your EIN; check it under the EIN box.'),
+     'the scan\'s other results fill as before, and its note points to the EIN');
+
+  // Use This EIN fills the box and runs Fill It In From The EIN.
+  pg.ctx.useEin(0); await tick(); await tick();
+  ok(pg.el('ein').value === '04-2104397' && box.hidden && box.innerHTML === '', 'Use This EIN puts it in the EIN box and clears the suggestion');
+  ok(pg.calls.length === 2 && pg.calls[1].url === '/api/nonprofit/prefill/ein' && pg.calls[1].body.ein === '04-2104397',
+     'Use This EIN runs Fill It In From The EIN with that EIN');
+  ok(pg.el('zip').value === '01230', 'which fills only the empty boxes it can');
+
+  // Not Ours clears it; nothing fills afterwards.
+  pg = page({'/api/nonprofit/scan-website': {proposals: {}, ein_suggestion: SITE}});
+  await pg.ctx.scanSite(); await tick();
+  pg.ctx.dropEinSuggestion(); pg.ctx.useEin(0); await tick();
+  ok(pg.el('einSuggest').hidden && pg.el('einSuggest').innerHTML === '' && pg.el('ein').value === '' && pg.calls.length === 1,
+     'Not Ours clears the suggestion and nothing fills');
+
+  // An EIN already typed hides the suggestion and is never replaced.
+  pg = page({'/api/nonprofit/scan-website': {proposals: {}, ein_suggestion: SITE}});
+  pg.el('ein').value = '11-1111111';
+  await pg.ctx.scanSite(); await tick();
+  ok(pg.el('einSuggest').hidden && pg.el('einSuggest').innerHTML === '', 'with an EIN already typed, the scan shows no suggestion at all');
+  pg.ctx.useEin(0); await tick();
+  ok(pg.el('einSuggest').hidden && pg.el('ein').value === '11-1111111' && pg.calls.length === 1,
+     'an EIN already typed shows no suggestion and is never replaced');
+  pg = page({'/api/nonprofit/scan-website': {proposals: {}, ein_suggestion: SITE}});
+  await pg.ctx.scanSite(); await tick();
+  pg.el('ein').value = '22-2222222'; pg.ctx.useEin(0); await tick();
+  ok(pg.el('ein').value === '22-2222222' && pg.el('einSuggest').hidden && pg.calls.length === 1,
+     'an EIN typed while the suggestion shows is kept, and the click only clears it');
+
+  // Search choices: each with name, place and EIN, escaped; None Of These.
+  pg = page({'/api/nonprofit/scan-website': {proposals: {}, ein_suggestion: SEARCH}});
+  await pg.ctx.scanSite(); await tick();
+  const h = pg.el('einSuggest').innerHTML;
+  ok(h.startsWith('<p>Is one of these your organization?</p>') && (h.match(/>Use This EIN</g) || []).length === 3 &&
+     h.includes('onclick="dropEinSuggestion()">None Of These</button>'), 'Is one of these your organization? with three choices and None Of These');
+  ok(h.includes('<b>Health Group &lt;b&gt;One&lt;/b&gt;</b>, Pittsfield, MA, EIN 01-0000001') && !h.includes('<b>One</b>'),
+     'each choice shows name, place and EIN, the name escaped');
+  ok(h.includes('<b>Health Group Three</b>, MA, EIN 01-0000003'), 'a choice with no city shows its state');
+  pg.ctx.useEin(2); await tick(); await tick();
+  ok(pg.el('ein').value === '01-0000003' && pg.calls[1].body.ein === '01-0000003', 'the chosen one, and only it, goes in');
+
+  // A failed lookup says so, offers nothing to click; an individual sees nothing.
+  pg = page({'/api/nonprofit/scan-website': {proposals: {}, ein_suggestion: {source: null, choices: [], failed: true,
+    note: 'We could not look up your EIN just now, so nothing is suggested. You can type it in and use Fill It In From The EIN.'}}});
+  await pg.ctx.scanSite(); await tick();
+  ok(!pg.el('einSuggest').hidden && pg.el('einSuggest').innerHTML.includes('could not look up your EIN just now') &&
+     !pg.el('einSuggest').innerHTML.includes('useEin') && !pg.el('scanNote').textContent.includes('EIN'),
+     'a failed lookup says the EIN could not be looked up, with nothing to click');
+  pg = page({'/api/nonprofit/scan-website': {proposals: {}, ein_suggestion: SITE}});
+  pg.el('orgType').value = 'individual';
+  await pg.ctx.scanSite(); await tick();
+  ok(pg.el('einSuggest').hidden && pg.el('einSuggest').innerHTML === '' && pg.calls[0].body.org_type === 'individual',
+     'an individual never sees an EIN suggestion');
+  ok(pg.ctx.einSuggestionHtml({source: 'site', choices: [{ein: '<script>', name: 'X'}]}, '', false) === '',
+     'a candidate whose EIN is not nine digits is never offered');
+  ok(pg.ctx.einSuggestionHtml({source: 'search', choices: [], note: 'A <i>note</i>'}, '', false) === '<p>A &lt;i&gt;note&lt;/i&gt;</p>',
+     'the note is escaped');
+  process.exit(fails ? 1 : 0);
+})();

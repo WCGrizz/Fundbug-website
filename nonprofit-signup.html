@@ -25,6 +25,11 @@
   names and email of an existing login (GET /api/nonprofit/join/<token>), keeps
   the email read-only, and sends join_token, so that login gets the nonprofit
   side under the same email.
+  Oct 19 2026 (Will: "if there is any doubt at all, we should make sure they
+  double check it"): the website scan's ein_suggestion (the EIN beside a label
+  on the site with its IRS name, or up to three IRS records by name and state)
+  shows under the EIN box; nothing fills until Use This EIN, which runs Fill It
+  In From The EIN. The scan no longer fills the EIN box by itself.
 -->
 <style>
 :root{--ink:#1a1a14;--green:#5a9e52;--green-lt:#7ab870;--green-dk:#3d7a38;--cream:#f7f5f0;--cream2:#ede9e0;--border:#d8d3c8;--white:#fff;--red:#c44b2a;--mint:#eef5ec}
@@ -83,6 +88,10 @@ input[readonly]{background:var(--cream2);cursor:default}
 .scan .note{margin:0}
 .scanrow .btn2{margin-bottom:8px}
 #einBox .note{margin-top:0}
+.suggest{background:var(--mint);border:1px solid var(--green);border-radius:8px;padding:12px 14px;margin:0 0 14px;font-size:15px;color:var(--ink)}
+.suggest p{margin:0 0 8px}
+.sugrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--border)}
+.sugbtns{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
 textarea{width:100%;padding:12px 14px;background:var(--cream);border:1px solid var(--border);border-radius:5px;font-family:'Jost',sans-serif;font-size:16px;color:var(--ink);outline:none;margin-bottom:16px;resize:vertical}
 textarea:focus{border-color:var(--green);background:var(--white)}
 #card-element{padding:13px 14px;background:var(--cream);border:1px solid var(--border);border-radius:5px;margin-bottom:8px}
@@ -141,12 +150,13 @@ textarea:focus{border-color:var(--green);background:var(--white)}
       <div class="scan">
         <label for="scanUrl">Have A Website? Let It Fill This In</label>
         <div class="scanrow"><input id="scanUrl" type="url" placeholder="https://yourorganization.org"><button type="button" class="btn2" id="scanBtn" onclick="scanSite()">Fill It In</button></div>
-        <p class="note" id="scanNote">We read your site and fill in what is empty below: your name, ZIP, a description of your work, and the subjects and people you serve. Check everything before you sign up.</p>
+        <p class="note" id="scanNote">We read your site and fill in what is empty below: your name, ZIP, a description of your work, and the subjects and people you serve. If we find your EIN, we ask you to check it before it goes in. Check everything before you sign up.</p>
       </div>
       <label for="org" id="orgLabel">Organization Name</label><input id="org" autocomplete="organization" required>
       <div id="einBox">
         <label for="ein">EIN (Optional)</label>
-        <div class="scanrow"><input id="ein" inputmode="numeric" placeholder="XX-XXXXXXX" autocomplete="off"><button type="button" class="btn2" id="einBtn" onclick="fillFromEin()">Fill It In From The EIN</button></div>
+        <div class="scanrow"><input id="ein" inputmode="numeric" placeholder="XX-XXXXXXX" autocomplete="off" oninput="if (this.value.trim()) dropEinSuggestion()"><button type="button" class="btn2" id="einBtn" onclick="fillFromEin()">Fill It In From The EIN</button></div>
+        <div class="suggest" id="einSuggest" role="status" hidden></div>
         <p class="note" id="einNote">Your EIN fills in your name, ZIP, budget and the year you became tax-exempt from your IRS record, wherever the box is empty.</p>
       </div>
       <div class="row">
@@ -325,6 +335,7 @@ function applyKind() {
   document.getElementById('einBox').hidden = ind;
   document.getElementById('sinceBox').hidden = ind;
   document.getElementById('kindNote').hidden = !ind;
+  if (ind) dropEinSuggestion();
 }
 
 // ── Where You Work ──
@@ -371,6 +382,7 @@ function drawWhere() {
 // drawPicker); this page fills Suggested For You from its prefills.
 // ── Prefill from the website and the EIN (Oct 5 2026; the EIN button Oct 19): fills only what is empty, never
 // overwrites what the organization typed, and adds what it found to Suggested For You.
+// ── PREFILL START (nonprofit-signup.test.js runs this part in node with a stand-in page) ──
 function fillEmpty(id, value) {
   const el = document.getElementById(id);
   if (value && el && !String(el.value || '').trim()) { el.value = value; return el.value === String(value); }
@@ -393,22 +405,71 @@ async function scanSite() {
   btn.disabled = true; btn.textContent = 'Reading your site…';
   note.textContent = 'This usually takes 20 to 40 seconds.';
   try {
-    const r = await fetch(API + '/api/nonprofit/scan-website', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({url})});
+    dropEinSuggestion();
+    const r = await fetch(API + '/api/nonprofit/scan-website', {method: 'POST', headers: {'Content-Type': 'application/json'},
+                                                                body: JSON.stringify({url, org_type: document.getElementById('orgType').value})});
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(data.detail || 'We could not read that website.');
     const p = data.proposals || {}, filled = [];
     if (fillEmpty('org', p.name)) filled.push('name');
     if (fillEmpty('zip', p.zip_code)) filled.push('ZIP code');
     if (fillEmpty('web', url)) filled.push('website');
-    if (!isIndividual() && fillEmpty('ein', p.ein)) { filled.push('EIN'); fillFromEin(); }
     if (fillEmpty('about', p.description)) { descSource = 'website'; filled.push('a description of your work'); }
     if (suggest('subjects', p.subjects)) filled.push('subjects');
     if (suggest('populations', p.populations)) filled.push('who you serve');
     if (suggest('funding_purposes', p.funding_purposes)) filled.push('what you need funding for');
-    note.textContent = filled.length ? 'Filled in: ' + filled.join(', ') + '. Check each one, and change anything that is not right.'
-      : 'We read your site but found nothing new to fill in.';
+    const einFound = showEinSuggestion(data.ein_suggestion);
+    note.textContent = (filled.length ? 'Filled in: ' + filled.join(', ') + '. Check each one, and change anything that is not right.'
+      : 'We read your site but found nothing new to fill in.') + (einFound ? ' We may have found your EIN; check it under the EIN box.' : '');
   } catch (e) { note.textContent = e.message; }
   finally { btn.disabled = false; btn.textContent = 'Fill It In'; }
+}
+// The EIN from the website scan (Oct 19 2026, Will: "if there is any doubt at all, we should make sure they double
+// check it"): the scan's ein_suggestion is shown under the EIN box and nothing fills until the person clicks Use This
+// EIN, which puts it in the box and runs Fill It In From The EIN (empty boxes only). An EIN already typed, or an
+// individual, shows nothing; Not Ours and None Of These clear it. Everything from the site or ProPublica is escaped.
+let EIN_SUG = null;
+function fmtEin(e) { const d = String(e || '').replace(/\D/g, '').padStart(9, '0'); return d.slice(0, 2) + '-' + d.slice(2); }
+function einChoices(sug) {
+  return ((sug && sug.choices) || []).filter(c => c && /^\d{9}$/.test(String(c.ein || '')) && c.name);
+}
+function einPlace(c) { return [c.city, c.state].filter(Boolean).join(', '); }
+function einSuggestionHtml(sug, typed, individual) {
+  if (!sug || individual || String(typed || '').trim()) return '';
+  const cands = einChoices(sug), note = sug.note ? `<p>${escHtml(sug.note)}</p>` : '';
+  if (sug.source === 'site' && cands.length === 1) {
+    const c = cands[0], place = einPlace(c);
+    return `<p>We found EIN ${fmtEin(c.ein)} on your website. The IRS lists it for ${escHtml(c.name)}${place ? ', ' + escHtml(place) : ''}. Is this your organization?</p>` +
+      note + '<div class="sugbtns"><button type="button" class="btn2" onclick="useEin(0)">Use This EIN</button>' +
+      '<button type="button" class="btn2" onclick="dropEinSuggestion()">Not Ours</button></div>';
+  }
+  if (sug.source === 'search' && cands.length) {
+    return note + '<p>Is one of these your organization?</p>' + cands.map((c, i) => {
+      const place = einPlace(c);
+      return `<div class="sugrow"><span><b>${escHtml(c.name)}</b>${place ? ', ' + escHtml(place) : ''}, EIN ${fmtEin(c.ein)}</span>` +
+        `<button type="button" class="btn2" onclick="useEin(${i})">Use This EIN</button></div>`;
+    }).join('') + '<div class="sugbtns"><button type="button" class="btn2" onclick="dropEinSuggestion()">None Of These</button></div>';
+  }
+  return note;                          // nothing to choose: only what happened (nothing found, or the lookup failed)
+}
+function showEinSuggestion(sug) {
+  const box = document.getElementById('einSuggest');
+  const html = einSuggestionHtml(sug, document.getElementById('ein').value, isIndividual());
+  EIN_SUG = html ? sug : null;
+  box.innerHTML = html; box.hidden = !html;
+  return einChoices(EIN_SUG).length > 0 && /useEin\(/.test(html);
+}
+function dropEinSuggestion() {
+  EIN_SUG = null;
+  const box = document.getElementById('einSuggest');
+  box.innerHTML = ''; box.hidden = true;
+}
+function useEin(i) {
+  const c = einChoices(EIN_SUG)[i], el = document.getElementById('ein');
+  if (!c || String(el.value || '').trim()) { dropEinSuggestion(); return; }
+  el.value = fmtEin(c.ein);
+  dropEinSuggestion();
+  fillFromEin();
 }
 async function fillFromEin() {
   const note = document.getElementById('einNote'), btn = document.getElementById('einBtn');
@@ -438,6 +499,7 @@ async function fillFromEin() {
   } catch (e) { note.textContent = e.message; }
   finally { btn.disabled = false; btn.textContent = 'Fill It In From The EIN'; }
 }
+// ── PREFILL END ──
 
 function pickPlan(p) {
   plan = p;
