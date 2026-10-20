@@ -10,7 +10,10 @@ const a = shared.indexOf('// ── CHOICE HELPERS START'), b = shared.indexOf('
 let fails = 0;
 const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
 ok(a >= 0 && b > a, 'the shared file marks its choice helpers');
-ok(/<script src="\/nonprofit-choices\.js"><\/script>\s*<script>/.test(html), 'the signup loads the shared helpers before its own script');
+// Each local script carries a version tag (Oct 19 2026: the browser kept a 4-hour-old nonprofit-drafting.js beside
+// the new page and the profile meter stuck on Loading). Change the tag whenever the script changes.
+ok([...html.matchAll(/<script src="(\/[^"]+)"/g)].every(m => /\?v=[\w-]+$/.test(m[1])), 'the signup\'s own scripts carry a version tag');
+ok(/<script src="\/nonprofit-choices\.js\?v=[\w-]+"><\/script>\s*<script>/.test(html), 'the signup loads the shared helpers before its own script');
 ok(!/function (searchTerms|narrowGroups|regionsFor|drawPicker|buildPicker)\b|const CATS\b/.test(html), 'the signup keeps no copy of its own');
 const ctx = {};
 vm.createContext(ctx);

@@ -106,7 +106,10 @@ ok(['county', 'statewide', 'several', 'national'].every(m => html.includes(`data
    'the profile offers the signup\'s four choices');
 
 // C. The pickers are the signup's, from the shared file; no Candid anywhere in the portal.
-ok(/<script src="\/nonprofit-choices\.js"><\/script>\s*<script>/.test(html), 'the portal loads the shared pickers before its own script');
+// Each local script carries a version tag (Oct 19 2026: the browser kept a 4-hour-old nonprofit-drafting.js beside
+// the new page and the profile meter stuck on Loading). Change the tag whenever the script changes.
+ok([...html.matchAll(/<script src="(\/[^"]+)"/g)].every(m => /\?v=[\w-]+$/.test(m[1])), 'the portal\'s own scripts carry a version tag');
+ok(/<script src="\/nonprofit-choices\.js\?v=[\w-]+"><\/script>\s*<script>/.test(html), 'the portal loads the shared pickers before its own script');
 ok(!/function (searchTerms|narrowGroups|regionsFor|drawPicker|buildPicker)\b|const CATS\b/.test(html), 'the portal keeps no copy of its own');
 ok(['subjects', 'populations', 'funding_purposes'].every(f => html.includes(`<div class="picker" id="pk-${f}"></div>`)), 'the three pickers have their boxes');
 ok(!/candid/i.test(html + drafting + landscape) && !/pcsCredit|TERMS\.credit/.test(html), 'no mention of Candid, and no credit line');
