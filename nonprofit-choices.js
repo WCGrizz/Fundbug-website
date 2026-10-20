@@ -169,10 +169,19 @@ function toggleCat(i) {
   else cat.codes.forEach(c => picks.subjects.add(c));
   picksChanged('subjects');
 }
-function pill(field, t, cls = '') {
-  return `<button type="button" class="pill ${cls}" data-code="${t.code}" aria-pressed="${picks[field].has(t.code)}" title="${escHtml(plainDefinition(t.definition))}">${escHtml(t.label)}</button>`;
+function pill(field, t, cls = '', label = '') {
+  return `<button type="button" class="pill ${cls}" data-code="${t.code}" aria-pressed="${picks[field].has(t.code)}" title="${escHtml(plainDefinition(t.definition))}">${escHtml(label || t.label)}</button>`;
 }
-function catPill(i) { return `<button type="button" class="pill cat" data-cat="${i}" aria-pressed="${catOn(CATS[i])}">${escHtml(CATS[i].label)}</button>`; }
+function catPill(i, label = '') { return `<button type="button" class="pill cat" data-cat="${i}" aria-pressed="${catOn(CATS[i])}">${escHtml(label || CATS[i].label)}</button>`; }
+// A group's heading in Narrow It Down, in Title Case (Will, Oct 20 2026: "the categories should be labelled"; a
+// heading that looked like one more choice did not read as a label). Capitals already in a word are kept (LGBTQIA+).
+function titleCase(s) { return String(s || '').replace(/(^|[\s\/-])([a-z])/g, (m, a, b) => a + b.toUpperCase()); }
+// One Narrow It Down group: its heading, then "All Of <the area>" (the broad choice itself), then the narrower ones.
+function groupHtml(field, g) {
+  const head = titleCase(g.label);
+  const broad = g.cat !== undefined ? catPill(g.cat, 'All Of ' + head) : g.code ? pill(field, termOf(field, g.code), 'cat', 'All Of ' + head) : '';
+  return `<div class="group"><p class="group-label">${escHtml(head)}</p><div class="pills">${broad}${g.kids.map(t => pill(field, t)).join('')}</div></div>`;
+}
 function buildPicker(field) {
   const box = document.getElementById('pk-' + field);
   box.innerHTML = `<input type="search" class="search" id="q-${field}" placeholder="${SEARCH_HINT[field]}" aria-label="Search ${FIELD_TITLE[field]}" autocomplete="off">
@@ -214,9 +223,7 @@ function drawPicker(field) {
     nb.textContent = narrowOpen[field] ? 'Hide The Narrower Choices' : 'Narrow It Down';
     nb.setAttribute('aria-expanded', narrowOpen[field] ? 'true' : 'false');
     if (narrowOpen[field]) {
-      fl.innerHTML = narrowGroups(field, terms).map(g => `<div class="group"><div class="pills">${
-        g.cat !== undefined ? catPill(g.cat) : g.code ? pill(field, termOf(field, g.code), 'cat') : `<p class="sub">${escHtml(g.label)}</p>`}</div>${
-        g.kids.length ? `<div class="pills">${g.kids.map(t => pill(field, t)).join('')}</div>` : ''}</div>`).join('');
+      fl.innerHTML = narrowGroups(field, terms).map(g => groupHtml(field, g)).join('');
       fl.hidden = false;
     }
   }
