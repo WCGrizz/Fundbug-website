@@ -170,4 +170,8 @@ ok(/subscription_status: d\.subscription_status \|\| 'trial', org_type: d\.org_t
 ok(/org_type:\s+p\.org_type \|\| 'for_profit',/.test(biz), 'portal.html keeps the profile\'s org_type when it rebuilds the session');
 ok(/const p=await apiFetch\('\/api\/portal\/profile'\);\s*\/\/[^\n]*\n[^\n]*\n\s*if \(isNonprofitAccount\(p\)\) \{/.test(biz), 'a login saved before its account joined the nonprofit side moves on');
 
+// The open-elsewhere note (Oct 20 2026): np_landscape's elsewhere_note, escaped, as a badge under the funder's name.
+ok(/\$\{f\.elsewhere_note \? '<br><span class="badge">' \+ escHtml\(f\.elsewhere_note\) \+ '<\/span>' : ''\}/.test(landscape),
+   'the landscape shows a funder\'s open-elsewhere note as a badge, escaped');
+ok(/nonprofit-landscape\.js\?v=2026-10-20/.test(html), 'the portal loads the landscape script with the new version tag');
 process.exit(fails ? 1 : 0);
