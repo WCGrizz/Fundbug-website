@@ -14,10 +14,18 @@
   Backend: POST /api/nonprofit/subscribe (nonprofit/np_api.py). Signup stays
   closed until Will sets NONPROFIT_SIGNUP_OPEN on Railway; while it is closed
   this page says so and only a comp code gets through. Unlinked; noindex.
+  Oct 19 2026 (Will): a comp code shows a banner and hides the plan and card;
+  Fill It In From The EIN (POST /api/nonprofit/prefill/ein); Where You Work as
+  county, statewide, several states or nationwide; searchable choices with
+  Suggested For You and about 12 broad ones; individuals as a kind of
+  applicant; About Your Organization up to 10,000 characters. The choice
+  helpers and pickers are in nonprofit-choices.js (shared with the
+  Organization Profile), tested in node: node nonprofit-signup.test.js
 -->
 <style>
-:root{--ink:#1a1a14;--green:#5a9e52;--green-lt:#7ab870;--green-dk:#3d7a38;--cream:#f7f5f0;--cream2:#ede9e0;--border:#d8d3c8;--white:#fff;--red:#c44b2a}
+:root{--ink:#1a1a14;--green:#5a9e52;--green-lt:#7ab870;--green-dk:#3d7a38;--cream:#f7f5f0;--cream2:#ede9e0;--border:#d8d3c8;--white:#fff;--red:#c44b2a;--mint:#eef5ec}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none !important}
 body{background:var(--cream);color:var(--ink);font-family:'Jost',sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
 a{color:var(--green-dk)}
 header{background:var(--ink);padding:0 24px;height:60px;display:flex;align-items:center;border-bottom:3px solid var(--green)}
@@ -30,33 +38,46 @@ main{max-width:760px;margin:0 auto;padding:28px 16px 60px}
 .card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:24px 26px;margin-bottom:18px}
 .card h2{font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--green-dk);margin-bottom:6px}
 .lead{font-size:15px;margin-bottom:14px}
+.banner{background:var(--mint);border:2px solid var(--green);border-radius:10px;padding:16px 20px;margin-bottom:18px;font-size:17px;font-weight:600;color:var(--ink)}
+.intro{font-size:15px;margin:0 2px 18px}
 label{display:block;font-size:14px;font-weight:500;margin-bottom:6px}
 input:not([type="checkbox"]):not([type="radio"]),select{width:100%;padding:12px 14px;background:var(--cream);border:1px solid var(--border);border-radius:5px;font-family:'Jost',sans-serif;font-size:16px;color:var(--ink);outline:none;appearance:none;-webkit-appearance:none;margin-bottom:16px;min-height:44px}
 input:focus,select:focus{border-color:var(--green);background:var(--white)}
-input[type="checkbox"],input[type="radio"]{accent-color:var(--green);width:18px;height:18px}
+input[type="checkbox"],input[type="radio"]{accent-color:var(--green);width:18px;height:18px;flex:none;margin-top:3px}
 select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235c5747' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
 .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 16px}
 .pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
-.pill{font-family:'Jost',sans-serif;font-size:14px;padding:7px 13px;border:1px solid var(--border);border-radius:20px;background:var(--cream);color:var(--ink);cursor:pointer;min-height:36px}
+.pill{font-family:'Jost',sans-serif;font-size:14px;padding:7px 13px;border:1px solid var(--border);border-radius:20px;background:var(--cream);color:var(--ink);cursor:pointer;min-height:36px;text-align:left}
 .pill[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
 .cat{font-size:15px;padding:9px 15px;min-height:42px}
-.narrow{margin:12px 0 4px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:var(--white)}
-.narrow h3{font-size:15px;font-weight:600;margin:0 0 8px}
-details.more summary{font-size:14px;font-weight:500;color:var(--green-dk);cursor:pointer;padding:6px 0}
-details.more .pills{margin-top:8px}
+.modes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.mode{font-size:15px;padding:9px 16px;min-height:44px;font-weight:500}
+.picker .search{margin-bottom:12px}
+.sub{font-size:15px;font-weight:600;margin:10px 0 8px}
+.group{margin:12px 0 4px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:var(--white)}
+.group .pills{margin-top:8px}
+.linkbtn{font-family:'Jost',sans-serif;font-size:15px;font-weight:600;color:var(--green-dk);background:none;border:none;padding:8px 0;cursor:pointer;text-decoration:underline;min-height:40px}
+.picked{font-size:15px;margin-top:10px}
 .chk{display:flex;align-items:flex-start;gap:10px;font-size:15px;margin:6px 0;cursor:pointer}
 .counties{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:2px 14px;margin:6px 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:15px;padding:4px 4px 4px 14px;border-radius:20px;background:var(--green);color:#fff}
+.chip button{font-family:'Jost',sans-serif;font-size:15px;font-weight:600;background:none;border:none;color:#fff;cursor:pointer;min-width:34px;min-height:34px;border-radius:17px}
+.chip button:hover{background:var(--green-dk)}
 .plans{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .plan{border:2px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;background:var(--cream)}
-.plan[aria-pressed="true"]{border-color:var(--green);background:#eef5ec}
+.plan[aria-pressed="true"]{border-color:var(--green);background:var(--mint)}
 .plan b{font-family:'Fraunces',serif;font-size:22px;display:block}
 .plan span{font-size:15px}
 .scan{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:18px}
-.scanrow{display:flex;gap:10px;align-items:flex-start}
-.scanrow input{margin-bottom:8px}
-.btn2{font-family:'Jost',sans-serif;font-size:15px;font-weight:600;padding:11px 16px;min-height:44px;border-radius:5px;border:1px solid var(--green-dk);background:var(--white);color:var(--green-dk);cursor:pointer;white-space:nowrap}
+.scanrow{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.scanrow input{margin-bottom:8px;flex:1 1 200px;width:auto}
+.btn2{font-family:'Jost',sans-serif;font-size:15px;font-weight:600;padding:11px 16px;min-height:44px;border-radius:5px;border:1px solid var(--green-dk);background:var(--white);color:var(--green-dk);cursor:pointer}
 .btn2:disabled{opacity:.6;cursor:default}
 .note{font-size:14.5px;color:var(--ink);margin:-8px 0 14px}
+.scan .note{margin:0}
+.scanrow .btn2{margin-bottom:8px}
+#einBox .note{margin-top:0}
 textarea{width:100%;padding:12px 14px;background:var(--cream);border:1px solid var(--border);border-radius:5px;font-family:'Jost',sans-serif;font-size:16px;color:var(--ink);outline:none;margin-bottom:16px;resize:vertical}
 textarea:focus{border-color:var(--green);background:var(--white)}
 #card-element{padding:13px 14px;background:var(--cream);border:1px solid var(--border);border-radius:5px;margin-bottom:8px}
@@ -68,17 +89,18 @@ textarea:focus{border-color:var(--green);background:var(--white)}
 .closed h2{font-family:'Fraunces',serif;font-size:24px;letter-spacing:0;text-transform:none;color:var(--ink);margin-bottom:8px}
 .done{text-align:center;padding:40px 26px}
 .done h2{font-family:'Fraunces',serif;font-size:28px;letter-spacing:0;text-transform:none;color:var(--ink);margin-bottom:10px}
-.foot{font-size:14.5px;text-align:center;margin-top:14px}
-@media (max-width:560px){.plans{grid-template-columns:1fr}.hero h1{font-size:28px}}
+@media (max-width:560px){.plans{grid-template-columns:1fr}.hero h1{font-size:28px}.card{padding:20px 16px}}
 </style>
 </head>
 <body>
 <header><a class="logo" href="/"><img src="/fundbug_logo.png" alt="">FundBug</a></header>
 <div class="hero">
   <h1>Funding For Your Nonprofit, Matched</h1>
-  <p>The foundations and grant programs your organization can actually apply to, best fit first, with how to approach each one. 14 days free, then $45 a month or $450 a year.</p>
+  <p id="heroText">The foundations and grant programs your organization can actually apply to, best fit first, with how to approach each one. 14 days free, then $45 a month or $450 a year.</p>
 </div>
 <main>
+  <div class="banner" id="compBanner" role="status" hidden></div>
+
   <div class="card closed" id="closedBox" hidden>
     <h2>Signup Opens Soon</h2>
     <p class="lead">FundBug for nonprofits is not open to new signups yet.</p>
@@ -86,6 +108,7 @@ textarea:focus{border-color:var(--green);background:var(--white)}
   </div>
 
   <form id="form" hidden onsubmit="submitSignup(event)">
+    <p class="intro">This is just what we need to get started. After signup, your Organization Profile asks a little more (staff, budget details, the answers funders ask for most), which sharpens your matches and drafts.</p>
     <div class="card">
       <h2>You</h2>
       <div class="row">
@@ -96,65 +119,86 @@ textarea:focus{border-color:var(--green);background:var(--white)}
     </div>
 
     <div class="card">
-      <h2>Your Organization</h2>
+      <h2 id="orgHead">Your Organization</h2>
+      <div class="row"><div><label for="orgType">Kind Of Applicant</label>
+        <select id="orgType" required onchange="applyKind()">
+          <option value="">Choose one</option>
+          <option value="nonprofit_501c3">501(c)(3) public charity</option>
+          <option value="fiscally_sponsored">Fiscally sponsored project</option>
+          <option value="nonprofit_501c4">501(c)(4)</option>
+          <option value="nonprofit_501c6">501(c)(6)</option>
+          <option value="nonprofit_other">Other nonprofit</option>
+          <option value="individual">Individual (artist, musician, writer)</option>
+        </select></div></div>
+      <p class="note" id="kindNote" hidden>As an individual you need no EIN and no organization. FundBug shows you the programs that say individuals may apply; there are fewer of them than for organizations.</p>
       <div class="scan">
         <label for="scanUrl">Have A Website? Let It Fill This In</label>
         <div class="scanrow"><input id="scanUrl" type="url" placeholder="https://yourorganization.org"><button type="button" class="btn2" id="scanBtn" onclick="scanSite()">Fill It In</button></div>
         <p class="note" id="scanNote">We read your site and fill in what is empty below: your name, ZIP, a description of your work, and the subjects and people you serve. Check everything before you sign up.</p>
       </div>
-      <label for="org">Organization Name</label><input id="org" autocomplete="organization" required>
-      <div class="row">
-        <div><label for="orgType">Kind Of Organization</label>
-          <select id="orgType" required>
-            <option value="">Choose one</option>
-            <option value="nonprofit_501c3">501(c)(3) public charity</option>
-            <option value="fiscally_sponsored">Fiscally sponsored project</option>
-            <option value="nonprofit_501c4">501(c)(4)</option>
-            <option value="nonprofit_501c6">501(c)(6)</option>
-            <option value="nonprofit_other">Other nonprofit</option>
-          </select></div>
-        <div><label for="ein">EIN (Optional)</label><input id="ein" inputmode="numeric" placeholder="XX-XXXXXXX" onchange="lookupEin()"></div>
+      <label for="org" id="orgLabel">Organization Name</label><input id="org" autocomplete="organization" required>
+      <div id="einBox">
+        <label for="ein">EIN (Optional)</label>
+        <div class="scanrow"><input id="ein" inputmode="numeric" placeholder="XX-XXXXXXX" autocomplete="off"><button type="button" class="btn2" id="einBtn" onclick="fillFromEin()">Fill It In From The EIN</button></div>
+        <p class="note" id="einNote">Your EIN fills in your name, ZIP, budget and the year you became tax-exempt from your IRS record, wherever the box is empty.</p>
       </div>
-      <p class="note" id="einNote" hidden></p>
       <div class="row">
         <div><label for="zip">ZIP Code</label><input id="zip" inputmode="numeric" maxlength="10" required></div>
         <div><label for="budget">Annual Budget ($)</label><input id="budget" inputmode="numeric" placeholder="300000"></div>
+        <div id="sinceBox"><label for="since">Tax-Exempt Since (Year)</label><input id="since" inputmode="numeric" maxlength="4" placeholder="1998"></div>
         <div><label for="web">Website (Optional)</label><input id="web" type="url" placeholder="https://"></div>
       </div>
-      <label for="about">About Your Organization</label>
-      <textarea id="about" rows="5" maxlength="3000" placeholder="What you do, your programs, who you serve and where" oninput="descSource = 'person'"></textarea>
-      <p class="note">A few sentences in your own words. FundBug reads them, alongside your answers below, to judge which funders and programs fit you.</p>
+      <label for="about" id="aboutLabel">About Your Organization</label>
+      <textarea id="about" rows="6" maxlength="10000" placeholder="What you do, your programs, who you serve and where" oninput="descSource = 'person'"></textarea>
+      <p class="note">A few sentences, or as much detail as you like. FundBug reads it, alongside your answers below, to judge which funders and programs fit you.</p>
     </div>
 
     <div class="card">
       <h2>Where You Work</h2>
-      <p class="lead">Every county you serve, beyond your own address, so local funders find you.</p>
-      <div class="row"><div><label for="areaState">State</label><select id="areaState" onchange="drawCounties()"></select></div></div>
-      <label class="chk"><input type="checkbox" id="wholeState" onchange="toggleWholeState()"> The whole state</label>
-      <div class="counties" id="countyBox"></div>
+      <p class="lead">Where your work reaches, so funders for those places find you.</p>
+      <div class="modes" id="modes">
+        <button type="button" class="pill mode" data-mode="county" aria-pressed="true" onclick="pickMode('county')">My County Or Towns</button>
+        <button type="button" class="pill mode" data-mode="statewide" aria-pressed="false" onclick="pickMode('statewide')">Statewide</button>
+        <button type="button" class="pill mode" data-mode="several" aria-pressed="false" onclick="pickMode('several')">Several States</button>
+        <button type="button" class="pill mode" data-mode="national" aria-pressed="false" onclick="pickMode('national')">Nationwide</button>
+      </div>
+      <div id="w-county">
+        <p class="lead">Tick every county you serve, beyond your own address.</p>
+        <div class="row"><div><label for="areaState">State</label><select id="areaState" onchange="drawCounties()"></select></div></div>
+        <div class="counties" id="countyBox"></div>
+      </div>
+      <div id="w-statewide" hidden>
+        <p class="lead">Your whole state, or more than one.</p>
+        <div class="chips" id="ch-statewide"></div>
+        <div class="row"><div><label for="add-statewide">Add A State</label><select id="add-statewide" onchange="addState('statewide', this)"></select></div></div>
+      </div>
+      <div id="w-several" hidden>
+        <p class="lead">Tick every state you work in.</p>
+        <div class="counties" id="grid-several"></div>
+      </div>
+      <div id="w-national" hidden>
+        <p class="lead">You will see nationwide programs, plus those for your home state. Add any other states you focus on, if you like.</p>
+        <div class="chips" id="ch-national"></div>
+        <div class="row"><div><label for="add-national">Add A State (Optional)</label><select id="add-national" onchange="addState('national', this)"></select></div></div>
+      </div>
     </div>
 
     <div class="card">
       <h2>What You Work On</h2>
-      <p class="lead">Pick every area that fits; more is better here. Then narrow each one down if you like.</p>
+      <p class="lead">Pick every area that fits; more is better here.</p>
       <p class="note" id="catNote" hidden></p>
-      <div class="pills" id="pCats"></div>
-      <div id="pNarrow"></div>
-      <details class="more"><summary>Every Subject, In Candid's Terms</summary><div class="pills" id="pSubjects1" style="margin-top:8px"></div><div class="pills" id="pSubjects2"></div></details>
+      <div class="picker" id="pk-subjects"></div>
     </div>
     <div class="card">
       <h2>Who You Serve</h2>
-      <div class="pills" id="pPopulations1"></div>
-      <details class="more"><summary>More Groups</summary><div class="pills" id="pPopulations2"></div></details>
+      <div class="picker" id="pk-populations"></div>
     </div>
     <div class="card">
       <h2>What You Need Funding For</h2>
-      <div class="pills" id="pPurposes1"></div>
-      <details class="more"><summary>More Kinds Of Support</summary><div class="pills" id="pPurposes2"></div></details>
-      <p class="foot" id="pcsCredit"></p>
+      <div class="picker" id="pk-funding_purposes"></div>
     </div>
 
-    <div class="card">
+    <div class="card" id="planCard">
       <h2>Your Plan</h2>
       <div class="plans" id="plans">
         <div class="plan" role="button" tabindex="0" data-plan="monthly" aria-pressed="true" onclick="pickPlan('monthly')"><b>$45</b><span>a month</span></div>
@@ -166,6 +210,10 @@ textarea:focus{border-color:var(--green);background:var(--white)}
         <div id="card-element"></div>
         <div class="err" id="card-errors"></div>
       </div>
+    </div>
+
+    <div class="card">
+      <h2>Almost Done</h2>
       <div class="row">
         <div><label for="comp">Code From FundBug (Optional)</label><input id="comp" autocomplete="off" oninput="checkComp()"><div class="err" id="compNote" style="color:var(--green-dk)"></div></div>
         <div><label for="ref">Referral Code (Optional)</label><input id="ref" autocomplete="off"></div>
@@ -184,16 +232,22 @@ textarea:focus{border-color:var(--green);background:var(--white)}
 </main>
 
 <script src="https://js.stripe.com/v3/"></script>
+<script src="/nonprofit-choices.js"></script>
 <script>
 const API = 'https://fundbug-production.up.railway.app';
 const params = new URLSearchParams(location.search);
 let TERMS = null, PLACES = null, plan = params.get('plan') === 'annual' ? 'annual' : 'monthly';
-let picks = {subjects: new Set(), populations: new Set(), funding_purposes: new Set()}, serviceRegions = [];
+let picks = {subjects: new Set(), populations: new Set(), funding_purposes: new Set()};
+let where = {mode: 'county', counties: [], statewide: ['MA'], several: [], national: []};
 let stripe = null, cardEl = null, stripeReady = false, compValid = false, compTimer = null, OPEN = false;
 let descSource = '';
+const HERO_PRICED = document.getElementById('heroText').textContent;
+const HERO_FREE = 'The foundations and grant programs your organization can actually apply to, best fit first, with how to approach each one.';
 
 function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 async function getJson(path) { const r = await fetch(API + path); if (!r.ok) throw new Error('The server answered ' + r.status); return r.json(); }
+
+// The choice helpers and the pickers are in /nonprofit-choices.js (shared with the Organization Profile, Oct 19 2026).
 
 async function start() {
   let status = {open: false};
@@ -210,118 +264,90 @@ function useCode(e) { e.preventDefault(); document.getElementById('closedBox').h
 async function showForm() {
   document.getElementById('form').hidden = false;
   pickPlan(plan);
+  enterRuns('scanUrl', scanSite); enterRuns('ein', fillFromEin);
   try { [TERMS, PLACES] = await Promise.all([getJson('/api/nonprofit/terms'), getJson('/api/nonprofit/places')]); }
   catch (e) { document.getElementById('err').textContent = 'Could not load the choices. Refresh and try again.'; return; }
-  const withCounties = PLACES.states.filter(([c]) => PLACES.counties[c]), others = PLACES.states.filter(([c]) => !PLACES.counties[c]);
-  document.getElementById('areaState').innerHTML = withCounties.map(([c, n]) => `<option value="${c}">${escHtml(n)}</option>`).join('') +
-    '<option disabled>──────────</option>' + others.map(([c, n]) => `<option value="${c}">${escHtml(n)} (whole state only)</option>`).join('');
+  const withCounties = PLACES.states.filter(([c]) => PLACES.counties[c]);
+  document.getElementById('areaState').innerHTML = withCounties.map(([c, n]) => `<option value="${c}">${escHtml(n)}</option>`).join('');
   document.getElementById('areaState').value = 'MA';
-  drawCounties();
-  for (const [field, base] of [['subjects', 'pSubjects'], ['populations', 'pPopulations'], ['funding_purposes', 'pPurposes']])
-    for (const tier of [1, 2])
-      document.getElementById(base + tier).innerHTML = TERMS[field].filter(t => t.tier === tier).map(t =>
-        `<button type="button" class="pill" data-field="${field}" data-code="${t.code}" aria-pressed="false" title="${escHtml(t.definition)}">${escHtml(t.label)}</button>`).join('');
-  document.querySelectorAll('.pill').forEach(b => b.addEventListener('click', () => togglePick(b.dataset.field, b.dataset.code)));
-  drawCats();
-  document.getElementById('pcsCredit').textContent = TERMS.credit || '';
+  drawCounties(); drawWhere();
+  for (const field of Object.keys(picks)) { buildPicker(field); drawPicker(field); }
   initStripe();
 }
+function enterRuns(id, fn) {
+  document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); fn(); } });
+}
 
+// ── Kind of applicant (Oct 19 2026: an individual needs no EIN and no organization name) ──
+function isIndividual() { return document.getElementById('orgType').value === 'individual'; }
+function applyKind() {
+  const ind = isIndividual();
+  document.getElementById('orgHead').textContent = ind ? 'You And Your Work' : 'Your Organization';
+  document.getElementById('orgLabel').textContent = ind ? 'Name You Work Under (Optional)' : 'Organization Name';
+  document.getElementById('org').required = !ind;
+  document.getElementById('aboutLabel').textContent = ind ? 'About Your Work' : 'About Your Organization';
+  document.getElementById('einBox').hidden = ind;
+  document.getElementById('sinceBox').hidden = ind;
+  document.getElementById('kindNote').hidden = !ind;
+}
+
+// ── Where You Work ──
+function stateName(code) { const s = (PLACES && PLACES.states || []).find(([c]) => c === code); return s ? s[1] : code; }
+function pickMode(m) {
+  where.mode = m;
+  document.querySelectorAll('#modes .mode').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m ? 'true' : 'false'));
+  for (const k of ['county', 'statewide', 'several', 'national']) document.getElementById('w-' + k).hidden = k !== m;
+  drawWhere();
+}
 function drawCounties() {
   const st = document.getElementById('areaState').value, list = PLACES.counties[st] || [];
-  const whole = serviceRegions.some(r => r.type === 'state' && r.value === st);
-  document.getElementById('wholeState').checked = whole;
   document.getElementById('countyBox').innerHTML = list.map(c => {
-    const on = serviceRegions.some(r => r.type === 'county' && r.fips === c.fips);
-    return `<label class="chk"><input type="checkbox" data-fips="${c.fips}" ${on ? 'checked' : ''} ${whole ? 'disabled' : ''} onchange="toggleCounty(this,'${st}')"> ${escHtml(c.name)}</label>`;
-  }).join('') || '<p class="lead">No county list for this state yet; tick the whole state.</p>';
+    const on = where.counties.some(r => r.fips === c.fips);
+    return `<label class="chk"><input type="checkbox" data-fips="${c.fips}" ${on ? 'checked' : ''} onchange="toggleCounty(this,'${st}')"> ${escHtml(c.name)}</label>`;
+  }).join('') || '<p class="lead">No county list for this state yet; choose Statewide instead.</p>';
 }
 function toggleCounty(el, st) {
-  serviceRegions = serviceRegions.filter(r => !(r.type === 'county' && r.fips === el.dataset.fips));
-  if (el.checked) serviceRegions.push({type: 'county', state: st, fips: el.dataset.fips});
+  where.counties = where.counties.filter(r => r.fips !== el.dataset.fips);
+  if (el.checked) where.counties.push({state: st, fips: el.dataset.fips});
 }
-function toggleWholeState() {
-  const st = document.getElementById('areaState').value, on = document.getElementById('wholeState').checked;
-  serviceRegions = serviceRegions.filter(r => !(r.type === 'state' && r.value === st) && !(on && r.type === 'county' && r.state === st));
-  if (on) serviceRegions.push({type: 'state', value: st});
-  drawCounties();
+function addState(key, sel) {
+  if (sel.value && !where[key].includes(sel.value)) where[key].push(sel.value);
+  sel.value = ''; drawWhere();
 }
-
-// ── Subjects in plain words (Oct 16 2026; Will, Oct 8: a plain-language category picker in our own wording, each
-// mapped to Candid's subject codes, with the IRS record's subject as a first guess). Picking a category picks its
-// codes; "narrow it down" offers the subjects inside it; the full list below stays in step.
-const CATS = [
-  {label: 'Arts And Culture', codes: ['SA000000']},
-  {label: 'Education', codes: ['SB000000']},
-  {label: 'Youth And Families', codes: ['SS050000', 'SS040000', 'SB100000']},
-  {label: 'Human Services And Basic Needs', codes: ['SS000000']},
-  {label: 'Health And Mental Health', codes: ['SE000000']},
-  {label: 'Housing', codes: ['SN040000', 'SS070000']},
-  {label: 'Food And Farming', codes: ['SM000000']},
-  {label: 'Environment And Animals', codes: ['SC000000']},
-  {label: 'Community And Economic Development', codes: ['SN000000']},
-  {label: 'Civic Life, Rights And Justice', codes: ['SR000000', 'SK000000', 'SJ040000']},
-  {label: 'Public Safety And Disaster Relief', codes: ['SJ000000']},
-  {label: 'Sports And Recreation', codes: ['SQ000000']},
-  {label: 'Media, News And Libraries', codes: ['SH000000']},
-  {label: 'Science And Technology', codes: ['SF000000']},
-  {label: 'Religion', codes: ['SP000000']},
-  {label: 'International', codes: ['ST000000']},
-  {label: 'Philanthropy And Nonprofit Support', codes: ['SD000000']},
-  {label: 'Social Sciences', codes: ['SG000000']},
-];
-function subjectTerm(code) { return (TERMS.subjects || []).find(t => t.code === code); }
-function inCat(code, cat) {
-  if (cat.codes.includes(code)) return true;
-  const t = subjectTerm(code);
-  // A subject another category names itself belongs there only (youth services light Youth And Families, not Human Services).
-  return !!(t && cat.codes.includes(t.parent) && !CATS.some(o => o !== cat && o.codes.includes(code)));
+function removeState(key, code) { where[key] = where[key].filter(s => s !== code); drawWhere(); }
+function toggleSeveral(el) {
+  where.several = where.several.filter(s => s !== el.value);
+  if (el.checked) where.several.push(el.value);
 }
-function catOn(cat) { return [...picks.subjects].some(c => inCat(c, cat)); }
-function togglePick(field, code) {
-  const set = picks[field];
-  set.has(code) ? set.delete(code) : set.add(code);
-  syncPills();
-}
-function toggleCat(i) {
-  const cat = CATS[i];
-  if (catOn(cat)) [...picks.subjects].forEach(c => { if (inCat(c, cat)) picks.subjects.delete(c); });
-  else cat.codes.forEach(c => picks.subjects.add(c));
-  syncPills();
-}
-function syncPills() {
-  document.querySelectorAll('.pill[data-code]').forEach(b => b.setAttribute('aria-pressed', picks[b.dataset.field].has(b.dataset.code) ? 'true' : 'false'));
-  drawCats();
-}
-function drawCats() {
-  if (!TERMS) return;
-  document.getElementById('pCats').innerHTML = CATS.map((c, i) =>
-    `<button type="button" class="pill cat" aria-pressed="${catOn(c)}" onclick="toggleCat(${i})">${escHtml(c.label)}</button>`).join('');
-  document.getElementById('pNarrow').innerHTML = CATS.filter(catOn).map(c => {
-    const kids = (TERMS.subjects || []).filter(t => t.tier === 2 && (c.codes.includes(t.parent) || c.codes.includes(t.code)));
-    if (!kids.length) return '';
-    return `<div class="narrow"><h3>${escHtml(c.label)}: Narrow It Down (Optional)</h3><div class="pills">${kids.map(t =>
-      `<button type="button" class="pill" aria-pressed="${picks.subjects.has(t.code)}" onclick="togglePick('subjects','${t.code}')" title="${escHtml(t.definition)}">${escHtml(t.label)}</button>`).join('')}</div></div>`;
-  }).join('');
+function drawWhere() {
+  if (!PLACES) return;
+  for (const key of ['statewide', 'national']) {
+    document.getElementById('ch-' + key).innerHTML = where[key].map(s =>
+      `<span class="chip">${escHtml(stateName(s))}<button type="button" aria-label="Remove ${escHtml(stateName(s))}" onclick="removeState('${key}','${s}')">&times;</button></span>`).join('');
+    document.getElementById('add-' + key).innerHTML = '<option value="">Choose a state</option>' +
+      PLACES.states.filter(([c]) => !where[key].includes(c)).map(([c, n]) => `<option value="${c}">${escHtml(n)}</option>`).join('');
+  }
+  document.getElementById('grid-several').innerHTML = PLACES.states.map(([c, n]) =>
+    `<label class="chk"><input type="checkbox" value="${c}" ${where.several.includes(c) ? 'checked' : ''} onchange="toggleSeveral(this)"> ${escHtml(n)}</label>`).join('');
 }
 
-// ── Prefill from the website and the EIN (Oct 5 2026): fills only what is
-// empty, never overwrites what the organization typed.
+// ── Subjects, Who You Serve, What You Need Funding For: the pickers are in /nonprofit-choices.js (buildPicker,
+// drawPicker); this page fills Suggested For You from its prefills.
+// ── Prefill from the website and the EIN (Oct 5 2026; the EIN button Oct 19): fills only what is empty, never
+// overwrites what the organization typed, and adds what it found to Suggested For You.
 function fillEmpty(id, value) {
   const el = document.getElementById(id);
-  if (value && el && !String(el.value || '').trim()) { el.value = value; return true; }
+  if (value && el && !String(el.value || '').trim()) { el.value = value; return el.value === String(value); }
   return false;
 }
-function pressTerms(field, items) {
-  if (!items || !items.length || picks[field].size) return false;
+function suggest(field, items) {
+  if (!TERMS) return false;
+  const offered = new Set(termsOf(field).map(t => t.code));
+  suggested[field] = addSuggestions(suggested[field], items, offered);
   let hit = false;
-  for (const x of items) {
-    const b = document.querySelector(`.pill[data-field="${field}"][data-code="${x.code}"]`);
-    if (!b) continue;
-    picks[field].add(x.code); b.setAttribute('aria-pressed', 'true'); hit = true;
-    if (field !== 'subjects') { const d = b.closest('details'); if (d) d.open = true; }
-  }
-  if (hit && field === 'subjects') syncPills();
+  if (!picks[field].size)
+    for (const x of items || []) { const c = x && x.code; if (c && offered.has(c)) { picks[field].add(c); hit = true; } }
+  drawPicker(field);
   return hit;
 }
 async function scanSite() {
@@ -338,41 +364,43 @@ async function scanSite() {
     if (fillEmpty('org', p.name)) filled.push('name');
     if (fillEmpty('zip', p.zip_code)) filled.push('ZIP code');
     if (fillEmpty('web', url)) filled.push('website');
-    if (fillEmpty('ein', p.ein)) { filled.push('EIN'); lookupEin(); }
+    if (!isIndividual() && fillEmpty('ein', p.ein)) { filled.push('EIN'); fillFromEin(); }
     if (fillEmpty('about', p.description)) { descSource = 'website'; filled.push('a description of your work'); }
-    if (pressTerms('subjects', p.subjects)) filled.push('subjects');
-    if (pressTerms('populations', p.populations)) filled.push('who you serve');
-    if (pressTerms('funding_purposes', p.funding_purposes)) filled.push('what you need funding for');
+    if (suggest('subjects', p.subjects)) filled.push('subjects');
+    if (suggest('populations', p.populations)) filled.push('who you serve');
+    if (suggest('funding_purposes', p.funding_purposes)) filled.push('what you need funding for');
     note.textContent = filled.length ? 'Filled in: ' + filled.join(', ') + '. Check each one, and change anything that is not right.'
       : 'We read your site but found nothing new to fill in.';
   } catch (e) { note.textContent = e.message; }
   finally { btn.disabled = false; btn.textContent = 'Fill It In'; }
 }
-const SUBSECTION_KIND = {3: 'nonprofit_501c3', 4: 'nonprofit_501c4', 6: 'nonprofit_501c6'};
-async function lookupEin() {
-  const note = document.getElementById('einNote'), ein = document.getElementById('ein').value.replace(/[^0-9]/g, '');
-  if (ein.length !== 9) { note.hidden = true; return; }
+async function fillFromEin() {
+  const note = document.getElementById('einNote'), btn = document.getElementById('einBtn');
+  const ein = document.getElementById('ein').value.trim();
+  if (!/^\d{2}[- ]?\d{7}$/.test(ein)) { note.textContent = 'An EIN has nine digits (XX-XXXXXXX). Nothing was filled in.'; return; }
+  btn.disabled = true; btn.textContent = 'Looking it up…';
   try {
-    const r = await fetch(API + '/api/nonprofit/irs-lookup', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ein})});
+    const r = await fetch(API + '/api/nonprofit/prefill/ein', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ein})});
     const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data.detail || 'We found no IRS record for that EIN.');
-    const x = data.irs || {}, filled = [];
-    if (fillEmpty('org', x.name)) filled.push('name');
-    if (fillEmpty('zip', x.zip_code)) filled.push('ZIP code');
-    if (x.annual_budget && fillEmpty('budget', String(x.annual_budget))) filled.push(`budget (your ${x.filing_year || 'latest'} expenses)`);
-    if (SUBSECTION_KIND[x.subsection] && fillEmpty('orgType', SUBSECTION_KIND[x.subsection])) filled.push('kind of organization');
-    // The subject on its IRS record, as a first guess when nothing is picked yet (the organization checks it).
-    const guess = x.pcs_subject && subjectTerm(x.pcs_subject);
-    if (guess && !picks.subjects.size) {
-      picks.subjects.add(guess.code); syncPills(); filled.push('a subject');
+    if (!r.ok || !data.proposals) throw new Error(data.detail || 'We could not look up that EIN, so nothing was filled in.');
+    const p = data.proposals, filled = [];
+    if (fillEmpty('org', p.name)) filled.push('name');
+    if (fillEmpty('zip', p.zip_code)) filled.push('ZIP code');
+    if (p.annual_budget != null && fillEmpty('budget', String(p.annual_budget))) filled.push(`budget (your ${p.filing_year || 'latest'} expenses)`);
+    if (p.tax_exempt_since && fillEmpty('since', String(p.tax_exempt_since))) filled.push('tax-exempt since');
+    if (p.org_type && fillEmpty('orgType', p.org_type)) { filled.push('kind of applicant'); applyKind(); }
+    const guess = (p.subjects || [])[0] && subjectTerm(p.subjects[0].code);
+    const hadNone = !picks.subjects.size;
+    suggest('subjects', p.subjects);
+    if (guess && hadNone) {
+      filled.push('a first guess at your subject');
       const cn = document.getElementById('catNote');
       cn.textContent = `Your IRS record lists your work as ${guess.label.toLowerCase()}, so we picked it. Add every other area that fits.`;
       cn.hidden = false;
     }
-    note.textContent = `IRS record: ${x.name || 'found'}${x.subsection ? `, a 501(c)(${x.subsection})` : ''}${x.tax_exempt_since ? ` since ${x.tax_exempt_since}` : ''}.`
-      + (filled.length ? ' Filled in: ' + filled.join(', ') + '.' : '');
-    note.hidden = false;
-  } catch (e) { note.textContent = e.message; note.hidden = false; }
+    note.textContent = `IRS record: ${p.name || 'found'}.` + (filled.length ? ' Filled in: ' + filled.join(', ') + '. Check each one.' : ' Nothing new to fill in.');
+  } catch (e) { note.textContent = e.message; }
+  finally { btn.disabled = false; btn.textContent = 'Fill It In From The EIN'; }
 }
 
 function pickPlan(p) {
@@ -390,6 +418,14 @@ async function initStripe() {
     stripeReady = true;
   } catch (e) { document.getElementById('card-errors').textContent = 'Could not load the payment field. Refresh and try again.'; }
 }
+function showComp(code) {
+  // A valid code (Will, Oct 19 2026): a banner at the top, and no plan, price or card anywhere on the page.
+  const banner = document.getElementById('compBanner');
+  banner.textContent = compValid ? `Your FundBug access is free (code ${code.toUpperCase()}). No card needed.` : '';
+  banner.hidden = !compValid;
+  document.getElementById('planCard').hidden = compValid;
+  document.getElementById('heroText').textContent = compValid ? HERO_FREE : HERO_PRICED;
+}
 function checkComp() {
   clearTimeout(compTimer);
   compTimer = setTimeout(async () => {
@@ -397,7 +433,7 @@ function checkComp() {
     compValid = false;
     if (code) { try { compValid = !!(await getJson('/api/comp-code/' + encodeURIComponent(code))).valid; } catch (e) {} }
     document.getElementById('compNote').textContent = code ? (compValid ? 'Code accepted: no card needed.' : 'That code is not one we know.') : '';
-    document.getElementById('payBox').hidden = compValid;
+    showComp(code);
     document.getElementById('go').textContent = compValid ? 'Create My Account' : 'Start My Free Trial';
   }, 350);
 }
@@ -406,15 +442,21 @@ async function submitSignup(e) {
   e.preventDefault();
   const err = document.getElementById('err'), btn = document.getElementById('go');
   err.textContent = '';
-  if (!picks.subjects.size) { err.textContent = 'Pick at least one subject your organization works on.'; return; }
+  const ind = isIndividual();
+  if (!picks.subjects.size) { err.textContent = 'Pick at least one subject you work on.'; return; }
+  const whereProblem = regionsProblem(where);
+  if (whereProblem) { err.textContent = whereProblem; return; }
   if (!OPEN && !compValid) { err.textContent = 'Signup is not open yet; a code from FundBug is needed.'; return; }
   const budget = document.getElementById('budget').value.replace(/[^0-9]/g, '');
+  const since = ind ? '' : document.getElementById('since').value.trim();
+  if (since && !/^(19|20)\d\d$/.test(since)) { err.textContent = 'Tax-exempt since must be a four-digit year.'; return; }
   const body = {
     email: document.getElementById('email').value.trim(), first_name: document.getElementById('first').value.trim(),
     last_name: document.getElementById('last').value.trim(), org_name: document.getElementById('org').value.trim(),
-    org_type: document.getElementById('orgType').value, ein: document.getElementById('ein').value.trim(),
+    org_type: document.getElementById('orgType').value, ein: ind ? '' : document.getElementById('ein').value.trim(),
     zip_code: document.getElementById('zip').value.trim(), website_url: document.getElementById('web').value.trim(),
-    annual_budget: budget ? parseInt(budget, 10) : null, service_regions: serviceRegions,
+    annual_budget: budget ? parseInt(budget, 10) : null, tax_exempt_since: since ? parseInt(since, 10) : null,
+    service_regions: regionsFor(where),
     subjects: [...picks.subjects], populations: [...picks.populations], funding_purposes: [...picks.funding_purposes],
     plan, comp_code: document.getElementById('comp').value.trim() || null, referral_code: document.getElementById('ref').value.trim() || null,
     acquisition_source: params.get('src') || params.get('utm_source') || (params.get('t') ? 'outreach' : null),
@@ -436,6 +478,7 @@ async function submitSignup(e) {
     if (r.status === 402) { document.getElementById('card-errors').textContent = data.detail || 'Your card was declined.'; throw new Error('Please check your card.'); }
     if (!r.ok) throw new Error(data.detail || 'Signup failed. Please try again.');
     document.getElementById('form').hidden = true;
+    document.getElementById('compBanner').hidden = true;
     document.getElementById('doneBox').hidden = false;
     window.scrollTo(0, 0);
   } catch (ex) {

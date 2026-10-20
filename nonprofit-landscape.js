@@ -27,6 +27,9 @@ async function loadLandscape() {
 function setLandView(v) { if (v === LAND_VIEW) return; LAND_VIEW = v; LAND = null; loadLandscape(); }
 function setLandSubject(code) { LAND_SUBJECT = code; LAND_SHOWN = 25; drawLandscape(); }
 function pct(n, d) { return d ? Math.round(100 * n / d) + '%' : ''; }
+// The funder's name to show (Oct 19 2026): the backend's display_name (its Funder listing's title, else the filed
+// name cleaned: nonprofit/np_landscape.display_name), the filed name for a file built before it.
+function landName(f) { return f.display_name || f.name || ''; }
 
 function drawLandscape(keepFocus) {
   const L = LAND; if (!L) return;
@@ -40,7 +43,7 @@ function drawLandscape(keepFocus) {
     .filter(f => f.shown > 0)
     .sort((a, b) => b.shown - a.shown);
   const q = LAND_Q;
-  const list = q ? funders.filter(f => f.name.toLowerCase().includes(q.toLowerCase())) : funders;
+  const list = q ? funders.filter(f => landName(f).toLowerCase().includes(q.toLowerCase()) || f.name.toLowerCase().includes(q.toLowerCase())) : funders;
   const grantees = L.grantees.filter(g => !subj || g.subject === subj).slice(0, 25);
   const maxSubj = Math.max(1, ...L.subjects.map(s => s.dollars));
   const h = [];
@@ -66,7 +69,7 @@ function drawLandscape(keepFocus) {
       <input id="lSearch" class="gp-search" placeholder="Search funders" value="${escHtml(q)}" oninput="LAND_Q=this.value;LAND_SHOWN=25;drawLandscape(true)">
       <div class="gp-table"><table><thead><tr><th>Funder</th><th>Based In</th><th class="num">Dollars Here</th><th class="num">${subj ? 'Grants (All Subjects)' : 'Grants'}</th><th class="num">${subj ? 'Typical Grant (All Subjects)' : 'Typical Grant'}</th><th>Years</th></tr></thead><tbody>
       ${list.slice(0, LAND_SHOWN).map(f => `<tr>
-        <td>${f.listing_id ? `<a onclick="openListing('${f.listing_id}')" style="cursor:pointer">${escHtml(f.name)}</a>` : escHtml(f.name)}
+        <td>${f.listing_id ? `<a onclick="openListing('${f.listing_id}')" style="cursor:pointer">${escHtml(landName(f))}</a>` : escHtml(landName(f))}
           ${f.donor_advised ? '<br><span class="badge">Gives here from donors&#39; funds: no applications</span>' : ''}
           ${f.accepts_unsolicited === false ? '<br><span class="badge">Does not accept unsolicited applications</span>' : ''}</td>
         <td>${escHtml(f.based_in || '')}</td><td class="num">${money(f.shown)}</td><td class="num">${f.grants}</td>
@@ -76,13 +79,13 @@ function drawLandscape(keepFocus) {
     </div>`);
   // Funders based here whose filings give their own address for every grantee (Oct 19 2026, Will: yes): their grants
   // are not in this county's figures, so they are listed apart, with all their giving, never added to the totals.
-  const unplaced = (L.unplaced_here || []).filter(f => !q || f.name.toLowerCase().includes(q.toLowerCase()));
+  const unplaced = (L.unplaced_here || []).filter(f => !q || landName(f).toLowerCase().includes(q.toLowerCase()) || f.name.toLowerCase().includes(q.toLowerCase()));
   if (!subj && unplaced.length) {
     h.push(`<div class="card"><h2>Based Here, Giving Not Placed</h2>
       <p class="lead">These funders are based in ${escHtml(L.county)}, but their tax filings give the funder's own address for every grantee, so FundBug cannot tell how much of their giving stays here. The figures are all their grants, wherever they went, and are not part of the totals above.</p>
       <div class="gp-table"><table><thead><tr><th>Funder</th><th>Based In</th><th class="num">All Their Grants</th><th class="num">Dollars, All Places</th><th>Years</th></tr></thead><tbody>
       ${unplaced.map(f => `<tr>
-        <td>${f.listing_id ? `<a onclick="openListing('${f.listing_id}')" style="cursor:pointer">${escHtml(f.name)}</a>` : escHtml(f.name)}
+        <td>${f.listing_id ? `<a onclick="openListing('${f.listing_id}')" style="cursor:pointer">${escHtml(landName(f))}</a>` : escHtml(landName(f))}
           ${f.accepts_unsolicited === false ? '<br><span class="badge">Does not accept unsolicited applications</span>' : ''}</td>
         <td>${escHtml(f.based_in || '')}</td><td class="num">${(f.grants || 0).toLocaleString()}</td><td class="num">${money(f.dollars)}</td>
         <td>${f.years && f.years.length ? f.years[0] + (f.years.length > 1 ? ' to ' + f.years[f.years.length - 1] : '') : ''}</td></tr>`).join('')}

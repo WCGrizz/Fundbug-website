@@ -15,6 +15,12 @@
   organization, and sees exactly what that organization would see, from the
   same matcher the portal and digest will use (backend nonprofit/np_match.py,
   routes /api/nonprofit/...). Not linked from anywhere; noindex.
+  Oct 19 2026 (Will): opens on the Organization Profile, with its meter (what
+  to add next), new matches since the last visit and what is due in 30 days;
+  Where You Work and the three pickers as on the signup (nonprofit-choices.js,
+  shared); More About Your Organization (nonprofit_profiles.details); Why It
+  May Fit in the organization's own terms; typical grants rounded as the
+  digest rounds them. Helpers tested in node: node nonprofit-portal.test.js
 -->
 <style>
 :root{
@@ -310,6 +316,42 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 .dr-terms-check{display:flex;gap:10px;align-items:flex-start;font-size:15px;margin:8px 0 20px;cursor:pointer;font-weight:400}
 .modal-actions{display:flex;gap:10px;flex-wrap:wrap}
 
+/* The Organization Profile (Oct 19 2026): its meter and strip, Where You Work's four choices, the signup's pickers
+   (nonprofit-choices.js) and the optional detail, every secondary line 14px or more in ink */
+.pf-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:-4px 0 18px}
+.pf-tile{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:10px;padding:14px 16px;min-width:0}
+.pf-tile h3{font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--green-dk);margin-bottom:6px}
+.pf-tile p,.pf-tile li{font-size:15px;color:var(--ink);overflow-wrap:anywhere}
+.pf-tile ul{list-style:none;margin:4px 0 6px}
+.pf-tile li{padding:3px 0}
+.pf-tile a,.dr-meter-note a.pf-go{color:var(--green-dk);font-weight:500;cursor:pointer}
+.pf-big{font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:600;color:var(--green-dk);margin-right:6px}
+.modes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.mode{font-size:15px;padding:9px 16px;min-height:44px;font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:15px;padding:4px 4px 4px 14px;border-radius:20px;background:var(--green);color:#fff}
+.chip button{font-family:'Jost',sans-serif;font-size:15px;font-weight:600;background:none;border:none;color:#fff;cursor:pointer;min-width:34px;min-height:34px;border-radius:17px}
+.chip button:hover{background:var(--green-dk)}
+.picker .search{margin-bottom:12px}
+.cat{font-size:15px;padding:9px 15px;min-height:42px}
+.pill{text-align:left}
+.sub{font-size:15px;font-weight:600;margin:10px 0 8px}
+.group{margin:12px 0 4px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:var(--white)}
+.group .pills{margin-top:8px}
+.linkbtn{font-family:'Jost',sans-serif;font-size:15px;font-weight:600;color:var(--green-dk);background:none;border:none;padding:8px 0;cursor:pointer;text-decoration:underline;min-height:40px}
+.picked{font-size:15px;margin-top:10px}
+.hint{font-size:14.5px;color:var(--ink);margin:-8px 0 14px}
+textarea.f-box{width:100%;padding:12px 14px;background:var(--cream);border:1px solid var(--border);border-radius:5px;font-family:'Jost',sans-serif;font-size:16px;color:var(--ink);resize:vertical;margin-bottom:16px;outline:none}
+textarea.f-box:focus{border-color:var(--green);background:var(--white)}
+details.sec{border:1px solid var(--border);border-radius:8px;background:var(--white);margin:10px 0}
+details.sec>summary{font-size:16px;font-weight:600;cursor:pointer;padding:14px 16px;min-height:48px;list-style-position:inside}
+details.sec>summary .sec-state{font-size:14px;font-weight:500;color:var(--ink);margin-left:8px}
+details.sec[open]>summary{border-bottom:1px solid var(--border)}
+.sec-body{padding:16px 16px 4px}
+.ledby{display:flex;flex-wrap:wrap;gap:4px 18px;margin:0 0 14px}
+.rows-row{border:1px solid var(--border);border-radius:8px;padding:12px 14px 2px;margin-bottom:10px;background:var(--cream)}
+.rows-row input,.rows-row textarea{background:var(--white)}
+.rows-row .rows-x{margin:-4px 0 10px}
 @media (max-width:760px){
   .wrap{grid-template-columns:1fr}
   .sidebar{display:flex;padding:0;overflow-x:auto;border-right:none;border-bottom:1px solid rgba(255,255,255,.08)}
@@ -354,8 +396,8 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
   </nav>
   <div class="wrap">
     <div class="sidebar">
-      <a data-page="matches" id="navMatches" onclick="showPage('matches')">Matches</a>
       <a data-page="profile" onclick="showPage('profile')">Organization Profile</a>
+      <a data-page="matches" id="navMatches" onclick="showPage('matches')">Matches</a>
       <a data-page="tracker" class="acct-only" onclick="showPage('tracker'); loadTracker()">Tracker</a>
       <a data-page="answers" class="acct-only" onclick="openAnswers()">My Answers</a>
       <a data-page="landscape" onclick="openLandscape()">Funding Landscape</a>
@@ -372,20 +414,34 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
           <p id="profSub">Fill this in as an organization would at signup. Matches shows what it would see; nothing here is saved anywhere but this browser.</p>
         </div>
 
+        <!-- The meter and the strip (Oct 19 2026): what to add next, new matches since the last visit, what is due -->
+        <div class="card acct-only" id="pfMeterCard">
+          <h2>Your Profile</h2>
+          <div class="dr-meter">
+            <div class="dr-meter-pct"><span id="pfPct">0</span>%</div>
+            <div class="setup-bar"><div class="setup-bar-fill" id="pfBarFill"></div></div>
+            <div class="dr-meter-note" id="pfMeterNote">Loading…</div>
+          </div>
+        </div>
+        <div class="pf-strip acct-only" id="pfStrip" hidden>
+          <div class="pf-tile" id="pfNew"></div>
+          <div class="pf-tile" id="pfDue"></div>
+        </div>
+
         <div class="card acct-only">
-          <h2>Your Organization</h2>
+          <h2 id="orgHead">Your Organization</h2>
           <div class="row">
             <div><label for="fFirst">First Name</label><input id="fFirst" autocomplete="given-name"></div>
             <div><label for="fLast">Last Name</label><input id="fLast" autocomplete="family-name"></div>
-            <div><label for="fOrg">Organization Name</label><input id="fOrg" autocomplete="organization"></div>
+            <div><label for="fOrg" id="fOrgLabel">Organization Name</label><input id="fOrg" autocomplete="organization"></div>
           </div>
           <div class="row">
-            <div><label for="fEin">EIN</label><input id="fEin" inputmode="numeric" placeholder="XX-XXXXXXX"></div>
+            <div id="einBox"><label for="fEin">EIN</label><input id="fEin" inputmode="numeric" placeholder="XX-XXXXXXX"></div>
             <div><label for="fWeb">Website</label><input id="fWeb" type="url" placeholder="https://"></div>
           </div>
-          <label for="fAbout">About Your Organization</label>
-          <textarea id="fAbout" rows="5" maxlength="3000" placeholder="What you do, your programs, who you serve and where" oninput="saveProfile()"></textarea>
-          <p class="src" style="font-size:14.5px;color:var(--ink)">In your own words. FundBug reads this beside each funder and program to judge whether it fits you.</p>
+          <label for="fAbout" id="fAboutLabel">About Your Organization</label>
+          <textarea id="fAbout" rows="6" maxlength="10000" placeholder="What you do, your programs, who you serve and where" oninput="saveProfile()"></textarea>
+          <p class="src" style="font-size:14.5px;color:var(--ink)">A few sentences, or as much detail as you like. FundBug reads this beside each funder and program to judge whether it fits you.</p>
         </div>
 
         <div class="card">
@@ -398,51 +454,160 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
                 <option value="nonprofit_501c4">501(c)(4)</option>
                 <option value="nonprofit_501c6">501(c)(6)</option>
                 <option value="nonprofit_other">Other nonprofit</option>
+                <option value="individual">Individual (artist, musician, writer)</option>
               </select></div>
             <div><label for="fZip">ZIP Code</label><input id="fZip" inputmode="numeric" maxlength="10" placeholder="01201"></div>
             <div><label for="fState">State</label><select id="fState"></select></div>
           </div>
           <div class="row">
             <div><label for="fBudget">Annual Budget ($)</label><input id="fBudget" inputmode="numeric" placeholder="300000"></div>
-            <div><label for="fSince">Tax-Exempt Since (Year)</label><input id="fSince" inputmode="numeric" maxlength="4" placeholder="2012"></div>
-            <div><label for="fAudit">Audited Financials</label>
+            <div id="sinceBox"><label for="fSince">Tax-Exempt Since (Year)</label><input id="fSince" inputmode="numeric" maxlength="4" placeholder="2012"></div>
+            <div id="auditBox"><label for="fAudit">Audited Financials</label>
               <select id="fAudit"><option value="">Not answered</option><option value="yes">Yes</option><option value="no">No</option></select></div>
-            <div><label for="fNy">NY Prequalified</label>
+            <!-- Only for an organization that works in New York (Oct 19 2026): its address or Where You Work -->
+            <div id="nyBox" hidden><label for="fNy">NY Prequalified</label>
               <select id="fNy"><option value="">Not answered</option><option value="yes">Yes</option><option value="no">No</option></select></div>
           </div>
           <div class="row acct-only">
             <div><label for="fFounded">Year Founded</label><input id="fFounded" inputmode="numeric" maxlength="4" placeholder="1998"></div>
-            <div><label for="fStaff">Paid Staff</label><input id="fStaff" inputmode="numeric" maxlength="7" placeholder="12"></div>
+            <div id="staffBox"><label for="fStaff">Paid Staff</label><input id="fStaff" inputmode="numeric" maxlength="7" placeholder="12"></div>
             <div><label for="fVolunteers">Volunteers</label><input id="fVolunteers" inputmode="numeric" maxlength="8" placeholder="40"></div>
           </div>
           <p class="src acct-only" style="font-size:14.5px;color:var(--ink)">Exact numbers. FundBug uses them when it drafts your answers and fills application forms.</p>
         </div>
 
-        <div class="card">
+        <div class="card" id="whereCard">
           <h2>Where You Work</h2>
-          <p class="lead">Every county you serve, beyond your own address. Funders limited to one of them will show.</p>
-          <div class="row"><div><label for="fAreaState">State</label><select id="fAreaState" onchange="drawCounties()"></select></div></div>
-          <label class="chk"><input type="checkbox" id="fWholeState" onchange="toggleWholeState()"> The whole state</label>
-          <div class="counties" id="countyBox"></div>
+          <p class="lead">Where your work reaches, so funders for those places find you.</p>
+          <div class="modes" id="modes">
+            <button type="button" class="pill mode" data-mode="county" aria-pressed="true" onclick="pickMode('county')">My County Or Towns</button>
+            <button type="button" class="pill mode" data-mode="statewide" aria-pressed="false" onclick="pickMode('statewide')">Statewide</button>
+            <button type="button" class="pill mode" data-mode="several" aria-pressed="false" onclick="pickMode('several')">Several States</button>
+            <button type="button" class="pill mode" data-mode="national" aria-pressed="false" onclick="pickMode('national')">Nationwide</button>
+          </div>
+          <div id="w-county">
+            <p class="lead">Tick every county you serve, beyond your own address.</p>
+            <div class="row"><div><label for="fAreaState">State</label><select id="fAreaState" onchange="drawCounties()"></select></div></div>
+            <div class="counties" id="countyBox"></div>
+            <div id="extraBox" hidden><p class="lead">Also the whole state of:</p><div class="chips" id="ch-extra"></div></div>
+          </div>
+          <div id="w-statewide" hidden>
+            <p class="lead">Your whole state, or more than one.</p>
+            <div class="chips" id="ch-statewide"></div>
+            <div class="row"><div><label for="add-statewide">Add A State</label><select id="add-statewide" onchange="addState('statewide', this)"></select></div></div>
+          </div>
+          <div id="w-several" hidden>
+            <p class="lead">Tick every state you work in.</p>
+            <div class="counties" id="grid-several"></div>
+          </div>
+          <div id="w-national" hidden>
+            <p class="lead">You will see nationwide programs, plus those for your home state. Add any other states you focus on, if you like.</p>
+            <div class="chips" id="ch-national"></div>
+            <div class="row"><div><label for="add-national">Add A State (Optional)</label><select id="add-national" onchange="addState('national', this)"></select></div></div>
+          </div>
           <div class="facts" id="areaSummary"></div>
         </div>
 
         <div class="card">
           <h2>What You Work On</h2>
-          <p class="lead">Pick every subject that fits; more is better here.</p>
-          <div class="pills" id="pSubjects1"></div>
-          <details class="more"><summary>More Subjects</summary><div class="pills" id="pSubjects2"></div></details>
+          <p class="lead">Pick every area that fits; more is better here.</p>
+          <div class="picker" id="pk-subjects"></div>
         </div>
         <div class="card">
           <h2>Who You Serve</h2>
-          <div class="pills" id="pPopulations1"></div>
-          <details class="more"><summary>More Groups</summary><div class="pills" id="pPopulations2"></div></details>
+          <div class="picker" id="pk-populations"></div>
         </div>
         <div class="card">
           <h2>What You Need Funding For</h2>
-          <div class="pills" id="pPurposes1"></div>
-          <details class="more"><summary>More Kinds Of Support</summary><div class="pills" id="pPurposes2"></div></details>
-          <p class="src" id="pcsCredit"></p>
+          <div class="picker" id="pk-funding_purposes"></div>
+        </div>
+
+        <!-- The optional detail (Oct 19 2026), saved to nonprofit_profiles.details (nonprofit/np_accounts.DETAILS) -->
+        <div class="card" id="moreCard">
+          <h2>More About Your Organization</h2>
+          <p class="lead">All optional. Funders ask for these again and again; FundBug puts them in your drafts and fills them into application forms for you.</p>
+
+          <details class="sec" id="det-contact"><summary>Contact And Address<span class="sec-state" data-sec="contact"></span></summary><div class="sec-body">
+            <label for="dStreet">Street Address</label><input id="dStreet" data-d="contact.street" maxlength="200" autocomplete="street-address">
+            <div class="row">
+              <div><label for="dCity">City</label><input id="dCity" data-d="contact.city" maxlength="100" autocomplete="address-level2"></div>
+              <div><label for="dState">State</label><select id="dState" data-d="contact.state"></select></div>
+              <div><label for="dZip">ZIP Code</label><input id="dZip" data-d="contact.zip" inputmode="numeric" maxlength="10" autocomplete="postal-code"></div>
+            </div>
+            <div class="row">
+              <div><label for="dPhone">Phone</label><input id="dPhone" data-d="contact.phone" type="tel" maxlength="40" autocomplete="tel"></div>
+              <div><label for="dEmail">Email For Funders</label><input id="dEmail" data-d="contact.email" type="email" maxlength="200" autocomplete="email"></div>
+            </div>
+            <label for="dMailing">Mailing Address (If Different)</label>
+            <textarea id="dMailing" class="f-box" rows="2" data-d="contact.mailing_address" maxlength="500"></textarea>
+          </div></details>
+
+          <details class="sec orgs-only" id="det-leadership"><summary>Leadership<span class="sec-state" data-sec="leadership"></span></summary><div class="sec-body">
+            <div class="row">
+              <div><label for="dDirector">Executive Director</label><input id="dDirector" data-d="leadership.director_name" maxlength="150"></div>
+              <div><label for="dDirTitle">Their Title</label><input id="dDirTitle" data-d="leadership.director_title" maxlength="150" placeholder="Executive Director"></div>
+            </div>
+            <div class="row">
+              <div><label for="dChair">Board Chair</label><input id="dChair" data-d="leadership.board_chair" maxlength="150"></div>
+              <div><label for="dBoard">Board Members</label><input id="dBoard" data-d="leadership.board_size" data-kind="int" inputmode="numeric" maxlength="5"></div>
+            </div>
+            <label>Led By</label>
+            <p class="hint" style="margin-top:0">Some funders give to organizations led by the people they serve. Tick any that describe your leadership.</p>
+            <div class="ledby" id="dLedBy">
+              <label class="chk"><input type="checkbox" value="bipoc"> People Of Color (BIPOC)</label>
+              <label class="chk"><input type="checkbox" value="women"> Women</label>
+              <label class="chk"><input type="checkbox" value="lgbtqia"> LGBTQIA+ People</label>
+              <label class="chk"><input type="checkbox" value="disability"> People With Disabilities</label>
+            </div>
+          </div></details>
+
+          <details class="sec" id="det-mission"><summary>Mission And Programs<span class="sec-state" data-sec="mission"></span></summary><div class="sec-body">
+            <label for="dMission">Mission Statement</label>
+            <textarea id="dMission" class="f-box" rows="3" data-d="mission.mission" maxlength="2000"></textarea>
+            <label for="dVision">Vision Statement</label>
+            <textarea id="dVision" class="f-box" rows="2" data-d="mission.vision" maxlength="2000"></textarea>
+            <label>Programs</label>
+            <div id="rows-programs"></div>
+            <button type="button" class="btn ghost sm" onclick="addDetailRow('programs')" style="margin-bottom:14px">Add A Program</button>
+          </div></details>
+
+          <details class="sec orgs-only" id="det-finances"><summary>Finances<span class="sec-state" data-sec="finances"></span></summary><div class="sec-body">
+            <div class="row">
+              <div><label for="dFye">Fiscal Year Ends</label><select id="dFye" data-d="finances.fiscal_year_end"></select></div>
+              <div><label for="dAudit">Year Of Your Last Audit</label><input id="dAudit" data-d="finances.last_audit_year" data-kind="int" inputmode="numeric" maxlength="4"></div>
+            </div>
+            <p class="hint" style="margin-top:0">How each dollar you spend divides, as a share of your expenses (your Form 990 gives these).</p>
+            <div class="row">
+              <div><label for="dProgPct">Programs (%)</label><input id="dProgPct" data-d="finances.program_pct" data-kind="int" inputmode="numeric" maxlength="3"></div>
+              <div><label for="dAdminPct">Administration (%)</label><input id="dAdminPct" data-d="finances.admin_pct" data-kind="int" inputmode="numeric" maxlength="3"></div>
+              <div><label for="dFundPct">Fundraising (%)</label><input id="dFundPct" data-d="finances.fundraising_pct" data-kind="int" inputmode="numeric" maxlength="3"></div>
+            </div>
+            <label for="dRevenue">Where Your Revenue Comes From</label>
+            <textarea id="dRevenue" class="f-box" rows="2" data-d="finances.revenue_sources" maxlength="1000" placeholder="For example: grants 45%, individual donors 30%, program fees 25%"></textarea>
+          </div></details>
+
+          <details class="sec orgs-only" id="det-registrations"><summary>Registrations<span class="sec-state" data-sec="registrations"></span></summary><div class="sec-body">
+            <div class="row">
+              <div><label for="dUei">UEI (From SAM.gov)</label><input id="dUei" data-d="registrations.uei" maxlength="12" autocomplete="off" placeholder="12 letters and numbers"></div>
+              <div><label for="dSam">Active In SAM.gov</label><select id="dSam" data-d="registrations.sam_active" data-kind="bool"><option value="">Not answered</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+              <div><label for="dCharity">State Charity Registration</label><input id="dCharity" data-d="registrations.state_charity_registration" maxlength="100" placeholder="Registration number"></div>
+            </div>
+            <p class="hint" style="margin-top:0">Federal grants need a UEI and an active SAM.gov registration.</p>
+          </div></details>
+
+          <details class="sec" id="det-impact"><summary>Impact And History<span class="sec-state" data-sec="impact"></span></summary><div class="sec-body">
+            <div class="row"><div><label for="dServed">People Served Last Year</label><input id="dServed" data-d="impact.served_last_year" data-kind="int" inputmode="numeric" maxlength="10"></div></div>
+            <label for="dOutcomes">Outcomes</label>
+            <textarea id="dOutcomes" class="f-box" rows="3" data-d="impact.outcomes" maxlength="3000" placeholder="What changed for the people you served, and how you know"></textarea>
+            <label for="dHistory">History</label>
+            <textarea id="dHistory" class="f-box" rows="3" data-d="impact.history" maxlength="3000" placeholder="How you started and how you have grown"></textarea>
+          </div></details>
+
+          <details class="sec" id="det-funders"><summary>Past Funders<span class="sec-state" data-sec="past_funders"></span></summary><div class="sec-body">
+            <p class="hint" style="margin-top:0">Grants you have received. Funders often ask who else supports you.</p>
+            <div id="rows-past_funders"></div>
+            <button type="button" class="btn ghost sm" onclick="addDetailRow('past_funders')" style="margin-bottom:14px">Add A Funder</button>
+          </div></details>
         </div>
 
         <div class="card preview-only">
@@ -465,6 +630,7 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
           <label class="chk acct-only" style="margin:0"><input type="checkbox" id="mFits" onchange="drawMatches()"> Fits Only</label>
           <select id="mReviewed" class="preview-only" onchange="drawMatches()"><option value="">Reviewed Or Not</option><option value="yes">Reviewed Only</option><option value="no">Not Reviewed Yet</option></select>
         </div>
+        <div id="mNewBar"></div>
         <div class="summary" id="mSummary"></div>
         <div id="mList"></div>
         <div style="text-align:center;margin-top:10px"><button class="btn ghost" id="mMore" onclick="moreMatches()" style="display:none">Show More</button></div>
@@ -685,6 +851,7 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
   <div class="panel-body" id="panelBody"></div>
 </div>
 
+<script src="/nonprofit-choices.js"></script>
 <script>
 const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? (localStorage.getItem('fb_np_api') || 'https://fundbug-production.up.railway.app')
@@ -692,12 +859,105 @@ const API_BASE = (location.hostname === 'localhost' || location.hostname === '12
 const SECRET_KEY = 'fb_np_review_secret', PROFILE_KEY = 'fb_np_preview_profile';
 // The portal's own session (portal.html sets the same keys; the login is shared).
 const TOKEN_KEY = 'fb_token', SUB_KEY = 'fb_sub';
-const NONPROFIT_ORG_TYPES = ['nonprofit_501c3', 'nonprofit_501c4', 'nonprofit_501c6', 'nonprofit_other', 'fiscally_sponsored'];
+const NONPROFIT_ORG_TYPES = ['nonprofit_501c3', 'nonprofit_501c4', 'nonprofit_501c6', 'nonprofit_other', 'fiscally_sponsored', 'individual'];
 let MODE = null, ACCOUNT = null;
 const PAGE_SIZE = 50;
 let TERMS = null, PLACES = null, RESULT = null, shownCount = PAGE_SIZE;
 let picks = {subjects: new Set(), populations: new Set(), funding_purposes: new Set()};
-let serviceRegions = [];
+// Where You Work (Oct 19 2026): the signup's four choices, stored the same way (nonprofit-choices.js regionsFor).
+let where = whereFrom([]);
+let DETAIL_ROWS = {programs: [], past_funders: []}, NEW_ONLY = null, PROFILE_METER = null;
+
+// ── PORTAL HELPERS START (no page state; nonprofit-portal.test.js runs them in node) ──
+// The fit judge's sentence is written as the organization ("our region", np_fit_judge); the card speaks to it (Will,
+// Oct 19 2026): our to your, we and us to you, ours to yours, whole words only, the case kept. An all-capital "US" is
+// the United States and stays.
+const SECOND_PERSON = {our: 'your', ours: 'yours', we: 'you', us: 'you', ourselves: 'yourselves'};
+function toSecondPerson(text) {
+  return String(text == null ? '' : text).replace(/\b(our|ours|we|us|ourselves)\b/gi, w => {
+    if (w === 'US') return w;
+    const to = SECOND_PERSON[w.toLowerCase()];
+    if (w === w.toUpperCase() && w.length > 1) return to.toUpperCase();
+    return w[0] === w[0].toUpperCase() ? to[0].toUpperCase() + to.slice(1) : to;
+  });
+}
+// Two significant figures, as the digest rounds a typical grant (nonprofit/np_digest.py _round2: Python's round, so
+// an exact half goes to the even figure): $32,856 is $33,000.
+function round2(n) {
+  n = Math.trunc(Number(n));
+  if (!isFinite(n) || Math.abs(n) < 100) return n;
+  const step = Math.pow(10, String(Math.abs(n)).length - 2), q = Math.floor(n / step), r = n - q * step;
+  return (2 * r > step || (2 * r === step && q % 2 !== 0) ? q + 1 : q) * step;
+}
+// A funder's typical grant, as the digest says it (np_digest._typical): "$10,000 to $30,000", or one figure.
+function typicalText(lo, hi) {
+  lo = lo ? round2(lo) : lo; hi = hi ? round2(hi) : hi;
+  const m = n => '$' + Number(n).toLocaleString('en-US');
+  if (lo && hi && lo !== hi) return m(lo) + ' to ' + m(hi);
+  return (hi || lo) ? m(hi || lo) : '';
+}
+// A page's own address, left behind when another page opens (Oct 19 2026: "#answers" stayed in the bar after
+// leaving My Answers). Only #answers and #prep/<id> belong to a page; #listing=, #save= and #tracker are links the
+// start of the page carries out and clears itself.
+function staleHash(hash, page) {
+  hash = hash || '';
+  return (hash === '#answers' && page !== 'answers') || (/^#prep\//.test(hash) && page !== 'prep');
+}
+// Works in New York (Oct 19 2026: NY Prequalified shows only then): its address's state or ZIP, or a New York state or
+// county under Where You Work.
+function worksInNY(state, zip, regions) {
+  if (String(state || '').toUpperCase() === 'NY') return true;
+  const z = String(zip || '').slice(0, 3);
+  if (/^\d{3}$/.test(z) && ((z >= '100' && z <= '149') || z === '005' || String(zip).slice(0, 5) === '06390')) return true;
+  return (regions || []).some(r => r && ((r.type === 'state' && r.value === 'NY') || (r.type === 'county' && r.state === 'NY')));
+}
+// New matches since the last visit: what fits now and did not then; null on a first visit (nothing to compare).
+function newSince(fitIds, prevIds) {
+  if (!Array.isArray(prevIds)) return null;
+  const prev = new Set(prevIds);
+  return fitIds.filter(id => !prev.has(id));
+}
+function daysUntil(iso, todayIso) {
+  const d = Date.parse(String(iso || '').slice(0, 10) + 'T00:00:00Z'), t = Date.parse(String(todayIso).slice(0, 10) + 'T00:00:00Z');
+  return isNaN(d) || isNaN(t) ? null : Math.round((d - t) / 86400000);
+}
+// What is due in the next `days` days: the Tracker's deadlines and follow-ups (a follow-up already past counts: it
+// is still to do), then fitting Library opportunities not in the Tracker with a deadline in that time. Soonest first.
+function dueSoon(trackerItems, libraryItems, todayIso, days = 30) {
+  const out = [], tracked = new Set();
+  for (const i of trackerItems || []) {
+    if (i.seen_in_digest || i.dismissed) continue;
+    if (i.group_id) tracked.add(i.group_id);
+    const dl = i.days_until_deadline != null ? i.days_until_deadline : null;
+    if (dl != null && dl >= 0 && dl <= days) out.push({where: 'tracker', id: i.program_id, title: i.title, what: 'deadline', days: dl});
+    const fu = i.follow_up_date ? daysUntil(i.follow_up_date, todayIso) : null;
+    if (fu != null && fu <= days) out.push({where: 'tracker', id: i.program_id, title: i.title, what: 'follow_up', days: fu});
+  }
+  for (const m of libraryItems || []) {
+    if (!m.fits || m.not_for_you || m.saved || m.kind === 'funder' || tracked.has(m.id) || !m.deadline_date) continue;
+    const dl = daysUntil(m.deadline_date, todayIso);
+    if (dl != null && dl >= 0 && dl <= days) out.push({where: 'library', id: m.id, title: m.title, what: 'deadline', days: dl});
+  }
+  return out.sort((a, b) => a.days - b.days || String(a.title).localeCompare(String(b.title)));
+}
+// The profile's optional detail as the server stores it (np_accounts.clean_details): empty values, rows and sections
+// left out, so an untouched form compares equal to what was loaded and is not sent.
+function pruneDetails(d) {
+  const empty = v => v == null || (typeof v === 'string' && !v.trim()) || (Array.isArray(v) && !v.length);
+  const clean = o => { const r = {}; for (const [k, v] of Object.entries(o || {})) if (!empty(v)) r[k] = typeof v === 'string' ? v.trim() : v; return r; };
+  const out = {};
+  for (const [sec, v] of Object.entries(d || {})) {
+    if (Array.isArray(v)) { const rows = v.map(clean).filter(r => Object.keys(r).length); if (rows.length) out[sec] = rows; }
+    else if (v && typeof v === 'object') { const c = clean(v); if (Object.keys(c).length) out[sec] = c; }
+  }
+  return out;
+}
+function sameDetails(a, b) {
+  const norm = x => JSON.stringify(x, (k, v) => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.keys(v).sort().map(key => [key, v[key]])) : v);
+  return norm(pruneDetails(a)) === norm(pruneDetails(b));
+}
+function withArticle(word) { return (/^[aeiou]/i.test(word) ? 'An ' : 'A ') + word; }
+// ── PORTAL HELPERS END ──
 
 function store(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
 function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -794,14 +1054,18 @@ async function openAccount() {
     if (e.status === 403) { location.replace('/portal'); return; }        // a business account: its own portal
     if (e.status === 401) { keepDigestLink(); store(TOKEN_KEY, null); showGate('Your session ended. Enter your email for a new login link.'); return; }
     document.getElementById('mSummary').textContent = 'Could not load your account: ' + e.message;
+    showPage('matches');
     return;
   }
   drawProfileForm();
   fillProfile(accountToForm(ACCOUNT));
-  // #answers or #prep/<id> opens that page at once (nonprofit-drafting.js); otherwise the Library.
+  // The portal opens on the Organization Profile (Will, Oct 19 2026); #answers or #prep/<id> opens that page at once
+  // (nonprofit-drafting.js), and #listing=, #save= and #tracker are carried out once the Library is loaded.
   const routed = routeDrafting();
-  if (!routed) showPage('matches');
-  await runMatches(routed);             // stay on the page the link opened
+  if (!routed) showPage('profile');
+  loadProfileMeter();
+  loadStripTracker();
+  await runMatches(true);
   followDigestLink();
 }
 
@@ -812,7 +1076,8 @@ function accountToForm(a) {
     annual_budget: p.annual_budget, tax_exempt_since: p.tax_exempt_since, has_audited_financials: p.has_audited_financials,
     ny_prequalified: p.ny_prequalified, subjects: p.subjects || [], populations: p.populations || [],
     funding_purposes: p.funding_purposes || [], description: p.description || '',
-    year_founded: p.year_founded, staff_count: p.staff_count, volunteer_count: p.volunteer_count};
+    year_founded: p.year_founded, staff_count: p.staff_count, volunteer_count: p.volunteer_count,
+    details: p.details || {}};
 }
 
 async function openApp(mode) {
@@ -823,81 +1088,176 @@ async function openApp(mode) {
     [TERMS, PLACES] = await Promise.all([apiFetch('/api/nonprofit/terms'), apiFetch('/api/nonprofit/places')]);
   } catch (e) {
     document.getElementById('mSummary').textContent = 'Could not load the choices: ' + e.message;
+    showPage('matches');
     return;
   }
   drawProfileForm();
   const saved = readSaved();
-  if (saved) { fillProfile(saved); showPage('matches'); runMatches(); }
-  else showPage('profile');
+  showPage('profile');                   // the profile first (Oct 19 2026); Matches fills behind it
+  if (saved) { fillProfile(saved); runMatches(true); }
 }
 
 function showPage(id) {
+  if (staleHash(location.hash, id)) history.replaceState(null, '', location.pathname);
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + id));
   document.querySelectorAll('.sidebar a').forEach(a => a.classList.toggle('active', a.dataset.page === id));
   window.scrollTo(0, 0);
+  if (id === 'profile' && MODE === 'account' && !TRACKER) loadStripTracker();
 }
 
 // ── profile form ────────────────────────────────────────────────────────
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTH_ENDS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 function drawProfileForm() {
   const stateOpts = PLACES.states.map(([code, name]) => `<option value="${code}">${escHtml(name)}</option>`).join('');
   document.getElementById('fState').innerHTML = '<option value="">From the ZIP code</option>' + stateOpts;
+  document.getElementById('dState').innerHTML = '<option value=""></option>' + stateOpts;
+  document.getElementById('dFye').innerHTML = '<option value="">Not answered</option>' + MONTH_NAMES.map((m, i) =>
+    `<option value="${String(i + 1).padStart(2, '0')}-${MONTH_ENDS[i]}">${m} ${MONTH_ENDS[i]}</option>`).join('');
   const withCounties = PLACES.states.filter(([code]) => PLACES.counties[code]);
-  const others = PLACES.states.filter(([code]) => !PLACES.counties[code]);
-  document.getElementById('fAreaState').innerHTML =
-    withCounties.map(([c, n]) => `<option value="${c}">${escHtml(n)}</option>`).join('') +
-    '<option disabled>──────────</option>' +
-    others.map(([c, n]) => `<option value="${c}">${escHtml(n)} (whole state only)</option>`).join('');
+  document.getElementById('fAreaState').innerHTML = withCounties.map(([c, n]) => `<option value="${c}">${escHtml(n)}</option>`).join('');
   document.getElementById('fAreaState').value = 'MA';
-  drawCounties();
-  for (const [field, base] of [['subjects', 'pSubjects'], ['populations', 'pPopulations'], ['funding_purposes', 'pPurposes']]) {
-    for (const tier of [1, 2]) {
-      document.getElementById(base + tier).innerHTML = TERMS[field].filter(t => t.tier === tier).map(t =>
-        `<button type="button" class="pill" data-field="${field}" data-code="${t.code}" aria-pressed="false" title="${escHtml(t.definition)}">${escHtml(t.label)}</button>`).join('');
-    }
-  }
-  document.querySelectorAll('.pill').forEach(b => b.addEventListener('click', () => {
-    const set = picks[b.dataset.field], on = !set.has(b.dataset.code);
-    on ? set.add(b.dataset.code) : set.delete(b.dataset.code);
-    b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    saveProfile();
-  }));
-  document.getElementById('pcsCredit').textContent = TERMS.credit || '';
+  drawCounties(); drawWhere();
+  for (const field of Object.keys(picks)) { buildPicker(field); drawPicker(field); }
   ['fOrgType', 'fZip', 'fState', 'fBudget', 'fSince', 'fAudit', 'fNy', 'fPending', 'fFounded', 'fStaff', 'fVolunteers'].forEach(id =>
     document.getElementById(id).addEventListener('change', saveProfile));
+  ['fOrgType', 'fZip', 'fState'].forEach(id => document.getElementById(id).addEventListener('change', applyKind));
+  const more = document.getElementById('moreCard');
+  more.addEventListener('input', () => { drawSectionStates(); saveProfile(); });
+  more.addEventListener('change', () => { drawSectionStates(); saveProfile(); });
+}
+// The pickers' changes (nonprofit-choices.js calls this).
+function onPicksChanged() { saveProfile(); }
+
+// Kind of applicant (Oct 19 2026): an individual has no EIN, no tax-exempt year, no audit, staff or board; NY
+// Prequalified only for an organization that works in New York.
+function applyKind() {
+  const ind = document.getElementById('fOrgType').value === 'individual';
+  document.getElementById('orgHead').textContent = ind ? 'You And Your Work' : 'Your Organization';
+  document.getElementById('fOrgLabel').textContent = ind ? 'Name You Work Under' : 'Organization Name';
+  document.getElementById('fAboutLabel').textContent = ind ? 'About Your Work' : 'About Your Organization';
+  ['einBox', 'sinceBox', 'auditBox', 'staffBox'].forEach(id => { document.getElementById(id).hidden = ind; });
+  document.querySelectorAll('.orgs-only').forEach(el => { el.hidden = ind; });
+  const st = MODE === 'account' ? (ACCOUNT && ACCOUNT.subscriber && ACCOUNT.subscriber.state) : document.getElementById('fState').value;
+  document.getElementById('nyBox').hidden = !worksInNY(st || document.getElementById('fState').value, document.getElementById('fZip').value, regionsForProfile(where));
 }
 
+// ── Where You Work: My County Or Towns, Statewide, Several States, Nationwide (the signup's, Oct 19 2026) ──
+function stateName(code) { const s = (PLACES && PLACES.states || []).find(([c]) => c === code); return s ? s[1] : code; }
+function pickMode(m) {
+  if (m === 'statewide' && !where.statewide.length) where.statewide = where.extraStates.length ? where.extraStates.slice() : [homeState()].filter(Boolean);
+  where.mode = m;
+  document.querySelectorAll('#modes .mode').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m ? 'true' : 'false'));
+  for (const k of ['county', 'statewide', 'several', 'national']) document.getElementById('w-' + k).hidden = k !== m;
+  drawWhere(); whereChanged();
+}
+function homeState() { return (MODE === 'account' && ACCOUNT && ACCOUNT.subscriber && ACCOUNT.subscriber.state) || document.getElementById('fState').value || 'MA'; }
 function drawCounties() {
-  const st = document.getElementById('fAreaState').value;
-  const list = PLACES.counties[st] || [];
-  const whole = serviceRegions.some(r => r.type === 'state' && r.value === st);
-  document.getElementById('fWholeState').checked = whole;
+  const st = document.getElementById('fAreaState').value, list = (PLACES && PLACES.counties[st]) || [];
   document.getElementById('countyBox').innerHTML = list.map(c => {
-    const on = serviceRegions.some(r => r.type === 'county' && r.fips === c.fips);
-    return `<label class="chk"><input type="checkbox" data-fips="${c.fips}" ${on ? 'checked' : ''} ${whole ? 'disabled' : ''} onchange="toggleCounty(this,'${st}')"> ${escHtml(c.name)}</label>`;
-  }).join('') || '<div class="facts">No county list for this state yet; tick the whole state.</div>';
+    const on = where.counties.some(r => r.fips === c.fips);
+    return `<label class="chk"><input type="checkbox" data-fips="${c.fips}" ${on ? 'checked' : ''} onchange="toggleCounty(this,'${st}')"> ${escHtml(c.name)}</label>`;
+  }).join('') || '<p class="lead">No county list for this state yet; choose Statewide instead.</p>';
   drawAreaSummary();
 }
 function toggleCounty(el, st) {
-  const fips = el.dataset.fips;
-  serviceRegions = serviceRegions.filter(r => !(r.type === 'county' && r.fips === fips));
-  if (el.checked) serviceRegions.push({type: 'county', state: st, fips});
-  drawAreaSummary(); saveProfile();
+  where.counties = where.counties.filter(r => r.fips !== el.dataset.fips);
+  if (el.checked) where.counties.push({state: st, fips: el.dataset.fips});
+  whereChanged();
 }
-function toggleWholeState() {
-  const st = document.getElementById('fAreaState').value;
-  const on = document.getElementById('fWholeState').checked;
-  serviceRegions = serviceRegions.filter(r => !(r.type === 'state' && r.value === st) && !(on && r.type === 'county' && r.state === st));
-  if (on) serviceRegions.push({type: 'state', value: st});
-  drawCounties(); saveProfile();
+function addState(key, sel) {
+  if (sel.value && !where[key].includes(sel.value)) where[key].push(sel.value);
+  sel.value = ''; drawWhere(); whereChanged();
 }
+function removeState(key, code) { where[key] = where[key].filter(s => s !== code); drawWhere(); whereChanged(); }
+function toggleSeveral(el) {
+  where.several = where.several.filter(s => s !== el.value);
+  if (el.checked) where.several.push(el.value);
+  whereChanged();
+}
+function drawWhere() {
+  if (!PLACES) return;
+  const chips = (key, list) => list.map(s =>
+    `<span class="chip">${escHtml(stateName(s))}<button type="button" aria-label="Remove ${escHtml(stateName(s))}" onclick="removeState('${key}','${s}')">&times;</button></span>`).join('');
+  for (const key of ['statewide', 'national']) {
+    document.getElementById('ch-' + key).innerHTML = chips(key, where[key]);
+    document.getElementById('add-' + key).innerHTML = '<option value="">Choose a state</option>' +
+      PLACES.states.filter(([c]) => !where[key].includes(c)).map(([c, n]) => `<option value="${c}">${escHtml(n)}</option>`).join('');
+  }
+  document.getElementById('ch-extra').innerHTML = chips('extraStates', where.extraStates);
+  document.getElementById('extraBox').hidden = !where.extraStates.length;
+  document.getElementById('grid-several').innerHTML = PLACES.states.map(([c, n]) =>
+    `<label class="chk"><input type="checkbox" value="${c}" ${where.several.includes(c) ? 'checked' : ''} onchange="toggleSeveral(this)"> ${escHtml(n)}</label>`).join('');
+  document.querySelectorAll('#modes .mode').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === where.mode ? 'true' : 'false'));
+  for (const k of ['county', 'statewide', 'several', 'national']) document.getElementById('w-' + k).hidden = k !== where.mode;
+  drawAreaSummary();
+}
+function whereChanged() { drawAreaSummary(); applyKind(); saveProfile(); }
 function countyName(fips) {
   for (const list of Object.values(PLACES.counties)) { const c = list.find(x => x.fips === fips); if (c) return c.name; }
   return fips;
 }
 function drawAreaSummary() {
-  const names = serviceRegions.map(r => r.type === 'state' ? 'All of ' + r.value : countyName(r.fips) + ', ' + r.state);
+  const names = regionsForProfile(where).map(r => regionLabel(r, countyName, stateName)).filter(Boolean);
   document.getElementById('areaSummary').innerHTML = names.length
     ? '<span><b>Serving:</b> ' + escHtml(names.join('; ')) + '</span>' : '<span>Only your own address so far.</span>';
+}
+
+// ── The optional detail (Oct 19 2026): inputs marked data-d="section.key", the Led By boxes, two row editors ──
+const ROW_FIELDS = {
+  programs: [['name', 'Program Name', 'text', 200], ['served_per_year', 'People Served A Year', 'int', 9], ['description', 'What It Does', 'area', 2000]],
+  past_funders: [['name', 'Funder', 'text', 200], ['year', 'Year', 'int', 4], ['amount', 'Amount ($)', 'int', 12]],
+};
+const ROW_NOUN = {programs: 'Program', past_funders: 'Funder'};
+function intOrText(v) { const t = String(v || '').replace(/[,$\s]/g, ''); return t === '' ? null : /^\d+$/.test(t) ? parseInt(t, 10) : String(v).trim(); }
+function drawDetailRows(sec) {
+  const rows = DETAIL_ROWS[sec];
+  document.getElementById('rows-' + sec).innerHTML = rows.map((r, i) => `<div class="rows-row">
+      <div class="row">${ROW_FIELDS[sec].filter(f => f[2] !== 'area').map(([k, label, kind, max]) => `<div><label for="r-${sec}-${i}-${k}">${label}</label>
+        <input id="r-${sec}-${i}-${k}" maxlength="${max}" ${kind === 'int' ? 'inputmode="numeric"' : ''} value="${escHtml(r[k] == null ? '' : r[k])}" oninput="setRow('${sec}', ${i}, '${k}', this.value, '${kind}')"></div>`).join('')}</div>
+      ${ROW_FIELDS[sec].filter(f => f[2] === 'area').map(([k, label, kind, max]) => `<label for="r-${sec}-${i}-${k}">${label}</label>
+        <textarea id="r-${sec}-${i}-${k}" class="f-box" rows="2" maxlength="${max}" oninput="setRow('${sec}', ${i}, '${k}', this.value, 'text')">${escHtml(r[k] || '')}</textarea>`).join('')}
+      <div class="rows-x"><button type="button" class="btn ghost sm" onclick="removeDetailRow('${sec}', ${i})">Remove This ${ROW_NOUN[sec]}</button></div>
+    </div>`).join('');
+}
+function setRow(sec, i, key, value, kind) { DETAIL_ROWS[sec][i][key] = kind === 'int' ? intOrText(value) : value; }
+function addDetailRow(sec) {
+  DETAIL_ROWS[sec].push({});
+  drawDetailRows(sec);
+  const first = document.getElementById(`r-${sec}-${DETAIL_ROWS[sec].length - 1}-name`); if (first) first.focus();
+}
+function removeDetailRow(sec, i) { DETAIL_ROWS[sec].splice(i, 1); drawDetailRows(sec); drawSectionStates(); saveProfile(); }
+function currentDetails() {
+  const d = {};
+  document.querySelectorAll('#moreCard [data-d]').forEach(el => {
+    const [sec, key] = el.dataset.d.split('.'), kind = el.dataset.kind;
+    let v = el.value;
+    if (kind === 'int') v = intOrText(v);
+    else if (kind === 'bool') v = v === 'yes' ? true : v === 'no' ? false : null;
+    (d[sec] = d[sec] || {})[key] = v;
+  });
+  d.leadership = d.leadership || {};
+  d.leadership.led_by = [...document.querySelectorAll('#dLedBy input:checked')].map(x => x.value);
+  for (const sec of Object.keys(DETAIL_ROWS)) d[sec] = DETAIL_ROWS[sec].map(r => Object.assign({}, r));
+  return pruneDetails(d);
+}
+function fillDetails(det) {
+  const d = det && typeof det === 'object' ? det : {};
+  document.querySelectorAll('#moreCard [data-d]').forEach(el => {
+    const [sec, key] = el.dataset.d.split('.'), v = (d[sec] || {})[key];
+    el.value = el.dataset.kind === 'bool' ? (v === true ? 'yes' : v === false ? 'no' : '') : (v == null ? '' : v);
+  });
+  const led = (d.leadership || {}).led_by || [];
+  document.querySelectorAll('#dLedBy input').forEach(x => { x.checked = led.includes(x.value); });
+  for (const sec of Object.keys(DETAIL_ROWS)) { DETAIL_ROWS[sec] = (Array.isArray(d[sec]) ? d[sec] : []).map(r => Object.assign({}, r)); drawDetailRows(sec); }
+  drawSectionStates();
+}
+function drawSectionStates() {
+  const d = currentDetails();
+  document.querySelectorAll('#moreCard .sec-state').forEach(el => {
+    const sec = el.dataset.sec, has = sec === 'mission' ? !!(d.mission || d.programs) : !!d[sec];
+    el.textContent = has ? 'Started' : '';
+  });
 }
 
 function num(id) { const v = document.getElementById(id).value.replace(/[^0-9]/g, ''); return v ? parseInt(v, 10) : null; }
@@ -907,7 +1267,7 @@ function currentProfile() {
     org_type: document.getElementById('fOrgType').value,
     zip_code: document.getElementById('fZip').value.trim(),
     state: document.getElementById('fState').value || null,
-    service_regions: serviceRegions,
+    service_regions: regionsForProfile(where),
     annual_budget: num('fBudget'), tax_exempt_since: num('fSince'),
     has_audited_financials: yn('fAudit'), ny_prequalified: yn('fNy'),
     subjects: [...picks.subjects], populations: [...picks.populations], funding_purposes: [...picks.funding_purposes],
@@ -917,6 +1277,7 @@ function currentProfile() {
     website_url: document.getElementById('fWeb').value.trim(),
     description: document.getElementById('fAbout').value.trim(),
     year_founded: num('fFounded'), staff_count: num('fStaff'), volunteer_count: num('fVolunteers'),
+    details: currentDetails(),
   };
 }
 function saveProfile() {
@@ -926,18 +1287,24 @@ function saveProfile() {
 function saveAction() { MODE === 'account' ? saveAccount() : runMatches(); }
 async function saveAccount() {
   const p = currentProfile();
+  const regionsProblemText = regionsProblem(where);
+  const note = document.getElementById('saveNote');
+  if (regionsProblemText) { note.textContent = 'Not saved: ' + regionsProblemText; return; }
   const changes = {first_name: p.first_name, last_name: p.last_name, org_name: p.org_name, org_type: p.org_type,
     ein: p.ein, zip_code: p.zip_code, website_url: p.website_url, annual_budget: p.annual_budget,
     tax_exempt_since: p.tax_exempt_since, has_audited_financials: p.has_audited_financials, ny_prequalified: p.ny_prequalified,
     service_regions: p.service_regions, subjects: p.subjects, populations: p.populations, funding_purposes: p.funding_purposes,
     description: p.description, year_founded: p.year_founded, staff_count: p.staff_count, volunteer_count: p.volunteer_count};
-  const note = document.getElementById('saveNote');
+  // The optional detail goes only when it changed (np_accounts.save checks it whole and refuses, saving nothing, when
+  // the database is not ready for it).
+  if (!sameDetails(p.details, ((ACCOUNT && ACCOUNT.profile) || {}).details)) changes.details = p.details;
   note.textContent = 'Saving…';
   try {
     const out = await apiFetch('/api/nonprofit/profile', 'POST', changes);
     ACCOUNT = await apiFetch('/api/nonprofit/me');
     note.textContent = (out.subscriber.length || out.profile.length) ? 'Saved. Your matches are updated.' : 'Nothing had changed.';
     if (out.zip_changed) note.textContent += ' Your new ZIP code is placed within a minute.';
+    loadProfileMeter();
     runMatches(true);
   } catch (e) { note.textContent = 'Not saved: ' + e.message; }
 }
@@ -951,11 +1318,83 @@ function fillProfile(p) {
   set('fAudit', p.has_audited_financials === true ? 'yes' : p.has_audited_financials === false ? 'no' : '');
   set('fNy', p.ny_prequalified === true ? 'yes' : p.ny_prequalified === false ? 'no' : '');
   document.getElementById('fPending').checked = p.include_pending !== false;
-  serviceRegions = Array.isArray(p.service_regions) ? p.service_regions : [];
-  for (const f of Object.keys(picks)) picks[f] = new Set(p[f] || []);
-  document.querySelectorAll('.pill').forEach(b => b.setAttribute('aria-pressed', picks[b.dataset.field].has(b.dataset.code) ? 'true' : 'false'));
-  drawCounties();
+  where = whereFrom(p.service_regions);
+  const firstCounty = where.counties[0] || where.extraCounties && where.extraCounties[0];
+  if (firstCounty && PLACES.counties[firstCounty.state]) document.getElementById('fAreaState').value = firstCounty.state;
+  for (const f of Object.keys(picks)) { picks[f] = new Set(p[f] || []); drawPicker(f); }
+  fillDetails(p.details);
+  drawCounties(); drawWhere(); applyKind();
 }
+
+// ── The profile's meter and strip (Oct 19 2026, Will: the portal opens on the profile) ──────────────────────
+// The meter is My Answers' (renderMeter, nonprofit-drafting.js), from the same route; the strip: new matches since the
+// last visit (this browser remembers what fit) and what is due in the next 30 days, from the Library and Tracker.
+const PROFILE_ITEMS = {'organization name': 'fOrg', 'your name': 'fFirst', 'ZIP code': 'fZip', 'mission or description': 'fAbout',
+  'subjects you work on': 'pk-subjects', 'people you serve': 'pk-populations', 'what you need funding for': 'pk-funding_purposes',
+  'annual budget': 'fBudget', 'year founded': 'fFounded', 'where you work': 'whereCard', 'staff count': 'fStaff',
+  'audited financials': 'fAudit', 'EIN': 'fEin', 'website': 'fWeb', 'contact and address': 'det-contact',
+  'leadership': 'det-leadership', 'mission and programs': 'det-mission', 'finances': 'det-finances',
+  'registrations': 'det-registrations', 'impact and history': 'det-impact', 'past funders': 'det-funders'};
+function profileItemLink(name) {
+  const id = PROFILE_ITEMS[name];
+  return id ? `<a class="pf-go" onclick="goToProfileItem('${id}')">${escHtml(name)}</a>` : escHtml(name);
+}
+function goToProfileItem(id) {
+  showPage('profile');
+  const el = document.getElementById(id); if (!el) return;
+  const sec = el.closest('details.sec') || (el.matches('details.sec') ? el : null);
+  if (sec) sec.open = true;
+  el.scrollIntoView({block: 'center'});
+  const focusable = el.matches('input,select,textarea') ? el : el.querySelector('input,select,textarea');
+  if (focusable) focusable.focus({preventScroll: true});
+}
+async function loadProfileMeter() {
+  if (MODE !== 'account') return;
+  try { PROFILE_METER = (await apiFetch('/api/portal/drafts/library')).passport || null; }
+  catch (e) { document.getElementById('pfMeterNote').textContent = 'Could not load your profile meter: ' + e.message; return; }
+  if (PROFILE_METER) renderMeter(PROFILE_METER, 'pf');
+}
+async function loadStripTracker() {
+  if (MODE !== 'account') return;
+  try { TRACKER = await apiFetch('/api/nonprofit/tracker'); } catch (e) { TRACKER = null; }
+  drawStrip();
+}
+function viewerKey() { try { return (JSON.parse(load(SUB_KEY) || '{}').id) || (ACCOUNT && ACCOUNT.subscriber && ACCOUNT.subscriber.email) || 'me'; } catch (e) { return 'me'; } }
+// The fits seen before this visit, kept for the whole visit (sessionStorage), and today's fits saved for the next one.
+function newMatchesThisVisit(fitIds) {
+  const key = 'fb_np_seen_' + viewerKey(), skey = 'fb_np_prev_' + viewerKey();
+  let prev = null;
+  try {
+    const kept = sessionStorage.getItem(skey);
+    if (kept !== null) prev = JSON.parse(kept);
+    else { prev = JSON.parse(localStorage.getItem(key) || 'null'); sessionStorage.setItem(skey, JSON.stringify(prev)); }
+    localStorage.setItem(key, JSON.stringify(fitIds));
+  } catch (e) { return null; }
+  return newSince(fitIds, prev);
+}
+let NEW_IDS = null;
+function drawStrip() {
+  if (MODE !== 'account') return;
+  const strip = document.getElementById('pfStrip');
+  if (!RESULT) { strip.hidden = true; return; }
+  strip.hidden = false;
+  const fits = RESULT.shown.filter(m => m.fits !== false && !m.not_for_you);
+  const n = NEW_IDS ? NEW_IDS.length : null;
+  document.getElementById('pfNew').innerHTML = '<h3>New Matches</h3>' + (n === null
+    ? `<p><span class="pf-big">${fits.length.toLocaleString()}</span>funders and programs fit you. <a onclick="showPage('matches')">Open Your Library</a></p>`
+    : n ? `<p><span class="pf-big">${n.toLocaleString()}</span>new since your last visit. <a onclick="showNewMatches()">See ${n === 1 ? 'It' : 'Them'}</a></p>`
+      : `<p>Nothing new since your last visit. <a onclick="showPage('matches')">Open Your Library</a></p>`);
+  const due = dueSoon(TRACKER ? TRACKER.items : [], RESULT.shown, new Date().toISOString().slice(0, 10));
+  const when = d => d.what === 'follow_up' ? (d.days < 0 ? 'follow up, overdue' : d.days === 0 ? 'follow up today' : `follow up in ${d.days} day${d.days === 1 ? '' : 's'}`)
+    : d.days === 0 ? 'closes today' : `closes in ${d.days} day${d.days === 1 ? '' : 's'}`;
+  const go = d => d.where === 'tracker' ? `showPage('tracker'); loadTracker()` : `openListing('${d.id}')`;
+  document.getElementById('pfDue').innerHTML = '<h3>Due In The Next 30 Days</h3>' + (due.length
+    ? `<ul>${due.slice(0, 4).map(d => `<li><a onclick="${go(d)}">${escHtml(d.title)}</a>: ${when(d)}${d.where === 'library' ? ' (in your Library)' : ''}</li>`).join('')}</ul>` +
+      (due.length > 4 ? `<p>And ${due.length - 4} more. <a onclick="showPage('tracker'); loadTracker()">Open Your Tracker</a></p>` : '')
+    : `<p>Nothing due in the next 30 days. <a onclick="showPage('tracker'); loadTracker()">Open Your Tracker</a></p>`);
+}
+function showNewMatches() { NEW_ONLY = new Set(NEW_IDS || []); shownCount = PAGE_SIZE; showPage('matches'); drawMatches(); }
+function showAllMatches() { NEW_ONLY = null; drawMatches(); }
 
 // ── matches ─────────────────────────────────────────────────────────────
 async function runMatches(stay) {
@@ -969,16 +1408,19 @@ async function runMatches(stay) {
     } catch (e) { document.getElementById('mSummary').textContent = 'Could not match: ' + e.message; return; }
     shownCount = PAGE_SIZE;
     document.getElementById('matchesSub').textContent = 'Every funder and program in FundBug: the ones that fit your organization first, best fit first.';
+    NEW_IDS = newMatchesThisVisit(RESULT.shown.filter(m => m.fits !== false && !m.not_for_you).map(m => m.id));
     drawMatches();
+    drawStrip();
     return;
   }
   saveProfile();
-  showPage('matches');
+  if (!stay) showPage('matches');
   if (!p.zip_code && !p.state) { document.getElementById('mSummary').textContent = 'Add a ZIP code or a state in Organization Profile first.'; return; }
   document.getElementById('mSummary').textContent = 'Matching…';
   document.getElementById('mList').innerHTML = '';
   try {
-    RESULT = await apiFetch('/api/nonprofit/preview/matches', 'POST', p);
+    const {details, ...body} = p;                // the matcher does not read the optional detail
+    RESULT = await apiFetch('/api/nonprofit/preview/matches', 'POST', body);
   } catch (e) {
     document.getElementById('mSummary').textContent = 'Could not match: ' + e.message;
     return;
@@ -986,26 +1428,26 @@ async function runMatches(stay) {
   shownCount = PAGE_SIZE;
   const loc = RESULT.located || {};
   document.getElementById('matchesSub').textContent = loc.city
-    ? `A ${orgLabel(p.org_type)} in ${loc.city}, ${loc.state}: every listing it can apply to, best fit first.`
+    ? `${withArticle(orgLabel(p.org_type))} in ${loc.city}, ${loc.state}: every listing ${p.org_type === 'individual' ? 'they' : 'it'} can apply to, best fit first.`
     : 'Every listing this organization can apply to, best fit first.';
   drawMatches();
   drawLeftOut();
 }
-function orgLabel(t) { return {nonprofit_501c3: '501(c)(3)', fiscally_sponsored: 'fiscally sponsored project', nonprofit_501c4: '501(c)(4)', nonprofit_501c6: '501(c)(6)', nonprofit_other: 'nonprofit'}[t] || 'nonprofit'; }
+function orgLabel(t) { return {nonprofit_501c3: '501(c)(3)', fiscally_sponsored: 'fiscally sponsored project', nonprofit_501c4: '501(c)(4)', nonprofit_501c6: '501(c)(6)', nonprofit_other: 'nonprofit', individual: 'individual artist, musician or writer'}[t] || 'nonprofit'; }
 
 function filtered() {
   if (!RESULT) return [];
   const q = document.getElementById('mSearch').value.trim().toLowerCase();
   const kind = document.getElementById('mKind').value, rev = document.getElementById('mReviewed').value;
   const fitsOnly = MODE === 'account' && document.getElementById('mFits').checked;
-  return RESULT.shown.filter(m => (!q || m.title.toLowerCase().includes(q) || (m.provided_by || '').toLowerCase().includes(q))
+  return RESULT.shown.filter(m => (!NEW_ONLY || NEW_ONLY.has(m.id)) && (!q || m.title.toLowerCase().includes(q) || (m.provided_by || '').toLowerCase().includes(q))
     && (!kind || m.kind === kind) && (!rev || (rev === 'yes') === m.reviewed) && (!fitsOnly || m.fits !== false));
 }
 const MODES = {open_call: 'Open call', loi: 'Letter of inquiry first', rolling: 'Rolling', invitation_only: 'By invitation'};
 function matchCard(m) {
   const facts = [];
-  if (m.kind === 'funder' && (m.typical_min || m.typical_max))
-    facts.push(`<span><b>Typical Grant:</b> ${m.typical_min && m.typical_max && m.typical_min !== m.typical_max ? money(m.typical_min) + ' to ' + money(m.typical_max) : money(m.typical_max || m.typical_min)}</span>`);
+  // Rounded as the digest rounds it (Oct 19 2026): $32,856 is $33,000.
+  if (m.kind === 'funder' && (m.typical_min || m.typical_max)) facts.push(`<span><b>Typical Grant:</b> ${escHtml(typicalText(m.typical_min, m.typical_max))}</span>`);
   if (m.kind === 'funder' && m.first_grant) facts.push(`<span><b>First Grant:</b> ${escHtml(m.first_grant)}</span>`);
   if (m.kind !== 'funder' && m.amount) facts.push(`<span><b>Amount:</b> ${escHtml(m.amount)}</span>`);
   if (m.kind !== 'funder' && (m.deadline || m.deadline_date)) facts.push(`<span><b>Deadline:</b> ${escHtml(m.deadline || m.deadline_date)}</span>`);
@@ -1023,7 +1465,7 @@ function matchCard(m) {
     </div><div class="m-actions">${MODE === 'account' ? `<button class="btn sm ${m.saved ? 'saved' : ''}" onclick="saveListing('${m.id}')">${m.saved ? 'Saved ✓' : 'Save'}</button><button class="btn ghost sm" onclick="prepListing('${m.id}', this)">Prep Application</button><button class="btn ghost sm" onclick="hideListing('${m.id}')">Hide</button>` : ''}<button class="btn ghost sm" onclick="openListing('${m.id}')">Open</button></div></div>
     <div class="facts">${facts.join('')}</div>
     ${m.why && m.why.length ? '<ul class="why">' + m.why.map(w => `<li>${escHtml(w)}</li>`).join('') + '</ul>' : ''}
-    ${m.verdict_reason ? `<div class="fit-read"><b>Our Read:</b> ${escHtml(m.verdict_reason)}</div>` : ''}
+    ${m.verdict_reason ? `<div class="fit-read"><b>${m.verdict === 'no' ? 'Why It May Not Fit' : 'Why It May Fit'}:</b> ${escHtml(toSecondPerson(m.verdict_reason))}</div>` : ''}
     ${m.fits === false && m.why_not ? `<div class="why-not">May not fit: ${escHtml(m.why_not)}</div>` : ''}
     ${m.description ? `<div class="desc">${escHtml(m.description.length > 360 ? m.description.slice(0, 360).replace(/\s+\S*$/, '') + '…' : m.description)}</div>` : ''}
   </div>`;
@@ -1032,6 +1474,8 @@ function drawMatches() {
   if (!RESULT) return;
   const list = filtered();
   const c = RESULT.counts;
+  document.getElementById('mNewBar').innerHTML = NEW_ONLY
+    ? `<div class="no-site">Showing the ${NEW_ONLY.size.toLocaleString()} new since your last visit. <button class="btn ghost sm" onclick="showAllMatches()">Show Everything</button></div>` : '';
   document.getElementById('mSummary').textContent =
     (MODE === 'account' ? `${c.listings.toLocaleString()} funders and programs in the library; ${c.shown.toLocaleString()} fit your organization.`
       : `${c.shown.toLocaleString()} of ${c.listings.toLocaleString()} listings fit; ${c.left_out.toLocaleString()} left out (see Left Out).`) +
@@ -1096,7 +1540,7 @@ async function openListing(id) {
   if (L.provided_by && L.provided_by.name) out.push(line('Provided By', `<p>${L.provided_by.listing_id ? `<a onclick="openListing('${L.provided_by.listing_id}')" style="cursor:pointer">${escHtml(L.provided_by.name)}</a>` : escHtml(L.provided_by.name)}</p>`));
   const f = L.funder;
   if (f) {
-    const typical = f.typical_min || f.typical_max ? (f.typical_min && f.typical_max && f.typical_min !== f.typical_max ? money(f.typical_min) + ' to ' + money(f.typical_max) : money(f.typical_max || f.typical_min)) : '';
+    const typical = typicalText(f.typical_min, f.typical_max);             // rounded as the digest rounds it
     const g = f.giving || {};
     const recent = g.count ? `${g.count} grants to organizations, ${money(g.total)} in all (${g.year} filing)` : '';
     if (!L.giving) out.push(line('Typical Grant', typical || recent ? `<p>${typical ? escHtml(typical) : ''}${typical && recent ? '<br>' : ''}${escHtml(recent)}</p>` : ''));
@@ -1411,7 +1855,9 @@ async function loadDigests() {
       <div class="m-title"><a onclick="openDigest('${escHtml(d.id)}')">${escHtml(d.subject || 'Your digest')}</a></div>
       <div class="facts"><span>${escHtml(niceDate(d.sent_at))}</span><span>${d.slot_count || 0} funders and programs</span></div>
     </div><button class="btn ghost sm" onclick="openDigest('${escHtml(d.id)}')">Open</button></div></div>`).join('')
-    : '<div class="empty">No digests yet. Your first one comes on the next 1st or 3rd Tuesday.</div>';
+    : `<div class="empty">${r.live
+      ? 'No digests yet. Your welcome digest is sent a few minutes after you sign up; if it is not in your inbox, check your spam folder. After that, a new one comes every 1st and 3rd Tuesday.'
+      : 'No digests yet. Nonprofit digests have not started; once they do, yours comes on the 1st and 3rd Tuesday of each month.'}</div>`;
 }
 async function openDigest(id) {
   document.getElementById('scrim').style.display = 'block';

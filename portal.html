@@ -1838,7 +1838,7 @@ function doLogout() {
 }
 
 // Nonprofit accounts have their own portal (Oct 3 2026); the login is shared.
-const NONPROFIT_ORG_TYPES = ['nonprofit_501c3', 'nonprofit_501c4', 'nonprofit_501c6', 'nonprofit_other', 'fiscally_sponsored'];
+const NONPROFIT_ORG_TYPES = ['nonprofit_501c3', 'nonprofit_501c4', 'nonprofit_501c6', 'nonprofit_other', 'fiscally_sponsored', 'individual'];
 function isNonprofitAccount(sub) { return !!(sub && NONPROFIT_ORG_TYPES.includes(sub.org_type)); }
 function showApp() {
   if (isNonprofitAccount(subscriber)) { location.replace('/nonprofit-portal'); return; }

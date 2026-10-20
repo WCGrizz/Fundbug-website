@@ -95,7 +95,7 @@ function drEnsureTerms() {
     document.getElementById('drTermsNo').onclick = () => {
       m.classList.remove('open');
       if (location.hash) history.replaceState(null, '', location.pathname);
-      showPage('matches');
+      showPage('profile');
       resolve(false);
     };
     m.classList.add('open');
@@ -219,22 +219,29 @@ async function loadDrafting() {
     drStatus('');
   } catch (e) { drStatus(e.message, true); }
 }
-function renderMeter(p) {
+// The profile meter (the Passport's, np_drafting.completion). prefix 'dr' is My Answers' card; 'pf' the one at the top
+// of the Organization Profile (Oct 19 2026), where each thing still to add is a link to its box (profileItemLink).
+function renderMeter(p, prefix) {
+  prefix = prefix || 'dr';
+  const onProfile = prefix === 'pf' && typeof profileItemLink === 'function';
   const pct = p.pct || 0;
-  document.getElementById('drPct').textContent = pct;
-  document.getElementById('drBarFill').style.width = pct + '%';
-  const note = document.getElementById('drMeterNote');
-  const link = ' <a onclick="showPage(\'profile\')">Open the Organization Profile</a>';
-  if (!p.ready) note.innerHTML = 'Before FundBug can draft, add to your Organization Profile: <strong>' + drEsc((p.missing_for_drafting || []).join(', ')) + '</strong>.' + link;
+  document.getElementById(prefix + 'Pct').textContent = pct;
+  document.getElementById(prefix + 'BarFill').style.width = pct + '%';
+  const note = document.getElementById(prefix + 'MeterNote');
+  const link = onProfile ? '' : ' <a onclick="showPage(\'profile\')">Open the Organization Profile</a>';
+  const names = list => onProfile ? list.map(profileItemLink).join(', ') : drEsc(list.join(', '));
+  if (!p.ready) note.innerHTML = (onProfile ? 'Before FundBug can draft for you, add: <strong>' : 'Before FundBug can draft, add to your Organization Profile: <strong>') + names(p.missing_for_drafting || []) + '</strong>.' + link;
   else if (pct < 100) {
-    const miss = p.missing || [], names = miss.slice(0, 3).join(', '), extra = miss.length - Math.min(3, miss.length);
-    note.innerHTML = 'The fuller your profile, the more specific the drafts. Still to add: ' + drEsc(names) + (extra > 0 ? ', and ' + extra + ' more' : '') + '.' + link;
+    const shown = onProfile ? 4 : 3, miss = p.missing || [], extra = miss.length - Math.min(shown, miss.length);
+    note.innerHTML = (onProfile ? 'The fuller your profile, the better your matches and drafts. Next to add: ' : 'The fuller your profile, the more specific the drafts. Still to add: ')
+      + names(miss.slice(0, shown)) + (extra > 0 ? ', and ' + extra + ' more' : '') + '.' + link;
   } else note.textContent = 'Your Organization Profile is complete. Drafts draw on everything in it.';
 }
 function renderDrafting() {
   if (!drData) return;
   const p = drData.passport || {}, answers = drData.answers || [];
   renderMeter(p);
+  if (document.getElementById('pfPct')) renderMeter(p, 'pf');           // the profile's meter, from the same reply
   const empty = document.getElementById('drEmpty'), toolbar = document.getElementById('drToolbar'), cards = document.getElementById('drCards');
   const n = (drData.standard || []).length;
   if (!answers.length) {
