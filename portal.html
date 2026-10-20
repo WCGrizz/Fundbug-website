@@ -2138,6 +2138,13 @@ async function consumeSeatInviteIfPresent() {
     if (!r.ok) throw new Error(d.detail || 'Invite could not be accepted');
     token = d.token;
     localStorage.setItem('fb_token', token);
+    // Who signed in, routed on the ACCOUNT's kind (Oct 19 2026): a teammate on a nonprofit account opens the
+    // nonprofit portal, and a login left in this browser from someone else is never reused.
+    subscriber = {
+      id: d.subscriber_id, email: d.email || '', first_name: d.first_name || '', business_name: d.business_name || '',
+      subscription_status: d.subscription_status || 'trial', org_type: d.org_type || 'for_profit',
+    };
+    localStorage.setItem('fb_sub', JSON.stringify(subscriber));
     return true;
   } catch(e) {
     // Show the server's reason verbatim — a stale link, an expired invite and
@@ -2458,6 +2465,7 @@ async function bootstrapApp() {
           first_name:           p.first_name || '',
           business_name:        p.business_name || '',
           subscription_status:  p.subscription_status || 'trial',
+          org_type:             p.org_type || 'for_profit',
         };
         localStorage.setItem('fb_sub', JSON.stringify(subscriber));
         showApp();
@@ -3868,6 +3876,12 @@ async function loadPassport(){
   wireCompleteTags();
   try{
     const p=await apiFetch('/api/portal/profile');
+    // The account's kind from the server (Oct 19 2026): a login saved in this browser before its account joined the
+    // nonprofit side (a 1Berkshire teammate) moves to the nonprofit portal.
+    if (isNonprofitAccount(p)) {
+      if (subscriber) { subscriber.org_type = p.org_type; localStorage.setItem('fb_sub', JSON.stringify(subscriber)); }
+      location.replace('/nonprofit-portal'); return;
+    }
     renderSetupCard(p);
     updateGreeting(p);
     // Set from the profile so a view-only seat is locked down on first load,

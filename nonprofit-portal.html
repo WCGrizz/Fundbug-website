@@ -315,6 +315,19 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 .dr-terms-text{font-size:15.5px;line-height:1.65;margin:0 0 12px}
 .dr-terms-check{display:flex;gap:10px;align-items:flex-start;font-size:15px;margin:8px 0 20px;cursor:pointer;font-weight:400}
 .modal-actions{display:flex;gap:10px;flex-wrap:wrap}
+/* Team (Oct 19 2026): the account's people; a teammate sees the list only, the owner invites and removes */
+body.member .owner-only{display:none}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.modal-x{font-family:'Jost',sans-serif;font-size:15px;font-weight:500;background:none;border:none;color:var(--ink);cursor:pointer;min-height:40px;padding:0 4px}
+.tm-row{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr) 96px;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--border)}
+.tm-row .dr-btn{justify-self:end}
+#tmGo:disabled{opacity:.55;cursor:default}
+@media (max-width:560px){.tm-row{grid-template-columns:1fr}.tm-row .dr-btn{justify-self:start}}
+.tm-row:first-of-type{border-top:none}
+.tm-who{min-width:0;overflow-wrap:anywhere}
+.tm-who b{font-size:15px;font-weight:600}
+.tm-meta{font-size:15px;color:var(--ink)}
+.tm-count{font-size:15px;font-weight:600;margin:4px 0 6px}
 
 /* The Organization Profile (Oct 19 2026): its meter and strip, Where You Work's four choices, the signup's pickers
    (nonprofit-choices.js) and the optional detail, every secondary line 14px or more in ink */
@@ -402,7 +415,8 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
       <a data-page="answers" class="acct-only" onclick="openAnswers()">My Answers</a>
       <a data-page="landscape" onclick="openLandscape()">Funding Landscape</a>
       <a data-page="digests" class="acct-only" onclick="showPage('digests'); loadDigests()">Digests</a>
-      <a data-page="subscription" class="acct-only" onclick="showPage('subscription'); loadSubscription()">Subscription</a>
+      <a data-page="subscription" class="acct-only owner-only" onclick="showPage('subscription'); loadSubscription()">Subscription</a>
+      <a data-page="team" class="acct-only" onclick="showPage('team'); loadTeam()">Team</a>
       <a data-page="leftout" class="preview-only" onclick="showPage('leftout')">Left Out</a>
     </div>
     <div class="main">
@@ -820,6 +834,28 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
         <div class="card" id="subBox"><div class="empty">Loading…</div></div>
       </div>
 
+      <div class="page" id="page-team">
+        <div class="hero">
+          <div class="eyebrow">Your Account</div>
+          <h1>Team</h1>
+          <p>Everyone on your organization's FundBug account. Each person signs in with their own email, and everyone can work on the Organization Profile, Library, Tracker and My Answers.</p>
+        </div>
+        <div class="card" id="teamBox"><div class="empty">Loading…</div></div>
+        <div class="card owner-only" id="inviteCard">
+          <h2>Invite Someone</h2>
+          <p class="lead">They get an email with a link to set up their own login. No password needed; the link works for 14 days.</p>
+          <div class="row">
+            <div><label for="tmName">Name</label><input id="tmName" autocomplete="off"></div>
+            <div><label for="tmEmail">Email</label><input id="tmEmail" type="email" autocomplete="off" placeholder="name@yourorganization.org"></div>
+          </div>
+          <label class="chk"><input type="checkbox" id="tmDigest" checked> Gets The Digest By Email</label>
+          <div class="err" id="tmErr"></div>
+          <div class="ok" id="tmOk"></div>
+          <button class="btn" id="tmGo" onclick="inviteTeammate()">Send Invite</button>
+        </div>
+        <div class="card acct-only" id="memberNote" hidden><p class="lead" style="margin:0">Only the account's owner can invite or remove people.</p></div>
+      </div>
+
       <div class="page" id="page-leftout">
         <div class="hero">
           <div class="eyebrow">Preview Only</div>
@@ -842,6 +878,17 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
     <div class="modal-actions">
       <button class="dr-btn" id="drTermsGo" disabled>Continue</button>
       <button class="dr-btn ghost" id="drTermsNo">Not Now</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="tmRemoveModal" role="dialog" aria-modal="true" aria-labelledby="tmRemoveTitle">
+  <div class="modal-box">
+    <div class="modal-head"><div class="modal-title" id="tmRemoveTitle">Remove From Your Team</div><button class="modal-x" aria-label="Close" onclick="closeRemove()">Close ✕</button></div>
+    <p class="dr-terms-text" id="tmRemoveText"></p>
+    <div class="err" id="tmRemoveErr"></div>
+    <div class="modal-actions">
+      <button class="dr-btn" id="tmRemoveGo" onclick="removeTeammate()">Remove</button>
+      <button class="dr-btn ghost" onclick="closeRemove()">Cancel</button>
     </div>
   </div>
 </div>
@@ -957,6 +1004,22 @@ function sameDetails(a, b) {
   return norm(pruneDetails(a)) === norm(pruneDetails(b));
 }
 function withArticle(word) { return (/^[aeiou]/i.test(word) ? 'An ' : 'A ') + word; }
+// Team (Oct 19 2026): the account's people as the page lists them, the owner first (from the account itself when it
+// has no owner row of its own in account_members), removed people never; and the seat count as the server counts it.
+function teamRows(seats, owner) {
+  const rows = ((seats && seats.members) || []).filter(m => m.status !== 'revoked').map(m => ({
+    id: m.id, name: m.member_name || '', email: m.member_email || '', owner: m.role === 'owner',
+    role: m.role === 'owner' ? 'Owner' : 'Member', invited: m.status === 'invited', digest: !!m.receives_digest, you: !!m.is_you}));
+  if (!rows.some(r => r.owner) && owner)
+    rows.unshift({id: null, name: [owner.first_name, owner.last_name].filter(Boolean).join(' '), email: owner.email || '',
+                  owner: true, role: 'Owner', invited: false, digest: true, you: !!seats && seats.your_role === 'owner'});
+  return rows.sort((a, b) => (b.owner - a.owner));
+}
+function seatLine(u) { return `${u.seats_used} of ${u.seats_allowed} seats in use`; }
+function seatsFull(u) { return !!u && Number(u.seats_available) < 1; }
+function fullMessage(u) {
+  return `Your plan includes ${u.seats_allowed} seats and all are in use. Remove someone to invite another, or reply to any FundBug email to add more.`;
+}
 // ── PORTAL HELPERS END ──
 
 function store(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
@@ -1051,12 +1114,16 @@ async function openAccount() {
   try {
     [TERMS, PLACES, ACCOUNT] = await Promise.all([apiFetch('/api/nonprofit/terms'), apiFetch('/api/nonprofit/places'), apiFetch('/api/nonprofit/me')]);
   } catch (e) {
+    if (e.status === 403 && /removed/i.test(e.message)) {                   // a teammate taken off the account
+      store(TOKEN_KEY, null); store(SUB_KEY, null); showGate(e.message); return;
+    }
     if (e.status === 403) { location.replace('/portal'); return; }        // a business account: its own portal
     if (e.status === 401) { keepDigestLink(); store(TOKEN_KEY, null); showGate('Your session ended. Enter your email for a new login link.'); return; }
     document.getElementById('mSummary').textContent = 'Could not load your account: ' + e.message;
     showPage('matches');
     return;
   }
+  setRole(ACCOUNT.you);
   drawProfileForm();
   fillProfile(accountToForm(ACCOUNT));
   // The portal opens on the Organization Profile (Will, Oct 19 2026); #answers or #prep/<id> opens that page at once
@@ -1914,6 +1981,76 @@ async function openBilling() {
   catch (e) { document.getElementById('subBox').insertAdjacentHTML('beforeend', '<p class="err">' + escHtml(e.message) + '</p>'); }
 }
 
+// ── team (Oct 19 2026) ──────────────────────────────────────────────────
+let TEAM = null, REMOVING = null;
+function setRole(you) {
+  const owner = !you || you.is_owner !== false;
+  document.body.classList.toggle('member', !owner);
+  document.getElementById('memberNote').hidden = owner;
+}
+async function loadTeam() {
+  const box = document.getElementById('teamBox');
+  box.innerHTML = '<div class="empty">Loading…</div>';
+  try { TEAM = await apiFetch('/api/portal/seats'); }
+  catch (e) { box.innerHTML = '<div class="empty">Could not load your team: ' + escHtml(e.message) + '</div>'; return; }
+  const owner = TEAM.your_role === 'owner';
+  const rows = teamRows(TEAM, ACCOUNT && ACCOUNT.subscriber);
+  box.innerHTML = '<h2>Your Team</h2><p class="tm-count">' + escHtml(seatLine(TEAM)) + '</p>' + rows.map(r =>
+    `<div class="tm-row"><div class="tm-who"><b>${escHtml(r.name || r.email)}</b>${r.you ? ' (You)' : ''}` +
+    `<div class="tm-meta">${escHtml(r.email)}</div></div>` +
+    `<div class="tm-meta">${r.role}${r.invited ? ', invited and not signed in yet' : ''}<br>Gets The Digest: ${r.digest ? 'Yes' : 'No'}</div>` +
+    (owner && !r.owner && /^[0-9a-f-]{36}$/.test(r.id || '') ? `<button class="dr-btn ghost small" onclick="askRemove('${r.id}')">Remove</button>` : '<span></span>') +
+    '</div>').join('');
+  const full = seatsFull(TEAM);
+  document.getElementById('tmGo').disabled = full;
+  document.getElementById('tmErr').textContent = full ? fullMessage(TEAM) : '';
+}
+async function inviteTeammate() {
+  const err = document.getElementById('tmErr'), ok = document.getElementById('tmOk'), btn = document.getElementById('tmGo');
+  const name = document.getElementById('tmName').value.trim(), email = document.getElementById('tmEmail').value.trim();
+  err.textContent = ''; ok.textContent = '';
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Enter their email address.'; return; }
+  btn.disabled = true;
+  try {
+    await apiFetch('/api/portal/seats/invite', 'POST', {email, name, receives_digest: document.getElementById('tmDigest').checked,
+                                                        can_view_passport: true, can_edit_passport: true});
+    ok.textContent = `Invite sent to ${email}. Their link works for 14 days.`;
+    document.getElementById('tmName').value = ''; document.getElementById('tmEmail').value = '';
+  } catch (e) { err.textContent = e.message; }
+  btn.disabled = false;
+  await loadTeam();
+  if (!err.textContent && seatsFull(TEAM)) err.textContent = fullMessage(TEAM);
+}
+function askRemove(id) {
+  const r = teamRows(TEAM, ACCOUNT && ACCOUNT.subscriber).find(x => x.id === id);
+  if (!r) return;
+  REMOVING = r;
+  document.getElementById('tmRemoveText').textContent = `Remove ${r.name || r.email} from your team? They lose access to your organization's FundBug account at once, and their digest stops.`;
+  document.getElementById('tmRemoveErr').textContent = '';
+  document.getElementById('tmRemoveGo').disabled = false;
+  document.getElementById('tmRemoveModal').classList.add('open');
+}
+function closeRemove() { REMOVING = null; document.getElementById('tmRemoveModal').classList.remove('open'); }
+async function removeTeammate() {
+  if (!REMOVING) return;
+  const btn = document.getElementById('tmRemoveGo');
+  btn.disabled = true;
+  try { await apiFetch('/api/portal/seats/' + encodeURIComponent(REMOVING.id), 'DELETE'); closeRemove(); loadTeam(); }
+  catch (e) { document.getElementById('tmRemoveErr').textContent = e.message; btn.disabled = false; }
+}
+// A team invite's link (?seat_invite=<token>, api_portal accept_seat): a session for the new teammate, routed on the
+// ACCOUNT's kind, so a teammate on a nonprofit account stays here and a business invite goes to its own portal.
+async function acceptInvite(inviteToken) {
+  history.replaceState(null, '', location.pathname);
+  const r = await fetch(API_BASE + '/api/portal/seats/accept', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({token: inviteToken})});
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.detail || 'This invite could not be accepted.');
+  store(TOKEN_KEY, d.token);
+  store(SUB_KEY, JSON.stringify({id: d.subscriber_id, email: d.email || '', first_name: d.first_name || '',
+    business_name: d.business_name || '', subscription_status: d.subscription_status || 'trial', org_type: d.org_type || 'for_profit'}));
+  return d.org_type;
+}
+
 function hostOf(u) { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } }
 
 // ── start ───────────────────────────────────────────────────────────────
@@ -1921,6 +2058,13 @@ document.getElementById('secretIn').addEventListener('keydown', e => { if (e.key
 document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key === 'Enter') requestLink(); });
 (async function start() {
   const loginToken = new URLSearchParams(location.search).get('login_token');
+  const inviteToken = new URLSearchParams(location.search).get('seat_invite');
+  if (inviteToken && !loginToken) {
+    try {
+      const orgType = await acceptInvite(inviteToken);
+      if (!NONPROFIT_ORG_TYPES.includes(orgType)) { location.replace('/portal'); return; }
+    } catch (e) { showGate(e.message + ' Ask whoever invited you to send a new one.'); return; }
+  }
   if (loginToken) {
     try {
       const orgType = await consumeLink(loginToken);

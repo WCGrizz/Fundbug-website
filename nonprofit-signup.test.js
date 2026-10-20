@@ -94,4 +94,35 @@ ok(!/candid/i.test(html) && !/candid/i.test(shared.replace(/c\[a\]ndid/g, '')), 
 ok(/<textarea id="about"[^>]*maxlength="10000"/.test(html) && html.includes('A few sentences, or as much detail as you like.'),
    'About Your Organization takes 10,000 characters, with its hint');
 ok(html.includes('value="individual">Individual (artist, musician, writer)</option>'), 'Individual is a kind of applicant');
+
+// A join link (Oct 19 2026, nonprofit/np_join.py): ?join=<token> prefills an existing login's names and email, keeps
+// the email read-only, says so in one line (the email escaped), and sends join_token; a bad link is said plainly and
+// the person can still sign up normally.
+const ja = html.indexOf('// ── JOIN HELPERS START'), jb = html.indexOf('// ── JOIN HELPERS END');
+ok(ja > 0 && jb > ja, 'the signup marks its join helpers');
+const jctx = {};
+vm.createContext(jctx);
+vm.runInContext(html.match(/function escHtml\(s\) \{[^\n]*\}/)[0] + '\n' + html.slice(ja, jb) +
+  '\n;globalThis.__j = {joinLine, joinPath, withJoin};', jctx);
+const j = jctx.__j;
+ok(j.joinLine({email: 'blamb@1berkshire.com', advisor: true}) ===
+   'This adds nonprofit matching to your existing FundBug login (blamb@1berkshire.com). Your advisor portal access stays as it is.',
+   'the join line, word for word, for an advisor account');
+ok(j.joinLine({email: 'a<b>"c@x.org', advisor: true}).includes('(a&lt;b&gt;&quot;c@x.org)') && !j.joinLine({email: '<i>@x.org'}).includes('<i>'),
+   'the email in the join line is escaped');
+ok(!j.joinLine({email: 'owner@shop.com', advisor: false}).includes('advisor'), 'no advisor sentence for an account that is not an advisor');
+ok(j.joinPath('ab.c_d-') === '/api/nonprofit/join/ab.c_d-' && j.joinPath('a/b?c') === '/api/nonprofit/join/a%2Fb%3Fc', 'the join route, the token encoded');
+const body = {email: 'x@y.org'};
+ok(JSON.stringify(j.withJoin(body, 'tok')) === '{"email":"x@y.org","join_token":"tok"}' && j.withJoin(body, '') === body && !('join_token' in body),
+   'the form carries join_token only with a join link');
+ok(/const JOIN = params\.get\('join'\) \|\| '';/.test(html) && /if \(JOIN\) await readJoin\(\);/.test(html), 'the page reads ?join= before deciding what to show');
+ok(/if \(!OPEN && !params\.get\('code'\) && !JOINED\)/.test(html), 'a good join link shows the form even while signup is closed');
+ok(/em\.value = JOINED\.email \|\| ''; em\.readOnly = true;/.test(html) && /note\.innerHTML = joinLine\(JOINED\)/.test(html),
+   'the email is prefilled and read-only, with the join line beneath it');
+ok(/document\.getElementById\('first'\)\.value = JOINED\.first_name/.test(html) && /document\.getElementById\('last'\)\.value = JOINED\.last_name/.test(html),
+   'the names are prefilled');
+ok(/catch \(e\) \{ JOINED = null; document\.getElementById\('joinBad'\)\.hidden = false; \}/.test(html) &&
+   /id="joinBad"[^>]*hidden><p class="lead">This join link is not valid or has expired/.test(html), 'a bad link is said plainly, and the normal signup goes on');
+ok(/JSON\.stringify\(withJoin\(body, JOINED \? JOIN : ''\)\)/.test(html), 'the form is sent with join_token after the card step, so nothing is lost');
+ok(/if \(JOINED && !compValid\) \{ err\.textContent = 'A valid code from FundBug is needed/.test(html), 'a join needs a valid code, said before any card is asked for');
 process.exit(fails ? 1 : 0);

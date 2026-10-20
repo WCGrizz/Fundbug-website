@@ -18,7 +18,7 @@ ok(a > 0 && b > a && sa >= 0 && sb > sa, 'the portal and the shared file mark th
 const ctx = {};
 vm.createContext(ctx);
 vm.runInContext(shared.slice(sa, sb) + '\n' + html.slice(a, b) +
-  '\n;globalThis.__t = {toSecondPerson, round2, typicalText, staleHash, worksInNY, newSince, daysUntil, dueSoon, pruneDetails, sameDetails, withArticle, regionLabel, whereFrom, regionsForProfile, regionsFor};', ctx);
+  '\n;globalThis.__t = {toSecondPerson, round2, typicalText, staleHash, worksInNY, newSince, daysUntil, dueSoon, pruneDetails, sameDetails, withArticle, regionLabel, whereFrom, regionsForProfile, regionsFor, teamRows, seatLine, seatsFull, fullMessage};', ctx);
 const t = ctx.__t;
 
 // E. Why It May Fit: the fit judge's first person, spoken to the organization.
@@ -133,5 +133,41 @@ els['q-subjects'].value = 'music'; page.__p.drawPicker('subjects');
 ok(!els['rs-subjects'].hidden && /Performing arts/.test(els['rs-subjects'].innerHTML) && els['bd-subjects'].hidden, 'the search shows matches in place of the broad choices');
 page.__p.togglePick('subjects', 'SA030000');
 ok(!page.picks.subjects.has('SA030000') && page.changed.join() === 'subjects', 'a pick changes the set and tells the page (the profile marks it unsaved)');
+
+// H. Team (Oct 19 2026): the people on the account, the owner first; the seat count as the server counts it; only the
+// owner invites and removes; a teammate opens the nonprofit portal from an invite, routed on the ACCOUNT's kind.
+const SEATS = {your_role: 'owner', seats_used: 2, seats_allowed: 2, seats_available: 0, members: [
+  {id: '11111111-1111-1111-1111-111111111111', member_name: 'Kevin Pink', member_email: 'kpink@x.org', role: 'member', status: 'active', receives_digest: true, is_you: false},
+  {id: '22222222-2222-2222-2222-222222222222', member_name: 'Gone', member_email: 'gone@x.org', role: 'member', status: 'revoked', receives_digest: true},
+  {id: '33333333-3333-3333-3333-333333333333', member_name: '', member_email: 'new@x.org', role: 'member', status: 'invited', receives_digest: false}]};
+const OWNER = {first_name: 'Ben', last_name: 'Lamb', email: 'blamb@x.org'};
+eq(t.teamRows(SEATS, OWNER).map(r => [r.role, r.name || r.email, r.invited, r.digest, r.you]),
+   [['Owner', 'Ben Lamb', false, true, true], ['Member', 'Kevin Pink', false, true, false], ['Member', 'new@x.org', true, false, false]],
+   'the owner first (from the account), then members; a removed one never');
+const withOwnerRow = {...SEATS, your_role: 'member', members: [{id: 'o', member_name: 'Owner Row', member_email: 'o@x.org', role: 'owner', status: 'active', receives_digest: true}, SEATS.members[0]]};
+eq(t.teamRows(withOwnerRow, OWNER).map(r => r.name), ['Owner Row', 'Kevin Pink'], 'an owner row of its own is never shown twice');
+eq(t.seatLine(SEATS), '2 of 2 seats in use', 'the seat count');
+ok(t.seatsFull(SEATS) && !t.seatsFull({seats_available: 1}), 'full when no seat is free');
+ok(t.fullMessage(SEATS).startsWith('Your plan includes 2 seats and all are in use.') && !/ [-—] /.test(t.fullMessage(SEATS)), "the cap's message, no dash mid-sentence");
+ok(/<a data-page="subscription" class="acct-only owner-only"[^>]*>Subscription<\/a>\s*<a data-page="team" class="acct-only" onclick="showPage\('team'\); loadTeam\(\)">Team<\/a>/.test(html),
+   'Team is its own sidebar item after Subscription, and Subscription is the owner\'s only');
+ok(/body\.member \.owner-only\{display:none\}/.test(html) && /<div class="card owner-only" id="inviteCard">/.test(html), 'a teammate sees the list only: no invite form');
+ok(/document\.body\.classList\.toggle\('member', !owner\)/.test(html) && /setRole\(ACCOUNT\.you\);/.test(html), 'the role comes from /api/nonprofit/me');
+ok(/owner && !r\.owner && \/\^\[0-9a-f-\]\{36\}\$\/\.test\(r\.id \|\| ''\) \? `<button/.test(html), 'only the owner gets a Remove button, never on the owner');
+ok(/Gets The Digest By Email/.test(html) && /receives_digest: document\.getElementById\('tmDigest'\)\.checked/.test(html), 'the invite asks whether they get the digest');
+const modal = html.match(/<div class="modal-overlay" id="tmRemoveModal"[\s\S]*?\n<\/div>/);
+ok(modal && /onclick="closeRemove\(\)">Close ✕<\/button>/.test(modal[0]) && /onclick="closeRemove\(\)">Cancel<\/button>/.test(modal[0]) &&
+   !/<div class="modal-overlay" id="tmRemoveModal"[^>]*onclick/.test(html) && !/tmRemoveModal'\)\.addEventListener\('click'/.test(html),
+   'the remove dialog closes by its X or Cancel only, never an outside click');
+ok(/if \(inviteToken && !loginToken\)/.test(html) && /const orgType = await acceptInvite\(inviteToken\);\s*if \(!NONPROFIT_ORG_TYPES\.includes\(orgType\)\) \{ location\.replace\('\/portal'\); return; \}/.test(html),
+   'an invite link signs the teammate in and keeps a nonprofit account here');
+ok(/if \(e\.status === 403 && \/removed\/i\.test\(e\.message\)\)/.test(html), 'a removed teammate is told so, not sent to the business portal');
+ok(!/[a-z] - [a-z]|[a-z] — [a-z]/i.test((html.match(/<div class="page" id="page-team">[\s\S]*?<div class="page" id="page-leftout">/) || [''])[0]), 'no dash mid-sentence on the Team page');
+// The business portal routes a teammate on the account's kind too (portal.html).
+const biz = fs.readFileSync(__dirname + '/portal.html', 'utf8');
+ok(/subscription_status: d\.subscription_status \|\| 'trial', org_type: d\.org_type \|\| 'for_profit',/.test(biz) &&
+   /localStorage\.setItem\('fb_sub', JSON\.stringify\(subscriber\)\);\s*return true;/.test(biz), 'portal.html keeps the accept reply\'s org_type, so showApp routes a nonprofit teammate on');
+ok(/org_type:\s+p\.org_type \|\| 'for_profit',/.test(biz), 'portal.html keeps the profile\'s org_type when it rebuilds the session');
+ok(/const p=await apiFetch\('\/api\/portal\/profile'\);\s*\/\/[^\n]*\n[^\n]*\n\s*if \(isNonprofitAccount\(p\)\) \{/.test(biz), 'a login saved before its account joined the nonprofit side moves on');
 
 process.exit(fails ? 1 : 0);
