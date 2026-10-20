@@ -110,8 +110,8 @@ textarea:focus{border-color:var(--green);background:var(--white)}
 <body>
 <header><a class="logo" href="/"><img src="/fundbug_logo.png" alt="">FundBug</a></header>
 <div class="hero">
-  <h1>Funding For Your Nonprofit, Matched</h1>
-  <p id="heroText">The foundations and grant programs your organization can actually apply to, best fit first, with how to approach each one. 14 days free, then $45 a month or $450 a year.</p>
+  <h1>Spend Less Time Searching For Funding</h1>
+  <p id="heroText">Personalized grant and funder matches for your organization, delivered on the 1st and 3rd Tuesday of every month. 14 days free, then $45 a month or $450 a year.</p>
 </div>
 <main>
   <div class="banner" id="compBanner" role="status" hidden></div>
@@ -262,7 +262,7 @@ let descSource = '';
 const JOIN = params.get('join') || '';
 let JOINED = null;                      // the join link's account, once read
 const HERO_PRICED = document.getElementById('heroText').textContent;
-const HERO_FREE = 'The foundations and grant programs your organization can actually apply to, best fit first, with how to approach each one.';
+const HERO_FREE = 'Personalized grant and funder matches for your organization, delivered on the 1st and 3rd Tuesday of every month.';
 
 function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 async function getJson(path) { const r = await fetch(API + path); if (!r.ok) throw new Error('The server answered ' + r.status); return r.json(); }
