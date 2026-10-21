@@ -3,7 +3,7 @@
 const fs = require('fs');
 const h = fs.readFileSync('snapshot.html', 'utf8');
 const m = [...h.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(x => x[1]).join('\n');
-const api = new Function(m.replace(/\(function \(\) \{[\s\S]*$/, '') + '; return {card, program, setOrg: n => { ORG = n; }};')();
+const api = new Function(m.replace(/\n\(function \(\) \{[\s\S]*$/, '') + '; return {card, program, setOrg: n => { ORG = n; }};')();
 let fails = 0; const ok = (c, msg) => { console.log((c ? 'PASS ' : 'FAIL ') + msg); if (!c) fails++; };
 api.setOrg('Berkshire Agricultural Ventures');
 const c = api.card({ title: 'Lee Bank Foundation', funded_you: { dollars: 740928, grants: 9, first: 2021, last: 2024 } });

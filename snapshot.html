@@ -12,22 +12,49 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root { --ink: #1a1a14; --green: #5a9e52; --green-dk: #3d7a38; --cream: #f7f5f0; --cream2: #ede9e0; --border: #d8d3c8; --white: #fff; }
+:root { --ink: #1a1a14; --green: #5a9e52; --green-dk: #3d7a38; --cream: #f7f5f0; --cream2: #ede9e0; --border: #d8d3c8; --white: #fff; --gold: #c9a227; --red: #a33; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--cream); color: var(--ink); font-family: 'Jost', sans-serif; font-size: 16px; line-height: 1.6; }
-h1, h2 { font-family: 'Fraunces', serif; line-height: 1.2; }
+h1, h2, h3 { font-family: 'Fraunces', serif; line-height: 1.2; }
 .wrap { max-width: 780px; margin: 0 auto; padding: 28px 16px 48px; }
 .brand { font-family: 'Fraunces', serif; font-weight: 700; color: var(--green-dk); font-size: 22px; text-decoration: none; }
-h1 { font-size: 30px; margin: 18px 0 8px; }
+.profile { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; margin: 14px 0 4px; font-size: 15px; }
+h1 { font-size: 30px; margin: 14px 0 8px; }
 .lead { font-size: 16px; margin-bottom: 22px; }
+.summary { font-size: 17px; margin-bottom: 8px; }
+.sec { font-size: 22px; margin: 24px 0 4px; }
+.secnote { font-size: 15px; margin-bottom: 12px; }
 .card { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; margin-bottom: 14px; }
+.card.dim { opacity: .55; }
+.card-head { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
 .card h2 { font-size: 20px; margin-bottom: 6px; }
+.fit { font-size: 14px; font-weight: 600; border-radius: 999px; padding: 1px 10px; white-space: nowrap; }
+.fit.strong { background: var(--green); color: var(--white); }
+.fit.possible { background: #e8f2e6; color: var(--green-dk); }
 .pill { display: inline-block; font-size: 14px; border: 1px solid var(--border); border-radius: 999px; padding: 1px 10px; margin: 0 6px 6px 0; background: var(--cream); }
-.line { font-size: 15px; margin-bottom: 6px; }
-.line.known { font-weight: 600; }
-.desc { font-size: 15px; margin: 8px 0; }
-.card a.site { font-size: 15px; font-weight: 600; color: var(--green-dk); }
-.cta { background: var(--ink); color: var(--cream); border-radius: 8px; padding: 22px 20px; margin-top: 24px; }
+.pill.solid { background: var(--green-dk); color: var(--white); border-color: var(--green-dk); }
+.pill.knownpill { background: #fff7e0; border-color: var(--gold); }
+.line { font-size: 15px; margin-bottom: 4px; }
+.line.known { font-weight: 600; margin: 8px 0; }
+.warn { font-size: 15px; font-weight: 600; color: var(--red); margin: 4px 0; }
+.why { font-size: 15px; margin: 10px 0 6px; }
+.why b { font-weight: 600; margin-right: 4px; }
+.next { font-size: 15px; font-style: italic; color: #6b4a14; margin-bottom: 8px; }
+.chart { margin: 8px 0 4px; }
+.chart-label { font-size: 14px; font-weight: 600; }
+.chart svg { max-width: 100%; height: auto; }
+details { margin: 6px 0; }
+summary { font-size: 15px; cursor: pointer; color: var(--green-dk); font-weight: 600; }
+.desc { font-size: 15px; margin: 6px 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; font-size: 15px; align-items: baseline; }
+.actions a, .actions button { color: var(--green-dk); text-decoration: none; background: none; border: none; font: inherit; cursor: pointer; padding: 0; }
+.actions a.site { font-weight: 600; }
+.actions .done { font-size: 15px; color: var(--ink); }
+.beyond { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; margin-top: 24px; }
+.beyond h3 { font-size: 20px; }
+.beyond ul { margin: 8px 0 0 20px; font-size: 15px; }
+.beyond li { margin-bottom: 6px; }
+.cta { background: var(--ink); color: var(--cream); border-radius: 8px; padding: 22px 20px; margin-top: 20px; }
 .cta h2 { font-size: 22px; margin-bottom: 6px; }
 .cta p { font-size: 15px; margin-bottom: 14px; }
 .btn { display: inline-block; background: var(--green); color: var(--white); font-weight: 600; padding: 11px 20px; border-radius: 6px; text-decoration: none; }
@@ -35,16 +62,27 @@ h1 { font-size: 30px; margin: 18px 0 8px; }
 .note { font-size: 14px; margin-top: 22px; }
 .note a { color: var(--ink); }
 .missing { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; }
+@media (max-width: 520px) { h1 { font-size: 25px; } .card { padding: 16px; } }
 </style>
 </head>
 <body>
 <div class="wrap">
   <a class="brand" href="https://fundbug.net/nonprofits">FundBug</a>
-  <div id="body"><p class="lead" style="margin-top:20px">Loading your snapshot...</p></div>
+  <div id="body"><p class="lead" style="margin-top:20px">Loading your snapshot.</p></div>
 </div>
 <script>
+// The snapshot carries the digest's own entry (Oct 21 2026, Will: "the personalization that comes with the digest
+// isnt there, nor are most of the digest features ... I want someone looking at the Snapshot to be really wowed"):
+// the write-up and next step (np_outreach.write_up), the fit, first grants, a chart of its giving by year, a deadline
+// warning, and Save To Tracker, Not A Fit and Good Match (recorded against the prospect; carried into the account if it
+// signs up from this link). Mocked up as logs/snapshot_mockup_bav.html first.
 var API = 'https://fundbug-production.up.railway.app';
 var MODES = { loi: 'Letter of Inquiry First', open_call: 'Open Application Round', rolling: 'Rolling Applications' };
+var CLOSING_SOON_DAYS = 21;          // as the digest (np_digest.CLOSING_SOON_DAYS)
+var TOKEN = '';
+// The feedback route comes with the API that also returns the summary; until that API is live (Railway, Oct 21 2026)
+// the buttons are left off rather than shown and failing.
+var VOTES_LIVE = true;
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 // A long description ends at the end of a sentence, never mid-sentence and never with "..." (Will, Oct 21 2026:
 // "there shouldnt ever be a ..., all copy should end correctly. i dont care if the entry is a bit longer"). The last
@@ -66,43 +104,108 @@ function known(f, theirFunder) {
   var k = f.funded_you;
   if (!k || !k.dollars) return '';
   var yrs = k.first && k.last ? (k.first === k.last ? ', ' + k.first : ', ' + k.first + ' to ' + k.last) : '';
-  return '<div class="line known">' + (theirFunder ? "Its funder's" : 'Its') + ' filings list $' + Number(k.dollars).toLocaleString('en-US')
-    + ' in grants to ' + esc(ORG || 'your organization') + yrs + '.</div>';
+  return '<div class="line known"><span class="pill knownpill">You May Already Know This Funder</span> ' + (theirFunder ? "Its funder's" : 'Its')
+    + ' filings list $' + Number(k.dollars).toLocaleString('en-US') + ' in grants to ' + esc(ORG || 'your organization') + yrs + '.</div>';
+}
+function money(n) { return n >= 1e6 ? '$' + (n / 1e6).toFixed(1) + 'M' : '$' + Math.round(n / 1e3) + 'K'; }
+// Its giving by year, from its IRS filings (Will, Oct 21 2026: "I really like the little bar graphs of giving").
+function chart(byYear) {
+  var ys = Object.keys(byYear || {}).filter(function (y) { return byYear[y] > 0; }).sort();
+  if (ys.length < 2) return '';
+  var mx = Math.max.apply(null, ys.map(function (y) { return byYear[y]; })), w = 56, bars = '';
+  ys.forEach(function (y, i) {
+    var h = Math.max(3, Math.round(70 * byYear[y] / mx)), x = i * w + 8;
+    bars += '<rect x="' + x + '" y="' + (82 - h) + '" width="34" height="' + h + '" rx="3" fill="#5a9e52"/>'
+      + '<text x="' + (x + 17) + '" y="' + (78 - h) + '" font-size="11" text-anchor="middle" fill="#1a1a14">' + money(byYear[y]) + '</text>'
+      + '<text x="' + (x + 17) + '" y="98" font-size="11" text-anchor="middle" fill="#1a1a14">' + y + '</text>';
+  });
+  var width = ys.length * w + 16;
+  return '<div class="chart"><div class="chart-label">Its giving by year, from its IRS filings</div><svg viewBox="0 0 ' + width + ' 102" width="' + width
+    + '" height="102" role="img" aria-label="Its giving by year">' + bars + '</svg></div>';
+}
+function daysLeft(iso) {
+  if (!iso) return null;
+  var d = new Date(iso + 'T00:00:00'), now = new Date(); now.setHours(0, 0, 0, 0);
+  var n = Math.round((d - now) / 86400000);
+  return n >= 0 ? n : null;
+}
+function longDate(iso) {
+  var d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+function fitTag(f) {
+  var v = (f.fit || {}).verdict;
+  return v === 'strong' ? '<span class="fit strong">Strong Fit</span>' : v === 'possible' ? '<span class="fit possible">Possible Fit</span>' : '';
+}
+function actions(f, siteLabel) {
+  var id = esc(f.id);
+  return '<div class="actions">'
+    + (f.site ? '<a class="site" href="' + esc(f.site) + '" target="_blank" rel="noopener">' + siteLabel + ' &rarr;</a>' : '')
+    + (VOTES_LIVE ? '<button type="button" onclick="vote(this, \'' + id + '\', \'save\')">+ Save To Tracker</button>'
+    + '<button type="button" onclick="vote(this, \'' + id + '\', \'down\')">&minus; Not A Fit</button>'
+    + '<button type="button" onclick="vote(this, \'' + id + '\', \'up\')">&#128077; Good Match</button>' : '') + '</div>';
+}
+var VOTE_DONE = { save: 'Saved. It will be waiting in your tracker when you start your free trial.',
+                  down: 'Marked Not A Fit. FundBug leaves it out of your matches if you start.',
+                  up: 'Thanks, noted as a good match.' };
+function vote(btn, id, v) {
+  var card = btn.closest('.card'), row = btn.parentNode;
+  fetch(API + '/api/nonprofit/snapshot/' + encodeURIComponent(TOKEN) + '/feedback', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, vote: v })
+  }).then(function (r) {
+    if (!r.ok) throw new Error(r.status);
+    var note = row.querySelector('.done') || document.createElement('span');
+    note.className = 'done'; note.textContent = VOTE_DONE[v]; row.appendChild(note);
+    card.classList.toggle('dim', v === 'down');
+  }).catch(function () {
+    var note = row.querySelector('.done') || document.createElement('span');
+    note.className = 'done'; note.textContent = 'That did not save. Please try again.'; row.appendChild(note);
+  });
+}
+function body(f, kind) {
+  return (f.why_it_fits ? '<div class="why"><b>Why It Fits</b> ' + esc(f.why_it_fits) + '</div>' : '')
+    + (f.next_step ? '<div class="next">' + esc(f.next_step) + '</div>' : '')
+    + (kind === 'funder' ? chart(f.giving_by_year) : '')
+    + (f.description ? '<details><summary>About This ' + (kind === 'funder' ? 'Funder' : 'Program') + '</summary><p class="desc">' + esc(f.description) + '</p></details>' : '');
 }
 function card(f) {
-  var pills = [];
-  if (f.funded_you && f.funded_you.dollars) pills.push('You May Already Know This Funder');
-  if (f.where) pills.push(f.where);
-  pills.push(f.relationship ? 'By Invitation: Build A Relationship' : (MODES[f.mode] || ''));
+  var pills = ['<span class="pill solid">Funder</span>'];
+  if (f.where) pills.push('<span class="pill">' + esc(f.where) + '</span>');
+  var mode = f.relationship ? 'By Invitation: Build A Relationship' : (MODES[f.mode] || '');
+  if (mode) pills.push('<span class="pill">' + esc(mode) + '</span>');
   var money = f.stated ? 'Grants: ' + f.stated + ' (its website)' : (f.typical ? 'Typical grant: ' + f.typical : '');
+  if (f.first_grant) money += (money ? ' · ' : '') + 'First grants to a new organization: ' + f.first_grant;
   var lines = [money, f.where_gives ? f.where_gives.replace(' grant dollars ', ' grants ') : '', f.giving_line].filter(Boolean);
   var filing = /projects\.propublica\.org/.test(f.site || '');
-  return '<div class="card"><h2>' + esc(f.title) + '</h2>'
-    + '<div>' + pills.filter(Boolean).map(function (p) { return '<span class="pill">' + esc(p) + '</span>'; }).join('') + '</div>'
+  return '<div class="card"><div class="card-head"><h2>' + esc(f.title) + '</h2>' + fitTag(f) + '</div>'
+    + '<div>' + pills.join('') + '</div>'
     + lines.map(function (l) { return '<div class="line">' + esc(l) + '</div>'; }).join('')
     + known(f, false)
-    + (f.description ? '<p class="desc">' + esc(short(f.description, 420)) + '</p>' : '')
     + (f.relationship ? '<p class="desc">It does not take unsolicited applications; it is worth knowing and building a relationship with.</p>' : '')
-    + (f.site ? '<a class="site" href="' + esc(f.site) + '" target="_blank" rel="noopener">' + (filing ? 'Its Tax Filing' : 'Funder Website') + ' &rarr;</a>' : '')
+    + body(f, 'funder')
+    + actions(f, filing ? 'Its Tax Filing' : 'Funder Website')
     + '</div>';
 }
 function program(f) {
-  var pills = [];
-  if (f.where) pills.push(f.where);
-  if (MODES[f.mode]) pills.push(MODES[f.mode]);
-  if (f.funded_you && f.funded_you.dollars) pills.push('You May Already Know This Funder');
-  var lines = [f.amount ? 'Amount: ' + f.amount : '', f.deadline ? 'Deadline: ' + f.deadline : '',
+  var pills = ['<span class="pill solid">Opportunity</span>'];
+  if (f.where) pills.push('<span class="pill">' + esc(f.where) + '</span>');
+  if (MODES[f.mode]) pills.push('<span class="pill">' + esc(MODES[f.mode]) + '</span>');
+  var left = daysLeft(f.deadline_date);
+  var deadline = f.deadline_date ? longDate(f.deadline_date) + (left !== null ? ' (' + left + (left === 1 ? ' day' : ' days') + ')' : '') : f.deadline;
+  var lines = [f.amount ? 'Amount: ' + f.amount : '', deadline && !(left !== null && left <= CLOSING_SOON_DAYS) ? 'Deadline: ' + deadline : '',
                f.provided_by && String(f.title || '').toLowerCase().indexOf(String(f.provided_by).toLowerCase()) < 0 ? 'From ' + f.provided_by : ''].filter(Boolean);
-  return '<div class="card"><h2>' + esc(f.title) + '</h2>'
-    + '<div>' + pills.map(function (p) { return '<span class="pill">' + esc(p) + '</span>'; }).join('') + '</div>'
+  var warn = left !== null && left <= CLOSING_SOON_DAYS ? '<div class="warn">&#9888; Deadline: ' + esc(deadline) + '</div>' : '';
+  return '<div class="card"><div class="card-head"><h2>' + esc(f.title) + '</h2>' + fitTag(f) + '</div>'
+    + '<div>' + pills.join('') + '</div>' + warn
     + lines.map(function (l) { return '<div class="line">' + esc(l) + '</div>'; }).join('')
     + known(f, true)
-    + (f.description ? '<p class="desc">' + esc(short(f.description, 420)) + '</p>' : '')
-    + (f.site ? '<a class="site" href="' + esc(f.site) + '" target="_blank" rel="noopener">Program Website &rarr;</a>' : '')
+    + body(f, 'opportunity')
+    + actions(f, 'Program Website')
     + '</div>';
 }
 (function () {
   var t = new URLSearchParams(location.search).get('t') || '';
+  TOKEN = t;
   var el = document.getElementById('body');
   var signup = '/nonprofit-signup' + (t ? '?t=' + encodeURIComponent(t) : '');
   if (!/^[A-Za-z0-9_-]{8,40}$/.test(t)) {
@@ -113,19 +216,27 @@ function program(f) {
     if (!r.ok) throw new Error(r.status);
     return r.json();
   }).then(function (d) {
-    var where = d.county ? ' in ' + esc(d.county) : '';
     var programs = d.programs || [], funders = d.funders || [];
     ORG = d.name || '';
+    VOTES_LIVE = Object.prototype.hasOwnProperty.call(d, 'summary');
     var anyKnown = programs.concat(funders).some(function (x) { return x.funded_you && x.funded_you.dollars; });
-    el.innerHTML = '<h1>Grants And Funders For ' + esc(d.name) + '</h1>'
-      + '<p class="lead">A sample of what FundBug finds for your work' + where + ': open programs and foundations, from the funders\' own guidelines, their IRS filings and their websites, picked the way FundBug picks them for a subscriber\'s digest. Check each one\'s own guidelines before you apply.</p>'
+    el.innerHTML = '<div class="profile">We used publicly available information to build a basic profile for your organization. A real FundBug profile contains much more detail to better match opportunities and funders with your goals.</div>'
+      + '<h1>Grants And Funders For ' + esc(d.name) + '</h1>'
+      + (d.summary ? '<p class="summary">' + esc(d.summary) + '</p>' : '')
+      + '<p class="lead">Open programs and foundations, from the funders\' own guidelines, their IRS filings and their websites, picked the way FundBug picks them for a subscriber\'s digest. Check each one\'s own guidelines before you apply.</p>'
       + (anyKnown ? '<p class="lead">A few of these may already fund you: their tax filings list grants to ' + esc(d.name) + '. They are marked, so the new ones stand out.</p>' : '')
-      + (programs.length ? '<h2 style="font-size:22px;margin:22px 0 10px">Open Programs</h2>' + programs.map(program).join('') : '')
-      + (funders.length ? '<h2 style="font-size:22px;margin:22px 0 10px">Funders To Know</h2>' + funders.map(card).join('') : '')
+      + (programs.length ? '<h2 class="sec">Open Programs</h2><p class="secnote">Programs taking applications now or on a set date, each checked against its own guidelines.</p>' + programs.map(program).join('') : '')
+      + (funders.length ? '<h2 class="sec">Funders To Know</h2><p class="secnote">Foundations whose giving fits your work, from their IRS filings and their own websites.</p>' + funders.map(card).join('') : '')
+      + '<div class="beyond"><h3>This Is A Sample. A Subscription Is Built Around You.</h3><ul>'
+      + '<li><b>A digest every other Tuesday</b> with new programs and funders matched to your profile, and a warning when a deadline is close.</li>'
+      + '<li><b>A page for every funder:</b> its giving by year, its typical first grant, the organizations it funds in your county, how it takes applications and who to contact.</li>'
+      + '<li><b>A tracker</b> for what you are applying to, with deadlines and follow-ups in each digest.</li>'
+      + '<li><b>Application drafting</b> from your profile, with a step-by-step plan for each application.</li></ul>'
+      + '<p style="font-size:15px;margin-top:10px">FundBug follows more than 3,200 foundations and grantmaking charities through their IRS filings and their own websites.</p></div>'
       + '<div class="cta"><h2>Get funders and open grants like these, every other Tuesday</h2>'
-      + '<p>FundBug matches your organization to foundations and grant programs, with deadlines, how each funder takes applications, and its giving history. It also drafts application answers from your profile. 14 days free, then $45 a month.</p>'
+      + '<p>Programs you save here are waiting in your tracker when you start. 14 days free, then $45 a month.</p>'
       + '<a class="btn" href="' + signup + '">Start Your Free Trial</a></div>'
-      + '<p class="note">FundBug, funding intelligence for nonprofits, Pittsfield, Massachusetts. <a href="/nonprofits">What FundBug does</a>. Questions: reply to the email this link came in.</p>';
+      + '<p class="note">FundBug, funding intelligence for nonprofits, the Berkshires, Massachusetts. <a href="/nonprofits">What FundBug does</a>. Questions: reply to the email this link came in.</p>';
   }).catch(function () {
     el.innerHTML = '<div class="missing" style="margin-top:20px"><h2>This snapshot is not available</h2><p class="lead" style="margin:8px 0 0">The link may have expired. See what FundBug does at <a href="/nonprofits">fundbug.net/nonprofits</a>.</p></div>';
   });
