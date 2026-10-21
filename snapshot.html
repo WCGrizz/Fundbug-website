@@ -80,6 +80,7 @@ var API = 'https://fundbug-production.up.railway.app';
 var MODES = { loi: 'Letter of Inquiry First', open_call: 'Open Application Round', rolling: 'Rolling Applications' };
 var CLOSING_SOON_DAYS = 21;          // as the digest (np_digest.CLOSING_SOON_DAYS)
 var TOKEN = '';
+var CHECK = false;   // ?check=1: Will's own look, no open or vote recorded
 // The feedback route comes with the API that also returns the summary; until that API is live (Railway, Oct 21 2026)
 // the buttons are left off rather than shown and failing.
 var VOTES_LIVE = true;
@@ -150,9 +151,10 @@ var VOTE_DONE = { save: 'Saved. It will be waiting in your tracker when you star
                   up: 'Thanks, noted as a good match.' };
 function vote(btn, id, v) {
   var card = btn.closest('.card'), row = btn.parentNode;
-  fetch(API + '/api/nonprofit/snapshot/' + encodeURIComponent(TOKEN) + '/feedback', {
+  // Will's own look (?check=1, Oct 21 2026: showing a snapshot in a meeting) shows a vote and records none.
+  (CHECK ? Promise.resolve({ ok: true }) : fetch(API + '/api/nonprofit/snapshot/' + encodeURIComponent(TOKEN) + '/feedback', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, vote: v })
-  }).then(function (r) {
+  })).then(function (r) {
     if (!r.ok) throw new Error(r.status);
     var note = row.querySelector('.done') || document.createElement('span');
     note.className = 'done'; note.textContent = VOTE_DONE[v]; row.appendChild(note);
@@ -206,13 +208,14 @@ function program(f) {
 (function () {
   var t = new URLSearchParams(location.search).get('t') || '';
   TOKEN = t;
+  CHECK = new URLSearchParams(location.search).get('check') === '1';
   var el = document.getElementById('body');
   var signup = '/nonprofit-signup' + (t ? '?t=' + encodeURIComponent(t) : '');
   if (!/^[A-Za-z0-9_-]{8,40}$/.test(t)) {
     el.innerHTML = '<div class="missing" style="margin-top:20px"><h2>This link is not complete</h2><p class="lead" style="margin:8px 0 0">Check that the whole link from the email was opened, or see what FundBug does at <a href="/nonprofits">fundbug.net/nonprofits</a>.</p></div>';
     return;
   }
-  fetch(API + '/api/nonprofit/snapshot/' + encodeURIComponent(t)).then(function (r) {
+  fetch(API + '/api/nonprofit/snapshot/' + encodeURIComponent(t) + (CHECK ? '?check=true' : '')).then(function (r) {
     if (!r.ok) throw new Error(r.status);
     return r.json();
   }).then(function (d) {

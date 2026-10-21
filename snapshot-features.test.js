@@ -4,7 +4,7 @@
 const fs = require('fs');
 const h = fs.readFileSync('snapshot.html', 'utf8');
 const m = [...h.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(x => x[1]).join('\n');
-const api = new Function(m.replace(/\n\(function \(\) \{[\s\S]*$/, '') + '; return {card, program, chart, setOrg: n => { ORG = n; }};')();
+const api = new Function(m.replace(/\n\(function \(\) \{[\s\S]*$/, '') + '; return {card, program, chart, vote, setOrg: n => { ORG = n; }, setCheck: c => { CHECK = c; }};')();
 let fails = 0; const ok = (c, msg) => { console.log((c ? 'PASS ' : 'FAIL ') + msg); if (!c) fails++; };
 api.setOrg('Berkshire Agricultural Ventures');
 const f = api.card({ id: 'g1', title: 'The Harold Grinspoon Charitable Foundation', fit: { verdict: 'strong' }, typical: '$2,200 to $2,500',
@@ -24,4 +24,17 @@ ok(h.indexOf('We used publicly available information to build a basic profile') 
 ok(!/\bin Berkshire County\b|your work' \+ where/.test(h), 'no single-county line');
 ok(/VOTES_LIVE = Object\.prototype\.hasOwnProperty\.call\(d, 'summary'\)/.test(h) && /\(VOTES_LIVE \? '<button/.test(h),
    'the buttons show only once the API that records them answers (the one that returns the summary)');
-console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);
+ok(/CHECK = new URLSearchParams\(location\.search\)\.get\('check'\) === '1'/.test(h) && /\(CHECK \? '\?check=true' : ''\)/.test(h),
+   'a ?check=1 look asks the API not to count an open');
+(async () => {
+  // A vote in Will's own look (?check=1, Oct 21 2026: a snapshot shown in a meeting) shows and records nothing.
+  const sent = []; global.fetch = (u, o) => { sent.push(u); return Promise.resolve({ ok: true }); };
+  const fake = () => { const row = { kids: [], querySelector: () => null, appendChild: k => row.kids.push(k) };
+    return { row, btn: { parentNode: row, closest: () => ({ classList: { toggle() {} } }) } }; };
+  global.document = { createElement: () => ({}) };
+  api.setCheck(true); let x = fake(); api.vote(x.btn, 'g1', 'save'); await new Promise(r => setTimeout(r, 5));
+  ok(sent.length === 0 && x.row.kids.length === 1 && /Saved/.test(x.row.kids[0].textContent), 'a vote in a ?check=1 look is shown and never sent');
+  api.setCheck(false); x = fake(); api.vote(x.btn, 'g1', 'save'); await new Promise(r => setTimeout(r, 5));
+  ok(sent.length === 1 && /\/feedback$/.test(sent[0]), 'a visitor\'s vote is sent');
+  console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);
+})();
