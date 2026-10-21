@@ -1025,6 +1025,18 @@ function fullMessage(u) {
 
 function store(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
 function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+// A long description ends at the end of a sentence, never with "..." (Will, Oct 21 2026: "there shouldnt ever be a
+// ..., all copy should end correctly"): the last full sentence within n, if that keeps more than half, otherwise
+// through the end of the next sentence.
+// A period after an initial or a common abbreviation (U.S., Inc., St.) does not end a sentence.
+var ABBR = /(?:\b[A-Z]|\b(?:Inc|St|Mr|Mrs|Ms|Dr|No|Co|Corp|Ltd|Jr|Sr|Mt|Ft|vs|etc|approx))\.$/;
+function sentenceCut(t, n) {
+  t = String(t || '').trim(); if (t.length <= n) return t;
+  const ends = [...t.matchAll(/[.!?]["')\]]?(?=\s+[A-Z0-9"'(])/g)].filter(m => !ABBR.test(t.slice(0, m.index + 1))).map(m => m.index + m[0].length);
+  const within = ends.filter(e => e <= n), after = ends.filter(e => e > n);
+  if (within.length && within[within.length - 1] > n * 0.5) return t.slice(0, within[within.length - 1]);
+  return after.length ? t.slice(0, after[0]) : t;
+}
 function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function money(n) { return n == null ? '' : '$' + Number(n).toLocaleString('en-US'); }
 
@@ -1535,7 +1547,7 @@ function matchCard(m) {
     ${m.why && m.why.length ? '<ul class="why">' + m.why.map(w => `<li>${escHtml(w)}</li>`).join('') + '</ul>' : ''}
     ${m.verdict_reason ? `<div class="fit-read"><b>${m.verdict === 'no' ? 'Why It May Not Fit' : 'Why It May Fit'}:</b> ${escHtml(toSecondPerson(m.verdict_reason))}</div>` : ''}
     ${m.fits === false && m.why_not ? `<div class="why-not">May not fit: ${escHtml(m.why_not)}</div>` : ''}
-    ${m.description ? `<div class="desc">${escHtml(m.description.length > 360 ? m.description.slice(0, 360).replace(/\s+\S*$/, '') + '…' : m.description)}</div>` : ''}
+    ${m.description ? `<div class="desc">${escHtml(sentenceCut(m.description, 360))}</div>` : ''}
   </div>`;
 }
 function drawMatches() {

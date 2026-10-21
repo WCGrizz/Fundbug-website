@@ -2957,7 +2957,7 @@ async function undoDismiss(programId) {
 function showTrackerUndo(programId, title) {
   const el = document.getElementById('trackerToast');
   if (!el) return;
-  const short = (title || 'Program').length > 40 ? title.slice(0, 38) + '...' : (title || 'Program');
+  const short = title || 'Program';   // the whole title, never cut with "..." (Will, Oct 21 2026)
   el.innerHTML = `${esc(short)} hidden <button onclick="undoDismiss('${programId}')" ` +
     `style="margin-left:12px;background:none;border:none;color:#7ab870;font-family:'Jost',sans-serif;` +
     `font-size:13px;font-weight:600;cursor:pointer;padding:0;text-decoration:underline;">Undo</button>`;

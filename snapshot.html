@@ -46,7 +46,19 @@ h1 { font-size: 30px; margin: 18px 0 8px; }
 var API = 'https://fundbug-production.up.railway.app';
 var MODES = { loi: 'Letter of Inquiry First', open_call: 'Open Application Round', rolling: 'Rolling Applications' };
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-function short(t, n) { t = String(t || ''); if (t.length <= n) return t; var cut = t.slice(0, n); var dot = cut.lastIndexOf('. '); return (dot > n * 0.5 ? cut.slice(0, dot + 1) : cut.replace(/\s+\S*$/, '') + '...'); }
+// A long description ends at the end of a sentence, never mid-sentence and never with "..." (Will, Oct 21 2026:
+// "there shouldnt ever be a ..., all copy should end correctly. i dont care if the entry is a bit longer"). The last
+// full sentence within n characters, if that keeps more than half; otherwise through the end of the next sentence.
+// A period after an initial or a common abbreviation (U.S., Inc., St.) does not end a sentence.
+var ABBR = /(?:\b[A-Z]|\b(?:Inc|St|Mr|Mrs|Ms|Dr|No|Co|Corp|Ltd|Jr|Sr|Mt|Ft|vs|etc|approx))\.$/;
+function short(t, n) {
+  t = String(t || '').trim(); if (t.length <= n) return t;
+  var ends = [], re = /[.!?]["')\]]?(?=\s+[A-Z0-9"'(])/g, m;
+  while ((m = re.exec(t))) if (!ABBR.test(t.slice(0, m.index + 1))) ends.push(m.index + m[0].length);
+  var within = ends.filter(function (e) { return e <= n; }), after = ends.filter(function (e) { return e > n; });
+  if (within.length && within[within.length - 1] > n * 0.5) return t.slice(0, within[within.length - 1]);
+  return after.length ? t.slice(0, after[0]) : t;
+}
 // Already a funder of theirs (Oct 21 2026, Will: "these are grants/funders you should/may already know about"): its
 // filings list grants to an organization by this name, matched by name and state (np_outreach.funded_you).
 var ORG = '';
