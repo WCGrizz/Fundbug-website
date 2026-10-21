@@ -24,6 +24,7 @@ h1 { font-size: 30px; margin: 18px 0 8px; }
 .card h2 { font-size: 20px; margin-bottom: 6px; }
 .pill { display: inline-block; font-size: 14px; border: 1px solid var(--border); border-radius: 999px; padding: 1px 10px; margin: 0 6px 6px 0; background: var(--cream); }
 .line { font-size: 15px; margin-bottom: 6px; }
+.line.known { font-weight: 600; }
 .desc { font-size: 15px; margin: 8px 0; }
 .card a.site { font-size: 15px; font-weight: 600; color: var(--green-dk); }
 .cta { background: var(--ink); color: var(--cream); border-radius: 8px; padding: 22px 20px; margin-top: 24px; }
@@ -46,8 +47,19 @@ var API = 'https://fundbug-production.up.railway.app';
 var MODES = { loi: 'Letter of Inquiry First', open_call: 'Open Application Round', rolling: 'Rolling Applications' };
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function short(t, n) { t = String(t || ''); if (t.length <= n) return t; var cut = t.slice(0, n); var dot = cut.lastIndexOf('. '); return (dot > n * 0.5 ? cut.slice(0, dot + 1) : cut.replace(/\s+\S*$/, '') + '...'); }
+// Already a funder of theirs (Oct 21 2026, Will: "these are grants/funders you should/may already know about"): its
+// filings list grants to an organization by this name, matched by name and state (np_outreach.funded_you).
+var ORG = '';
+function known(f, theirFunder) {
+  var k = f.funded_you;
+  if (!k || !k.dollars) return '';
+  var yrs = k.first && k.last ? (k.first === k.last ? ', ' + k.first : ', ' + k.first + ' to ' + k.last) : '';
+  return '<div class="line known">' + (theirFunder ? "Its funder's" : 'Its') + ' filings list $' + Number(k.dollars).toLocaleString('en-US')
+    + ' in grants to ' + esc(ORG || 'your organization') + yrs + '.</div>';
+}
 function card(f) {
   var pills = [];
+  if (f.funded_you && f.funded_you.dollars) pills.push('You May Already Know This Funder');
   if (f.where) pills.push(f.where);
   pills.push(f.relationship ? 'By Invitation: Build A Relationship' : (MODES[f.mode] || ''));
   var money = f.stated ? 'Grants: ' + f.stated + ' (its website)' : (f.typical ? 'Typical grant: ' + f.typical : '');
@@ -56,6 +68,7 @@ function card(f) {
   return '<div class="card"><h2>' + esc(f.title) + '</h2>'
     + '<div>' + pills.filter(Boolean).map(function (p) { return '<span class="pill">' + esc(p) + '</span>'; }).join('') + '</div>'
     + lines.map(function (l) { return '<div class="line">' + esc(l) + '</div>'; }).join('')
+    + known(f, false)
     + (f.description ? '<p class="desc">' + esc(short(f.description, 420)) + '</p>' : '')
     + (f.relationship ? '<p class="desc">It does not take unsolicited applications; it is worth knowing and building a relationship with.</p>' : '')
     + (f.site ? '<a class="site" href="' + esc(f.site) + '" target="_blank" rel="noopener">' + (filing ? 'Its Tax Filing' : 'Funder Website') + ' &rarr;</a>' : '')
@@ -65,11 +78,13 @@ function program(f) {
   var pills = [];
   if (f.where) pills.push(f.where);
   if (MODES[f.mode]) pills.push(MODES[f.mode]);
+  if (f.funded_you && f.funded_you.dollars) pills.push('You May Already Know This Funder');
   var lines = [f.amount ? 'Amount: ' + f.amount : '', f.deadline ? 'Deadline: ' + f.deadline : '',
                f.provided_by && String(f.title || '').toLowerCase().indexOf(String(f.provided_by).toLowerCase()) < 0 ? 'From ' + f.provided_by : ''].filter(Boolean);
   return '<div class="card"><h2>' + esc(f.title) + '</h2>'
     + '<div>' + pills.map(function (p) { return '<span class="pill">' + esc(p) + '</span>'; }).join('') + '</div>'
     + lines.map(function (l) { return '<div class="line">' + esc(l) + '</div>'; }).join('')
+    + known(f, true)
     + (f.description ? '<p class="desc">' + esc(short(f.description, 420)) + '</p>' : '')
     + (f.site ? '<a class="site" href="' + esc(f.site) + '" target="_blank" rel="noopener">Program Website &rarr;</a>' : '')
     + '</div>';
@@ -88,8 +103,11 @@ function program(f) {
   }).then(function (d) {
     var where = d.county ? ' in ' + esc(d.county) : '';
     var programs = d.programs || [], funders = d.funders || [];
+    ORG = d.name || '';
+    var anyKnown = programs.concat(funders).some(function (x) { return x.funded_you && x.funded_you.dollars; });
     el.innerHTML = '<h1>Grants And Funders For ' + esc(d.name) + '</h1>'
       + '<p class="lead">A sample of what FundBug finds for your work' + where + ': open programs and foundations, from the funders\' own guidelines, their IRS filings and their websites, picked the way FundBug picks them for a subscriber\'s digest. Check each one\'s own guidelines before you apply.</p>'
+      + (anyKnown ? '<p class="lead">A few of these may already fund you: their tax filings list grants to ' + esc(d.name) + '. They are marked, so the new ones stand out.</p>' : '')
       + (programs.length ? '<h2 style="font-size:22px;margin:22px 0 10px">Open Programs</h2>' + programs.map(program).join('') : '')
       + (funders.length ? '<h2 style="font-size:22px;margin:22px 0 10px">Funders To Know</h2>' + funders.map(card).join('') : '')
       + '<div class="cta"><h2>Get funders and open grants like these, every other Tuesday</h2>'
