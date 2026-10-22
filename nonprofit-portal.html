@@ -131,6 +131,11 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 .t-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
 .t-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0 14px;margin-top:10px}
 .t-grid select,.t-grid input{margin-bottom:8px}
+.th-wrap{margin-top:10px}.th-add{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 10px}.th-add select{width:auto}
+.th-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}.th-note{border-left:3px solid var(--green-dk,#3d7a38);padding:4px 0 4px 10px}
+.th-head{font-size:14px;color:var(--ink)}.th-body{font-size:15px;white-space:pre-wrap;margin-top:2px}.th-fact{font-size:14px;color:var(--ink)}
+.th-acts{display:flex;gap:12px;margin-top:2px}.th-err{font-size:14px;color:#a4261d}.th-earlier{font-size:15px;margin:6px 0;white-space:pre-wrap}
+.linkish{background:none;border:none;color:var(--green-dk,#3d7a38);font:inherit;font-weight:600;cursor:pointer;padding:0}.tm-acts{display:flex;gap:6px;flex-wrap:wrap}
 .t-notes{width:100%;min-height:64px;padding:10px 12px;border:1px solid var(--border);border-radius:5px;background:var(--cream);font-family:'Jost',sans-serif;font-size:15px;color:var(--ink);resize:vertical}
 .star{background:none;border:none;font-size:22px;cursor:pointer;color:var(--clay);min-height:40px;padding:0 6px}
 .soon{color:var(--red);font-weight:500}
@@ -317,6 +322,7 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 .modal-actions{display:flex;gap:10px;flex-wrap:wrap}
 /* Team (Oct 19 2026): the account's people; a teammate sees the list only, the owner invites and removes */
 body.member .owner-only{display:none}
+body.not-manager .manager-only{display:none}
 .modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .modal-x{font-family:'Jost',sans-serif;font-size:15px;font-weight:500;background:none;border:none;color:var(--ink);cursor:pointer;min-height:40px;padding:0 4px}
 .tm-row{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr) 96px;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--border)}
@@ -842,7 +848,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <p>Everyone on your organization's FundBug account. Each person signs in with their own email, and everyone can work on the Organization Profile, Library, Tracker and My Answers.</p>
         </div>
         <div class="card" id="teamBox"><div class="empty">Loading…</div></div>
-        <div class="card owner-only" id="inviteCard">
+        <div class="card manager-only" id="inviteCard">
           <h2>Invite Someone</h2>
           <p class="lead">They get an email with a link to set up their own login. No password needed; the link works for 14 days.</p>
           <div class="row">
@@ -854,7 +860,8 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <div class="ok" id="tmOk"></div>
           <button class="btn" id="tmGo" onclick="inviteTeammate()">Send Invite</button>
         </div>
-        <div class="card acct-only" id="memberNote" hidden><p class="lead" style="margin:0">Only the account's owner can invite or remove people.</p></div>
+        <div class="card acct-only" id="shareBox" hidden></div>
+        <div class="card acct-only" id="memberNote" hidden><p class="lead" style="margin:0">Only the account's owner or an admin can invite or remove people.</p></div>
       </div>
 
       <div class="page" id="page-leftout">
@@ -1010,7 +1017,8 @@ function withArticle(word) { return (/^[aeiou]/i.test(word) ? 'An ' : 'A ') + wo
 function teamRows(seats, owner) {
   const rows = ((seats && seats.members) || []).filter(m => m.status !== 'revoked').map(m => ({
     id: m.id, name: m.member_name || '', email: m.member_email || '', owner: m.role === 'owner',
-    role: m.role === 'owner' ? 'Owner' : 'Member', invited: m.status === 'invited', digest: !!m.receives_digest, you: !!m.is_you}));
+    role: m.role === 'owner' ? 'Owner' : m.role === 'admin' ? 'Admin' : 'Member', admin: m.role === 'admin',
+    invited: m.status === 'invited', digest: !!m.receives_digest, you: !!m.is_you}));
   if (!rows.some(r => r.owner) && owner)
     rows.unshift({id: null, name: [owner.first_name, owner.last_name].filter(Boolean).join(' '), email: owner.email || '',
                   owner: true, role: 'Owner', invited: false, digest: true, you: !!seats && seats.your_role === 'owner'});
@@ -1871,7 +1879,8 @@ function drawTracker() {
   const items = tracked.filter(i => (!st || i.status === st) && (!kind || i.kind === kind) && (!fav || i.is_favorite))
     .sort((a, b) => (a.follow_up_date || '9999') .localeCompare(b.follow_up_date || '9999') || String(b.created_at).localeCompare(String(a.created_at)));
   document.getElementById('tSummary').textContent = tracked.length
-    ? `${tracked.length} saved` + (items.length !== tracked.length ? `; ${items.length} shown` : '') + '. Those with a follow-up date come first.'
+    ? `${tracked.length} saved` + (items.length !== tracked.length ? `; ${items.length} shown` : '') + '. Those with a follow-up date come first. '
+      + thSummaryLine(TRACKER.summary)
     : 'Nothing saved yet. Press Save on any listing to keep it here.';
   const today = new Date().toISOString().slice(0, 10);
   document.getElementById('tList').innerHTML = items.map(i => {
@@ -1889,10 +1898,12 @@ function drawTracker() {
         <div><label>Stage</label><select onchange="updateItem('${pid}', {status: this.value})">${TRACKER.stages.map(s => `<option value="${s.code}" ${s.code === i.status ? 'selected' : ''}>${escHtml(s.label)}</option>`).join('')}</select></div>
         <div><label>Follow Up On</label><input type="date" value="${escHtml(i.follow_up_date || '')}" onchange="updateItem('${pid}', {follow_up_date: this.value || null})"></div>
       </div>
-      <label>Notes</label><textarea class="t-notes" onblur="if (this.value !== this.defaultValue) updateItem('${pid}', {notes: this.value})">${escHtml(i.notes)}</textarea>
+      ${thAwardFields(i)}
+      ${thPanel(i)}
       <div class="m-actions" style="margin-top:8px"><button class="btn sm" onclick="openPrep('${pid}')">Prep Application</button><button class="btn ghost sm" onclick="removeItem('${pid}')">Remove</button></div>
     </div>`;
   }).join('');
+  Object.keys(TH_OPEN).filter(k => TH_OPEN[k]).forEach(k => { if (document.getElementById('thl-' + k)) thLoad(k); });
 }
 async function addSeen(groupId) {
   try { await apiFetch('/api/nonprofit/tracker', 'POST', {group_id: groupId}); await loadTracker(); }
@@ -1903,7 +1914,9 @@ async function updateItem(pid, changes) {
     await apiFetch('/api/nonprofit/tracker/' + encodeURIComponent(pid), 'PATCH', changes);
     const i = TRACKER.items.find(x => x.program_id === pid);
     if (i) Object.assign(i, changes);
-    if (!('notes' in changes)) drawTracker();
+    // A stage or award change: the server dates it and the summary changes, so read the Tracker again (Oct 22 2026).
+    if (['status', 'amount_requested', 'amount_awarded', 'submitted_on', 'decided_on', 'decline_reason'].some(k => k in changes)) await loadTracker();
+    else if (!('notes' in changes)) drawTracker();
   } catch (e) { document.getElementById('tSummary').textContent = 'Not saved: ' + e.message; }
 }
 async function removeItem(pid) {
@@ -1997,26 +2010,58 @@ async function openBilling() {
 // ── team (Oct 19 2026) ──────────────────────────────────────────────────
 let TEAM = null, REMOVING = null;
 function setRole(you) {
-  const owner = !you || you.is_owner !== false;
-  document.body.classList.toggle('member', !owner);
-  document.getElementById('memberNote').hidden = owner;
+  // The owner or an admin runs the team (Oct 22 2026, Will: "admin status ... full control"); billing stays the owner's.
+  const owner = !you || you.is_owner !== false, manager = owner || you.role === 'admin';
+  document.body.classList.toggle('member', !owner);                 // billing: the owner's only
+  document.body.classList.toggle('not-manager', !manager);          // the team: the owner or an admin
+  document.getElementById('memberNote').hidden = manager;
 }
 async function loadTeam() {
   const box = document.getElementById('teamBox');
   box.innerHTML = '<div class="empty">Loading…</div>';
   try { TEAM = await apiFetch('/api/portal/seats'); }
   catch (e) { box.innerHTML = '<div class="empty">Could not load your team: ' + escHtml(e.message) + '</div>'; return; }
-  const owner = TEAM.your_role === 'owner';
+  const owner = TEAM.your_role === 'owner' || TEAM.your_role === 'admin';      // the owner or an admin manages the team
   const rows = teamRows(TEAM, ACCOUNT && ACCOUNT.subscriber);
   box.innerHTML = '<h2>Your Team</h2><p class="tm-count">' + escHtml(seatLine(TEAM)) + '</p>' + rows.map(r =>
     `<div class="tm-row"><div class="tm-who"><b>${escHtml(r.name || r.email)}</b>${r.you ? ' (You)' : ''}` +
     `<div class="tm-meta">${escHtml(r.email)}</div></div>` +
     `<div class="tm-meta">${r.role}${r.invited ? ', invited and not signed in yet' : ''}<br>Gets The Digest: ${r.digest ? 'Yes' : 'No'}</div>` +
-    (owner && !r.owner && /^[0-9a-f-]{36}$/.test(r.id || '') ? `<button class="dr-btn ghost small" onclick="askRemove('${r.id}')">Remove</button>` : '<span></span>') +
+    (owner && !r.owner && /^[0-9a-f-]{36}$/.test(r.id || '') ? `<span class="tm-acts"><button class="dr-btn ghost small" onclick="setTeamRole('${r.id}', '${r.admin ? 'member' : 'admin'}')">${r.admin ? 'Make Member' : 'Make Admin'}</button><button class="dr-btn ghost small" onclick="askRemove('${r.id}')">Remove</button></span>` : '<span></span>') +
     '</div>').join('');
   const full = seatsFull(TEAM);
   document.getElementById('tmGo').disabled = full;
   document.getElementById('tmErr').textContent = full ? fullMessage(TEAM) : '';
+  loadSharing();
+}
+// Advisors this organization shares its Tracker with (fundbug_advisor_share; an advisor's invite link turns it on,
+// the owner or an admin turns it off here, and the advisor loses access at once).
+async function loadSharing() {
+  const box = document.getElementById('shareBox');
+  let d;
+  try { d = await apiFetch('/api/portal/sharing'); }
+  catch (e) { box.hidden = false; box.innerHTML = '<h2>Shared With Advisors</h2><div class="empty">Could not load sharing: ' + escHtml(e.message) + '</div>'; return; }
+  const list = d.shares || [];
+  box.hidden = !list.length;
+  if (!list.length) { box.innerHTML = ''; return; }
+  const manager = !!d.can_manage;
+  box.innerHTML = '<h2>Shared With Advisors</h2><p class="lead">These advisors can see your Tracker: stages, deadlines, amounts, notes marked Team And Advisor, and your draft answers. They can add notes; they cannot change anything else.</p>' +
+    list.map(r => `<div class="tm-row"><div class="tm-who"><b>${escHtml(r.advisor || 'An advisor')}</b>` +
+      `<div class="tm-meta">Shared since ${escHtml(shortDate(r.shared_at))}</div></div><span></span>` +
+      (manager ? `<button class="dr-btn ghost small" onclick="stopSharing('${escHtml(r.advisor_id)}')">Stop Sharing</button>` : '<span></span>') + '</div>').join('') +
+    '<div class="err" id="shErr"></div>';
+}
+function shortDate(iso) {
+  const t = Date.parse(iso || '');
+  return isNaN(t) ? '' : new Date(t).toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'});
+}
+async function stopSharing(advisorId) {
+  try { await apiFetch('/api/portal/sharing/' + encodeURIComponent(advisorId), 'DELETE'); loadSharing(); }
+  catch (e) { const el = document.getElementById('shErr'); if (el) el.textContent = 'Still shared: ' + e.message; }
+}
+async function setTeamRole(id, role) {
+  try { await apiFetch('/api/portal/seats/' + encodeURIComponent(id), 'PATCH', {role}); loadTeam(); }
+  catch (e) { document.getElementById('tmErr').textContent = 'Not changed: ' + e.message; }
 }
 async function inviteTeammate() {
   const err = document.getElementById('tmErr'), ok = document.getElementById('tmOk'), btn = document.getElementById('tmGo');
@@ -2084,6 +2129,8 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
       if (!NONPROFIT_ORG_TYPES.includes(orgType)) { location.replace('/portal'); return; }
     } catch (e) { showGate(e.message + ' Enter your email for a new one.'); return; }
   }
+  const sharePending = load('fb_share_pending');                    // signed in from an advisor's invite (share.html): back to it, once
+  if (load(TOKEN_KEY) && sharePending) { store('fb_share_pending', null); location.replace('/share?t=' + encodeURIComponent(sharePending)); return; }
   if (load(TOKEN_KEY)) return openAccount();
   keepDigestLink();
   if (load(SECRET_KEY)) return openApp('preview');
@@ -2092,5 +2139,6 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 </script>
 <script src="/nonprofit-drafting.js?v=2026-10-19"></script>
 <script src="/nonprofit-landscape.js?v=2026-10-20"></script>
+<script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
 </body>
 </html>

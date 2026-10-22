@@ -151,9 +151,12 @@ ok(t.seatsFull(SEATS) && !t.seatsFull({seats_available: 1}), 'full when no seat 
 ok(t.fullMessage(SEATS).startsWith('Your plan includes 2 seats and all are in use.') && !/ [-—] /.test(t.fullMessage(SEATS)), "the cap's message, no dash mid-sentence");
 ok(/<a data-page="subscription" class="acct-only owner-only"[^>]*>Subscription<\/a>\s*<a data-page="team" class="acct-only" onclick="showPage\('team'\); loadTeam\(\)">Team<\/a>/.test(html),
    'Team is its own sidebar item after Subscription, and Subscription is the owner\'s only');
-ok(/body\.member \.owner-only\{display:none\}/.test(html) && /<div class="card owner-only" id="inviteCard">/.test(html), 'a teammate sees the list only: no invite form');
+ok(/body\.not-manager \.manager-only\{display:none\}/.test(html) && /<div class="card manager-only" id="inviteCard">/.test(html),
+   'a teammate who is not an admin sees the list only: no invite form (Oct 22 2026: an admin manages the team too)');
 ok(/document\.body\.classList\.toggle\('member', !owner\)/.test(html) && /setRole\(ACCOUNT\.you\);/.test(html), 'the role comes from /api/nonprofit/me');
-ok(/owner && !r\.owner && \/\^\[0-9a-f-\]\{36\}\$\/\.test\(r\.id \|\| ''\) \? `<button/.test(html), 'only the owner gets a Remove button, never on the owner');
+ok(/const owner = TEAM\.your_role === 'owner' \|\| TEAM\.your_role === 'admin'/.test(html)
+   && /owner && !r\.owner && \/\^\[0-9a-f-\]\{36\}\$\/\.test\(r\.id \|\| ''\) \? `<span class="tm-acts">/.test(html),
+   'the owner or an admin gets Make Admin and Remove, never on the owner');
 ok(/Gets The Digest By Email/.test(html) && /receives_digest: document\.getElementById\('tmDigest'\)\.checked/.test(html), 'the invite asks whether they get the digest');
 const modal = html.match(/<div class="modal-overlay" id="tmRemoveModal"[\s\S]*?\n<\/div>/);
 ok(modal && /onclick="closeRemove\(\)">Close ✕<\/button>/.test(modal[0]) && /onclick="closeRemove\(\)">Cancel<\/button>/.test(modal[0]) &&

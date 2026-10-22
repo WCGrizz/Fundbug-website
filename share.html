@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<!-- An advisor's invite to share an organization's Tracker (Oct 22 2026, fundbug/fundbug_advisor_share.py; Will: "full
+     opt in 1ce"). The organization's owner or an admin, signed in, sees exactly what is shared and turns it on. -->
+<title>Share Your Tracker | FundBug</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root { --ink: #1a1a14; --green: #5a9e52; --green-dk: #3d7a38; --cream: #f7f5f0; --border: #d8d3c8; --white: #fff; --red: #a33; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--cream); color: var(--ink); font-family: 'Jost', sans-serif; font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 600px; margin: 0 auto; padding: 32px 20px 60px; }
+.brand { font-family: 'Fraunces', serif; font-weight: 700; color: var(--green-dk); font-size: 22px; text-decoration: none; }
+h1 { font-family: 'Fraunces', serif; font-size: 28px; line-height: 1.2; margin: 18px 0 10px; }
+.card { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 20px 22px; margin-top: 16px; }
+.card h2 { font-family: 'Fraunces', serif; font-size: 19px; margin: 0 0 8px; }
+ul { margin: 0; padding-left: 20px; } li { margin-bottom: 4px; font-size: 15px; }
+p { margin: 0 0 10px; font-size: 15px; }
+button, .btn { display: inline-block; margin-top: 14px; padding: 11px 20px; border-radius: 6px; border: 1px solid var(--green-dk); background: var(--green-dk);
+  color: #fff; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; }
+.btn.ghost { background: transparent; color: var(--green-dk); }
+.err { color: var(--red); font-size: 15px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="brand" href="/">FundBug</a>
+  <h1 id="head">Share your Tracker</h1>
+  <p id="lead">Loading the invite…</p>
+  <div class="card" id="what" hidden>
+    <h2>What they will see</h2>
+    <ul>
+      <li>The programs and funders in your Tracker, their stages, deadlines and follow-up dates</li>
+      <li>What you applied for and what you were awarded, with the dates</li>
+      <li>Notes you mark Team And Advisor (notes marked My Team stay with your team)</li>
+      <li>Your draft answers for each application</li>
+    </ul>
+    <p style="margin-top:10px">They can add notes for you. They cannot change your stages, amounts or answers. You can stop sharing any time on your Team page.</p>
+  </div>
+  <div id="act"></div>
+  <p class="err" id="err"></p>
+</div>
+<script>
+const API = 'https://fundbug-production.up.railway.app';
+const T = new URLSearchParams(location.search).get('t') || '';
+const token = (() => { try { return localStorage.getItem('fb_token') || ''; } catch (e) { return ''; } })();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+(async () => {
+  const head = document.getElementById('head'), lead = document.getElementById('lead'), act = document.getElementById('act');
+  if (!T) { head.textContent = 'This link is not complete'; lead.textContent = 'Open the whole link your advisor sent.'; return; }
+  let info;
+  try {
+    const r = await fetch(API + '/api/portal/sharing/invite/' + encodeURIComponent(T));
+    info = await r.json();
+    if (!r.ok) throw new Error(info.detail || 'This invite link is not valid.');
+  } catch (e) { head.textContent = 'This invite cannot be used'; lead.textContent = e.message; return; }
+  head.textContent = `Share your Tracker with ${info.advisor}`;
+  lead.textContent = `${info.advisor} would like to see your FundBug Tracker, so they can help with your applications.`;
+  document.getElementById('what').hidden = false;
+  if (!token) {
+    try { localStorage.setItem('fb_share_pending', T); } catch (e) {}
+    act.innerHTML = `<p>Sign in to your FundBug portal first, as your organization's owner or an admin, then open this link again.</p>
+      <a class="btn" href="/nonprofit-portal">Sign In</a>`;
+    return;
+  }
+  act.innerHTML = `<button type="button" id="go">Share With ${esc(info.advisor)}</button> <a class="btn ghost" href="/nonprofit-portal">Not Now</a>`;
+  document.getElementById('go').addEventListener('click', async () => {
+    const err = document.getElementById('err');
+    try {
+      const r = await fetch(API + '/api/portal/sharing/accept', { method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ token: T }) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.detail || 'Sharing was not turned on.');
+      try { localStorage.removeItem('fb_share_pending'); } catch (e) {}
+      head.textContent = 'Your Tracker is shared';
+      lead.textContent = `${d.advisor} can now see your Tracker. You can stop sharing any time on your Team page.`;
+      act.innerHTML = '<a class="btn" href="/nonprofit-portal#tracker">Open Your Tracker</a>';
+      err.textContent = '';
+    } catch (e) { err.textContent = e.message; }
+  });
+})();
+</script>
+</body>
+</html>
