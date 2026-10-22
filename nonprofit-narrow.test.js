@@ -9,8 +9,8 @@ const ctx = {picks: {populations: new Set(['PA010400'])}, CATS: [{label: 'Arts A
   catOn: () => false, plainDefinition: d => d || '', escHtml: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'),
   termOf: (f, c) => ({code: c, label: 'Children and youth', definition: ''})};
 vm.createContext(ctx);
-vm.runInContext([grab('pill'), src.match(/function catPill[^\n]+/)[0], src.match(/function titleCase[^\n]+/)[0], grab('groupHtml')].join('\n')
-  + '\n;globalThis.__t = {titleCase, groupHtml};', ctx);
+vm.runInContext([grab('pill'), src.match(/function catPill[^\n]+/)[0], src.match(/function choiceTitle[^\n]+/)[0], grab('groupHtml')].join('\n')
+  + '\n;globalThis.__t = {titleCase: choiceTitle, groupHtml};', ctx);
 const t = ctx.__t;
 ok(t.titleCase('Children and youth') === 'Children And Youth', 'a heading is in Title Case');
 ok(t.titleCase('LGBTQIA+ people') === 'LGBTQIA+ People', 'capitals already in a word are kept');

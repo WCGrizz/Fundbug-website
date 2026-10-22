@@ -175,10 +175,12 @@ function pill(field, t, cls = '', label = '') {
 function catPill(i, label = '') { return `<button type="button" class="pill cat" data-cat="${i}" aria-pressed="${catOn(CATS[i])}">${escHtml(label || CATS[i].label)}</button>`; }
 // A group's heading in Narrow It Down, in Title Case (Will, Oct 20 2026: "the categories should be labelled"; a
 // heading that looked like one more choice did not read as a label). Capitals already in a word are kept (LGBTQIA+).
-function titleCase(s) { return String(s || '').replace(/(^|[\s\/-])([a-z])/g, (m, a, b) => a + b.toUpperCase()); }
+// Named for this file (Oct 22 2026): the portal page has its own titleCase, and two scripts declaring one name stop
+// the page's whole script (the nonprofit portal was blank from Oct 20).
+function choiceTitle(s) { return String(s || '').replace(/(^|[\s\/-])([a-z])/g, (m, a, b) => a + b.toUpperCase()); }
 // One Narrow It Down group: its heading, then "All Of <the area>" (the broad choice itself), then the narrower ones.
 function groupHtml(field, g) {
-  const head = titleCase(g.label);
+  const head = choiceTitle(g.label);
   const broad = g.cat !== undefined ? catPill(g.cat, 'All Of ' + head) : g.code ? pill(field, termOf(field, g.code), 'cat', 'All Of ' + head) : '';
   return `<div class="group"><p class="group-label">${escHtml(head)}</p><div class="pills">${broad}${g.kids.map(t => pill(field, t)).join('')}</div></div>`;
 }
