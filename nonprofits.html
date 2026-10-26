@@ -54,15 +54,16 @@ nav { position: sticky; top: 64px; z-index: 100; background: var(--ink); padding
 .nav-logo-text { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--green); }
 .nav-tag { font-size: 14px; font-weight: 500; color: var(--cream); background: rgba(90,158,82,.25); border: 1px solid var(--green); border-radius: 20px; padding: 2px 11px; }
 .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
-.nav-links a { font-size: 14px; font-weight: 500; letter-spacing: .04em; color: var(--cream2); text-decoration: none; }
-.nav-links a:hover { color: var(--white); }
+.nav-links a { font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted2, #b5b0a5); text-decoration: none; transition: color .15s; }
+.nav-links { gap: 32px; }
+.nav-links a:hover { color: var(--cream); }
 
 /* Buttons (a trial button without an href is the closed state) */
 .btn-primary { display: inline-block; background: var(--green-dk); color: var(--white); font-family: 'Jost', sans-serif; font-size: 16px; font-weight: 500; padding: 14px 30px; border-radius: 5px; text-decoration: none; border: 1px solid var(--green-dk); cursor: pointer; transition: background .15s, transform .1s; text-align: center; }
 .btn-primary:hover { background: #2f6230; transform: translateY(-1px); }
 .btn-primary.is-closed, .btn-primary.is-closed:hover { background: transparent; color: var(--green-dk); border: 1px dashed var(--green-dk); cursor: default; transform: none; }
 .hero .btn-primary.is-closed, .hero .btn-primary.is-closed:hover, nav .btn-primary.is-closed { color: var(--cream); border-color: var(--green-lt); }
-.nav-links .btn-primary { font-size: 14px; padding: 8px 16px; letter-spacing: 0; color: var(--white); }
+.nav-links .btn-primary { font-size: 13px; padding: 8px 18px; letter-spacing: .06em; border-radius: 4px; color: var(--white); }
 
 /* Hero */
 .hero { background: var(--ink); position: relative; overflow: hidden; padding: 96px 32px 88px; text-align: center; }
@@ -72,7 +73,7 @@ nav { position: sticky; top: 64px; z-index: 100; background: var(--ink); padding
 .eyebrow { font-size: 14px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--green); margin-bottom: 18px; }
 .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5.4vw, 64px); font-weight: 900; color: var(--white); line-height: 1.08; letter-spacing: -.02em; margin-bottom: 22px; }
 .hero h1 span { color: var(--green); }
-.hero-sub { font-size: 19px; font-weight: 400; color: var(--cream); line-height: 1.65; max-width: 640px; margin: 0 auto 34px; }
+.hero-sub { font-size: 18px; font-weight: 300; color: var(--cream); line-height: 1.65; max-width: 640px; margin: 0 auto 34px; }
 .hero-price { font-size: 15px; color: var(--cream); margin-top: 16px; }
 .hero-local { margin: 30px auto 0; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.14); max-width: 560px; }
 .hero-made { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; color: var(--cream); margin: 0 0 6px; }
@@ -83,7 +84,7 @@ nav { position: sticky; top: 64px; z-index: 100; background: var(--ink); padding
 .hero-grid .hero-sub { margin: 0 0 22px; max-width: 600px; }
 .hero-grid.no-sample { grid-template-columns: 1fr; max-width: 820px; }
 .hero-why { list-style: none; margin: 0 0 30px; padding: 0; display: grid; gap: 12px; }
-.hero-why li { position: relative; padding-left: 30px; font-size: 16px; line-height: 1.6; color: var(--cream); }
+.hero-why li { position: relative; padding-left: 30px; font-size: 16px; font-weight: 300; line-height: 1.6; color: var(--cream); }
 .hero-why li::before { content: '✓'; position: absolute; left: 0; top: 0; color: var(--green-lt); font-weight: 700; }
 .hero-why strong { color: var(--white); font-weight: 600; }
 .hero-sample { position: relative; }
@@ -294,6 +295,7 @@ footer { background: var(--ink); border-top: 1px solid rgba(255,255,255,.08); pa
     <li class="wide"><a href="#how">How It Works</a></li>
     <li class="wide"><a href="#pricing">Pricing</a></li>
     <li class="wide"><a href="#faq">FAQ</a></li>
+    <li class="wide"><a href="/about">About</a></li>
     <li><a href="/nonprofit-portal">Sign In</a></li>
     <li class="wide"><a class="btn-primary is-closed" data-trial="/nonprofit-signup" aria-disabled="true">Signup Opens Soon</a></li>
   </ul>
@@ -305,6 +307,7 @@ footer { background: var(--ink); border-top: 1px solid rgba(255,255,255,.08); pa
     <a href="#how" onclick="closeMenu()">How It Works</a>
     <a href="#pricing" onclick="closeMenu()">Pricing</a>
     <a href="#faq" onclick="closeMenu()">FAQ</a>
+    <a href="/about" onclick="closeMenu()">About</a>
     <a href="/nonprofit-portal" onclick="closeMenu()">Sign In</a>
     <a href="/" onclick="closeMenu()">For Businesses</a>
     <a class="btn-primary is-closed mobile-menu-cta" data-trial="/nonprofit-signup" aria-disabled="true">Signup Opens Soon</a>
@@ -316,7 +319,7 @@ footer { background: var(--ink); border-top: 1px solid rgba(255,255,255,.08); pa
   <div class="hero-inner hero-grid no-sample">
     <div class="hero-copy">
       <div class="eyebrow">Grants And Funders For Massachusetts Nonprofits</div>
-      <h1>The Grants And Funders That <span>Fit Your Nonprofit</span></h1>
+      <h1>The grants and funders that <span>fit your nonprofit</span></h1>
       <p class="hero-sub">Twice a month, FundBug sends your organization the grant programs and foundations that fit its work.</p>
       <!-- What sets it apart from a grant database (Will, Oct 15 2026: emphasize how we are different). -->
       <ul class="hero-why">
