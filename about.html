@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="FundBug tracks thousands of funding programs and sends small business owners a personalized digest of what fits — on the 1st and 3rd Tuesday of every month.">
+  <meta name="description" content="Will Corridan built FundBug in the Berkshires for the small businesses and organizations that are the keystone of local communities. Twice a month, it sends each one the funding that fits.">
   <link rel="icon" type="image/png" href="/fundbug_logo.png">
   <link rel="apple-touch-icon" href="/fundbug_logo.png">
-  <title>About — FundBug</title>
+  <title>About FundBug</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -112,15 +112,35 @@
     .mobile-menu-cta { margin: 12px 24px 0; padding: 12px 20px !important; background: var(--green) !important; color: var(--white) !important; border-radius: 6px; font-weight: 500 !important; text-align: center; }
     .mobile-menu-cta:hover { background: var(--green-lt) !important; }
     @media (max-width: 900px) { .nav-links { display: none; } .nav-hamburger { display: flex; } }
+
+    .founder { display: grid; grid-template-columns: 340px 1fr; gap: 44px; align-items: start; margin-bottom: 64px; }
+    .founder figure { margin: 0; }
+    .founder img { width: 100%; height: auto; border-radius: 12px; display: block; box-shadow: 0 10px 30px rgba(26,26,20,.15); }
+    .founder figcaption { font-size: 14px; color: var(--ink2); margin-top: 10px; }
+    .founder h2 { font-size: 30px; font-weight: 700; margin-bottom: 18px; }
+    .founder p { font-size: 18px; font-weight: 300; color: var(--ink2); line-height: 1.75; margin-bottom: 16px; }
+    .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 8px 0 64px; }
+    .side-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 28px; display: flex; flex-direction: column; }
+    .side-card h3 { font-size: 21px; margin-bottom: 10px; }
+    .side-card p { font-size: 16px; font-weight: 300; color: var(--ink2); line-height: 1.7; flex: 1; margin-bottom: 18px; }
+    .side-card a { color: var(--green-dk); font-weight: 600; text-decoration: none; }
+    .side-card a:hover { text-decoration: underline; }
+    .steps { list-style: none; counter-reset: s; margin: 8px 0 64px; display: grid; gap: 22px; }
+    .steps li { counter-increment: s; display: grid; grid-template-columns: 44px 1fr; gap: 16px; }
+    .steps li::before { content: counter(s); width: 44px; height: 44px; border-radius: 50%; background: var(--green-dk); color: var(--white); font-family: 'Fraunces', serif; font-weight: 700; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+    .steps b { display: block; font-family: 'Fraunces', serif; font-size: 19px; margin-bottom: 4px; }
+    .steps span { font-size: 16px; font-weight: 300; color: var(--ink2); line-height: 1.7; }
+    .section-h { font-size: 26px; font-weight: 700; margin-bottom: 18px; }
+    @media (max-width: 760px) { .founder { grid-template-columns: 1fr; gap: 24px; } .sides { grid-template-columns: 1fr; } }
 </style>
   <meta property="og:type" content="website">
-  <meta property="og:title" content="About — FundBug">
-  <meta property="og:description" content="FundBug tracks thousands of funding programs and sends small business owners a personalized digest of what fits — on the 1st and 3rd Tuesday of every month.">
+  <meta property="og:title" content="About FundBug">
+  <meta property="og:description" content="Will Corridan built FundBug in the Berkshires for the small businesses and organizations that are the keystone of local communities. Twice a month, it sends each one the funding that fits.">
   <meta property="og:url" content="https://fundbug.net/about">
-  <meta property="og:image" content="https://fundbug.net/fundbug_logo.png">
+  <meta property="og:image" content="https://fundbug.net/will-corridan.jpg">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="About — FundBug">
-  <meta name="twitter:description" content="FundBug tracks thousands of funding programs and sends small business owners a personalized digest of what fits — on the 1st and 3rd Tuesday of every month.">
+  <meta name="twitter:title" content="About FundBug">
+  <meta name="twitter:description" content="Will Corridan built FundBug in the Berkshires for the small businesses and organizations that are the keystone of local communities. Twice a month, it sends each one the funding that fits.">
   <meta name="twitter:image" content="https://fundbug.net/fundbug_logo.png">
 </head>
 <body>
@@ -134,6 +154,7 @@
     <li><a href="/#how">How it works</a></li>
     <li><a href="/#pricing">Pricing</a></li>
     <li><a href="/grants-guide">Guides</a></li>
+    <li><a href="/nonprofits">For Nonprofits</a></li>
     <li><a href="/about">About</a></li>
     <li><a href="/portal">Sign in</a></li>
     <li><a href="/signup" class="nav-cta">Get started</a></li>
@@ -156,38 +177,49 @@
 
 <div class="page-hero">
   <div class="eyebrow">About FundBug</div>
-  <h1>Funding for your small business exists. Finding it is the hard part.</h1>
-  <p class="lead">There are thousands of funding programs available to small businesses — grants, loans, tax credits, and more. The landscape shifts constantly: programs open, deadlines pass, new money gets announced. FundBug keeps track of all of it so you don't have to.</p>
+  <h1>Built in the Berkshires, for the places that keep a community going</h1>
+  <p class="lead">I've built FundBug for the small businesses and organizations that are the keystone of local communities, in the Berkshires and elsewhere.</p>
 </div>
 
-<div class="content-wrap">
+<div class="content-wrap" style="max-width: 960px">
 
-  <div class="content-section">
-    <h2>The problem we're solving</h2>
-    <p>Funding programs for small businesses are scattered across federal agencies, state economic development offices, local BIDs, CDFIs, corporate foundations, and nonprofit funds. There is no single place to look. And the landscape doesn't stay put — programs open and close throughout the year, deadlines come and go, and new opportunities get announced without much fanfare.</p>
-    <p>Staying on top of all of it would mean monitoring dozens of portals, reading fine print, and spending time you don't have evaluating whether something is even worth applying for. Most business owners can't do that — not because they don't care, but because they're running a business.</p>
-    <p>FundBug does the monitoring for you. We track what's open, what's closing, and what's new — and on the 1st and 3rd Tuesday of every month we send you a ranked digest of the programs that actually fit your business right now.</p>
+  <div class="founder">
+    <figure>
+      <img src="/will-corridan.jpg" alt="Will Corridan kneeling with his dog in an orchard, with fall color on the Berkshire hills behind them" width="1000" height="987">
+    </figure>
+    <div>
+      <h2>Hi, I'm Will Corridan.</h2>
+      <p>I live and work here in the Berkshires, and FundBug is my company. I built it for the businesses and nonprofits that do so much for the places they serve.</p>
+      <p>The money is out there: grants, loans, tax credits, rebates, and foundations that give every year. Finding the right ones is the hard part. It means checking dozens of websites, reading the fine print and keeping track of deadlines, usually on top of a full-time job. FundBug does that searching for you, so your time goes to the work itself.</p>
+      <p>I built FundBug myself. It started as a passion project and quickly turned into something bigger. I saw a gap: AI tools weren't serving Main Street America, and I wanted to help people chase their dreams.</p>
+      <p>I still review the listings before they reach you. If something looks wrong, or you have a question, write to me at <a href="mailto:hello@fundbug.net" style="color: var(--green-dk);">hello@fundbug.net</a>. I read every email.</p>
+    </div>
   </div>
 
-  <div class="content-section">
-    <h2>How we work</h2>
-    <p>When you sign up, you tell us about your business — your industry, where you operate, how long you've been running, who owns it, what you're working toward. That profile becomes the lens we use to filter and rank every program in our database.</p>
-    <p>The database is built by searching through thousands of funding programs — federal agencies, state economic development offices, local BIDs, CDFIs, corporate foundations, and more. Most of what we find gets filtered out: nonprofit-only grants, government agency programs, science and healthcare-specific funding, programs that have closed or aren't accepting applications. What makes it into the database has been individually reviewed by a real person to confirm it's current, accurate, and relevant to for-profit small businesses like the ones we serve.</p>
-    <p>Your digest lands on the 1st and 3rd Tuesday of every month. The first program is always your strongest grant opportunity right now. Everything else is ranked by fit and competition level, with a plain-English note explaining why it's relevant to your business specifically — and an eligibility confidence indicator so you know at a glance whether you're a strong candidate before you spend time on it.</p>
+  <h2 class="section-h">What FundBug does</h2>
+  <div class="sides">
+    <div class="side-card">
+      <h3>For Small Businesses</h3>
+      <p>Twice a month, a short digest of the grants, loans, tax credits and rebates your business can actually get, ranked by how well you fit. Each one says in plain English why it fits you.</p>
+      <a href="/">FundBug for small businesses &rarr;</a>
+    </div>
+    <div class="side-card">
+      <h3>For Nonprofits</h3>
+      <p>Twice a month, the grants and funders that fit your work, drawn from funders' own guidelines and their tax filings, so you can see what each foundation gives, where, and how much.</p>
+      <a href="/nonprofits">FundBug for nonprofits &rarr;</a>
+    </div>
   </div>
 
-  <div class="content-section">
-    <h2>Beyond the digest</h2>
-    <p>The digest is where FundBug starts, not where it ends. Every program that appears in your digest is automatically added to your subscriber portal under My Tracker. You can star the ones you're seriously pursuing, update their status as you move from interested to applied to won, and keep your entire funding pipeline in one place.</p>
-    <p>For programs you decide to pursue, FundBug's Application Prep feature generates draft answers to the standard questions that appear on most grant applications — what your business does, how you'd use the funds, what the impact would be — written specifically for that program and drawn from your business profile. The drafts are a starting point. You refine them, add the specific details only you know, and submit something that sounds like you.</p>
-    <p>As you edit and improve those draft answers, FundBug learns from them. Your refined language carries forward to the next application, so each prep session starts closer to your actual voice than the last one.</p>
-  </div>
-
-
+  <h2 class="section-h">How it works</h2>
+  <ol class="steps">
+    <li><div><b>Tell us about yourself, once.</b><span>What you do, where you work, and what you're working toward. Your profile is how every program gets matched to you.</span></div></li>
+    <li><div><b>FundBug matches every program against it.</b><span>Listings come from official sources: agencies' and funders' own pages, and foundations' tax filings. A person checks each one before it goes live.</span></div></li>
+    <li><div><b>Your digest arrives on the 1st and 3rd Tuesday.</b><span>Everything also lands in your portal, with a tracker for what you're applying to and help drafting your applications.</span></div></li>
+  </ol>
 
   <div class="content-section">
     <h2>Questions?</h2>
-    <p>Reach us at <a href="mailto:hello@fundbug.net" style="color: var(--green-dk); text-decoration: none; border-bottom: 1px solid var(--green-dk);">hello@fundbug.net</a>. We're a small operation and we read every email.</p>
+    <p>Write to <a href="mailto:hello@fundbug.net" style="color: var(--green-dk); text-decoration: none; border-bottom: 1px solid var(--green-dk);">hello@fundbug.net</a> or use the <a href="/contact" style="color: var(--green-dk);">contact page</a>. I answer every email myself.</p>
   </div>
 
 </div>
@@ -196,7 +228,7 @@
   <div class="footer-inner">
     <div>
       <div class="footer-brand-text">FundBug</div>
-      <div class="footer-tagline">Funding intelligence for small businesses in Massachusetts and Rhode Island. We find the money. You run the business.</div>
+      <div class="footer-tagline">Funding intelligence for small businesses and nonprofits. We find the money. You do the work.</div>
     </div>
     <div>
       <div class="footer-col-title">Product</div>
