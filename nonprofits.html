@@ -38,13 +38,17 @@ h1, h2, h3, h4 { font-family: 'Fraunces', serif; line-height: 1.15; }
 a { color: var(--green-dk); }
 
 /* Audience switch: the same bar the business home page shows once signup opens */
-.aud-switch { position: sticky; top: 0; z-index: 101; height: 36px; background: var(--cream2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; color: var(--ink); }
-.aud-switch a { color: #2f6230; text-decoration: none; font-weight: 600; }
-.aud-switch a:hover { text-decoration: underline; }
-.aud-switch [aria-current] { font-weight: 600; }
+.aud-switch { position: sticky; top: 0; z-index: 101; height: 64px; background: #e5f4e4; border-bottom: 1px solid #b9d9b4; display: flex; align-items: center; justify-content: center; gap: 14px; font-family: 'Jost', sans-serif; font-size: 17px; color: var(--ink); }
+.aud-switch[hidden] { display: none; }
+.aud-label { font-weight: 600; }
+.aud-toggle { display: inline-flex; border: 2px solid #3d7a38; box-shadow: 0 2px 6px rgba(61,122,56,.25); border-radius: 999px; overflow: hidden; background: #fff; }
+.aud-toggle a, .aud-toggle span { padding: 9px 28px; font-weight: 600; line-height: 1.4; color: #2f6230; text-decoration: none; }
+.aud-toggle [aria-current] { background: #3d7a38; color: #fff; }
+.aud-toggle a:hover { background: #d6ead2; }
+@media (max-width: 420px) { .aud-label { display: none; } .aud-toggle a, .aud-toggle span { padding: 6px 14px; } }
 
 /* Nav */
-nav { position: sticky; top: 36px; z-index: 100; background: var(--ink); padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+nav { position: sticky; top: 64px; z-index: 100; background: var(--ink); padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
 .nav-logo img { width: 44px; height: 44px; object-fit: contain; border-radius: 4px; }
 .nav-logo-text { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--green); }
@@ -276,9 +280,8 @@ footer { background: var(--ink); border-top: 1px solid rgba(255,255,255,.08); pa
 <body>
 
 <div class="aud-switch" role="navigation" aria-label="Audience">
-  <a href="/">For Businesses</a>
-  <span aria-hidden="true">|</span>
-  <span aria-current="page">For Nonprofits</span>
+  <span class="aud-label">FundBug For</span>
+  <div class="aud-toggle"><a href="/">Small Businesses</a><span aria-current="page">Nonprofits</span></div>
 </div>
 
 <nav>
