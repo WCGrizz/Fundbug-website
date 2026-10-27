@@ -192,9 +192,11 @@ function program(f) {
   var pills = ['<span class="pill solid">Opportunity</span>'];
   if (f.where) pills.push('<span class="pill">' + esc(f.where) + '</span>');
   if (MODES[f.mode]) pills.push('<span class="pill">' + esc(MODES[f.mode]) + '</span>');
+  // A long shot (Oct 27 2026, Will: a $3 million worldwide prize "shouldnt be anyones top spot"): labelled, and why.
+  if (f.long_shot) pills.push('<span class="pill">Long Shot</span>');
   var left = daysLeft(f.deadline_date);
   var deadline = f.deadline_date ? longDate(f.deadline_date) + (left !== null ? ' (' + left + (left === 1 ? ' day' : ' days') + ')' : '') : f.deadline;
-  var lines = [f.amount ? 'Amount: ' + f.amount : '', deadline && !(left !== null && left <= CLOSING_SOON_DAYS) ? 'Deadline: ' + deadline : '',
+  var lines = [f.long_shot ? 'A long shot: ' + f.long_shot + '.' : '', f.amount ? 'Amount: ' + f.amount : '', deadline && !(left !== null && left <= CLOSING_SOON_DAYS) ? 'Deadline: ' + deadline : '',
                f.provided_by && String(f.title || '').toLowerCase().indexOf(String(f.provided_by).toLowerCase()) < 0 ? 'From ' + f.provided_by : ''].filter(Boolean);
   var warn = left !== null && left <= CLOSING_SOON_DAYS ? '<div class="warn">&#9888; Deadline: ' + esc(deadline) + '</div>' : '';
   return '<div class="card"><div class="card-head"><h2>' + esc(f.title) + '</h2>' + fitTag(f) + '</div>'
