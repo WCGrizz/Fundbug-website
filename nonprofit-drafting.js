@@ -233,7 +233,7 @@ function renderMeter(p, prefix) {
   if (!p.ready) note.innerHTML = (onProfile ? 'Before FundBug can draft for you, add: <strong>' : 'Before FundBug can draft, add to your Organization Profile: <strong>') + names(p.missing_for_drafting || []) + '</strong>.' + link;
   else if (pct < 100) {
     const shown = onProfile ? 4 : 3, miss = p.missing || [], extra = miss.length - Math.min(shown, miss.length);
-    note.innerHTML = (onProfile ? 'The fuller your profile, the better your matches and drafts. Next to add: ' : 'The fuller your profile, the more specific the drafts. Still to add: ')
+    note.innerHTML = (onProfile ? 'The stronger your profile, the better your matches and drafts. Next to add: ' : 'The stronger your profile, the more specific the drafts. Still to add: ')
       + names(miss.slice(0, shown)) + (extra > 0 ? ', and ' + extra + ' more' : '') + '.' + link;
   } else note.textContent = 'Your Organization Profile is complete. Drafts draw on everything in it.';
 }
