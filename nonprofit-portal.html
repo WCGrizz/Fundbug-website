@@ -1846,7 +1846,7 @@ async function openListing(id) {
   if (L.page_url) out.push(line(onFiling ? 'Its Tax Filing (ProPublica)' : 'Main Page', `<p><a href="${escHtml(L.page_url)}" target="_blank" rel="noopener">${escHtml(L.page_url)}</a></p>`));
   document.getElementById('panelBody').innerHTML = out.join('');
   document.getElementById('panelBody').scrollTop = 0;
-  if (L.giving) loadGrantees(id, 'county', '', 0);
+  if (L.giving) { loadGrantees(id, 'county', '', 0); loadGrantPoints(id); }
 }
 
 // ── A funder's giving (Oct 13 2026, Will: "a page with the charts and graphs
@@ -1895,6 +1895,8 @@ function givingSection(p) {
   if (r.first_time_share != null) tiles.push([Math.round(r.first_time_share * 100) + '%', 'to first-time grantees']);
   if (lastYear.dollars) tiles.push([shortMoney(lastYear.dollars), `given in ${last}`]);
   out.push(line('At A Glance', `<div class="gp-tiles">${tiles.map(t => `<div class="gp-tile"><b>${escHtml(t[0])}</b><span>${escHtml(t[1])}</span></div>`).join('')}</div>`));
+  // Its latest grants, one dot each (Oct 28 2026, Will and BBEC): drawn once they load (loadGrantPoints).
+  out.push(`<div id="gpScatterLine">${line('Its Latest Grants', '<p id="gpScatter">Loading its latest grants…</p>')}</div>`);
   // Your subjects (Oct 14 2026, Will): a share of its latest year's grants, "at least" since unmatched grantees never
   // count; said only when there is a share (a recommendation already says it fits).
   if (window.__YOUR_SUBJECTS && window.__YOUR_SUBJECTS.share) {
@@ -1959,6 +1961,54 @@ function subjectParts(groups) {
   return lines.length ? '<ul class="gp-parts">' + lines.join('') + '</ul>' : '';
 }
 let GP = {id: null, scope: 'county', q: '', rows: [], timer: null};
+// A scatter of its latest filing's grants (Oct 28 2026, Will and BBEC: "repeat awardees in one color and first time
+// awardees in another"): one dot per grant along a dollar scale (log, since a funder's grants run from hundreds to
+// millions), first-time grantees light green above, repeat grantees dark green below, each group's median marked; a dot
+// ringed in ink is a grant in your county. Hover a dot for the organization and amount.
+async function loadGrantPoints(id) {
+  let url = '/api/nonprofit/' + (MODE === 'account' ? '' : 'preview/') + 'listing/' + encodeURIComponent(id) + '/grant-points';
+  if (MODE !== 'account') { const p = currentProfile(); url += '?zip=' + encodeURIComponent(p.zip_code || '') + '&state=' + encodeURIComponent(p.state || ''); }
+  let r;
+  try { r = await apiFetch(url); } catch (e) { const el = document.getElementById('gpScatterLine'); if (el) el.style.display = 'none'; return; }
+  const el = document.getElementById('gpScatter');
+  if (!el || GP.id !== id) return;
+  el.outerHTML = grantScatter(r);
+}
+function grantScatter(r) {
+  const pts = (r.points || []).filter(p => p.amount > 0);
+  if (pts.length < 3) return '<p>Too few grants in its latest filing to chart.</p>';
+  const W = 640, H = r.known ? 230 : 150, L = 12, R = 12, lo = Math.min(...pts.map(p => p.amount)), hi = Math.max(...pts.map(p => p.amount));
+  const a = Math.log10(Math.max(1, lo * 0.8)), b = Math.log10(hi * 1.25), x = v => L + (W - L - R) * (Math.log10(v) - a) / ((b - a) || 1);
+  const lanes = r.known ? [['first', true, 'First-time grantees', 'var(--green-lt)', 22, 92], ['repeat', false, 'Repeat grantees', 'var(--green-dk)', 112, 182]]
+                        : [['all', null, 'Grants', 'var(--green-dk)', 22, 102]];
+  // A ring marks a grant in your county, unless most of its grants are (a ring on nearly every dot says nothing).
+  const nHere = pts.filter(p => p.here).length, ring = nHere > 0 && nHere <= pts.length * 0.6;
+  const seed = s => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return (h % 1000) / 1000; };
+  const med = v => { const s = v.slice().sort((p, q) => p - q); return s.length ? s[Math.floor(s.length / 2)] : 0; };
+  const out = [`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Its latest grants by size" style="width:100%;height:auto;display:block">`];
+  const ticks = [100, 1000, 5000, 10000, 25000, 50000, 100000, 250000, 1e6, 5e6, 1e7].filter(t => t >= lo * 0.8 && t <= hi * 1.25);
+  const axisY = H - 22;
+  out.push(`<line x1="${L}" x2="${W - R}" y1="${axisY}" y2="${axisY}" style="stroke:var(--border)"></line>`);
+  for (const t of ticks) out.push(`<line x1="${x(t)}" x2="${x(t)}" y1="12" y2="${axisY}" style="stroke:var(--border);stroke-dasharray:2 4"></line>`,
+    `<text x="${x(t)}" y="${H - 6}" text-anchor="middle" style="font:16px Jost,sans-serif;fill:var(--ink)">${escHtml(shortMoney(t))}</text>`);
+  const notes = [];
+  for (const [key, flag, label, color, top, bot] of lanes) {
+    const mine = pts.filter(p => flag === null || p.first === flag);
+    out.push(`<text x="${L}" y="${top + 2}" style="font:500 16px Jost,sans-serif;fill:var(--ink)">${escHtml(label)} (${mine.length})</text>`);
+    for (const p of mine) {
+      const cy = top + 14 + (bot - top - 20) * seed(p.name + p.amount);
+      out.push(`<circle cx="${x(p.amount).toFixed(1)}" cy="${cy.toFixed(1)}" r="5" style="fill:${color};fill-opacity:.8;${p.here && ring ? 'stroke:var(--ink);stroke-width:1.6' : 'stroke:var(--white);stroke-width:.8'}"><title>${escHtml(titleCase(p.name))}${p.city ? ', ' + escHtml(titleCase(p.city)) : ''}: ${money(p.amount)}</title></circle>`);
+    }
+    if (mine.length) {
+      const m = med(mine.map(p => p.amount));
+      out.push(`<line x1="${x(m)}" x2="${x(m)}" y1="${top + 8}" y2="${bot}" style="stroke:var(--ink);stroke-width:3"></line>`);
+      notes.push(flag === null ? `${money(m)}` : `${money(m)} for ${label.toLowerCase()}`);
+    }
+  }
+  out.push('</svg>');
+  return out.join('') + `<p>Each dot is one grant in its ${r.year} filing${r.total > pts.length ? ` (the largest ${pts.length} of ${r.total})` : ''}. The black line marks the typical grant: ${escHtml(notes.join(', '))}.` +
+    (ring ? ` A dot ringed in black (${nHere}) went to an organization in your county.` : nHere ? ` Most of them (${nHere} of ${pts.length}) went to organizations in your county.` : '') + (r.known ? '' : ' Its two filings before this one are not on file, so first-time and repeat grantees cannot be told apart.') + '</p>';
+}
 async function loadGrantees(id, scope, q, offset) {
   GP = Object.assign(GP, {id, scope, q});
   let url = '/api/nonprofit/' + (MODE === 'account' ? '' : 'preview/') + 'listing/' + encodeURIComponent(id) + '/grantees?scope=' + encodeURIComponent(scope) +
