@@ -4445,7 +4445,7 @@ function renderMeter(p){
   } else if(pct<100){
     const names=(p.missing||[]).slice(0,3).join(', ');
     const extra=(p.missing||[]).length-Math.min(3,(p.missing||[]).length);
-    note.innerHTML='The fuller your Passport, the more specific the drafts. Still to add: '+drEsc(names)+(extra>0?', and '+extra+' more':'')+'. '+
+    note.innerHTML='The stronger your Passport, the more specific the drafts. Still to add: '+drEsc(names)+(extra>0?', and '+extra+' more':'')+'. '+
       '<a href="#" onclick="showPage(\'complete\',document.getElementById(\'nav-complete\'));return false;">Open the Passport →</a>';
   } else {
     note.textContent='Your Funding Passport is complete. Drafts draw on everything in it.';
