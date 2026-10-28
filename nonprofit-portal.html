@@ -178,6 +178,10 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 .clamp.open{display:block;-webkit-line-clamp:unset}
 .more-btn{background:none;border:none;color:var(--green-dk);font:inherit;font-size:15px;font-weight:500;padding:0;margin-top:4px;cursor:pointer}
 details.more-group{margin:12px 0}
+.summary-card{display:grid;grid-template-columns:1fr;gap:8px;background:var(--white);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:6px;padding:14px 16px;margin:6px 0 16px}
+.summary-card div{display:flex;gap:12px;flex-wrap:wrap;font-size:15px;color:var(--ink)}
+.summary-card span{min-width:130px;font-weight:500}
+.summary-card b{font-weight:400}
 details.more-group>summary{cursor:pointer;font-size:15px;font-weight:500;color:var(--green-dk);padding:6px 0}
 .l-bar{height:6px;background:var(--cream2);border-radius:3px;margin-top:4px;max-width:260px}.l-bar i{display:block;height:100%;background:var(--green-dk);border-radius:3px}
 .src{font-size:14px;margin-top:4px}
@@ -1666,7 +1670,9 @@ function clampHtml(html, n, plainLen) {
 // ("8.9", "179"), FundBug's own filing summary (Its Giving shows it), a section with almost nothing left.
 function junkSection(sec) {
   const plain = cleanSectionHtml(sec.text).replace(/<[^>]+>/g, '').trim();
-  return /^\s*[\d.,%$+kKmM]+\s*$/.test(sec.heading || '') || /^From its \d{4} 990/i.test(String(sec.text || '').trim()) || plain.length < 40;
+  // A section about scholarships for students or individuals is not for an organization.
+  const scholarship = /scholarship/i.test(sec.heading || '') && !/organization|nonprofit/i.test(sec.heading || '');
+  return /^\s*[\d.,%$+kKmM]+\s*$/.test(sec.heading || '') || /^From its \d{4} 990/i.test(String(sec.text || '').trim()) || plain.length < 40 || scholarship;
 }
 async function openListing(id) {
   document.getElementById('scrim').style.display = 'block';
@@ -1695,6 +1701,26 @@ async function openListing(id) {
     out.push('<div class="no-site">This foundation has no public website. How to reach it comes from its tax filing: see How To Apply and Contact below.</div>');
   }
   if (L.description) out.push(line('What It Is', `<p>${escHtml(L.description)}</p>`));
+  // Is this funder for us? (Oct 28 2026, Will: "1 through 5"): how it takes requests, its first grant, its giving in
+  // the organization's county, its open programs and its website, before any chart.
+  if (L.kind === 'funder' && L.funder) {
+    const F = L.funder, gpx = L.giving_places || {}, gv = L.giving || {};
+    const invite = F.accepts_unsolicited === false || L.mode === 'invitation_only' || F.application_mode === 'invitation_only';
+    const openN = (L.programs || []).filter(o => /open/i.test(o.open_as || '')).length;
+    const rows = [['How', invite ? 'By invitation: build a relationship' : F.accepts_unsolicited === true ? 'Accepts applications'
+      : openN ? 'Through its open programs' : 'See How To Apply']];
+    const first = gv.first_time_median || (F.first_grants && F.first_grants.median);
+    if (first) rows.push(['First grant', 'Typically ' + money(first) + ' to an organization it had not funded before']);
+    else { const ty = typicalText(F.typical_min, F.typical_max); if (ty) rows.push(['Typical grant', ty]); }
+    const myFips = MODE === 'account' && ACCOUNT && ACCOUNT.subscriber && ACCOUNT.subscriber.county_fips;
+    const mine = myFips && (gpx.counties || []).find(c => c.fips === myFips);
+    if (myFips && gpx.tax_year) rows.push(['In your county', mine ? `${money(mine.dollars)} in ${mine.grants} ${mine.grants === 1 ? 'grant' : 'grants'} (${gpx.tax_year})` : `No grants in its ${gpx.tax_year} filing`]);
+    const open = (L.programs || []).filter(o => /open/i.test(o.open_as || ''));
+    if (open.length) rows.push(['Open programs', `${open.length} (see Its Programs below)`]);
+    const site = F.website || (L.page_url && !/(^|\.)propublica\.org$/i.test(hostOf(L.page_url)) ? L.page_url : '');
+    if (site) rows.push(['Website', `<a href="${escHtml(site)}" target="_blank" rel="noopener">${escHtml(hostOf(site))}</a>`]);
+    out.push(`<div class="summary-card">${rows.map(r => `<div><span>${escHtml(r[0])}</span><b>${r[0] === 'Website' ? r[1] : escHtml(r[1])}</b></div>`).join('')}</div>`);
+  }
   if (L.provided_by && L.provided_by.name) out.push(line('Provided By', `<p>${L.provided_by.listing_id ? `<a onclick="openListing('${L.provided_by.listing_id}')" style="cursor:pointer">${escHtml(L.provided_by.name)}</a>` : escHtml(L.provided_by.name)}</p>`));
   const f = L.funder;
   if (f) {
@@ -1713,7 +1739,7 @@ async function openListing(id) {
     const oneAddress = !!(gp && gp.one_address);
     if (oneAddress) {
       out.push(line('Where It Gives', '<p>Its tax filing gives one address for nearly every grant, so it does not show where its grants went.</p>'));
-    } else if (gp && gp.counties && gp.counties.length) {
+    } else if (gp && gp.counties && gp.counties.length && gp.counties.slice(0, 5).reduce((a, c) => a + (c.share || 0), 0) >= 0.25) {
       const top = gp.counties.slice(0, 5).map(c => `${c.name}, ${c.state}: ${Math.round(c.share * 100)}%`);
       out.push(line('Where It Gives', `<p>Share of its ${gp.tax_year} grant dollars: ${escHtml(top.join('; '))}</p>`));
     } else if (gp && gp.states && gp.states.length) {
@@ -1754,8 +1780,19 @@ async function openListing(id) {
       const who = c.name && !/applications? (are )?accepted|online only|see (website|attached)/i.test(c.name) ? filingCase(c.name) : '';
       return [who, addressCase(c.address), c.phone, (c.email || '').toLowerCase()].filter(Boolean).join('\n');
     }).filter(Boolean);
-    for (const w of f.website_contacts || []) contacts.push(w.text);
-    out.push(line('Contact', contacts.length ? contacts.map(c => `<div class="section-text">${clampHtml(cleanSectionHtml(c, true), 4, c.length)}</div>`).join('') : ''));
+    // A website's contact text as its emails, phones and named staff (Oct 28 2026: Berkshire Taconic's was a paragraph).
+    for (const w of f.website_contacts || []) {
+      const t = String(w.text || ''), bits = [];
+      for (const m of t.matchAll(/([A-Z][a-z]+(?: [A-Z]\.)? [A-Z][a-z]+),?\s+((?:[A-Z][a-z]+ ){0,5}(?:Officer|Director|Manager|President|Coordinator|Associate|Specialist|Administrator)(?: for [A-Z][a-z]+(?: (?:and|of|&) [A-Z][a-z]+)*)?)/g)) bits.push(m[1] + ', ' + m[2].trim());
+      for (const m of t.matchAll(/[\w.+-]+@[\w-]+\.[\w.]+/g)) bits.push(m[0].toLowerCase());
+      for (const m of t.matchAll(/\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}/g)) bits.push(m[0]);
+      const uniq = [...new Set(bits)];
+      if (uniq.length) contacts.push(uniq.join('\n'));
+      if (w.source_url && !contacts.some(c => c.startsWith('__LINK__'))) contacts.push(`__LINK__${w.source_url}`);   // one contact page
+    }
+    out.push(line('Contact', contacts.length ? [...new Set(contacts)].map(c => c.startsWith('__LINK__')
+      ? `<p><a href="${escHtml(c.slice(8))}" target="_blank" rel="noopener">Its contact page</a></p>`
+      : `<div class="section-text">${clampHtml(cleanSectionHtml(c, true), 4, c.length)}</div>`).join('') : ''));
     window.__SAID = seen;                                // what How To Apply said, so no section says it again
     // Its programs (Will, Oct 16 2026, on Kresge: "the funder profile should reference that they have many programs").
     if (L.programs && L.programs.length) {
@@ -1863,26 +1900,29 @@ function givingSection(p) {
   if (window.__YOUR_SUBJECTS && window.__YOUR_SUBJECTS.share) {
     out.push(line('Your Subjects', `<p>In ${window.__YOUR_SUBJECTS.year}, at least <strong>${Math.round(window.__YOUR_SUBJECTS.share * 100)}%</strong> of its grants went to organizations working on subjects you chose as your focus.</p>`));
   }
-  out.push(line('Your History With This Funder', '<p id="gpYours">Looking for grants to your organization…</p>'));
+  // Shown only once it finds grants to the organization (Oct 28 2026: "Looking for grants…" otherwise sat there).
+  out.push(`<div id="gpYoursLine" style="display:none">${line('Your History With This Funder', '<p id="gpYours"></p>')}</div>`);
+  out.push(line('Total Giving', gpColumns(p.years.map(y => ({label: String(y), a: p.by_year[y].dollars})), 'Dollars granted each year', c => shortMoney(c.a))));
+  const deeper = [];
   const counted = (p.years || []).filter(y => p.by_year[y] && p.by_year[y].first_time != null);
   if (counted.length) {
-    out.push(line('Openness To New Grantees', `<p>In ${escHtml(span)}, <strong>${Math.round(r.first_time_share * 100)}%</strong> of its grants went to organizations it had not funded in the two years before.</p>` +
+    deeper.push(line('Openness To New Grantees', `<p>In ${escHtml(span)}, <strong>${Math.round(r.first_time_share * 100)}%</strong> of its grants went to organizations it had not funded in the two years before.</p>` +
       legend('Repeat grantees', 'First-time grantees') +
       gpColumns(counted.map(y => ({label: String(y), a: p.by_year[y].repeat, b: p.by_year[y].first_time})), 'Grants per year, repeat and first-time grantees',
         c => Math.round(100 * c.b / ((c.a + c.b) || 1)) + '% new')));
   }
-  out.push(line('Grant Range', `<div class="gp-tiles">${[['Smallest', r.min], ['Median', r.median], ['Average', r.average], ['Largest', r.max]]
+  deeper.push(line('Grant Range', `<div class="gp-tiles">${[['Smallest', r.min], ['Median', r.median], ['Average', r.average], ['Largest', r.max]]
     .map(t => `<div class="gp-tile"><b>${money(t[1])}</b><span>${t[0]}</span></div>`).join('')}</div><p>${r.grants.toLocaleString()} grants, ${escHtml(span)}.${p.first_time_median ? ` First-time grantees' median: ${money(p.first_time_median)}; repeat grantees': ${money(p.repeat_median)}.` : ''}</p>`));
   const bands = (p.bands || []);
-  if (bands.length) out.push(line('Grant Sizes', legend('Repeat', 'First-time or not counted') +
+  if (bands.length) deeper.push(line('Grant Sizes', legend('Repeat', 'First-time or not counted') +
     gpBars(bands.map(b => ({label: b.label, a: b.repeat, b: b.grants - b.repeat})), {label: 'Grants by size', labelW: 170})));
-  out.push(line('Total Giving', gpColumns(p.years.map(y => ({label: String(y), a: p.by_year[y].dollars})), 'Dollars granted each year', c => shortMoney(c.a))));
   const st = (p.states || []).slice(0, 6);
-  if (st.length > 1) out.push(line('Grants By State', gpBars(st.map(x => ({label: x.state, a: x.grants})), {label: 'Grants by state', labelW: 110})));
-  const pu = (p.purposes || []).slice(0, 6);
+  if (st.length > 1) deeper.push(line('Grants By State', gpBars(st.map(x => ({label: x.state, a: x.grants})), {label: 'Grants by state', labelW: 110})));
+  // Not when its filing gives one stock purpose for everything (Lee Bank's 128 grants: "Exempt purpose").
+  const pu = (p.purposes || []).slice(0, 6).filter(x => !/^(exempt|charitable|general)( charitable)? purposes?$|^see attached|^unrestricted$/i.test(String(x.purpose || '').trim()));
   if (pu.length) {
     const camp = pu.some(x => /campership/i.test(x.purpose));
-    out.push(line('What It Funds', `<p>The purpose its filing gives for each grant, ${escHtml(span)}.${camp ? ' A campership is a camp scholarship: it pays part or all of a child\'s way to summer camp.' : ''}</p>` +
+    deeper.push(line('What It Funds', `<p>The purpose its filing gives for each grant, ${escHtml(span)}.${camp ? ' A campership is a camp scholarship: it pays part or all of a child\'s way to summer camp.' : ''}</p>` +
       gpBars(pu.map(x => ({label: sentenceCase(x.purpose).slice(0, 34), a: x.grants})), {label: 'Grants by purpose', labelW: 280, fmt: n => n + ' grants'})));
   }
   // The subjects of its grantees (Oct 14 2026, np_grantee_subjects): the IRS's subject
@@ -1900,6 +1940,7 @@ function givingSection(p) {
       gpBars(sj.map(x => ({label: x.label.slice(0, 40), a: x.dollars})), {label: 'Grant dollars by grantee subject', labelW: 300,
         fmt: d => Math.round(100 * d / all) + '% of dollars'}) + subjectParts(sj)));
   }
+  if (deeper.length) out.push(`<details class="more-group"><summary>More About Its Giving (${deeper.length})</summary>${deeper.join('')}</details>`);
   out.push(line('Grantees', `<div class="gp-scopes" id="gpScopes"></div><input type="search" id="gpSearch" class="gp-search" placeholder="Search by name, town or purpose" aria-label="Search grantees">
     <div class="gp-table"><table><thead><tr><th>Name</th><th>Year</th><th>Town</th><th class="num">Amount</th><th>Purpose</th></tr></thead><tbody id="gpRows"></tbody></table></div>
     <div id="gpMore"></div>`));
@@ -1939,10 +1980,11 @@ async function loadGrantees(id, scope, q, offset) {
     search.addEventListener('input', () => { clearTimeout(GP.timer); GP.timer = setTimeout(() => loadGrantees(id, GP.scope, search.value.trim(), 0), 350); });
   }
   if (r.yours !== null && r.yours !== undefined) {
-    const y = document.getElementById('gpYours');
-    if (y) y.innerHTML = r.yours.length
-      ? 'Grants to an organization with your name: ' + r.yours.map(g => `<strong>${money(g.amount)}</strong> in ${g.tax_year}${g.purpose ? ' (' + escHtml(sentenceCase(g.purpose)) + ')' : ''}`).join('; ') + '.'
-      : (MODE === 'account' ? 'No grants to an organization with your name in its filings on file.' : 'Sign in as an organization to see its own grants from this funder.');
+    const y = document.getElementById('gpYours'), yl = document.getElementById('gpYoursLine');
+    if (y && r.yours.length) {
+      y.innerHTML = 'Grants to an organization with your name: ' + r.yours.map(g => `<strong>${money(g.amount)}</strong> in ${g.tax_year}${g.purpose ? ' (' + escHtml(sentenceCase(g.purpose)) + ')' : ''}`).join('; ') + '.';
+      if (yl) yl.style.display = '';
+    }
   }
 }
 // ── tracker ─────────────────────────────────────────────────────────────
