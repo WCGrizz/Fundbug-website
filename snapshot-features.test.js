@@ -17,8 +17,9 @@ ok(f.includes('Its giving by year, from its IRS filings') && f.includes('$1.2M')
 ok(f.includes("'save')") && f.includes("'down')") && f.includes("'up')") && f.includes('+ Save To Tracker'), 'Save To Tracker, Not A Fit and Good Match');
 ok(f.includes('<details><summary>About This Funder</summary>') && !/\.\.\.|…/.test(f), 'the whole description, never cut');
 ok(api.chart({ 2024: 5 }) === '', 'no chart from a single year');
+// The local day ten days out (a UTC one is a day later after 8 pm Eastern, and the test failed every evening).
 const soon = new Date(); soon.setDate(soon.getDate() + 10);
-const p = api.program({ id: 'g2', title: 'Green Pastures Fund', deadline_date: soon.toISOString().slice(0, 10), amount: '$1,000 to $3,000' });
+const p = api.program({ id: 'g2', title: 'Green Pastures Fund', deadline_date: `${soon.getFullYear()}-${String(soon.getMonth() + 1).padStart(2, '0')}-${String(soon.getDate()).padStart(2, '0')}`, amount: '$1,000 to $3,000' });
 ok(p.includes('&#9888; Deadline:') && p.includes('(10 days)'), 'a close deadline is a warning with its days left');
 ok(h.indexOf('We used publicly available information to build a basic profile') < h.indexOf("'<h1>Grants And Funders For '"), 'the profile note comes above the heading (Will)');
 ok(!/\bin Berkshire County\b|your work' \+ where/.test(h), 'no single-county line');
