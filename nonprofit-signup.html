@@ -222,7 +222,7 @@ textarea:focus{border-color:var(--green);background:var(--white)}
         <div class="plan" role="button" tabindex="0" data-plan="monthly" aria-pressed="true" onclick="pickPlan('monthly')"><b>$45</b><span>a month</span></div>
         <div class="plan" role="button" tabindex="0" data-plan="annual" aria-pressed="false" onclick="pickPlan('annual')"><b>$450</b><span>a year (two months free)</span></div>
       </div>
-      <p class="lead">Your first 14 days are free. Cancel before then and you pay nothing.</p>
+      <p class="lead" id="trialLead">Your first 14 days are free. Cancel before then and you pay nothing.</p>
       <div id="payBox">
         <label>Card</label>
         <div id="card-element"></div>
@@ -257,7 +257,7 @@ const params = new URLSearchParams(location.search);
 let TERMS = null, PLACES = null, plan = params.get('plan') === 'annual' ? 'annual' : 'monthly';
 let picks = {subjects: new Set(), populations: new Set(), funding_purposes: new Set()};
 let where = {mode: 'county', counties: [], statewide: ['MA'], several: [], national: []};
-let stripe = null, cardEl = null, stripeReady = false, compValid = false, compTimer = null, OPEN = false;
+let stripe = null, cardEl = null, stripeReady = false, compValid = false, compTimer = null, OPEN = false, trialDays = 0;
 let descSource = '';
 const JOIN = params.get('join') || '';
 let JOINED = null;                      // the join link's account, once read
@@ -517,21 +517,36 @@ async function initStripe() {
     stripeReady = true;
   } catch (e) { document.getElementById('card-errors').textContent = 'Could not load the payment field. Refresh and try again.'; }
 }
+// The trial's wording for its length: 14 days, or a trial code's longer one (Nov 3 2026).
+function trialText(days) {
+  return {lead: `Your first ${days} days are free. Cancel before then and you pay nothing.`,
+          hero: HERO_PRICED.replace(/\b14 days free\b/, `${days} days free`),
+          banner: days > 14 ? `Your free trial is ${days} days with this code. Your card is not charged until it ends.` : ''};
+}
 function showComp(code) {
   // A valid code (Will, Oct 19 2026): a banner at the top, and no plan, price or card anywhere on the page.
-  const banner = document.getElementById('compBanner');
-  banner.textContent = compValid ? `Your FundBug access is free (code ${code.toUpperCase()}). No card needed.` : '';
-  banner.hidden = !compValid;
+  // A trial code (Nov 3 2026): the plan and card stay, and the trial's length changes everywhere it is named.
+  const banner = document.getElementById('compBanner'), t = trialText(trialDays || 14);
+  banner.textContent = compValid ? `Your FundBug access is free (code ${code.toUpperCase()}). No card needed.` : t.banner;
+  banner.hidden = !banner.textContent;
   document.getElementById('planCard').hidden = compValid;
-  document.getElementById('heroText').textContent = compValid ? HERO_FREE : HERO_PRICED;
+  document.getElementById('trialLead').textContent = t.lead;
+  document.getElementById('heroText').textContent = compValid ? HERO_FREE : t.hero;
 }
 function checkComp() {
   clearTimeout(compTimer);
   compTimer = setTimeout(async () => {
     const code = document.getElementById('comp').value.trim();
-    compValid = false;
-    if (code) { try { compValid = !!(await getJson('/api/comp-code/' + encodeURIComponent(code))).valid; } catch (e) {} }
-    document.getElementById('compNote').textContent = code ? (compValid ? 'Code accepted: no card needed.' : 'That code is not one we know.') : '';
+    compValid = false; trialDays = 0;
+    if (code) {
+      try {
+        const r = await getJson('/api/nonprofit/code/' + encodeURIComponent(code));
+        compValid = r.kind === 'comp';
+        trialDays = r.kind === 'trial' ? r.days : 0;
+      } catch (e) {}
+    }
+    document.getElementById('compNote').textContent = !code ? '' : compValid ? 'Code accepted: no card needed.'
+      : trialDays ? `Code accepted: your free trial is ${trialDays} days.` : 'That code is not one we know.';
     showComp(code);
     document.getElementById('go').textContent = compValid ? 'Create My Account' : 'Start My Free Trial';
   }, 350);
