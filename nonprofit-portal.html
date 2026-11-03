@@ -144,6 +144,11 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 
 /* panel */
 .scrim{position:fixed;inset:0;background:rgba(26,26,20,.45);display:none;z-index:200}
+.cal-how{font-size:15px;color:var(--ink);line-height:1.7;padding-left:20px}
+.again-line{font-size:15px;color:var(--ink);font-weight:500;margin:6px 0}
+.pf-strength{margin-top:12px;font-size:15px;color:var(--ink);line-height:1.6}
+.pf-strength p{margin:6px 0}
+.trial-banner{background:var(--cream2);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:8px;padding:14px 18px;margin-bottom:18px;font-size:15px;color:var(--ink);line-height:1.6}
 .gs-list{list-style:none;margin:6px 0 14px;padding:0}
 .gs-list li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--border)}
 .gs-list li:first-child{border-top:none}
@@ -472,6 +477,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
         </div>
 
         <!-- Getting started (Nov 2 2026): four first steps, each ticked as it is done; hidden when all are, or by its button -->
+        <div class="trial-banner acct-only" id="trialCard" role="status" hidden></div>
         <div class="card acct-only" id="gsCard" hidden></div>
 
         <!-- The meter and the strip (Oct 19 2026): what to add next, new matches since the last visit, what is due -->
@@ -482,6 +488,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
             <div class="setup-bar"><div class="setup-bar-fill" id="pfBarFill"></div></div>
             <div class="dr-meter-note" id="pfMeterNote">Loading…</div>
           </div>
+          <div class="pf-strength" id="pfStrength" hidden></div>
         </div>
         <div class="pf-strip acct-only" id="pfStrip" hidden>
           <div class="pf-tile" id="pfNew"></div>
@@ -687,6 +694,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
         <div class="toolbar">
           <input id="mSearch" placeholder="Search titles" oninput="drawMatches()">
           <select id="mKind" onchange="drawMatches()"><option value="">Funders And Opportunities</option><option value="funder">Funders</option><option value="opportunity">Opportunities</option></select>
+          <select id="mSource" class="acct-only" onchange="drawMatches()" aria-label="Source"><option value="">Any Source</option><option value="foundation">Foundations</option><option value="government">Government</option><option value="corporate">Corporate</option></select>
           <label class="chk acct-only" style="margin:0"><input type="checkbox" id="mFits" onchange="drawMatches()"> Fits Only</label>
           <select id="mReviewed" class="preview-only" onchange="drawMatches()"><option value="">Reviewed Or Not</option><option value="yes">Reviewed Only</option><option value="no">Not Reviewed Yet</option></select>
         </div>
@@ -707,6 +715,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <select id="tKind" onchange="drawTracker()"><option value="">Funders And Programs</option><option value="funder">Funders</option><option value="opportunity">Opportunities</option><option value="own">Added By You</option></select>
           <label class="chk" style="margin:0"><input type="checkbox" id="tFav" onchange="drawTracker()"> Starred Only</label>
           <button class="btn ghost sm" onclick="toggleAddOwn()">Add Your Own</button>
+          <button class="btn ghost sm" onclick="calendarPanel()">Subscribe In Your Calendar</button>
         </div>
         <div class="card" id="addOwn" hidden>
           <h2>Add A Funder Or Program</h2>
@@ -1513,8 +1522,21 @@ function drawChecklist(st) {
     `<div class="gs-why">${x.done ? 'Done.' : escHtml(x.why)}</div></div></li>`).join('') +
     `</ol><button class="btn ghost sm" onclick="hideChecklist()">Hide This</button>`;
 }
+// The free trial's days left (Nov 2 2026), and what the organization has built so far, so the reminder is honest
+// about what it would keep. Only for the paid signup's trial (ACCOUNT.trial, np_accounts.trial_end).
+function trialText(trial, st, longDate) {
+  if (!trial) return '';
+  const d = trial.days_left, when = d === 0 ? 'Your free trial ends today.' : `${d} day${d === 1 ? '' : 's'} left in your free trial.`;
+  const made = [st.saved ? `saved ${st.saved} funder${st.saved === 1 ? '' : 's'}` : '',
+                st.securedPct != null ? `your Funding Plan is ${st.securedPct}% secured` : ''].filter(Boolean);
+  return `<b>${when}</b> ${made.length ? 'So far you\'ve ' + made.join(' and ') + '. ' : ''}` +
+    `Your plan starts on ${longDate}; to stop before then, cancel anytime under <a onclick="showPage('subscription'); loadSubscription()">Subscription</a>.`;
+}
+function longDateOf(iso) { const [y, m, d] = iso.split('-').map(Number); return `${MONTH_NAMES[m - 1]} ${d}, ${y}`; }
 async function loadChecklist() {
-  if (MODE !== 'account' || gsHidden()) return;
+  if (MODE !== 'account') return;
+  const trial = ACCOUNT && ACCOUNT.trial;
+  if (gsHidden() && !trial) return;
   const [plan, team, tracker] = await Promise.all([
     apiFetch('/api/nonprofit/funding-plan').catch(() => null), apiFetch('/api/portal/seats').catch(() => null),
     TRACKER ? Promise.resolve(TRACKER) : apiFetch('/api/nonprofit/tracker').catch(() => null)]);
@@ -1522,6 +1544,31 @@ async function loadChecklist() {
   const saved = ((tracker && tracker.items) || []).filter(i => !i.seen_in_digest).length;
   const teammates = ((team && team.members) || []).filter(m => m.role !== 'owner' && (m.status === 'active' || m.status === 'invited')).length;
   drawChecklist({pct: PROFILE_METER ? PROFILE_METER.pct : 0, saved, goal: plan && plan.saved && plan.goal, teammates});
+  const banner = document.getElementById('trialCard');
+  const securedPct = plan && plan.goal ? Math.round(100 * plan.totals.secured / plan.goal) : null;
+  banner.innerHTML = trialText(trial, {saved, securedPct}, trial ? longDateOf(trial.ends_on) : '');
+  banner.hidden = !trial;
+}
+// What would widen or sharpen the matches (Nov 2 2026, np_profile_strength): exact counts only for nearby counties
+// ("if you also work in"), since a missing answer seldom hides a listing; missing answers say why they matter.
+const STRENGTH_FIELDS = {annual_budget: 'fBudget', tax_exempt_since: 'fSince', has_audited_financials: 'fAudit', subjects: 'pk-subjects',
+  populations: 'pk-populations', funding_purposes: 'pk-funding_purposes', description: 'fAbout'};
+function strengthHtml(st) {
+  const out = [];
+  if (st && st.missing && st.missing.length)
+    out.push('<p><b>Worth adding:</b> ' + st.missing.map(m => `<a class="pf-go" onclick="goToProfileItem('${STRENGTH_FIELDS[m.field] || 'pfMeterCard'}')">${escHtml(m.label)}</a> (${escHtml(m.why)})`).join('; ') + '.</p>');
+  if (st && st.area && st.area.length)
+    out.push('<p><b>Do you also work nearby?</b> ' + st.area.map(a => `If you also work in ${escHtml(a.name)}, ${escHtml(a.state)}, ${a.more.toLocaleString('en-US')} more listing${a.more === 1 ? '' : 's'} would fit`).join('; ') +
+             `. <a class="pf-go" onclick="goToProfileItem('whereCard')">Add It Under Where You Work</a></p>`);
+  return out.join('');
+}
+async function loadStrength() {
+  if (MODE !== 'account') return;
+  const box = document.getElementById('pfStrength');
+  let st = null;
+  try { st = await apiFetch('/api/nonprofit/profile-strength'); } catch (e) { box.hidden = true; return; }   // nothing shown, never a wrong count
+  box.innerHTML = strengthHtml(st);
+  box.hidden = !box.innerHTML;
 }
 async function loadProfileMeter() {
   if (MODE !== 'account') return;
@@ -1529,6 +1576,7 @@ async function loadProfileMeter() {
   catch (e) { document.getElementById('pfMeterNote').textContent = 'Could not load your profile meter: ' + e.message; return; }
   if (PROFILE_METER) renderMeter(PROFILE_METER, 'pf');
   loadChecklist();
+  loadStrength();
 }
 async function loadStripTracker() {
   if (MODE !== 'account') return;
@@ -1615,9 +1663,10 @@ function filtered() {
   if (!RESULT) return [];
   const q = document.getElementById('mSearch').value.trim().toLowerCase();
   const kind = document.getElementById('mKind').value, rev = document.getElementById('mReviewed').value;
+  const src = (document.getElementById('mSource') || {}).value || '';
   const fitsOnly = MODE === 'account' && document.getElementById('mFits').checked;
   return RESULT.shown.filter(m => (!NEW_ONLY || NEW_ONLY.has(m.id)) && (!q || m.title.toLowerCase().includes(q) || (m.provided_by || '').toLowerCase().includes(q))
-    && (!kind || m.kind === kind) && (!rev || (rev === 'yes') === m.reviewed) && (!fitsOnly || m.fits !== false));
+    && (!kind || m.kind === kind) && (!src || m.source === src) && (!rev || (rev === 'yes') === m.reviewed) && (!fitsOnly || m.fits !== false));
 }
 const MODES = {open_call: 'Open call', loi: 'Letter of inquiry first', rolling: 'Rolling', invitation_only: 'By invitation'};
 function matchCard(m) {
@@ -1659,14 +1708,28 @@ function drawMatches() {
   // Probably Not For You (Will, Oct 5 2026): the fit judge's "no" listings,
   // in a collapsed list after the rest, never hidden.
   const main = list.filter(m => !m.not_for_you), nfy = list.filter(m => m.not_for_you);
+  const again = comingAgain(RESULT.shown);
   document.getElementById('mList').innerHTML = (main.slice(0, shownCount).map(matchCard).join('') ||
     '<div class="empty">Nothing fits these filters.</div>') +
     (nfy.length ? `<details class="nfy"><summary>Probably Not For You (${nfy.length.toLocaleString()})</summary>
       <p class="src" style="font-size:14.5px;color:var(--ink)">These pass the rules (who can apply, where, when) but our read of each one says it does not fit your work. Open any of them if you disagree.</p>
-      ${nfy.map(matchCard).join('')}</details>` : '');
+      ${nfy.map(matchCard).join('')}</details>` : '') + comingAgainHtml(again);
   document.getElementById('mMore').style.display = main.length > shownCount ? 'inline-block' : 'none';
 }
 function moreMatches() { shownCount += PAGE_SIZE; drawMatches(); }
+// Coming Up Again (Nov 2 2026): programs that fit except that their round just closed, and that come round again
+// (np_match.coming_again marks them), so the next round can be planned for. Known next openings first.
+function comingAgain(items) { return (items || []).filter(m => m.coming_again); }
+function againLine(c) {
+  const day = iso => { const [y, m, d] = iso.split('-').map(Number); return `${MONTH_NAMES[m - 1]} ${d}, ${y}`; };
+  return c.next_open ? `Opens again ${day(c.next_open)}.` : c.last_deadline ? `Its last round closed ${day(c.last_deadline)}; it comes round again.` : 'It comes round again.';
+}
+function comingAgainHtml(again) {
+  if (!again.length) return '';
+  return `<details class="nfy again" open><summary>Coming Up Again (${again.length.toLocaleString()})</summary>
+    <p class="src" style="font-size:14.5px;color:var(--ink)">These fit your organization, but their last round has closed. Each comes round again, so save one to plan for its next round.</p>
+    ${again.map(m => matchCard({...m, fits: true, why_not: ''}).replace('<div class="facts">', `<div class="again-line">${escHtml(againLine(m.coming_again))}</div><div class="facts">`)).join('')}</details>`;
+}
 
 function drawLeftOut() {
   const groups = {};
@@ -2233,10 +2296,57 @@ function drawTracker() {
       </div>
       ${thAwardFields(i)}
       ${thPanel(i)}
-      <div class="m-actions" style="margin-top:8px"><button class="btn sm" onclick="openPrep('${pid}')">Prep Application</button><button class="btn ghost sm" onclick="removeItem('${pid}')">Remove</button></div>
+      <div class="m-actions" style="margin-top:8px"><button class="btn sm" onclick="openPrep('${pid}')">Prep Application</button>${calEvents([i], today).length ? `<button class="btn ghost sm" onclick="downloadItemIcs('${pid}')">Add To Calendar</button>` : ''}<button class="btn ghost sm" onclick="removeItem('${pid}')">Remove</button></div>
     </div>`;
   }).join('');
   Object.keys(TH_OPEN).filter(k => TH_OPEN[k]).forEach(k => { if (document.getElementById('thl-' + k)) thLoad(k); });
+}
+// ── the Tracker in a calendar (Nov 2 2026, np_calendar) ────────────────
+// One item's deadline and follow-up as an .ics file, made here; and the feed the organization subscribes to once,
+// which the server keeps current. Both make the same all-day events with the same UIDs, so they never double up.
+function calEvents(items, todayIso) {
+  const out = [], [y, m, d] = todayIso.split('-').map(Number), base = Date.UTC(y, m - 1, d);
+  const day = n => new Date(base + n * 86400000).toISOString().slice(0, 10).replace(/-/g, '');
+  for (const i of items) {
+    if (['awarded', 'not_awarded', 'passed'].includes(i.status)) continue;
+    const id = i.tracking_id || i.program_id, title = i.title || 'A Tracker item';
+    if (typeof i.days_until_deadline === 'number' && i.days_until_deadline >= 0)
+      out.push({uid: id + '-deadline@fundbug.net', day: day(i.days_until_deadline), summary: 'Deadline: ' + title, desc: ((i.deadline || '') + '\nhttps://fundbug.net/nonprofit-portal').trim()});
+    if (i.follow_up_date) out.push({uid: id + '-follow-up@fundbug.net', day: i.follow_up_date.slice(0, 10).replace(/-/g, ''), summary: 'Follow up: ' + title, desc: 'https://fundbug.net/nonprofit-portal'});
+  }
+  return out;
+}
+function icsText(evs) {
+  const esc = t => String(t || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+  const next = d => { const t = new Date(Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)) + 86400000); return t.toISOString().slice(0, 10).replace(/-/g, ''); };
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//FundBug//Tracker//EN', 'METHOD:PUBLISH'];
+  for (const e of evs) lines.push('BEGIN:VEVENT', 'UID:' + e.uid, 'DTSTAMP:' + stamp, 'DTSTART;VALUE=DATE:' + e.day, 'DTEND;VALUE=DATE:' + next(e.day),
+                                  'SUMMARY:' + esc(e.summary), 'DESCRIPTION:' + esc(e.desc), 'END:VEVENT');
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n') + '\r\n';
+}
+function downloadItemIcs(pid) {
+  const item = ((TRACKER && TRACKER.items) || []).find(i => i.program_id === pid);
+  if (!item) return;
+  const blob = new Blob([icsText(calEvents([item], new Date().toISOString().slice(0, 10)))], {type: 'text/calendar'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'fundbug-' + String(item.title || 'item').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40) + '.ics';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+async function calendarPanel() {
+  let link;
+  try { link = (await apiFetch('/api/nonprofit/calendar-link')).url; }
+  catch (e) { document.getElementById('tSummary').textContent = 'Could not get your calendar link: ' + e.message; return; }
+  fpPanel('Subscribe In Your Calendar', `
+    <p class="lead">Add this link to your calendar once, and your Tracker's deadlines and follow-up dates appear there and stay current. Anyone with the link can see them, so share it only with your team.</p>
+    <label for="calUrl">Your Calendar Link</label><input id="calUrl" readonly value="${escHtml(link)}" onclick="this.select()">
+    <div class="fp-actions"><button class="btn" onclick="navigator.clipboard && navigator.clipboard.writeText(document.getElementById('calUrl').value); this.textContent='Copied'">Copy The Link</button></div>
+    <h3 class="fp-h3">Where To Paste It</h3>
+    <ul class="cal-how"><li><b>Google Calendar:</b> Other calendars, then From URL.</li><li><b>Outlook:</b> Add calendar, then Subscribe from web.</li>
+      <li><b>Apple Calendar:</b> File, then New Calendar Subscription.</li></ul>
+    <div class="fp-actions"><button class="btn ghost" onclick="closePanel()">Close</button></div>`);
 }
 async function addSeen(groupId) {
   try { await apiFetch('/api/nonprofit/tracker', 'POST', {group_id: groupId}); await loadTracker(); }
@@ -2433,8 +2543,12 @@ async function removeTeammate() {
 // ACCOUNT's kind, so a teammate on a nonprofit account stays here and a business invite goes to its own portal.
 async function acceptInvite(inviteToken) {
   history.replaceState(null, '', location.pathname);
-  const r = await fetch(API_BASE + '/api/portal/seats/accept', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({token: inviteToken})});
-  const d = await r.json().catch(() => ({}));
+  const send = link => fetch(API_BASE + '/api/portal/seats/accept', {method: 'POST', headers: {'Content-Type': 'application/json'},
+                                                                    body: JSON.stringify({token: inviteToken, link_own_account: !!link})});
+  let r = await send(false);
+  let d = await r.json().catch(() => ({}));
+  // A login that has its own account (Nov 2 2026): it joins only once the person says so.
+  if (r.status === 409 && d.can_link && confirm(linkQuestion(d))) { r = await send(true); d = await r.json().catch(() => ({})); }
   if (!r.ok) throw new Error(d.detail || 'This invite could not be accepted.');
   store(TOKEN_KEY, d.token);
   store(SUB_KEY, JSON.stringify({id: d.subscriber_id, email: d.email || '', first_name: d.first_name || '',
@@ -2442,6 +2556,10 @@ async function acceptInvite(inviteToken) {
   return d.org_type;
 }
 
+function linkQuestion(d) {
+  return `This email already has its own FundBug account. Join ${d.account_name || 'this team'} with that same login?\n\n` +
+    "Your own account's profile, Tracker and digests will no longer be used. FundBug keeps them, and can put them back if you ask.";
+}
 function hostOf(u) { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } }
 
 // ── start ───────────────────────────────────────────────────────────────
@@ -2472,7 +2590,7 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 </script>
 <script src="/nonprofit-drafting.js?v=2026-10-28"></script>
 <script src="/nonprofit-landscape.js?v=2026-11-02"></script>
-<script src="/nonprofit-funding-plan.js?v=2026-11-02"></script>
+<script src="/nonprofit-funding-plan.js?v=2026-11-02b"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
 </body>
 </html>

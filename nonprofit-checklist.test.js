@@ -9,8 +9,9 @@ const grab = re => { const m = html.match(re); if (!m) throw new Error('not foun
 const dom = new JSDOM('<body><div id="gsCard" hidden></div></body>', { runScripts: 'outside-only', url: 'https://fundbug.net/nonprofit-portal' });
 const w = dom.window;
 w.eval([grab(/function escHtml\([\s\S]*?\n\}/), "function viewerKey() { return 'me'; }",
-        grab(/const GS_PROFILE_PCT[\s\S]*?\nfunction drawChecklist[\s\S]*?\n\}/), 'window.t = {checklistSteps, drawChecklist, hideChecklist};'].join('\n'));
-const { checklistSteps, drawChecklist, hideChecklist } = w.t;
+        grab(/const GS_PROFILE_PCT[\s\S]*?\nfunction drawChecklist[\s\S]*?\n\}/), grab(/function trialText\([\s\S]*?\n\}/),
+        'window.t = {checklistSteps, drawChecklist, hideChecklist, trialText};'].join('\n'));
+const { checklistSteps, drawChecklist, hideChecklist, trialText } = w.t;
 const steps = checklistSteps({pct: 85, saved: 1, goal: 0, teammates: 0});
 ok(steps.map(s => s.done).join() === 'true,false,false,false', 'a fuller profile is done; one saved funder of three is not');
 ok(steps[1].why.startsWith('1 saved so far.'), 'it says how many are saved so far');
@@ -25,5 +26,11 @@ hideChecklist();
 ok(card.hidden, 'Hide This hides it');
 drawChecklist({pct: 0, saved: 0, goal: 0, teammates: 0});
 ok(card.hidden, 'and it stays hidden on the next visit');
-ok(/id="gsCard" hidden/.test(html) && /loadChecklist\(\);\n\}/.test(html), 'the profile page has the card and loads it with the meter');
+ok(/id="gsCard" hidden/.test(html) && /loadChecklist\(\);\n/.test(html), 'the profile page has the card and loads it with the meter');
+// The trial banner (Nov 2 2026).
+const tb = trialText({ends_on: '2026-11-16', days_left: 9}, {saved: 4, securedPct: 31}, 'November 16, 2026');
+ok(tb.startsWith('<b>9 days left in your free trial.</b>') && tb.includes("So far you've saved 4 funders and your Funding Plan is 31% secured.")
+   && tb.includes('Your plan starts on November 16, 2026; to stop before then, cancel anytime under'), 'the banner: days left, what they have built, and how to stop');
+ok(trialText({ends_on: '2026-11-16', days_left: 0}, {saved: 0, securedPct: null}, 'x').startsWith('<b>Your free trial ends today.</b> Your plan'), 'the last day, with nothing built yet');
+ok(trialText(null, {saved: 4}, '') === '', 'no trial: no banner');
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

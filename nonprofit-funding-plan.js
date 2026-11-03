@@ -120,7 +120,7 @@ function fpDraw() {
         <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} secured, entered by you" value="${s.secured_other ? money(s.secured_other) : ''}" onchange="fpSaveSource('${s.key}', 'secured', this.value)"></td>
         <td class="num">${s.key === 'individual' ? money(s.secured_donors) : s.from_tracker ? money(s.secured_tracker) : ''}</td>
         <td class="num">${money(s.pending)}${s.pending_unknown ? `<br>and ${s.pending_unknown} with no amount` : ''}</td>
-        <td class="num">${money(Math.max(0, s.planned - s.secured))}</td></tr>`).join('')}
+        <td class="num">${money(Math.max(0, s.planned - s.secured))}${FP_MATCH_SOURCES[s.key] && s.planned > s.secured ? `<br><a onclick="fpFindMatches('${s.key}')">${FP_MATCH_SOURCES[s.key]}</a>` : ''}</td></tr>`).join('')}
       </tbody></table></div>
       <p class="lead">Foundation, government and corporate awards come from your Tracker: mark one Awarded with its amount. Individual donors come from your donor list below. Enter anything else you have secured yourself.</p>
     </div>`);
@@ -162,6 +162,16 @@ function fpAwardsCard(v) {
   }
   h.push('</div>');
   return h.join('');
+}
+
+// A source with money still to raise links to the Matches that would fill it (Nov 2 2026, Will: yes): the funders and
+// programs of that kind that fit, by the funder's type (np_api._card's source). Nothing else changes, and no digest.
+const FP_MATCH_SOURCES = {foundation: 'Find Foundation Matches', government: 'Find Government Matches', corporate: 'Find Corporate Matches'};
+function fpFindMatches(key) {
+  showPage('matches');
+  const sel = document.getElementById('mSource');
+  if (sel) sel.value = key;
+  if (typeof RESULT !== 'undefined' && RESULT) drawMatches(); else runMatches(true);
 }
 
 // ── saving the plan ─────────────────────────────────────────────────────

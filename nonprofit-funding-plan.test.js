@@ -71,6 +71,8 @@ ctx.fpSaveAward('a', {source: 'foundation'});
 eq(ctx.sent, [{awards: {a: {source: 'corporate', share: null, left_out: false}}}, {awards: {a: {source: null, share: 20000, left_out: false}}}, {awards: {a: null}}],
    'a choice is sent as a change; back to the defaults clears it');
 
+ok(/FP_MATCH_SOURCES\[s\.key\] && s\.planned > s\.secured \? `<br><a onclick="fpFindMatches\('\$\{s\.key\}'\)">/.test(js) && /foundation: 'Find Foundation Matches'/.test(js), 'a source with money still to raise links to its matches');
+ok(/\(!src \|\| m\.source === src\)/.test(html) && /id="mSource"/.test(html), 'Matches filters by source');
 ok(/data-page="plan" class="acct-only" onclick="openFundingPlan\(\)">Funding Plan</.test(html) && /id="page-plan"[\s\S]*?id="fpBody"/.test(html), 'the portal has the page, for accounts only');
 ok(/nonprofit-funding-plan\.js\?v=\d{4}-\d{2}-\d{2}/.test(html), 'the portal loads the script with a version tag');
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

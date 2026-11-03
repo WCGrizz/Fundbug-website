@@ -2130,11 +2130,17 @@ async function consumeSeatInviteIfPresent() {
     window.history.replaceState({}, document.title, window.location.pathname);
   } catch(_) {}
   try {
-    const r = await fetch(API + '/api/portal/seats/accept', {
+    const send = link => fetch(API + '/api/portal/seats/accept', {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({token: inviteToken}),
+      body: JSON.stringify({token: inviteToken, link_own_account: !!link}),
     });
-    const d = await r.json();
+    let r = await send(false);
+    let d = await r.json();
+    // A login that has its own account (Nov 2 2026): it joins only once the person says so.
+    if (r.status === 409 && d.can_link && confirm('This email already has its own FundBug account. Join ' + (d.account_name || 'this team') +
+        ' with that same login?\n\nYour own account\'s profile, Tracker and digests will no longer be used. FundBug keeps them, and can put them back if you ask.')) {
+      r = await send(true); d = await r.json();
+    }
     if (!r.ok) throw new Error(d.detail || 'Invite could not be accepted');
     token = d.token;
     localStorage.setItem('fb_token', token);
