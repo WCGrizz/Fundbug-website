@@ -13,9 +13,9 @@ const grab = re => { const m = html.match(re); if (!m) throw new Error('not foun
 const ctx = {};
 vm.createContext(ctx);
 vm.runInContext([grab(/function escHtml\([\s\S]*?\n\}/), grab(/function money\(n\).*/), grab(/function givingChangeOf\([\s\S]*?\n\}/),
-                 grab(/const changeWords = .*/), grab(/function givingChangeHtml\([\s\S]*?\n\}/),
-                 'globalThis.t = {givingChangeOf, givingChangeHtml};'].join('\n'), ctx);
-const {givingChangeOf, givingChangeHtml} = ctx.t;
+                 grab(/const changeWords = .*/), grab(/function changePeriod\([\s\S]*?\n\}/), grab(/function givingChangeHtml\([\s\S]*?\n\}/),
+                 'globalThis.t = {givingChangeOf, givingChangeHtml, changePeriod};'].join('\n'), ctx);
+const {givingChangeOf, givingChangeHtml, changePeriod} = ctx.t;
 
 eq(givingChangeOf({'2023': {dollars: 100000}, '2024': {dollars: 125000}, '2022': {dollars: 1}}),
    {year: 2024, prior_year: 2023, dollars: 125000, prior_dollars: 100000, pct: 25}, 'the latest year against the one before it');
@@ -28,9 +28,16 @@ eq(givingChangeOf(null), null, 'no profile: none');
 const up = givingChangeHtml({year: 2024, prior_year: 2023, dollars: 125000, prior_dollars: 100000, pct: 25});
 ok(up.includes('▲ 25%') && up.includes('title="Up 25% from 2023: $125,000 in its 2024 filing, $100,000 in 2023"'), 'up: an arrow, and the amounts on hover');
 ok(givingChangeHtml({year: 2024, prior_year: 2023, dollars: 1, prior_dollars: 4, pct: -75}).includes('▼ 75%'), 'down: the arrow down, the figure without a minus');
-ok(givingChangeHtml({year: 2024, prior_year: 2021, dollars: 1, prior_dollars: 1, pct: 0}).includes('vs 2021'), 'a gap names the year compared');
+// The period (Nov 2 2026, Will: "clearer about the time period its measuring").
+const a = {year: 2024, prior_year: 2023, pct: 5}, b = {year: 2025, prior_year: 2024, pct: 5};
+eq(changePeriod([a, a, b, null]), '2023 to 2024', 'the heading names the pair most funders compare');
+ok(!givingChangeHtml(a, '2023 to 2024').includes('(2023 to 2024)') && givingChangeHtml(b, '2023 to 2024').includes('(2024 to 2025)'),
+   'a funder on other years names its own in its cell');
+ok(givingChangeHtml({year: 2024, prior_year: 2021, dollars: 1, prior_dollars: 1, pct: 0}, '2023 to 2024').includes('(2021 to 2024)'), 'a gap names the years compared');
+ok(/Giving Change\$\{period \? ', ' \+ period : ''\}<\/th>/.test(land), 'the Top Funders heading carries the period');
+ok(/given in \$\{ch\.year\} than in \$\{ch\.prior_year\}/.test(html), 'the funder page tile names both years');
 eq(givingChangeHtml(null), '', 'none: an empty cell, never 0%');
-ok(/Giving Change<\/th>[\s\S]*givingChangeHtml\(f\.giving_change\)/.test(land), 'the Top Funders table shows it');
+ok(/givingChangeHtml\(f\.giving_change, period\)/.test(land), 'the Top Funders table shows it');
 ok(/givingChangeOf\(p\.by_year\)/.test(html), 'the funder page shows it in At A Glance');
-ok(/nonprofit-landscape\.js\?v=2026-10-28/.test(html), 'the landscape script\'s version tag was bumped');
+ok(/nonprofit-landscape\.js\?v=2026-11-02/.test(html), 'the landscape script\'s version tag was bumped');
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

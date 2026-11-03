@@ -47,6 +47,7 @@ function drawLandscape(keepFocus) {
   const q = LAND_Q;
   const list = q ? funders.filter(f => landName(f).toLowerCase().includes(q.toLowerCase()) || f.name.toLowerCase().includes(q.toLowerCase())) : funders;
   const grantees = L.grantees.filter(g => !subj || g.subject === subj).slice(0, 25);
+  const period = changePeriod(list.map(f => f.giving_change));
   const maxSubj = Math.max(1, ...L.subjects.map(s => s.dollars));
   const h = [];
   h.push(`<div class="toolbar">
@@ -67,30 +68,31 @@ function drawLandscape(keepFocus) {
     <p class="lead">Where the money comes from: <b>${pct(w.county, all)}</b> from funders based in ${escHtml(L.county)},
       <b>${pct(w.state, all)}</b> from elsewhere in ${escHtml(L.state)}, and <b>${pct(w.out_of_state, all)}</b> from out of state.</p>`);
   h.push(`<div class="card"><h2>${subj ? 'Funders Of ' + escHtml(subjLabel) : 'Top Funders'}</h2>
-      <p class="lead">${subj ? 'Dollars to ' + escHtml(subjLabel.toLowerCase()) + ' organizations here. ' : ''}Open a funder FundBug lists to see its giving profile and how to apply. Giving Change compares all of a funder's giving, wherever it went, in its latest tax filing with the one before; hover it for the amounts.</p>
+      <p class="lead">${subj ? 'Dollars to ' + escHtml(subjLabel.toLowerCase()) + ' organizations here. ' : ''}Open a funder FundBug lists to see its giving profile and how to apply. Giving Change compares all of a funder's giving, wherever it went, in its latest tax filing with the one before (the years in the heading, or in the cell when a funder's differ); hover it for the amounts.</p>
       <input id="lSearch" class="gp-search" placeholder="Search funders" value="${escHtml(q)}" oninput="LAND_Q=this.value;LAND_SHOWN=25;drawLandscape(true)">
-      <div class="gp-table"><table><thead><tr><th>Funder</th><th>Based In</th><th class="num">Dollars Here</th><th class="num">${subj ? 'Grants (All Subjects)' : 'Grants'}</th><th class="num">${subj ? 'Typical Grant (All Subjects)' : 'Typical Grant'}</th><th class="num">Giving Change</th><th>Years</th></tr></thead><tbody>
+      <div class="gp-table"><table><thead><tr><th>Funder</th><th>Based In</th><th class="num">Dollars Here</th><th class="num">${subj ? 'Grants (All Subjects)' : 'Grants'}</th><th class="num">${subj ? 'Typical Grant (All Subjects)' : 'Typical Grant'}</th><th class="num">Giving Change${period ? ', ' + period : ''}</th><th>Years</th></tr></thead><tbody>
       ${list.slice(0, LAND_SHOWN).map(f => `<tr>
         <td>${f.listing_id ? `<a onclick="openListing('${f.listing_id}')" style="cursor:pointer">${escHtml(landName(f))}</a>` : escHtml(landName(f))}
           ${f.donor_advised ? '<br><span class="badge">Gives here from donors&#39; funds: no applications</span>' : ''}
           ${f.accepts_unsolicited === false ? '<br><span class="badge">Does not accept unsolicited applications</span>' : ''}
           ${f.elsewhere_note ? '<br><span class="badge">' + escHtml(f.elsewhere_note) + '</span>' : ''}</td>
         <td>${escHtml(f.based_in || '')}</td><td class="num">${money(f.shown)}</td><td class="num">${f.grants}</td>
-        <td class="num">${money(f.median)}</td><td class="num">${givingChangeHtml(f.giving_change)}</td><td>${f.years[0]}${f.years.length > 1 ? ' to ' + f.years[f.years.length - 1] : ''}</td></tr>`).join('')}
+        <td class="num">${money(f.median)}</td><td class="num">${givingChangeHtml(f.giving_change, period)}</td><td>${f.years[0]}${f.years.length > 1 ? ' to ' + f.years[f.years.length - 1] : ''}</td></tr>`).join('')}
       </tbody></table></div>
       ${list.length > LAND_SHOWN ? `<div style="text-align:center;margin-top:10px"><button class="btn ghost sm" onclick="LAND_SHOWN+=50;drawLandscape()">Show More (${list.length - LAND_SHOWN} more)</button></div>` : ''}
     </div>`);
   // Funders based here whose filings give their own address for every grantee (Oct 19 2026, Will: yes): their grants
   // are not in this county's figures, so they are listed apart, with all their giving, never added to the totals.
   const unplaced = (L.unplaced_here || []).filter(f => !q || landName(f).toLowerCase().includes(q.toLowerCase()) || f.name.toLowerCase().includes(q.toLowerCase()));
+  const uPeriod = changePeriod(unplaced.map(f => f.giving_change));
   if (!subj && unplaced.length) {
     h.push(`<div class="card"><h2>Based Here, Giving Not Placed</h2>
       <p class="lead">These funders are based in ${escHtml(L.county)}, but their tax filings give the funder's own address for every grantee, so FundBug cannot tell how much of their giving stays here. The figures are all their grants, wherever they went, and are not part of the totals above.</p>
-      <div class="gp-table"><table><thead><tr><th>Funder</th><th>Based In</th><th class="num">All Their Grants</th><th class="num">Dollars, All Places</th><th class="num">Giving Change</th><th>Years</th></tr></thead><tbody>
+      <div class="gp-table"><table><thead><tr><th>Funder</th><th>Based In</th><th class="num">All Their Grants</th><th class="num">Dollars, All Places</th><th class="num">Giving Change${uPeriod ? ', ' + uPeriod : ''}</th><th>Years</th></tr></thead><tbody>
       ${unplaced.map(f => `<tr>
         <td>${f.listing_id ? `<a onclick="openListing('${f.listing_id}')" style="cursor:pointer">${escHtml(landName(f))}</a>` : escHtml(landName(f))}
           ${f.accepts_unsolicited === false ? '<br><span class="badge">Does not accept unsolicited applications</span>' : ''}</td>
-        <td>${escHtml(f.based_in || '')}</td><td class="num">${(f.grants || 0).toLocaleString()}</td><td class="num">${money(f.dollars)}</td><td class="num">${givingChangeHtml(f.giving_change)}</td>
+        <td>${escHtml(f.based_in || '')}</td><td class="num">${(f.grants || 0).toLocaleString()}</td><td class="num">${money(f.dollars)}</td><td class="num">${givingChangeHtml(f.giving_change, uPeriod)}</td>
         <td>${f.years && f.years.length ? f.years[0] + (f.years.length > 1 ? ' to ' + f.years[f.years.length - 1] : '') : ''}</td></tr>`).join('')}
       </tbody></table></div></div>`);
   }
