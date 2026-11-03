@@ -144,6 +144,12 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 
 /* panel */
 .scrim{position:fixed;inset:0;background:rgba(26,26,20,.45);display:none;z-index:200}
+.gs-list{list-style:none;margin:6px 0 14px;padding:0}
+.gs-list li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--border)}
+.gs-list li:first-child{border-top:none}
+.gs-tick{flex:0 0 26px;height:26px;border-radius:50%;border:2px solid var(--green);color:var(--white);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:15px}
+.gs-list li.done .gs-tick{background:var(--green)}
+.gs-why{font-size:15px;color:var(--ink);margin-top:2px}
 .tap-tip{position:fixed;z-index:300;background:var(--white);color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-size:15px;line-height:1.45;box-shadow:0 4px 14px rgba(0,0,0,.12)}
 [data-tip]{cursor:pointer}
 .fp-stack{width:100%;height:auto;display:block;margin:12px 0 8px}
@@ -464,6 +470,9 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <h1>Organization Profile</h1>
           <p id="profSub">Fill this in as an organization would at signup. Matches shows what it would see; nothing here is saved anywhere but this browser.</p>
         </div>
+
+        <!-- Getting started (Nov 2 2026): four first steps, each ticked as it is done; hidden when all are, or by its button -->
+        <div class="card acct-only" id="gsCard" hidden></div>
 
         <!-- The meter and the strip (Oct 19 2026): what to add next, new matches since the last visit, what is due -->
         <div class="card acct-only" id="pfMeterCard">
@@ -1477,11 +1486,49 @@ function goToProfileItem(id) {
   const focusable = el.matches('input,select,textarea') ? el : el.querySelector('input,select,textarea');
   if (focusable) focusable.focus({preventScroll: true});
 }
+// ── getting started (Nov 2 2026) ─────────────────────────────────────────
+// Four first steps that show what FundBug does in the first session of a trial: a fuller profile, three saved funders,
+// this year's funding goal, a teammate. Each is read from what the portal already holds; done steps are ticked.
+const GS_PROFILE_PCT = 80, GS_SAVED = 3;
+function checklistSteps(st) {
+  return [
+    {key: 'profile', label: 'Finish Your Profile', done: (st.pct || 0) >= GS_PROFILE_PCT,
+     why: 'The fuller it is, the better your matches and drafts.', go: "goToProfileItem('pfMeterCard')"},
+    {key: 'save', label: `Save ${GS_SAVED} Funders To Your Tracker`, done: (st.saved || 0) >= GS_SAVED,
+     why: (st.saved ? `${st.saved} saved so far. ` : '') + 'Saved ones get deadlines and follow-ups in your digest.', go: "showPage('matches')"},
+    {key: 'goal', label: "Set This Year's Funding Goal", done: !!st.goal,
+     why: 'Your Funding Plan shows what is secured and what is left to raise.', go: 'openFundingPlan()'},
+    {key: 'team', label: 'Add A Teammate', done: (st.teammates || 0) > 0,
+     why: 'They get the digest too, and can use the Tracker.', go: "showPage('team'); loadTeam()"}];
+}
+function gsHidden() { try { return localStorage.getItem('fb_np_gs_hide_' + viewerKey()) === '1'; } catch (e) { return false; } }
+function hideChecklist() { try { localStorage.setItem('fb_np_gs_hide_' + viewerKey(), '1'); } catch (e) {} document.getElementById('gsCard').hidden = true; }
+function drawChecklist(st) {
+  const card = document.getElementById('gsCard'), steps = checklistSteps(st), left = steps.filter(x => !x.done).length;
+  if (!left || gsHidden()) { card.hidden = true; return; }
+  card.hidden = false;
+  card.innerHTML = `<h2>Getting Started</h2><p class="lead">${4 - left} of 4 done.</p><ol class="gs-list">` + steps.map(x =>
+    `<li class="${x.done ? 'done' : ''}"><span class="gs-tick" aria-hidden="true">${x.done ? '✓' : ''}</span><div>` +
+    (x.done ? `<b>${escHtml(x.label)}</b>` : `<a onclick="${x.go}"><b>${escHtml(x.label)}</b></a>`) +
+    `<div class="gs-why">${x.done ? 'Done.' : escHtml(x.why)}</div></div></li>`).join('') +
+    `</ol><button class="btn ghost sm" onclick="hideChecklist()">Hide This</button>`;
+}
+async function loadChecklist() {
+  if (MODE !== 'account' || gsHidden()) return;
+  const [plan, team, tracker] = await Promise.all([
+    apiFetch('/api/nonprofit/funding-plan').catch(() => null), apiFetch('/api/portal/seats').catch(() => null),
+    TRACKER ? Promise.resolve(TRACKER) : apiFetch('/api/nonprofit/tracker').catch(() => null)]);
+  if (!plan && !team && !tracker) return;                   // nothing could be read: no card rather than a wrong one
+  const saved = ((tracker && tracker.items) || []).filter(i => !i.seen_in_digest).length;
+  const teammates = ((team && team.members) || []).filter(m => m.role !== 'owner' && (m.status === 'active' || m.status === 'invited')).length;
+  drawChecklist({pct: PROFILE_METER ? PROFILE_METER.pct : 0, saved, goal: plan && plan.saved && plan.goal, teammates});
+}
 async function loadProfileMeter() {
   if (MODE !== 'account') return;
   try { PROFILE_METER = (await apiFetch('/api/portal/drafts/library')).passport || null; }
   catch (e) { document.getElementById('pfMeterNote').textContent = 'Could not load your profile meter: ' + e.message; return; }
   if (PROFILE_METER) renderMeter(PROFILE_METER, 'pf');
+  loadChecklist();
 }
 async function loadStripTracker() {
   if (MODE !== 'account') return;
