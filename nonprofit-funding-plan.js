@@ -64,7 +64,7 @@ function fpStack(v) {
     const ws = W * sec / s.shown, wp = W * pen / s.shown, c = FP_COLORS[s.key];
     const tip = `${s.label}: ${money(s.secured)} secured, ${money(s.pending)} pending${s.pending_unknown ? ` (and ${s.pending_unknown} with no amount asked)` : ''}, ` +
       `${money(s.planned)} planned` + (s.planned && s.secured > s.planned ? ' (more than planned)' : '');
-    out.push(`<g class="fp-band" data-key="${s.key}"><title>${escHtml(tip)}</title>`,
+    out.push(`<g class="fp-band" data-key="${s.key}" data-tip="${escHtml(tip)}"><title>${escHtml(tip)}</title>`,
       `<rect x="0" y="${ys.toFixed(1)}" width="${W}" height="${h.toFixed(1)}" fill="${c}" fill-opacity=".18"></rect>`,
       ws > 0 ? `<rect x="0" y="${ys.toFixed(1)}" width="${ws.toFixed(1)}" height="${h.toFixed(1)}" fill="${c}"></rect>` : '',
       wp > 0 ? `<rect x="${ws.toFixed(1)}" y="${ys.toFixed(1)}" width="${wp.toFixed(1)}" height="${h.toFixed(1)}" fill="url(#fpHatch-${s.key})"></rect>` : '',
@@ -105,7 +105,7 @@ function fpDraw() {
   if (FP_MSG) h.push(`<div class="fp-msg">${FP_MSG}</div>`);
   h.push(`<div class="card fp-stack-card"><h2>Your Capital Stack</h2>${fpTotalsLine(v)}${fpStack(v)}
       <div class="fp-key"><span><i class="fp-k solid"></i>Secured</span><span><i class="fp-k striped"></i>Pending</span><span><i class="fp-k light"></i>Still to raise</span><span><i class="fp-k dashed"></i>Not yet planned</span></div>
-      <p class="lead">Every figure is in the table below.${v.updated_by_name ? ` Last changed by ${escHtml(v.updated_by_name)}.` : ''}</p></div>`);
+      <p class="lead">Tap a band for its figures; every figure is also in the table below.${v.updated_by_name ? ` Last changed by ${escHtml(v.updated_by_name)}.` : ''}</p></div>`);
   const years = v.years.includes(v.fiscal_year) ? v.years : v.years.concat([v.fiscal_year]).sort();
   h.push(`<div class="card"><h2>The Plan</h2>
       <div class="row">

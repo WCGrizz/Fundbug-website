@@ -27,7 +27,7 @@ ok(svg.includes('Foundation Grants: $60K of $200K') && svg.includes('Government 
 ok(svg.includes('Individual Donors: $70K of $50K') && svg.includes('(more than planned)'), 'a source past its plan says so');
 ok(svg.includes('url(#fpHatch-government)') && !svg.includes('url(#fpHatch-foundation)"></rect>'), 'pending is striped, only where there is some');
 ok(svg.includes('Not yet planned: $130,000') && svg.includes('Goal $500,000'), 'the goal is a line and the unplanned part up to it is shown');
-const heights = [...svg.matchAll(/<g class="fp-band" data-key="(\w+)">.*?height="([\d.]+)"/gs)].map(m => [m[1], +m[2]]);
+const heights = [...svg.matchAll(/<g class="fp-band" data-key="(\w+)"[^>]*>.*?height="([\d.]+)"/gs)].map(m => [m[1], +m[2]]);
 const h = Object.fromEntries(heights);
 ok(Math.abs(h.foundation / h.government - 2) < 0.01 && Math.abs(h.individual / h.government - 0.7) < 0.01, 'band heights are in proportion to their sizes');
 ok(t.fpStack({...view, goal: null, sources: view.sources.map(s => ({...s, shown: 0})), totals: {...view.totals, shown: 0}}).includes('Set this year'), 'nothing yet: an invitation, not an empty box');

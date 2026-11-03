@@ -144,6 +144,8 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 
 /* panel */
 .scrim{position:fixed;inset:0;background:rgba(26,26,20,.45);display:none;z-index:200}
+.tap-tip{position:fixed;z-index:300;background:var(--white);color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-size:15px;line-height:1.45;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+[data-tip]{cursor:pointer}
 .fp-stack{width:100%;height:auto;display:block;margin:12px 0 8px}
 .fp-label{font:500 17px Jost,sans-serif;fill:var(--ink);paint-order:stroke;stroke:var(--white);stroke-width:4px;stroke-linejoin:round}
 .fp-label.sm{font-size:14px;stroke-width:3px}
@@ -1918,6 +1920,30 @@ const legend = (a, b) => `<div class="gp-legend"><span><i style="background:var(
 // to the 2nd latest 990 next to top funders"), as nonprofit/np_giving_profile.giving_change works it out: every paid
 // grant with an amount, wherever it went; none with fewer than two years on file or nothing given in the one before.
 // The landscape gets it from the backend (giving_change); the funder page works it out from its giving profile.
+// Tap to see (Nov 2 2026): a chart dot's, a stack band's or a Giving Change figure's details show on a tap, since a
+// phone has no hover. The box shows near the tap; the next tap anywhere, or a scroll, hides it. (It is a hint, not a
+// dialog: the rule that panels close only with their button is about panels.)
+(function () {
+  let box = null;
+  const hide = () => { if (box) { box.remove(); box = null; } };
+  document.addEventListener('click', e => {
+    const el = e.target.closest && e.target.closest('[data-tip]');
+    const was = box && box.dataset.for;
+    hide();
+    if (!el || was === el.getAttribute('data-tip')) return;
+    box = document.createElement('div');
+    box.className = 'tap-tip';
+    box.setAttribute('role', 'status');
+    box.dataset.for = el.getAttribute('data-tip');
+    box.textContent = el.getAttribute('data-tip');
+    document.body.appendChild(box);
+    const r = el.getBoundingClientRect(), w = Math.min(280, window.innerWidth - 24);
+    box.style.maxWidth = w + 'px';
+    box.style.left = Math.max(12, Math.min(window.innerWidth - w - 12, r.left + r.width / 2 - w / 2)) + 'px';
+    box.style.top = (r.top > 90 ? r.top - box.offsetHeight - 8 : r.bottom + 8) + 'px';
+  });
+  window.addEventListener('scroll', hide, {passive: true});
+})();
 function givingChangeOf(byYear) {
   const ys = Object.keys(byYear || {}).filter(y => /^\d+$/.test(y) && byYear[y] && typeof byYear[y] === 'object').map(Number).sort((a, b) => a - b);
   if (ys.length < 2) return null;
@@ -1938,7 +1964,7 @@ function givingChangeHtml(g, period) {
   if (!g) return '';
   const mark = g.pct > 0 ? '▲ ' : g.pct < 0 ? '▼ ' : '';
   const own = g.prior_year + ' to ' + g.year;
-  return `<span title="${escHtml(changeWords(g))}" style="white-space:nowrap">${mark}${Math.abs(g.pct).toLocaleString('en-US')}%</span>${own !== period ? ` <span style="white-space:nowrap">(${own})</span>` : ''}`;
+  return `<span title="${escHtml(changeWords(g))}" data-tip="${escHtml(changeWords(g))}" style="white-space:nowrap">${mark}${Math.abs(g.pct).toLocaleString('en-US')}%</span>${own !== period ? ` <span style="white-space:nowrap">(${own})</span>` : ''}`;
 }
 function givingSection(p) {
   const r = p.recent || {}, out = ['<h3 class="group-head">Its Giving</h3>'];
@@ -2053,7 +2079,8 @@ function grantScatter(r) {
     out.push(`<text x="${L}" y="${top + 2}" style="font:500 16px Jost,sans-serif;fill:var(--ink)">${escHtml(label)} (${mine.length})</text>`);
     for (const p of mine) {
       const cy = top + 14 + (bot - top - 20) * seed(p.name + p.amount);
-      out.push(`<circle cx="${x(p.amount).toFixed(1)}" cy="${cy.toFixed(1)}" r="5" style="fill:${color};fill-opacity:.8;${p.here && ring ? 'stroke:var(--ink);stroke-width:1.6' : 'stroke:var(--white);stroke-width:.8'}"><title>${escHtml(titleCase(p.name))}${p.city ? ', ' + escHtml(titleCase(p.city)) : ''}: ${money(p.amount)}</title></circle>`);
+      const tip = `${titleCase(p.name)}${p.city ? ', ' + titleCase(p.city) : ''}: ${money(p.amount)}`;
+      out.push(`<circle data-tip="${escHtml(tip)}" cx="${x(p.amount).toFixed(1)}" cy="${cy.toFixed(1)}" r="5" style="fill:${color};fill-opacity:.8;${p.here && ring ? 'stroke:var(--ink);stroke-width:1.6' : 'stroke:var(--white);stroke-width:.8'}"><title>${escHtml(titleCase(p.name))}${p.city ? ', ' + escHtml(titleCase(p.city)) : ''}: ${money(p.amount)}</title></circle>`);
     }
     if (mine.length) {
       const m = med(mine.map(p => p.amount));
@@ -2398,7 +2425,7 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 </script>
 <script src="/nonprofit-drafting.js?v=2026-10-28"></script>
 <script src="/nonprofit-landscape.js?v=2026-11-02"></script>
-<script src="/nonprofit-funding-plan.js?v=2026-10-28"></script>
+<script src="/nonprofit-funding-plan.js?v=2026-11-02"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
 </body>
 </html>
