@@ -1932,6 +1932,7 @@ async function openListing(id) {
     out.push(line('Contact', contacts.length ? [...new Set(contacts)].map(c => c.startsWith('__LINK__')
       ? `<p><a href="${escHtml(c.slice(8))}" target="_blank" rel="noopener">Its contact page</a></p>`
       : `<div class="section-text">${clampHtml(cleanSectionHtml(c, true), 4, c.length)}</div>`).join('') : ''));
+    out.push(trusteesLine(L.trustees));
     window.__SAID = seen;                                // what How To Apply said, so no section says it again
     // Its programs (Will, Oct 16 2026, on Kresge: "the funder profile should reference that they have many programs").
     if (L.programs && L.programs.length) {
@@ -2556,6 +2557,15 @@ async function acceptInvite(inviteToken) {
   return d.org_type;
 }
 
+// Its trustees (Nov 3 2026, Will: yes): for a family foundation, or one whose way in is a relationship, the people
+// whose word counts, from its Form 990-PF (np_funder_page.trustees): names and titles only.
+function trusteesLine(t) {
+  if (!t || !t.people || !t.people.length) return '';
+  const who = t.people.map(p => `<li><b>${escHtml(p.name)}</b>${p.title ? ', ' + escHtml(p.title) : ''}${p.funds_it ? ' <span class="badge">Funds It</span>' : ''}</li>`).join('');
+  const lead = t.family_run ? 'A family foundation: its trustees decide its grants.' : 'It funds through relationships: these are the people who decide.';
+  return line('Its Trustees', `<p>${lead} Does anyone on your board or staff know one of them? A word from someone they know counts most.</p><ul>${who}</ul>` +
+    `<p>From its ${t.year ? escHtml(String(t.year)) + ' ' : ''}Form 990-PF.${t.people.some(p => p.funds_it) ? ' "Funds It" marks someone its filing names as giving to it.' : ''}</p>`);
+}
 function linkQuestion(d) {
   return `This email already has its own FundBug account. Join ${d.account_name || 'this team'} with that same login?\n\n` +
     "Your own account's profile, Tracker and digests will no longer be used. FundBug keeps them, and can put them back if you ask.";
