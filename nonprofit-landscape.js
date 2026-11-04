@@ -74,7 +74,7 @@ function drawLandscape(keepFocus) {
       ${list.slice(0, LAND_SHOWN).map(f => `<tr>
         <td>${f.listing_id ? `<a onclick="openListing('${f.listing_id}')" style="cursor:pointer">${escHtml(landName(f))}</a>` : escHtml(landName(f))}
           ${f.donor_advised ? '<br><span class="badge">Gives here from donors&#39; funds: no applications</span>' : ''}
-          ${f.accepts_unsolicited === false ? '<br><span class="badge">Does not accept unsolicited applications</span>' : ''}
+          ${f.accepts_unsolicited === false || f.by_invitation ? '<br><span class="badge">Does not accept unsolicited applications</span>' : ''}
           ${f.elsewhere_note ? '<br><span class="badge">' + escHtml(f.elsewhere_note) + '</span>' : ''}</td>
         <td>${escHtml(f.based_in || '')}</td><td class="num">${money(f.shown)}</td><td class="num">${f.grants}</td>
         <td class="num">${money(f.median)}</td><td class="num">${givingChangeHtml(f.giving_change, period)}</td><td>${f.years[0]}${f.years.length > 1 ? ' to ' + f.years[f.years.length - 1] : ''}</td></tr>`).join('')}
@@ -91,7 +91,7 @@ function drawLandscape(keepFocus) {
       <div class="gp-table"><table><thead><tr><th>Funder</th><th>Based In</th><th class="num">All Their Grants</th><th class="num">Dollars, All Places</th><th class="num">Giving Change${uPeriod ? ', ' + uPeriod : ''}</th><th>Years</th></tr></thead><tbody>
       ${unplaced.map(f => `<tr>
         <td>${f.listing_id ? `<a onclick="openListing('${f.listing_id}')" style="cursor:pointer">${escHtml(landName(f))}</a>` : escHtml(landName(f))}
-          ${f.accepts_unsolicited === false ? '<br><span class="badge">Does not accept unsolicited applications</span>' : ''}</td>
+          ${f.accepts_unsolicited === false || f.by_invitation ? '<br><span class="badge">Does not accept unsolicited applications</span>' : ''}</td>
         <td>${escHtml(f.based_in || '')}</td><td class="num">${(f.grants || 0).toLocaleString()}</td><td class="num">${money(f.dollars)}</td><td class="num">${givingChangeHtml(f.giving_change, uPeriod)}</td>
         <td>${f.years && f.years.length ? f.years[0] + (f.years.length > 1 ? ' to ' + f.years[f.years.length - 1] : '') : ''}</td></tr>`).join('')}
       </tbody></table></div></div>`);
