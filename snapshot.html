@@ -167,8 +167,10 @@ function vote(btn, id, v) {
 function body(f, kind) {
   return (f.why_it_fits ? '<div class="why"><b>Why It Fits</b> ' + esc(f.why_it_fits) + '</div>' : '')
     + (f.next_step ? '<div class="next">' + esc(f.next_step) + '</div>' : '')
-    + (kind === 'funder' ? chart(f.giving_by_year) : '')
-    + (f.description ? '<details><summary>About This ' + (kind === 'funder' ? 'Funder' : 'Program') + '</summary><p class="desc">' + esc(f.description) + '</p></details>' : '');
+    + (kind === 'funder' ? chart(f.giving_by_year) : '');
+  // No description (Nov 4 2026, Will: "the barr foundation 'About this program' is a massive wall of text ... a real
+  // digest wouldnt have that wall of text, so neither should the snapshot"): the digest's card is Why It Fits and the
+  // next step (np_digest._card); the full description stays in the portal.
 }
 function card(f) {
   var pills = ['<span class="pill solid">Funder</span>'];

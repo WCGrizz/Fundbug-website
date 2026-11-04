@@ -15,7 +15,7 @@ ok(f.includes('Strong Fit') && f.includes('<b>Why It Fits</b> Farming is one of 
 ok(f.includes('Typical grant: $2,200 to $2,500 · First grants to a new organization: typically $2,500'), 'the typical first grant');
 ok(f.includes('Its giving by year, from its IRS filings') && f.includes('$1.2M') && f.includes('>2024<'), 'the giving chart');
 ok(f.includes("'save')") && f.includes("'down')") && f.includes("'up')") && f.includes('+ Save To Tracker'), 'Save To Tracker, Not A Fit and Good Match');
-ok(f.includes('<details><summary>About This Funder</summary>') && !/\.\.\.|…/.test(f), 'the whole description, never cut');
+ok(!f.includes('About This') && !f.includes('A long description'), 'no description on the card, as in the digest (Nov 4 2026: Barr\'s wall of text)');
 ok(api.chart({ 2024: 5 }) === '', 'no chart from a single year');
 // The local day ten days out (a UTC one is a day later after 8 pm Eastern, and the test failed every evening).
 const soon = new Date(); soon.setDate(soon.getDate() + 10);
