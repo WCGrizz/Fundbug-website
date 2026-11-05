@@ -44,48 +44,39 @@ function fpParse(v) {
 }
 
 // ── the stack ───────────────────────────────────────────────────────────
-// One rectangle for the year: each source a band as tall as its planned amount (never shorter than what is already in
-// it), filled from the left with what is secured (solid), then pending (striped), the rest still to raise (light).
-// Above the bands, up to the goal, what is not yet planned (dashed). The goal is a line across.
+// Nov 5 2026, Will picked "B over A" from three options: one bar to the goal on top (each source's secured money in
+// its color, then pending striped, then what is left, and what the plan does not cover yet dashed), and under it a
+// bar for each source (secured of planned), its name and figures beside it, never text on color. The tower it
+// replaced put labels over the colors and crowded the small sources ("That capital stack doesnt look good").
 function fpStack(v) {
-  // A narrow tower beside its key (Nov 5 2026, Will: "i dont think the box should be that big, it looks odd ... not
-  // just shorter, but thinner as well"): 360 wide on every screen, so its labels stay readable, and 320 tall; a plan
-  // with nothing in it yet is a slim bar, not a page of dashes.
-  const goal = v.goal || 0, max = Math.max(goal, v.totals.shown, 1);
-  const bands = v.sources.filter(s => s.shown > 0);
-  const W = 360, H = bands.length ? 320 : 130, top = 30, inner = H - top - 6;
+  const goal = v.goal || 0, bands = v.sources.filter(s => s.shown > 0);
   if (!bands.length && !goal) return `<div class="fp-empty">Set this year's goal and plan your sources below, and your capital stack appears here.</div>`;
-  const out = [`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Your capital stack for FY${v.fiscal_year}" class="fp-stack">`, '<defs>'];
-  for (const s of bands) out.push(`<pattern id="fpHatch-${s.key}" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="${FP_COLORS[s.key]}" fill-opacity=".25"></rect><rect width="5" height="10" fill="${FP_COLORS[s.key]}" fill-opacity=".85"></rect></pattern>`);
-  out.push('</defs>');
-  out.push(`<rect x="0.5" y="${top}" width="${W - 1}" height="${inner}" style="fill:var(--white);stroke:var(--border)"></rect>`);
-  let y = H - 6;
+  const max = Math.max(goal, v.totals.shown, 1), pct = n => (100 * n / max).toFixed(2) + '%';
+  const tipOf = s => `${s.label}: ${money(s.secured)} secured, ${money(s.pending)} pending${s.pending_unknown ? ` (and ${s.pending_unknown} with no amount asked)` : ''}, ` +
+    `${money(s.planned)} planned` + (s.planned && s.secured > s.planned ? ' (more than planned)' : '');
+  const segs = [];
   for (const s of bands) {
-    const h = s.shown / max * inner, ys = y - h, sec = Math.min(s.secured, s.shown), pen = Math.min(s.pending, s.shown - sec);
-    const ws = W * sec / s.shown, wp = W * pen / s.shown, c = FP_COLORS[s.key];
-    const tip = `${s.label}: ${money(s.secured)} secured, ${money(s.pending)} pending${s.pending_unknown ? ` (and ${s.pending_unknown} with no amount asked)` : ''}, ` +
-      `${money(s.planned)} planned` + (s.planned && s.secured > s.planned ? ' (more than planned)' : '');
-    out.push(`<g class="fp-band" data-key="${s.key}" data-tip="${escHtml(tip)}"><title>${escHtml(tip)}</title>`,
-      `<rect x="0" y="${ys.toFixed(1)}" width="${W}" height="${h.toFixed(1)}" fill="${c}" fill-opacity=".18"></rect>`,
-      ws > 0 ? `<rect x="0" y="${ys.toFixed(1)}" width="${ws.toFixed(1)}" height="${h.toFixed(1)}" fill="${c}"></rect>` : '',
-      wp > 0 ? `<rect x="${ws.toFixed(1)}" y="${ys.toFixed(1)}" width="${wp.toFixed(1)}" height="${h.toFixed(1)}" fill="url(#fpHatch-${s.key})"></rect>` : '',
-      `<line x1="0" x2="${W}" y1="${ys.toFixed(1)}" y2="${ys.toFixed(1)}" style="stroke:var(--white);stroke-width:2"></line>`);
-    // A thin band gets a smaller label; one too thin for any keeps its figures in its hover and the table below.
-    if (h >= 18) out.push(`<text x="14" y="${(ys + h / 2 + (h >= 30 ? 6 : 5)).toFixed(1)}" class="fp-label${h >= 30 ? '' : ' sm'}">${escHtml(s.label)}: ${escHtml(shortMoney(s.secured))} of ${escHtml(shortMoney(s.planned || s.shown))}</text>`);
-    out.push('</g>');
-    y = ys;
+    const sec = Math.min(s.secured, s.shown);
+    if (sec > 0) segs.push(`<i class="fp-seg" style="width:${pct(sec)};background:${FP_COLORS[s.key]}" data-tip="${escHtml(tipOf(s))}"></i>`);
   }
-  if (goal > v.totals.shown) {
-    const h = (goal - v.totals.shown) / max * inner;
-    out.push(`<rect x="2" y="${(y - h + 2).toFixed(1)}" width="${W - 4}" height="${Math.max(0, h - 4).toFixed(1)}" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:8 6"></rect>`);
-    if (h >= 30) out.push(`<text x="${W / 2}" y="${(y - h / 2 + 6).toFixed(1)}" text-anchor="middle" class="fp-label">Not yet planned: ${escHtml(money(goal - v.totals.shown))}</text>`);
+  for (const s of bands) {
+    const pen = Math.min(s.pending, s.shown - Math.min(s.secured, s.shown));
+    if (pen > 0) segs.push(`<i class="fp-seg fp-pending" style="width:${pct(pen)};--c:${FP_COLORS[s.key]}" data-tip="${escHtml(tipOf(s))}"></i>`);
   }
-  if (goal) {
-    const gy = H - 6 - goal / max * inner;
-    out.push(`<line x1="0" x2="${W}" y1="${gy.toFixed(1)}" y2="${gy.toFixed(1)}" style="stroke:var(--ink);stroke-width:3;stroke-dasharray:14 6"></line>`,
-      `<text x="${W - 6}" y="${(gy - 8).toFixed(1)}" text-anchor="end" class="fp-label">Goal ${escHtml(money(goal))}</text>`);
+  const unplanned = goal > v.totals.shown ? goal - v.totals.shown : 0;
+  const out = [`<div class="fp-stack" role="img" aria-label="Your capital stack for FY${v.fiscal_year}: ${escHtml(money(v.totals.secured))} secured of ${escHtml(money(goal || v.totals.shown))}">`,
+    `<div class="fp-top"><span>${escHtml(money(v.totals.secured))} secured${v.totals.pending ? `, ${escHtml(money(v.totals.pending))} pending` : ''}</span>${goal ? `<span>Goal ${escHtml(money(goal))}</span>` : ''}</div>`,
+    `<div class="fp-bar">${segs.join('')}${unplanned ? `<i class="fp-seg fp-unplanned" style="margin-left:auto;width:${pct(unplanned)}" data-tip="Not yet planned: ${escHtml(money(unplanned))}"></i>` : ''}</div>`];
+  if (unplanned) out.push(`<p class="fp-note">Not yet planned: ${escHtml(money(unplanned))} of your goal. Plan it under The Plan below.</p>`);
+  out.push('<div class="fp-rows">');
+  for (const s of bands) {
+    const base = Math.max(s.planned, s.shown, 1), sec = Math.min(s.secured, base), pen = Math.min(s.pending, base - sec), c = FP_COLORS[s.key];
+    out.push(`<div class="fp-band" data-key="${s.key}" data-tip="${escHtml(tipOf(s))}">`,
+      `<span class="fp-name"><i class="fp-dot" style="background:${c}"></i>${escHtml(s.label)}</span>`,
+      `<span class="fp-rowbar"><i style="width:${(100 * sec / base).toFixed(1)}%;background:${c}"></i>${pen > 0 ? `<i class="fp-pending" style="width:${(100 * pen / base).toFixed(1)}%;--c:${c}"></i>` : ''}</span>`,
+      `<span class="fp-fig">${escHtml(shortMoney(s.secured))} of ${escHtml(shortMoney(s.planned || s.shown))}${s.pending ? ` <small>+${escHtml(shortMoney(s.pending))} pending</small>` : ''}${s.planned && s.secured > s.planned ? ' <small>(more than planned)</small>' : ''}</span></div>`);
   }
-  out.push('</svg>');
+  out.push('</div></div>');
   return out.join('');
 }
 function fpTotalsLine(v) {
@@ -120,8 +111,8 @@ function fpDraw() {
   if (FP_MSG) h.push(`<div class="fp-msg">${FP_MSG}</div>`);
   h.push(fpGuide(v));
   h.push(`<div class="card fp-stack-card"><h2>Your Capital Stack</h2>${fpTotalsLine(v)}
-      <div class="fp-stack-row">${fpStack(v)}
-      <div class="fp-key"><span><i class="fp-k solid"></i>Secured</span><span><i class="fp-k striped"></i>Pending</span><span><i class="fp-k light"></i>Still to raise</span><span><i class="fp-k dashed"></i>Not yet planned</span></div></div>
+      ${fpStack(v)}
+      <div class="fp-key"><span><i class="fp-k solid"></i>Secured</span><span><i class="fp-k striped"></i>Pending</span><span><i class="fp-k light"></i>Still to raise</span><span><i class="fp-k dashed"></i>Not yet planned</span></div>
       <p class="lead">Tap a band for its figures; every figure is also in the table below.${v.updated_by_name ? ` Last changed by ${escHtml(v.updated_by_name)}.` : ''}</p></div>`);
   const years = v.years.includes(v.fiscal_year) ? v.years : v.years.concat([v.fiscal_year]).sort();
   h.push(`<div class="card"><h2>The Plan</h2>

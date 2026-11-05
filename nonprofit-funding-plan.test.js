@@ -20,16 +20,16 @@ const view = {fiscal_year: 2027, end_month: 6, goal: 500000, sources: [src('earn
   src('foundation', 'Foundation Grants', 200000, 60000, 0), src('individual', 'Individual Donors', 50000, 70000, 0)],
   totals: {planned: 350000, secured: 155000, pending: 30000, shown: 370000, to_raise: 345000}};
 
-// The stack
+// The stack (Nov 5 2026: one bar to the goal over a row per source, Will's "B over A")
 const svg = t.fpStack(view);
-ok((svg.match(/class="fp-band"/g) || []).length === 3, 'one band per source with anything in it (none for an empty one)');
-ok(svg.includes('Foundation Grants: $60K of $200K') && svg.includes('Government Grants: $25K of $100K'), 'each band says what is secured of what is planned');
-ok(svg.includes('Individual Donors: $70K of $50K') && svg.includes('(more than planned)'), 'a source past its plan says so');
-ok(svg.includes('url(#fpHatch-government)') && !svg.includes('url(#fpHatch-foundation)"></rect>'), 'pending is striped, only where there is some');
-ok(svg.includes('Not yet planned: $130,000') && svg.includes('Goal $500,000'), 'the goal is a line and the unplanned part up to it is shown');
-const heights = [...svg.matchAll(/<g class="fp-band" data-key="(\w+)"[^>]*>.*?height="([\d.]+)"/gs)].map(m => [m[1], +m[2]]);
-const h = Object.fromEntries(heights);
-ok(Math.abs(h.foundation / h.government - 2) < 0.01 && Math.abs(h.individual / h.government - 0.7) < 0.01, 'band heights are in proportion to their sizes');
+ok((svg.match(/class="fp-band"/g) || []).length === 3, 'one row per source with anything in it (none for an empty one)');
+ok(/Foundation Grants<\/span>.*?\$60K of \$200K/s.test(svg) && /Government Grants<\/span>.*?\$25K of \$100K/s.test(svg), 'each row says what is secured of what is planned');
+ok(/\$70K of \$50K.*?\(more than planned\)/s.test(svg), 'a source past its plan says so');
+ok(/fp-band" data-key="government".*?fp-pending/s.test(svg) && !/fp-band" data-key="foundation"[^]*?fp-pending[^]*?data-key="individual"/s.test(svg), 'pending is striped, only where there is some');
+ok(svg.includes('Not yet planned: $130,000') && svg.includes('Goal $500,000'), 'the goal heads the bar and the unplanned part up to it is shown');
+const widths = Object.fromEntries([...svg.matchAll(/<i class="fp-seg" style="width:([\d.]+)%;background:([^"]+)"/g)].map(m => [m[2], +m[1]]));
+ok(Math.abs(widths['#3d7a38'] - 12) < 0.01 && Math.abs(widths['#2f5d7c'] - 5) < 0.01, 'the goal bar shows each source\'s secured money in proportion to the goal');
+ok(!svg.includes('<svg') && !svg.includes('fp-label'), 'no text drawn over the colors');
 ok(t.fpStack({...view, goal: null, sources: view.sources.map(s => ({...s, shown: 0})), totals: {...view.totals, shown: 0}}).includes('Set this year'), 'nothing yet: an invitation, not an empty box');
 ok(!t.fpStack({...view, goal: 100000}).includes('Not yet planned'), 'planned past the goal: no unplanned part');
 ok(t.fpStack({...view, sources: [src('other', '<b>x</b>', 10, 0, 0)], totals: {...view.totals, shown: 10}}).includes('&lt;b&gt;'), 'labels are escaped');
@@ -75,13 +75,6 @@ ok(/FP_MATCH_SOURCES\[s\.key\] && s\.planned > s\.secured \? `<br><a onclick="fp
 ok(/\(!src \|\| m\.source === src\)/.test(html) && /id="mSource"/.test(html), 'Matches filters by source');
 ok(/data-page="plan" class="acct-only" onclick="openFundingPlan\(\)">Funding Plan</.test(html) && /id="page-plan"[\s\S]*?id="fpBody"/.test(html), 'the portal has the page, for accounts only');
 ok(/nonprofit-funding-plan\.js\?v=\d{4}-\d{2}-\d{2}/.test(html), 'the portal loads the script with a version tag');
-// Nov 5 2026, Will: "i dont think the box should be that big ... not just shorter, but thinner as well".
-{
-  const tall = t.fpStack(view), slim = t.fpStack({...view, sources: view.sources.map(s => ({...s, shown: 0})), totals: {...view.totals, shown: 0}});
-  const box = svgText => (svgText.match(/viewBox="0 0 (\d+) (\d+)"/) || []).slice(1).map(Number);
-  ok(box(tall)[0] === 360 && box(tall)[1] <= 320, 'the stack is a narrow tower, 360 by at most 320');
-  ok(box(slim)[1] <= 140, 'a goal with nothing planned is a slim bar');
-}
 // Nov 5 2026, Will: "add a bit more instruction on how to use the funding plan tab".
 {
   vm.runInContext(js.match(/function fpGuide\([\s\S]*?\n\}/)[0] + ';globalThis.__g = fpGuide;', ctx);

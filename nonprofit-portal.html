@@ -157,13 +157,22 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 .gs-why{font-size:15px;color:var(--ink);margin-top:2px}
 .tap-tip{position:fixed;z-index:300;background:var(--white);color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-size:15px;line-height:1.45;box-shadow:0 4px 14px rgba(0,0,0,.12)}
 [data-tip]{cursor:pointer}
-.fp-stack{width:100%;max-width:360px;height:auto;display:block;margin:12px 0 8px;flex:0 0 auto}
-.fp-stack-row{display:flex;align-items:center;gap:32px}
-.fp-guide summary{font-family:'Fraunces',serif;font-size:19px;font-weight:600;color:var(--ink);cursor:pointer}
-.fp-guide ol{margin:12px 0 8px 22px;font-size:16px;color:var(--ink);line-height:1.55}
-.fp-guide li{margin-bottom:8px}
-.fp-stack-row .fp-key{flex-direction:column;gap:12px}
-@media (max-width:640px){.fp-stack-row{flex-direction:column;align-items:stretch;gap:4px}.fp-stack{max-width:none}.fp-stack-row .fp-key{flex-direction:row}}
+.fp-stack{margin:14px 0 10px}
+.fp-top{display:flex;justify-content:space-between;gap:12px;font-size:15px;color:var(--ink);margin-bottom:6px}
+.fp-bar{display:flex;height:34px;border-radius:8px;overflow:hidden;background:rgba(61,122,56,.14)}
+.fp-seg{display:block;height:100%;border-right:2px solid var(--white)}
+.fp-pending{background:repeating-linear-gradient(45deg,var(--c) 0 4px,rgba(255,255,255,.65) 4px 8px)}
+.fp-unplanned{background:none;border:2px dashed var(--muted);border-radius:0 8px 8px 0;box-sizing:border-box}
+.fp-note{font-size:15px;color:var(--ink);margin:6px 0 0}
+.fp-rows{margin-top:16px}
+.fp-band{display:grid;grid-template-columns:190px minmax(0,1fr) 170px;gap:14px;align-items:center;padding:6px 0;font-size:15px;color:var(--ink)}
+.fp-name{display:flex;align-items:center;gap:8px}
+.fp-dot{display:inline-block;width:12px;height:12px;border-radius:50%;flex:0 0 auto}
+.fp-rowbar{display:flex;height:16px;border-radius:8px;overflow:hidden;background:rgba(61,122,56,.14)}
+.fp-rowbar i{display:block;height:100%}
+.fp-fig{text-align:right;font-variant-numeric:tabular-nums}
+.fp-fig small{font-size:14px}
+@media (max-width:640px){.fp-band{grid-template-columns:minmax(0,1fr) auto;row-gap:4px}.fp-rowbar{grid-column:1 / -1;grid-row:2}}
 .fp-label{font:500 17px Jost,sans-serif;fill:var(--ink);paint-order:stroke;stroke:var(--white);stroke-width:4px;stroke-linejoin:round}
 .fp-label.sm{font-size:14px;stroke-width:3px}
 select.fp-sel{width:auto;min-width:210px;margin:0;min-height:40px;padding:8px 34px 8px 10px}
@@ -2607,7 +2616,7 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 </script>
 <script src="/nonprofit-drafting.js?v=2026-10-28"></script>
 <script src="/nonprofit-landscape.js?v=2026-11-02"></script>
-<script src="/nonprofit-funding-plan.js?v=2026-11-05b"></script>
+<script src="/nonprofit-funding-plan.js?v=2026-11-05c"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
 </body>
 </html>
