@@ -2198,7 +2198,9 @@ function grantScatter(r) {
   // A ring marks a grant in your county, unless most of its grants are (a ring on nearly every dot says nothing).
   const nHere = pts.filter(p => p.here).length, ring = nHere > 0 && nHere <= pts.length * 0.6;
   const seed = s => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return (h % 1000) / 1000; };
-  const med = v => { const s = v.slice().sort((p, q) => p - q); return s.length ? s[Math.floor(s.length / 2)] : 0; };
+  // The median as the funder page's tiles give it (Python statistics.median): an even count averages the two middle
+  // grants (Nov 5 2026: the scatter took the upper one, so it could differ from the tile).
+  const med = v => { const s = v.slice().sort((p, q) => p - q), m = Math.floor(s.length / 2); return !s.length ? 0 : s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2); };
   const out = [`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Its latest grants by size" style="width:100%;height:auto;display:block">`];
   const ticks = [100, 1000, 5000, 10000, 25000, 50000, 100000, 250000, 1e6, 5e6, 1e7].filter(t => t >= lo * 0.8 && t <= hi * 1.25);
   const axisY = H - 22;

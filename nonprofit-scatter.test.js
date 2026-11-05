@@ -22,7 +22,8 @@ const pts = [
 const a = ctx.grantScatter({year: 2024, known: true, total: 5, points: pts});
 ok(dots(a, '--green-lt') === 2 && dots(a, '--green-dk') === 3, 'first-time grantees light green, repeat grantees dark green');
 ok(a.includes('First-time grantees (2)') && a.includes('Repeat grantees (3)'), 'each group labelled with its count');
-ok(a.includes('$3,750 for first-time grantees') === false && a.includes('$5,000 for first-time grantees') && a.includes('$20,000 for repeat grantees'),
+// Nov 5 2026: an even count averages the two middle grants, as the funder page's tiles do ($2,500 and $5,000 -> $3,750).
+ok(a.includes('$3,750 for first-time grantees') && !a.includes('$5,000 for first-time grantees') && a.includes('$20,000 for repeat grantees'),
    'each group\'s typical grant is its median');
 ok(a.includes('<title>New Arts Group, Pittsfield: $5,000</title>'), 'hovering a dot names the organization, its town and the amount');
 ok((a.match(/stroke:var\(--ink\);stroke-width:1.6/g) || []).length === 1 && a.includes('A dot ringed in black (1)'), 'a grant in your county is ringed');
