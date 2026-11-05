@@ -68,7 +68,7 @@ ctx.setFP({awards: [{tracking_id: 'a', source: 'foundation', default_source: 'fo
 ctx.fpSaveAward('a', {source: 'corporate'});
 ctx.fpSaveAward('a', {share: '$20,000'});
 ctx.fpSaveAward('a', {source: 'foundation'});
-eq(ctx.sent, [{awards: {a: {source: 'corporate', share: null, left_out: false}}}, {awards: {a: {source: null, share: 20000, left_out: false}}}, {awards: {a: null}}],
+eq(ctx.sent, [{awards: {a: {source: 'corporate', share: null, left_out: false, restricted: false}}}, {awards: {a: {source: null, share: 20000, left_out: false, restricted: false}}}, {awards: {a: null}}],
    'a choice is sent as a change; back to the defaults clears it');
 
 ok(/FP_MATCH_SOURCES\[s\.key\] && s\.planned > s\.secured \? `<br><a onclick="fpFindMatches\('\$\{s\.key\}'\)">/.test(js) && /foundation: 'Find Foundation Matches'/.test(js), 'a source with money still to raise links to its matches');
@@ -82,5 +82,17 @@ ok(/nonprofit-funding-plan\.js\?v=\d{4}-\d{2}-\d{2}/.test(html), 'the portal loa
   ok(g && /<details class="card fp-guide" open>/.test(g({totals: {planned: 0, secured: 0, pending: 0}})), 'an empty plan opens How This Page Works');
   ok(g && !/ open>/.test(g({totals: {planned: 1000, secured: 0, pending: 0}})), 'a plan with figures folds it');
   ok(g && /marked? Awarded|mark Awarded/.test(g({totals: {}})) && /donor list/.test(g({totals: {}})), 'it says what counts by itself');
+}
+// Nov 5 2026: restricted money, and funders that could close the gap.
+{
+  ctx.sent.length = 0;
+  ctx.setFP({awards: [{tracking_id: 'a', source: 'foundation', default_source: 'foundation', share: null, left_out: false, restricted: false}], pending: [], other_year_awards: []});
+  ctx.fpSaveAward('a', {restricted: true});
+  eq(ctx.sent, [{awards: {a: {source: null, share: null, left_out: false, restricted: true}}}], 'ticking Restricted sends it and keeps the award');
+  vm.runInContext(js.match(/function fpGapCard\([\s\S]*?\n\}/)[0] + ';globalThis.__gap = fpGapCard;', ctx);
+  const card = ctx.__gap({gaps: [{key: 'foundation', label: 'Foundation Grants', gap: 105000, picks: [{id: 'g1', title: '<i>Fund</i>', typical_min: 10000, typical_max: 50000, deadline: 'Rolling'}]}]});
+  ok(card.includes('$105,000 still to find') && card.includes('&lt;i&gt;Fund&lt;/i&gt;') && card.includes('Typical grant $10K to $50K'), 'the gap card names the gap and each pick, escaped, with its typical grant');
+  ok(ctx.__gap({gaps: []}).includes('fully planned'), 'no gap: says so');
+  ok(/total.?restricted|restricted/.test(t.fpTotalsLine({...view, totals: {...view.totals, restricted: 5000, unrestricted: 150000}})), 'the secured tile says how much is restricted');
 }
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

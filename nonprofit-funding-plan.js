@@ -6,7 +6,7 @@
 // sends changes. nonprofit-portal.html loads this after its own script and supplies apiFetch, escHtml, money,
 // shortMoney, showPage, openListing, MONTH_NAMES and the side panel.
 
-let FP = null, FP_DONORS = null, FP_MSG = '', FP_DQ = '', FP_IMPORT = null;
+let FP = null, FP_DONORS = null, FP_MSG = '', FP_DQ = '', FP_IMPORT = null, FP_GAP = null;
 const FP_COLORS = {earned: '#7ab870', government: '#2f5d7c', foundation: '#3d7a38', corporate: '#7a5c99',
                    individual: '#a8643a', events: '#b8901c', other: '#8a8577'};
 
@@ -25,7 +25,35 @@ async function fpLoad(year) {
     box.innerHTML = `<div class="empty">${escHtml(e.status === 503 ? e.message : 'Could not load your Funding Plan: ' + e.message)}</div>`;
     return;
   }
+  FP_GAP = null;
   fpDraw();
+  fpLoadGap();
+}
+// Funders that could close the gap (Nov 5 2026): loaded after the plan, so the page never waits on the matcher.
+async function fpLoadGap() {
+  const fy = FP && FP.fiscal_year;
+  try { FP_GAP = await apiFetch('/api/nonprofit/funding-plan/' + fy + '/gap-matches'); }
+  catch (e) { FP_GAP = {error: e.message, gaps: []}; }
+  if (FP && FP.fiscal_year === fy) { const el = document.getElementById('fpGap'); if (el) el.innerHTML = fpGapCard(FP_GAP); }
+}
+function fpGapCard(g) {
+  if (!g) return '<p class="lead">Looking through your matches for funders that fit what is left to raise…</p>';
+  if (g.error) return `<p class="lead">Your matches could not be read just now (${escHtml(g.error)}).</p>`;
+  if (!g.gaps.length) return '<p class="lead">Your foundation, government and corporate sources are fully planned for: nothing left to fill from your matches.</p>';
+  return g.gaps.map(x => `<h3 class="fp-h3"><i class="fp-dot" style="background:${FP_COLORS[x.key]}"></i>${escHtml(x.label)}: ${escHtml(money(x.gap))} still to find</h3>
+    ${x.picks.length ? `<div class="fp-picks">${x.picks.map(c => `<div class="fp-pick"><div><a onclick="openListing('${c.id}')">${escHtml(c.title)}</a>
+        <span>${escHtml([c.typical_min || c.typical_max ? 'Typical grant ' + [c.typical_min, c.typical_max].filter(Boolean).map(shortMoney).join(' to ') : c.amount, c.deadline].filter(Boolean).join(' · '))}</span></div>
+        <button class="btn ghost sm" ${c.saved ? 'disabled' : ''} onclick="fpSaveGap('${c.id}', this)">${c.saved ? 'Saved ✓' : 'Save To Tracker'}</button></div>`).join('')}</div>
+      ${FP_MATCH_SOURCES[x.key] ? `<p><a onclick="fpFindMatches('${x.key}')">See all ${escHtml(x.label.toLowerCase())} in your matches</a></p>` : ''}`
+    : `<p class="lead">None of your current matches fits this gap; <a onclick="fpFindMatches('${x.key}')">see all ${escHtml(x.label.toLowerCase())} in your matches</a>.</p>`}`).join('');
+}
+async function fpSaveGap(id, btn) {
+  try {
+    await apiFetch('/api/nonprofit/tracker', 'POST', {group_id: id});
+    (FP_GAP.gaps || []).forEach(x => x.picks.forEach(c => { if (c.id === id) c.saved = true; }));
+    if (btn) { btn.textContent = 'Saved ✓'; btn.disabled = true; }
+    if (typeof TRACKER !== 'undefined') TRACKER = null;
+  } catch (e) { if (btn) btn.textContent = 'Could not save'; }
 }
 
 // ── figures in words ────────────────────────────────────────────────────
@@ -74,7 +102,7 @@ function fpStack(v) {
     out.push(`<div class="fp-band" data-key="${s.key}" data-tip="${escHtml(tipOf(s))}">`,
       `<span class="fp-name"><i class="fp-dot" style="background:${c}"></i>${escHtml(s.label)}</span>`,
       `<span class="fp-rowbar"><i style="width:${(100 * sec / base).toFixed(1)}%;background:${c}"></i>${pen > 0 ? `<i class="fp-pending" style="width:${(100 * pen / base).toFixed(1)}%;--c:${c}"></i>` : ''}</span>`,
-      `<span class="fp-fig">${escHtml(shortMoney(s.secured))} of ${escHtml(shortMoney(s.planned || s.shown))}${s.pending ? ` <small>+${escHtml(shortMoney(s.pending))} pending</small>` : ''}${s.planned && s.secured > s.planned ? ' <small>(more than planned)</small>' : ''}</span></div>`);
+      `<span class="fp-fig">${escHtml(shortMoney(s.secured))} of ${escHtml(shortMoney(s.planned || s.shown))}${s.pending ? ` <small>+${escHtml(shortMoney(s.pending))} pending</small>` : ''}${s.restricted ? ` <small>${escHtml(shortMoney(s.restricted))} restricted</small>` : ''}${s.planned && s.secured > s.planned ? ' <small>(more than planned)</small>' : ''}</span></div>`);
   }
   out.push('</div></div>');
   return out.join('');
@@ -84,7 +112,7 @@ function fpTotalsLine(v) {
   const pct = g ? Math.round(100 * t.secured / g) : null;
   return `<div class="gp-tiles">
       <div class="gp-tile"><b>${g ? money(g) : 'Not set'}</b><span>goal for FY${v.fiscal_year}</span></div>
-      <div class="gp-tile"><b>${money(t.secured)}</b><span>secured${pct != null ? ` (${pct}%)` : ''}</span></div>
+      <div class="gp-tile"><b>${money(t.secured)}</b><span>secured${pct != null ? ` (${pct}%)` : ''}</span>${t.restricted ? `<span>${money(t.unrestricted)} unrestricted, ${money(t.restricted)} restricted</span>` : ''}</div>
       <div class="gp-tile"><b>${money(t.pending)}</b><span>pending</span></div>
       <div class="gp-tile"><b>${g ? money(t.to_raise) : '—'}</b><span>still to raise</span></div>
     </div>`;
@@ -114,6 +142,7 @@ function fpDraw() {
       ${fpStack(v)}
       <div class="fp-key"><span><i class="fp-k solid"></i>Secured</span><span><i class="fp-k striped"></i>Pending</span><span><i class="fp-k light"></i>Still to raise</span><span><i class="fp-k dashed"></i>Not yet planned</span></div>
       <p class="lead">Tap a band for its figures; every figure is also in the table below.${v.updated_by_name ? ` Last changed by ${escHtml(v.updated_by_name)}.` : ''}</p></div>`);
+  h.push(`<div class="card"><h2>Funders That Could Close The Gap</h2><p class="lead">From your own matches: funders and programs open to you whose typical grant fits what each source still needs.</p><div id="fpGap">${fpGapCard(FP_GAP)}</div></div>`);
   const years = v.years.includes(v.fiscal_year) ? v.years : v.years.concat([v.fiscal_year]).sort();
   h.push(`<div class="card"><h2>The Plan</h2>
       <div class="row">
@@ -121,16 +150,17 @@ function fpDraw() {
         <div><label for="fpGoal">Goal For The Year</label><input id="fpGoal" inputmode="numeric" value="${v.goal != null ? money(v.goal) : ''}" placeholder="$" onchange="fpSaveGoal(this.value)"></div>
       </div>
       <p class="lead">Your fiscal year ends in ${MONTH_NAMES[v.end_month - 1]}; change it under Fiscal Year Ends in your <a onclick="showPage('profile')">Organization Profile</a>.${v.goal_from === 'budget' ? ' The goal is your profile\'s annual budget until you set one here.' : ''}</p>
-      <div class="gp-table"><table class="fp-sources"><thead><tr><th>Source</th><th class="num">Planned</th><th class="num">Secured, Entered By You</th><th class="num">From Your Tracker And Donors</th><th class="num">Pending</th><th class="num">Still To Raise</th></tr></thead><tbody>
+      <div class="gp-table"><table class="fp-sources"><thead><tr><th>Source</th><th class="num">Planned</th><th class="num">Secured, Entered By You</th><th class="num">Of It Restricted</th><th class="num">From Your Tracker And Donors</th><th class="num">Pending</th><th class="num">Still To Raise</th></tr></thead><tbody>
       ${v.sources.map(s => `<tr>
         <td><i class="fp-sw" style="background:${FP_COLORS[s.key]}"></i>${escHtml(s.label)}</td>
         <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} planned" value="${s.planned ? money(s.planned) : ''}" onchange="fpSaveSource('${s.key}', 'planned', this.value)"></td>
         <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} secured, entered by you" value="${s.secured_other ? money(s.secured_other) : ''}" onchange="fpSaveSource('${s.key}', 'secured', this.value)"></td>
+        <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} restricted, of what you entered" value="${s.restricted_entered ? money(s.restricted_entered) : ''}" placeholder="${s.secured_other ? '$0' : ''}" onchange="fpSaveSource('${s.key}', 'restricted', this.value)"></td>
         <td class="num">${s.key === 'individual' ? money(s.secured_donors) : s.from_tracker ? money(s.secured_tracker) : ''}</td>
         <td class="num">${money(s.pending)}${s.pending_unknown ? `<br>and ${s.pending_unknown} with no amount` : ''}</td>
         <td class="num">${money(Math.max(0, s.planned - s.secured))}${FP_MATCH_SOURCES[s.key] && s.planned > s.secured ? `<br><a onclick="fpFindMatches('${s.key}')">${FP_MATCH_SOURCES[s.key]}</a>` : ''}</td></tr>`).join('')}
       </tbody></table></div>
-      <p class="lead">Foundation, government and corporate awards come from your Tracker: mark one Awarded with its amount. Individual donors come from your donor list below. Enter anything else you have secured yourself.</p>
+      <p class="lead">Foundation, government and corporate awards come from your Tracker: mark one Awarded with its amount. Individual donors come from your donor list below. Enter anything else you have secured yourself, and under Of It Restricted how much of that a funder or donor tied to a purpose.</p>
     </div>`);
   h.push(fpAwardsCard(v));
   h.push(fpDonorsCard());
@@ -148,12 +178,13 @@ function fpAwardsCard(v) {
     return h.join('');
   }
   if (v.awards.length) {
-    h.push(`<h3 class="fp-h3">Awarded</h3><div class="gp-table"><table><thead><tr><th>Funder Or Program</th><th class="num">Awarded</th><th>Decided</th><th>Counts Toward</th><th class="num">This Year's Share</th><th>Leave Out</th></tr></thead><tbody>
+    h.push(`<h3 class="fp-h3">Awarded</h3><div class="gp-table"><table><thead><tr><th>Funder Or Program</th><th class="num">Awarded</th><th>Decided</th><th>Counts Toward</th><th class="num">This Year's Share</th><th>Restricted</th><th>Leave Out</th></tr></thead><tbody>
       ${v.awards.map(a => `<tr><td>${fpTitle(a)}</td><td class="num">${money(a.amount)}</td><td>${a.no_date ? 'No date in your Tracker: counted this year' : escHtml(fpDay(a.decided_on))}${a.other_year ? ' (another year)' : ''}</td>
         <td>${fpSourceSelect(a.tracking_id, a.source)}</td>
         <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="This year's share" value="${a.share != null ? money(a.share) : ''}" placeholder="${escHtml(money(a.amount))}" onchange="fpSaveAward('${a.tracking_id}', {share: this.value})"></td>
+        <td><input type="checkbox" aria-label="Restricted to a purpose" ${a.restricted ? 'checked' : ''} onchange="fpSaveAward('${a.tracking_id}', {restricted: this.checked})"></td>
         <td><input type="checkbox" aria-label="Leave out" ${a.left_out ? 'checked' : ''} onchange="fpSaveAward('${a.tracking_id}', {left_out: this.checked})"></td></tr>`).join('')}
-      </tbody></table></div><p class="lead">A multi-year award: enter this year's share, and add it to each later year's plan below.</p>`);
+      </tbody></table></div><p class="lead">A multi-year award: enter this year's share, and add it to each later year's plan below. Tick Restricted when the funder tied the money to a project or purpose.</p>`);
   }
   if (v.pending.length) {
     h.push(`<h3 class="fp-h3">Submitted, Waiting To Hear</h3><div class="gp-table"><table><thead><tr><th>Funder Or Program</th><th class="num">Asked</th><th>Counts Toward</th><th>Leave Out</th></tr></thead><tbody>
@@ -200,10 +231,11 @@ function fpSaveSource(key, field, raw) {
 }
 function fpSaveAward(tid, change) {
   const cur = [...FP.awards, ...FP.pending, ...FP.other_year_awards].find(a => a.tracking_id === tid) || {};
-  const next = {source: cur.source !== cur.default_source ? cur.source : null, share: cur.share != null ? cur.share : null, left_out: !!cur.left_out, ...change};
+  const next = {source: cur.source !== cur.default_source ? cur.source : null, share: cur.share != null ? cur.share : null, left_out: !!cur.left_out,
+                restricted: !!cur.restricted, ...change};
   if ('share' in change) { const n = fpParse(change.share); if (Number.isNaN(n)) return fpBad("This year's share"); next.share = n; }
   if (next.source === cur.default_source) next.source = null;
-  fpSave({awards: {[tid]: next.source == null && next.share == null && !next.left_out ? null : next}});
+  fpSave({awards: {[tid]: next.source == null && next.share == null && !next.left_out && !next.restricted ? null : next}});
 }
 function fpAddOther() {
   const tid = document.getElementById('fpOther').value, n = fpParse(document.getElementById('fpOtherShare').value);
@@ -255,10 +287,11 @@ function fpDonorPanel(id) {
 }
 function fpDrawGifts() {
   const g = FP_EDIT.gifts;
-  document.getElementById('fdGifts').innerHTML = `<div class="gp-table"><table><thead><tr><th>Date</th><th class="num">Amount</th><th>Note</th><th></th></tr></thead><tbody>
+  document.getElementById('fdGifts').innerHTML = `<div class="gp-table"><table><thead><tr><th>Date</th><th class="num">Amount</th><th>Note</th><th>Restricted</th><th></th></tr></thead><tbody>
     ${g.map((x, i) => `<tr><td><input type="date" aria-label="Gift date" value="${escHtml(x.date || '')}" onchange="FP_EDIT.gifts[${i}].date=this.value"></td>
       <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="Gift amount" value="${x.amount ? money(x.amount) : ''}" onchange="FP_EDIT.gifts[${i}].amount=fpParse(this.value)"></td>
       <td><input aria-label="Gift note" value="${escHtml(x.note || '')}" onchange="FP_EDIT.gifts[${i}].note=this.value"></td>
+      <td><input type="checkbox" aria-label="Restricted to a purpose" ${x.restricted ? 'checked' : ''} onchange="FP_EDIT.gifts[${i}].restricted=this.checked"></td>
       <td><button class="btn ghost sm" onclick="FP_EDIT.gifts.splice(${i},1);fpDrawGifts()">Remove</button></td></tr>`).join('')}
     </tbody></table></div><button class="btn ghost sm" onclick="FP_EDIT.gifts.push({date: new Date().toISOString().slice(0, 10), amount: null, note: ''});fpDrawGifts()">Add A Gift</button>`;
 }

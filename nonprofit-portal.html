@@ -165,6 +165,11 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 .fp-unplanned{background:none;border:2px dashed var(--muted);border-radius:0 8px 8px 0;box-sizing:border-box}
 .fp-note{font-size:15px;color:var(--ink);margin:6px 0 0}
 .fp-rows{margin-top:16px}
+.fp-picks{display:flex;flex-direction:column;gap:8px;margin:6px 0 4px}
+.fp-pick{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white)}
+.fp-pick span{display:block;font-size:15px;color:var(--ink)}
+.fp-h3 .fp-dot{margin-right:8px;vertical-align:1px}
+.gp-tile span+span{display:block;font-size:15px}
 .fp-band{display:grid;grid-template-columns:190px minmax(0,1fr) 170px;gap:14px;align-items:center;padding:6px 0;font-size:15px;color:var(--ink)}
 .fp-name{display:flex;align-items:center;gap:8px}
 .fp-dot{display:inline-block;width:12px;height:12px;border-radius:50%;flex:0 0 auto}
@@ -2616,7 +2621,7 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 </script>
 <script src="/nonprofit-drafting.js?v=2026-10-28"></script>
 <script src="/nonprofit-landscape.js?v=2026-11-02"></script>
-<script src="/nonprofit-funding-plan.js?v=2026-11-05c"></script>
+<script src="/nonprofit-funding-plan.js?v=2026-11-05d"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
 </body>
 </html>
