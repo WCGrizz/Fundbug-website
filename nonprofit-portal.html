@@ -1833,11 +1833,12 @@ async function openListing(id) {
     const saved = ((RESULT && RESULT.shown) || []).some(m => m.id === id && m.saved);
     out.push(`<div class="m-actions" style="justify-content:flex-start;margin:4px 0 12px"><button class="btn sm ${saved ? 'saved' : ''}" id="pSave" onclick="saveListing('${id}')">${saved ? 'Saved ✓' : 'Save To Tracker'}</button><button class="btn ghost sm" onclick="prepListing('${id}', this)">Prep Application</button><button class="btn ghost sm" onclick="hideListing('${id}'); closePanel()">Hide From Matches</button></div>`);
   }
-  // A foundation whose only page is its tax filing on ProPublica (Oct 14 2026, Will: a brief banner saying there
-  // is no public website); its filing's contact and instructions are below.
+  // A foundation whose only page is its tax filing on ProPublica (Oct 14 2026, Will: a brief banner); its filing's
+  // contact and instructions are below. Nov 5 2026, Will: never "has no public website", since it may have one
+  // FundBug has not found.
   const onFiling = /(^|\.)propublica\.org$/i.test(hostOf(L.page_url || ''));
   if (L.kind === 'funder' && onFiling && !(L.funder && (L.funder.website || L.funder.grants_page))) {
-    out.push('<div class="no-site">This foundation has no public website. How to reach it comes from its tax filing: see How To Apply and Contact below.</div>');
+    out.push('<div class="no-site">We have not found a website for this foundation yet. How to reach it comes from its tax filing: see How To Apply and Contact below.</div>');
   }
   if (L.description) out.push(line('What It Is', `<p>${escHtml(L.description)}</p>`));
   // Is this funder for us? (Oct 28 2026, Will: "1 through 5"): how it takes requests, its first grant, its giving in
