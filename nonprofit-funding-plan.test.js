@@ -75,4 +75,19 @@ ok(/FP_MATCH_SOURCES\[s\.key\] && s\.planned > s\.secured \? `<br><a onclick="fp
 ok(/\(!src \|\| m\.source === src\)/.test(html) && /id="mSource"/.test(html), 'Matches filters by source');
 ok(/data-page="plan" class="acct-only" onclick="openFundingPlan\(\)">Funding Plan</.test(html) && /id="page-plan"[\s\S]*?id="fpBody"/.test(html), 'the portal has the page, for accounts only');
 ok(/nonprofit-funding-plan\.js\?v=\d{4}-\d{2}-\d{2}/.test(html), 'the portal loads the script with a version tag');
+// Nov 5 2026, Will: "i dont think the box should be that big ... not just shorter, but thinner as well".
+{
+  const tall = t.fpStack(view), slim = t.fpStack({...view, sources: view.sources.map(s => ({...s, shown: 0})), totals: {...view.totals, shown: 0}});
+  const box = svgText => (svgText.match(/viewBox="0 0 (\d+) (\d+)"/) || []).slice(1).map(Number);
+  ok(box(tall)[0] === 360 && box(tall)[1] <= 320, 'the stack is a narrow tower, 360 by at most 320');
+  ok(box(slim)[1] <= 140, 'a goal with nothing planned is a slim bar');
+}
+// Nov 5 2026, Will: "add a bit more instruction on how to use the funding plan tab".
+{
+  vm.runInContext(js.match(/function fpGuide\([\s\S]*?\n\}/)[0] + ';globalThis.__g = fpGuide;', ctx);
+  const g = ctx.__g;
+  ok(g && /<details class="card fp-guide" open>/.test(g({totals: {planned: 0, secured: 0, pending: 0}})), 'an empty plan opens How This Page Works');
+  ok(g && !/ open>/.test(g({totals: {planned: 1000, secured: 0, pending: 0}})), 'a plan with figures folds it');
+  ok(g && /marked? Awarded|mark Awarded/.test(g({totals: {}})) && /donor list/.test(g({totals: {}})), 'it says what counts by itself');
+}
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

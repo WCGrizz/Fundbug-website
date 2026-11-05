@@ -48,11 +48,12 @@ function fpParse(v) {
 // it), filled from the left with what is secured (solid), then pending (striped), the rest still to raise (light).
 // Above the bands, up to the goal, what is not yet planned (dashed). The goal is a line across.
 function fpStack(v) {
-  // Drawn at the phone's width on a phone, so its labels stay readable rather than shrinking to half size.
-  const narrow = typeof window !== 'undefined' && window.innerWidth < 640;
-  const W = narrow ? 360 : 720, H = narrow ? 460 : 500, top = 30, inner = H - top - 6;
+  // A narrow tower beside its key (Nov 5 2026, Will: "i dont think the box should be that big, it looks odd ... not
+  // just shorter, but thinner as well"): 360 wide on every screen, so its labels stay readable, and 320 tall; a plan
+  // with nothing in it yet is a slim bar, not a page of dashes.
   const goal = v.goal || 0, max = Math.max(goal, v.totals.shown, 1);
   const bands = v.sources.filter(s => s.shown > 0);
+  const W = 360, H = bands.length ? 320 : 130, top = 30, inner = H - top - 6;
   if (!bands.length && !goal) return `<div class="fp-empty">Set this year's goal and plan your sources below, and your capital stack appears here.</div>`;
   const out = [`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Your capital stack for FY${v.fiscal_year}" class="fp-stack">`, '<defs>'];
   for (const s of bands) out.push(`<pattern id="fpHatch-${s.key}" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="${FP_COLORS[s.key]}" fill-opacity=".25"></rect><rect width="5" height="10" fill="${FP_COLORS[s.key]}" fill-opacity=".85"></rect></pattern>`);
@@ -98,13 +99,29 @@ function fpTotalsLine(v) {
     </div>`;
 }
 
+// How the page works (Nov 5 2026, Will: "add a bit more instruction on how to use the funding plan tab"): open while
+// the plan has nothing in it, folded to its title once it has figures.
+function fpGuide(v) {
+  const empty = !(v.totals && (v.totals.planned || v.totals.secured || v.totals.pending));
+  return `<details class="card fp-guide"${empty ? ' open' : ''}><summary>How This Page Works</summary>
+      <ol>
+        <li><b>Set your goal for the year.</b> It starts as the annual budget in your Organization Profile; change it under The Plan below.</li>
+        <li><b>Plan each source.</b> Under Planned, enter how much you expect from each one: earned revenue, government, foundation and corporate grants, individual donors, events and anything else. Together they should reach your goal.</li>
+        <li><b>Record what is secured.</b> Most of it counts by itself: a grant you mark Awarded in your Tracker, with its amount, and the gifts in your donor list below. Enter anything else you already have under Secured.</li>
+      </ol>
+      <p class="lead">Your capital stack then shows, for each source, what is secured (solid), what is pending (striped: applications you have submitted and pledges not yet given), and what is still to raise (light). Anything your plan does not cover yet shows dashed, up to your goal. Everyone on your team sees and can change the same plan.</p>
+    </details>`;
+}
+
 // ── the page ────────────────────────────────────────────────────────────
 function fpDraw() {
   const v = FP; if (!v) return;
   const h = [];
   if (FP_MSG) h.push(`<div class="fp-msg">${FP_MSG}</div>`);
-  h.push(`<div class="card fp-stack-card"><h2>Your Capital Stack</h2>${fpTotalsLine(v)}${fpStack(v)}
-      <div class="fp-key"><span><i class="fp-k solid"></i>Secured</span><span><i class="fp-k striped"></i>Pending</span><span><i class="fp-k light"></i>Still to raise</span><span><i class="fp-k dashed"></i>Not yet planned</span></div>
+  h.push(fpGuide(v));
+  h.push(`<div class="card fp-stack-card"><h2>Your Capital Stack</h2>${fpTotalsLine(v)}
+      <div class="fp-stack-row">${fpStack(v)}
+      <div class="fp-key"><span><i class="fp-k solid"></i>Secured</span><span><i class="fp-k striped"></i>Pending</span><span><i class="fp-k light"></i>Still to raise</span><span><i class="fp-k dashed"></i>Not yet planned</span></div></div>
       <p class="lead">Tap a band for its figures; every figure is also in the table below.${v.updated_by_name ? ` Last changed by ${escHtml(v.updated_by_name)}.` : ''}</p></div>`);
   const years = v.years.includes(v.fiscal_year) ? v.years : v.years.concat([v.fiscal_year]).sort();
   h.push(`<div class="card"><h2>The Plan</h2>
