@@ -102,6 +102,39 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 
 /* ─── CARDS / STATS ─── */
 .card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:28px;margin-bottom:20px;box-shadow:0 1px 2px rgba(26,26,20,.04)}
+/* Capital Stack (Nov 6 2026; portal-capital-stack.js) */
+.cs-empty,.cs-lead{font-size:15px;color:var(--ink);line-height:1.55}
+.cs-lead{margin-top:12px}
+.cs-msg{background:#fdf6ea;border:1px solid #ecd9b6;border-radius:8px;padding:10px 14px;font-size:15px;margin-bottom:16px}
+.cs-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:16px}
+.cs-row label{display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.cs-row input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font:15px 'Jost',sans-serif}
+.cs-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.cs-tile{border:1px solid var(--border);border-radius:8px;padding:12px 14px;background:var(--cream)}
+.cs-tile b{display:block;font-family:'Fraunces',serif;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.cs-tile span{font-size:14px;color:var(--ink)}
+.cs-stack{display:flex;flex-direction:column-reverse;gap:3px;margin:8px 0 6px}
+.cs-layer{display:grid;grid-template-columns:minmax(120px,240px) minmax(0,1fr);gap:16px;align-items:center}
+.cs-block{height:100%;display:flex;border-radius:5px;overflow:hidden;background:rgba(61,122,56,.14)}
+.cs-block i{display:block;height:100%}
+.cs-pend{background:repeating-linear-gradient(45deg,var(--c) 0 5px,rgba(255,255,255,.65) 5px 10px)}
+.cs-unplanned{background:none;border:2px dashed #8a8577;box-sizing:border-box}
+.cs-side{display:flex;flex-direction:column;font-size:15px;color:var(--ink);line-height:1.35}
+.cs-side b{font-weight:600}
+.cs-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:-1px}
+.cs-key{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:15px;color:var(--ink);margin-top:10px}
+.cs-key span{display:inline-flex;align-items:center;gap:7px}
+.cs-k{display:inline-block;width:22px;height:16px;border-radius:3px;background:#2f5d7c}
+.cs-k-pend{background:repeating-linear-gradient(45deg,#2f5d7c 0 4px,rgba(47,93,124,.25) 4px 8px)}
+.cs-k-gap{background:rgba(61,122,56,.18)}
+.cs-k-dash{background:none;border:2px dashed #8a8577}
+.cs-table{overflow-x:auto}
+.cs-table table{border-collapse:collapse;width:100%;font-size:15px}
+.cs-table th,.cs-table td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.cs-table th{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--green-dk)}
+.cs-table .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cs-amt{width:130px;text-align:right;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font:15px 'Jost',sans-serif}
+@media (max-width:640px){.cs-layer{grid-template-columns:96px minmax(0,1fr);gap:10px}}
 .card-title{font-family:'Jost',sans-serif;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--green-dk);margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
 .stat-tile{background:var(--white);border:1px solid var(--border);border-top:3px solid var(--green);border-radius:8px;padding:20px;box-shadow:0 1px 2px rgba(26,26,20,.04)}
@@ -833,6 +866,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
     <a href="#" data-page="overview" onclick="showPageFromMobile('overview', this); return false;">📊 Overview</a>
     <a href="#" data-page="complete" onclick="showPageFromMobile('complete', this); return false;">✨ Funding Passport</a>
     <a href="#" data-page="tracker" onclick="showPageFromMobile('tracker', this); return false;">📋 My Tracker</a>
+    <a href="#" data-page="capstack" onclick="showPageFromMobile('capstack', this); return false;">🏗️ Capital Stack</a>
     <a href="#" data-page="drafting" onclick="showPageFromMobile('drafting', this); return false;">✍️ Application Drafting</a>
     <div class="mobile-menu-section">Resources</div>
     <a href="/grants-guide" target="_blank" rel="noopener" onclick="closeMenu()">📖 Grants 101</a>
@@ -851,6 +885,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
         <li><a href="#" class="active" onclick="showPage('overview',this)"><span class="nav-icon">📊</span> Overview</a></li>
         <li><a href="#" onclick="showPage('complete',this)" id="nav-complete"><span class="nav-icon">✨</span> Funding Passport</a></li>
         <li><a href="#" onclick="showPage('tracker',this)" id="nav-tracker"><span class="nav-icon">📋</span> My Tracker</a></li>
+        <li><a href="#" onclick="showPage('capstack',this)" id="nav-capstack"><span class="nav-icon">🏗️</span> Capital Stack</a></li>
         <li><a href="#" onclick="showPage('drafting',this)" id="nav-drafting"><span class="nav-icon">✍️</span> Application Drafting<span class="nav-beta">Beta</span></a></li>
 
         <div class="sidebar-section">Resources</div>
@@ -1314,6 +1349,16 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
       </div>
 
       <!-- TRACKER -->
+      <!-- CAPITAL STACK (Nov 6 2026; portal-capital-stack.js) -->
+      <div class="page" id="page-capstack">
+        <div class="page-hero">
+          <div class="page-eyebrow">Financing</div>
+          <div class="page-title">Capital Stack</div>
+          <div class="page-sub">Your project's financing, layer by layer: what each source covers of the total cost, and what is secured, pending and still to find.</div>
+        </div>
+        <div id="csBody"></div>
+      </div>
+
       <div class="page" id="page-tracker">
         <div class="page-hero">
           <div class="page-eyebrow">Programs</div>
@@ -2393,6 +2438,7 @@ function showPage(id, el) {
   el.classList.add('active');
   if (id === 'account') loadAccountEmail();
   if (id === 'tracker') loadTracker();
+  if (id === 'capstack' && typeof loadCapStack === 'function') loadCapStack();
   if (id === 'complete') loadPassport();
   if (id === 'team') loadTeam();
   if (id === 'drafting') loadDrafting();
@@ -5346,5 +5392,6 @@ async function renderProgramPicker(){
   </div>
   <button class="fb-toggle" onclick="toggleFeedback()" title="Send feedback" aria-label="Send feedback">💬</button>
 </div>
+<script src="/portal-capital-stack.js?v=2026-11-06"></script>
 </body>
 </html>
