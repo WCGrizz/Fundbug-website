@@ -37,5 +37,8 @@ ok(/CHECK = new URLSearchParams\(location\.search\)\.get\('check'\) === '1'/.tes
   ok(sent.length === 0 && x.row.kids.length === 1 && /Saved/.test(x.row.kids[0].textContent), 'a vote in a ?check=1 look is shown and never sent');
   api.setCheck(false); x = fake(); api.vote(x.btn, 'g1', 'save'); await new Promise(r => setTimeout(r, 5));
   ok(sent.length === 1 && /\/feedback$/.test(sent[0]), 'a visitor\'s vote is sent');
-  console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);
+  // What FundBug does, in Will's four tasks (Nov 6 2026).
+ok(['<b>Discovery:</b>', '<b>Research:</b>', '<b>Applications:</b>', '<b>Management:</b>'].every(x => h.includes(x)) && h.includes('the four parts of grant seeking'),
+   'the sample says what a subscription does, in the four tasks');
+console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);
 })();

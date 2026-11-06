@@ -52,7 +52,7 @@ summary { font-size: 15px; cursor: pointer; color: var(--green-dk); font-weight:
 .actions .done { font-size: 15px; color: var(--ink); }
 .beyond { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; margin-top: 24px; }
 .beyond h3 { font-size: 20px; }
-.beyond ul { margin: 8px 0 0 20px; font-size: 15px; }
+.beyond ul, .beyond ol { margin: 8px 0 0 20px; font-size: 15px; }
 .beyond li { margin-bottom: 6px; }
 .cta { background: var(--ink); color: var(--cream); border-radius: 8px; padding: 22px 20px; margin-top: 20px; }
 .cta h2 { font-size: 22px; margin-bottom: 6px; }
@@ -234,11 +234,13 @@ function program(f) {
       + (anyKnown ? '<p class="lead">A few of these may already fund you: their tax filings list grants to ' + esc(d.name) + '. They are marked, so the new ones stand out.</p>' : '')
       + (programs.length ? '<h2 class="sec">Open Programs</h2><p class="secnote">Programs taking applications now or on a set date, each checked against its own guidelines.</p>' + programs.map(program).join('') : '')
       + (funders.length ? '<h2 class="sec">Funders To Know</h2><p class="secnote">Foundations whose giving fits your work, from their IRS filings and their own websites.</p>' + funders.map(card).join('') : '')
-      + '<div class="beyond"><h3>This Is A Sample. A Subscription Is Built Around You.</h3><ul>'
-      + '<li><b>A digest every other Tuesday</b> with new programs and funders matched to your profile, and a warning when a deadline is close.</li>'
-      + '<li><b>A page for every funder:</b> its giving by year, its typical first grant, the organizations it funds in your county, how it takes applications and who to contact.</li>'
-      + '<li><b>A tracker</b> for what you are applying to, with deadlines and follow-ups in each digest.</li>'
-      + '<li><b>Application drafting</b> from your profile, with a step-by-step plan for each application.</li></ul>'
+      // What FundBug does, in Will's four tasks (Nov 6 2026: "the overall product helps nonprofits with 4 main tasks").
+      + '<div class="beyond"><h3>This Is A Sample. A Subscription Is Built Around You.</h3>'
+      + '<p style="font-size:15px;margin-bottom:6px">FundBug helps with the four parts of grant seeking:</p><ol>'
+      + '<li><b>Discovery:</b> grants and foundations that fit your work, in a digest every other Tuesday, with a warning when a deadline is close.</li>'
+      + '<li><b>Research:</b> how each funder gives (its grants by year, its typical first grant, the organizations it funds in your county) and the best way to approach it.</li>'
+      + '<li><b>Applications:</b> prepare them from answers you save once, with a step-by-step plan for each.</li>'
+      + '<li><b>Management:</b> track deadlines, donors and your whole funding pipeline in one place, with a funding plan for the year.</li></ol>'
       + '<p style="font-size:15px;margin-top:10px">FundBug follows more than 3,200 foundations and grantmaking charities through their IRS filings and their own websites.</p></div>'
       + '<div class="cta"><h2>Get funders and open grants like these, every other Tuesday</h2>'
       + '<p>Programs you save here are waiting in your tracker when you start. 14 days free, then $45 a month.</p>'
