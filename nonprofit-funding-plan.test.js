@@ -33,7 +33,7 @@ ok(!svg.includes('<svg') && !svg.includes('fp-label'), 'no text drawn over the c
 ok(t.fpStack({...view, goal: null, sources: view.sources.map(s => ({...s, shown: 0})), totals: {...view.totals, shown: 0}}).includes('Set this year'), 'nothing yet: an invitation, not an empty box');
 ok(!t.fpStack({...view, goal: 100000}).includes('Not yet planned'), 'planned past the goal: no unplanned part');
 ok(t.fpStack({...view, sources: [src('other', '<b>x</b>', 10, 0, 0)], totals: {...view.totals, shown: 10}}).includes('&lt;b&gt;'), 'labels are escaped');
-ok(t.fpTotalsLine(view).includes('$155,000') && t.fpTotalsLine(view).includes('(31%)') && t.fpTotalsLine(view).includes('$345,000'), 'the totals over the stack');
+ok(t.fpTotalsLine(view).includes('$155,000') && t.fpTotalsLine(view).includes('(31% of goal)') && t.fpTotalsLine(view).includes('$345,000'), 'the totals over the stack');
 
 // Words and figures
 eq(t.fpYearLabel(2027, 6), 'FY2027 (July 2026 to June 2027)', 'a fiscal year ending in June');
@@ -110,5 +110,17 @@ ok(/nonprofit-funding-plan\.js\?v=\d{4}-\d{2}-\d{2}/.test(html), 'the portal loa
   ok(/s\.through_daf \? `<br>of it \$\{money\(s\.through_daf\)\} through donor-advised funds`/.test(js), 'the Individual Donors row says how much came through DAFs');
   ok(/list="fdDafList"/.test(js) && /FP_EDIT\.gifts\[\$\{i\}\]\.daf=this\.value\.trim\(\)/.test(js) && /'Fidelity Charitable'/.test(js), 'each gift takes a sponsor, with the common ones suggested');
   ok(/no tax receipt/.test(js) && /cannot pay for event tickets/.test(js), 'the panel says how to thank and what a DAF cannot pay for');
+}
+// Percentages beside the dollars (Nov 6 2026, Will).
+{
+  const v = {fiscal_year: 2027, goal: 450000, totals: {planned: 450000, secured: 181750, pending: 15000, shown: 450000, restricted: 0, unrestricted: 181750, to_raise: 268250},
+             sources: [{key: 'earned', label: 'Earned Revenue', planned: 90000, secured: 58000, pending: 0, shown: 90000},
+                       {key: 'individual', label: 'Individual Donors', planned: 70000, secured: 22250, pending: 15000, shown: 70000}]};
+  const st = t.fpStack(v), tl = t.fpTotalsLine(v);
+  ok(st.includes('$181,750 secured (40%), $15,000 pending (3%)'), 'the stack says what share of the goal is secured and pending');
+  ok(st.includes('$58K of $90K <b>64%</b>') && st.includes('$22K of $70K <b>32%</b>'), 'each source says what share of its plan is secured');
+  ok(tl.includes('pending (3% of goal)') && tl.includes('still to raise (60% of goal)'), 'the tiles give shares of the goal');
+  ok(/<th class="num">Share Of Goal<\/th>/.test(js) && /of planned/.test(js), 'the plan table gives each source\'s share of the goal and what is left of its plan');
+  ok(!t.fpStack({...v, goal: 0}).includes('(0%)'), 'no goal: no shares of it');
 }
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

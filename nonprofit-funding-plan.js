@@ -98,6 +98,9 @@ function fpParse(v) {
 // its color, then pending striped, then what is left, and what the plan does not cover yet dashed), and under it a
 // bar for each source (secured of planned), its name and figures beside it, never text on color. The tower it
 // replaced put labels over the colors and crowded the small sources ("That capital stack doesnt look good").
+// Percentages beside the dollars (Nov 6 2026, Will: "we should show percentages in the funding plan screen, not just
+// $$ amounts"): each source's secured share of what is planned, and the totals' shares of the goal.
+function fpPct(part, whole) { return whole > 0 ? Math.round(100 * (part || 0) / whole) + '%' : ''; }
 function fpStack(v) {
   const goal = v.goal || 0, bands = v.sources.filter(s => s.shown > 0);
   if (!bands.length && !goal) return `<div class="fp-empty">Set this year's goal and plan your sources below, and your capital stack appears here.</div>`;
@@ -115,7 +118,7 @@ function fpStack(v) {
   }
   const unplanned = goal > v.totals.shown ? goal - v.totals.shown : 0;
   const out = [`<div class="fp-stack" role="img" aria-label="Your capital stack for FY${v.fiscal_year}: ${escHtml(money(v.totals.secured))} secured of ${escHtml(money(goal || v.totals.shown))}">`,
-    `<div class="fp-top"><span>${escHtml(money(v.totals.secured))} secured${v.totals.pending ? `, ${escHtml(money(v.totals.pending))} pending` : ''}</span>${goal ? `<span>Goal ${escHtml(money(goal))}</span>` : ''}</div>`,
+    `<div class="fp-top"><span>${escHtml(money(v.totals.secured))} secured${goal ? ` (${fpPct(v.totals.secured, goal)})` : ''}${v.totals.pending ? `, ${escHtml(money(v.totals.pending))} pending${goal ? ` (${fpPct(v.totals.pending, goal)})` : ''}` : ''}</span>${goal ? `<span>Goal ${escHtml(money(goal))}</span>` : ''}</div>`,
     `<div class="fp-bar">${segs.join('')}${unplanned ? `<i class="fp-seg fp-unplanned" style="margin-left:auto;width:${pct(unplanned)}" data-tip="Not yet planned: ${escHtml(money(unplanned))}"></i>` : ''}</div>`];
   if (unplanned) out.push(`<p class="fp-note">Not yet planned: ${escHtml(money(unplanned))} of your goal. Plan it under The Plan below.</p>`);
   out.push('<div class="fp-rows">');
@@ -124,7 +127,7 @@ function fpStack(v) {
     out.push(`<div class="fp-band" data-key="${s.key}" data-tip="${escHtml(tipOf(s))}">`,
       `<span class="fp-name"><i class="fp-dot" style="background:${c}"></i>${escHtml(s.label)}</span>`,
       `<span class="fp-rowbar"><i style="width:${(100 * sec / base).toFixed(1)}%;background:${c}"></i>${pen > 0 ? `<i class="fp-pending" style="width:${(100 * pen / base).toFixed(1)}%;--c:${c}"></i>` : ''}</span>`,
-      `<span class="fp-fig">${escHtml(shortMoney(s.secured))} of ${escHtml(shortMoney(s.planned || s.shown))}${s.pending ? ` <small>+${escHtml(shortMoney(s.pending))} pending</small>` : ''}${s.restricted ? ` <small>${escHtml(shortMoney(s.restricted))} restricted</small>` : ''}${s.planned && s.secured > s.planned ? ' <small>(more than planned)</small>' : ''}</span></div>`);
+      `<span class="fp-fig">${escHtml(shortMoney(s.secured))} of ${escHtml(shortMoney(s.planned || s.shown))} <b>${fpPct(s.secured, s.planned || s.shown)}</b>${s.pending ? ` <small>+${escHtml(shortMoney(s.pending))} pending</small>` : ''}${s.restricted ? ` <small>${escHtml(shortMoney(s.restricted))} restricted</small>` : ''}${s.planned && s.secured > s.planned ? ' <small>(more than planned)</small>' : ''}</span></div>`);
   }
   out.push('</div></div>');
   return out.join('');
@@ -134,9 +137,9 @@ function fpTotalsLine(v) {
   const pct = g ? Math.round(100 * t.secured / g) : null;
   return `<div class="gp-tiles">
       <div class="gp-tile"><b>${g ? money(g) : 'Not set'}</b><span>goal for FY${v.fiscal_year}</span></div>
-      <div class="gp-tile"><b>${money(t.secured)}</b><span>secured${pct != null ? ` (${pct}%)` : ''}</span>${t.restricted ? `<span>${money(t.unrestricted)} unrestricted, ${money(t.restricted)} restricted</span>` : ''}</div>
-      <div class="gp-tile"><b>${money(t.pending)}</b><span>pending</span></div>
-      <div class="gp-tile"><b>${g ? money(t.to_raise) : '—'}</b><span>still to raise</span></div>
+      <div class="gp-tile"><b>${money(t.secured)}</b><span>secured${pct != null ? ` (${pct}% of goal)` : ''}</span>${t.restricted ? `<span>${money(t.unrestricted)} unrestricted, ${money(t.restricted)} restricted</span>` : ''}</div>
+      <div class="gp-tile"><b>${money(t.pending)}</b><span>pending${g ? ` (${fpPct(t.pending, g)} of goal)` : ''}</span></div>
+      <div class="gp-tile"><b>${g ? money(t.to_raise) : '—'}</b><span>still to raise${g ? ` (${fpPct(t.to_raise, g)} of goal)` : ''}</span></div>
     </div>`;
 }
 
@@ -172,15 +175,16 @@ function fpDraw() {
         <div><label for="fpGoal">Goal For The Year</label><input id="fpGoal" inputmode="numeric" value="${v.goal != null ? money(v.goal) : ''}" placeholder="$" onchange="fpSaveGoal(this.value)"></div>
       </div>
       <p class="lead">Your fiscal year ends in ${MONTH_NAMES[v.end_month - 1]}; change it under Fiscal Year Ends in your <a onclick="showPage('profile')">Organization Profile</a>.${v.goal_from === 'budget' ? ' The goal is your profile\'s annual budget until you set one here.' : ''}</p>
-      <div class="gp-table"><table class="fp-sources"><thead><tr><th>Source</th><th class="num">Planned</th><th class="num">Secured, Entered By You</th><th class="num">Of It Restricted</th><th class="num">From Your Tracker And Donors</th><th class="num">Pending</th><th class="num">Still To Raise</th></tr></thead><tbody>
+      <div class="gp-table"><table class="fp-sources"><thead><tr><th>Source</th><th class="num">Planned</th><th class="num">Share Of Goal</th><th class="num">Secured, Entered By You</th><th class="num">Of It Restricted</th><th class="num">From Your Tracker And Donors</th><th class="num">Pending</th><th class="num">Still To Raise</th></tr></thead><tbody>
       ${v.sources.map(s => `<tr>
         <td><i class="fp-sw" style="background:${FP_COLORS[s.key]}"></i>${escHtml(s.label)}</td>
         <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} planned" value="${s.planned ? money(s.planned) : ''}" onchange="fpSaveSource('${s.key}', 'planned', this.value)"></td>
+        <td class="num">${v.goal && s.planned ? fpPct(s.planned, v.goal) : ''}</td>
         <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} secured, entered by you" value="${s.secured_other ? money(s.secured_other) : ''}" onchange="fpSaveSource('${s.key}', 'secured', this.value)"></td>
         <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} restricted, of what you entered" value="${s.restricted_entered ? money(s.restricted_entered) : ''}" placeholder="${s.secured_other ? '$0' : ''}" onchange="fpSaveSource('${s.key}', 'restricted', this.value)"></td>
         <td class="num">${s.key === 'individual' ? money(s.secured_donors) + (s.through_daf ? `<br>of it ${money(s.through_daf)} through donor-advised funds` : '') : s.from_tracker ? money(s.secured_tracker) : ''}</td>
         <td class="num">${money(s.pending)}${s.pending_unknown ? `<br>and ${s.pending_unknown} with no amount` : ''}</td>
-        <td class="num">${money(Math.max(0, s.planned - s.secured))}${FP_MATCH_SOURCES[s.key] && s.planned > s.secured ? `<br><a onclick="fpFindMatches('${s.key}')">${FP_MATCH_SOURCES[s.key]}</a>` : ''}</td></tr>`).join('')}
+        <td class="num">${money(Math.max(0, s.planned - s.secured))}${s.planned ? `<br>${fpPct(Math.max(0, s.planned - s.secured), s.planned)} of planned` : ''}${FP_MATCH_SOURCES[s.key] && s.planned > s.secured ? `<br><a onclick="fpFindMatches('${s.key}')">${FP_MATCH_SOURCES[s.key]}</a>` : ''}</td></tr>`).join('')}
       </tbody></table></div>
       <p class="lead">Foundation, government and corporate awards come from your Tracker: mark one Awarded with its amount. Individual donors come from your donor list below. Enter anything else you have secured yourself, and under Of It Restricted how much of that a funder or donor tied to a purpose.</p>
     </div>`);
