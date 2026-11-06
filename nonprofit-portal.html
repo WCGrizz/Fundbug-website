@@ -468,6 +468,14 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
   </div>
 </div>
 
+<div class="gate" id="linkGate" style="display:none">
+  <div class="gate-card">
+    <div class="gate-logo">FundBug</div>
+    <div class="gate-sub" id="linkSub"></div>
+    <button class="btn" style="width:100%" id="linkGo"></button>
+  </div>
+</div>
+
 <div id="app">
   <nav>
     <a class="nav-logo" href="/"><img src="/fundbug_logo.png" alt="">FundBug</a>
@@ -1159,6 +1167,25 @@ async function requestLink() {
     await fetch(API_BASE + '/api/portal/request-login-link', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email})});
     ok.textContent = 'Check your email for a login link. It works once and expires in 30 minutes.';
   } catch (e) { err.textContent = 'Could not reach FundBug. Try again in a moment.'; }
+}
+// An email link (a login link or a team invite) waits for a person's click (Nov 6 2026). Microsoft 365's mail filter
+// opens the links in incoming mail in a hidden browser to check them; this page used to sign in as it loaded, so the
+// filter used up both of Katie Meehan's one-time login links (CHP Berkshires) within a minute of sending, before she
+// saw them. A filter loads a page but does not click its button.
+function waitForClick(sub, label) {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('linkSub').textContent = sub;
+  const go = document.getElementById('linkGo');
+  go.textContent = label;
+  go.disabled = false;
+  document.getElementById('linkGate').style.display = 'flex';
+  return new Promise(done => go.addEventListener('click', () => {
+    go.disabled = true;
+    go.textContent = 'Signing In…';
+    document.getElementById('linkGate').style.display = 'none';
+    done();
+  }, {once: true}));
 }
 async function consumeLink(loginToken) {
   history.replaceState(null, '', location.pathname);
@@ -2602,12 +2629,14 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
   const loginToken = new URLSearchParams(location.search).get('login_token');
   const inviteToken = new URLSearchParams(location.search).get('seat_invite');
   if (inviteToken && !loginToken) {
+    await waitForClick('You have been invited to join a team on FundBug.', 'Join The Team');
     try {
       const orgType = await acceptInvite(inviteToken);
       if (!NONPROFIT_ORG_TYPES.includes(orgType)) { location.replace('/portal'); return; }
     } catch (e) { showGate(e.message + ' Ask whoever invited you to send a new one.'); return; }
   }
   if (loginToken) {
+    await waitForClick('Your login link is ready.', 'Sign In To FundBug');
     try {
       const orgType = await consumeLink(loginToken);
       if (!NONPROFIT_ORG_TYPES.includes(orgType)) { location.replace('/portal'); return; }

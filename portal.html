@@ -738,6 +738,16 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
   </div>
 </div>
 
+<!-- EMAIL LINK: waits for a person's click (see waitForClick) -->
+<div id="linkWrap" class="login-wrap" style="display:none">
+  <a class="login-brand" href="https://fundbug.net"><img src="/fundbug_logo.png" alt="FundBug"><span>FundBug</span></a>
+  <div class="login-card">
+    <div class="login-logo" style="text-align:center;">FundBug</div>
+    <p id="linkSub" style="font-family:'Jost',sans-serif;font-size:15px;line-height:1.5;color:#1a1a14;text-align:center;margin:10px 0 20px"></p>
+    <button class="btn" id="linkGo"></button>
+  </div>
+</div>
+
 <!-- PASSWORD LOGIN (secondary) -->
 <div id="pwWrap" class="login-wrap" style="display:none">
   <a class="login-brand" href="https://fundbug.net"><img src="/fundbug_logo.png" alt="FundBug"><span>FundBug</span></a>
@@ -2118,6 +2128,27 @@ async function revokeSeat(id) {
   catch(e) { alert('Could not remove: ' + e.message); }
 }
 
+// An email link (a login link, an advisor's Help Them Apply link or a team
+// invite) waits for a person's click (Nov 6 2026). Microsoft 365's mail filter
+// opens the links in incoming mail in a hidden browser to check them; the page
+// used to sign in as it loaded, so the filter used up both of Katie Meehan's
+// one-time login links (CHP Berkshires) within a minute of sending, before she
+// saw them. A filter loads a page but does not click its button.
+function waitForClick(sub, label) {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('linkSub').textContent = sub;
+  const go = document.getElementById('linkGo');
+  go.textContent = label;
+  go.disabled = false;
+  document.getElementById('linkWrap').style.display = 'flex';
+  return new Promise(done => go.addEventListener('click', () => {
+    go.disabled = true;
+    document.getElementById('linkWrap').style.display = 'none';
+    done();
+  }, {once: true}));
+}
+
 async function consumeSeatInviteIfPresent() {
   // Invite links land as ?seat_invite=<token>. Redeem it for a session the
   // same way the magic link does, then strip it from the URL so it is not
@@ -2126,6 +2157,7 @@ async function consumeSeatInviteIfPresent() {
   const hs = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
   const inviteToken = qs.get('seat_invite') || hs.get('seat_invite');
   if (!inviteToken) return false;
+  await waitForClick('You have been invited to join a team on FundBug.', 'Join The Team');
   try {
     window.history.replaceState({}, document.title, window.location.pathname);
   } catch(_) {}
@@ -2391,9 +2423,10 @@ async function consumeMagicLinkIfPresent() {
   const hs = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
   const loginToken = qs.get('login_token') || hs.get('login_token');
   if (!loginToken) return false;
+  await waitForClick('Your login link is ready.', 'Sign In To FundBug');
 
   // Strip the token from the URL immediately so it isn't left in history,
-  // bookmarks, or copy-pasted links. Done before the await so a slow network
+  // bookmarks, or copy-pasted links. Done before the fetch so a slow network
   // can't leave the token sitting in the address bar.
   //
   // CHANGED 2026-09-23: keep a hash that is NOT the token. The advisor tool's
