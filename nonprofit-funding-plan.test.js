@@ -95,4 +95,20 @@ ok(/nonprofit-funding-plan\.js\?v=\d{4}-\d{2}-\d{2}/.test(html), 'the portal loa
   ok(ctx.__gap({gaps: []}).includes('fully planned'), 'no gap: says so');
   ok(/total.?restricted|restricted/.test(t.fpTotalsLine({...view, totals: {...view.totals, restricted: 5000, unrestricted: 150000}})), 'the secured tile says how much is restricted');
 }
+// Donor-advised funds (Nov 6 2026, Susan of Minerva; Will: approved).
+{
+  const csv = t.fpDownloadText([{name: 'Pat', email: '', phone: '', gifts: [{date: '2026-08-01', amount: 2500, note: '', daf: 'Fidelity Charitable'}]}]);
+  ok(csv.split('\r\n')[0].includes('Through A DAF') && csv.includes(',Fidelity Charitable,'), 'the spreadsheet download carries each gift\'s DAF sponsor');
+  vm.runInContext(`FP = {fiscal_year: 2027}; FP_DQ = ''; FP_DONORS = {donors: [
+    {id: 'd1', name: 'Pat Lee', given_this_year: 3200, pledge_open: 0, pledged_this_year: 0, daf_sponsors: ['Fidelity Charitable'], given_through_daf_this_year: 2500, gifts: []},
+    {id: 'd2', name: 'Sam Roe', given_this_year: 100, pledge_open: 0, pledged_this_year: 0, daf_sponsors: [], given_through_daf_this_year: 0, gifts: []}]};
+    globalThis.__card = fpDonorsCard();`, ctx);
+  const card = ctx.__card;
+  ok(card.includes('($2,500</b> of it through donor-advised funds)') || card.includes('<b>$2,500</b> of it through donor-advised funds'), 'the donor list says how much came through DAFs');
+  ok((card.match(/Gives Through A DAF/g) || []).length === 1, 'a donor who gave through a DAF is marked; one who did not is not');
+  ok(card.includes('Add An Anonymous DAF Gift') && card.includes('legal name and EIN'), 'an anonymous DAF gift can be added, and the list says how to welcome DAF gifts');
+  ok(/s\.through_daf \? `<br>of it \$\{money\(s\.through_daf\)\} through donor-advised funds`/.test(js), 'the Individual Donors row says how much came through DAFs');
+  ok(/list="fdDafList"/.test(js) && /FP_EDIT\.gifts\[\$\{i\}\]\.daf=this\.value\.trim\(\)/.test(js) && /'Fidelity Charitable'/.test(js), 'each gift takes a sponsor, with the common ones suggested');
+  ok(/no tax receipt/.test(js) && /cannot pay for event tickets/.test(js), 'the panel says how to thank and what a DAF cannot pay for');
+}
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

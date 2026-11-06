@@ -156,7 +156,7 @@ function fpDraw() {
         <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} planned" value="${s.planned ? money(s.planned) : ''}" onchange="fpSaveSource('${s.key}', 'planned', this.value)"></td>
         <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} secured, entered by you" value="${s.secured_other ? money(s.secured_other) : ''}" onchange="fpSaveSource('${s.key}', 'secured', this.value)"></td>
         <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} restricted, of what you entered" value="${s.restricted_entered ? money(s.restricted_entered) : ''}" placeholder="${s.secured_other ? '$0' : ''}" onchange="fpSaveSource('${s.key}', 'restricted', this.value)"></td>
-        <td class="num">${s.key === 'individual' ? money(s.secured_donors) : s.from_tracker ? money(s.secured_tracker) : ''}</td>
+        <td class="num">${s.key === 'individual' ? money(s.secured_donors) + (s.through_daf ? `<br>of it ${money(s.through_daf)} through donor-advised funds` : '') : s.from_tracker ? money(s.secured_tracker) : ''}</td>
         <td class="num">${money(s.pending)}${s.pending_unknown ? `<br>and ${s.pending_unknown} with no amount` : ''}</td>
         <td class="num">${money(Math.max(0, s.planned - s.secured))}${FP_MATCH_SOURCES[s.key] && s.planned > s.secured ? `<br><a onclick="fpFindMatches('${s.key}')">${FP_MATCH_SOURCES[s.key]}</a>` : ''}</td></tr>`).join('')}
       </tbody></table></div>
@@ -248,13 +248,15 @@ function fpDonorsCard() {
   const ds = (FP_DONORS && FP_DONORS.donors) || [], q = FP_DQ.toLowerCase();
   const shown = q ? ds.filter(d => (d.name || '').toLowerCase().includes(q) || (d.email || '').toLowerCase().includes(q)) : ds;
   const given = ds.reduce((a, d) => a + d.given_this_year, 0), open = ds.reduce((a, d) => a + d.pledge_open, 0);
+  const viaDaf = ds.reduce((a, d) => a + (d.given_through_daf_this_year || 0), 0);
   return `<div class="card"><h2>Individual Donors</h2>
       <p class="lead">Your own list, seen only by your team. FundBug never shares it and never uses it to write anything. Gifts dated in FY${FP.fiscal_year} count toward Individual Donors above, and pledges not yet given count as pending.</p>
-      <p>${ds.length ? `<b>${ds.length.toLocaleString()}</b> donors, <b>${money(given)}</b> given this year, <b>${money(open)}</b> pledged and still to come.` : 'No donors yet.'}</p>
-      <div class="fp-actions"><button class="btn sm" onclick="fpDonorPanel(null)">Add A Donor</button><button class="btn ghost sm" onclick="fpImportPanel()">Import From A Spreadsheet</button>${ds.length ? '<button class="btn ghost sm" onclick="fpDownload()">Download As A Spreadsheet</button>' : ''}</div>
+      <p>${ds.length ? `<b>${ds.length.toLocaleString()}</b> donors, <b>${money(given)}</b> given this year${viaDaf ? ` (<b>${money(viaDaf)}</b> of it through donor-advised funds)` : ''}, <b>${money(open)}</b> pledged and still to come.` : 'No donors yet.'}</p>
+      <p>${FP_DAF_TIP}</p>
+      <div class="fp-actions"><button class="btn sm" onclick="fpDonorPanel(null)">Add A Donor</button><button class="btn ghost sm" onclick="fpDonorPanel(null, true)">Add An Anonymous DAF Gift</button><button class="btn ghost sm" onclick="fpImportPanel()">Import From A Spreadsheet</button>${ds.length ? '<button class="btn ghost sm" onclick="fpDownload()">Download As A Spreadsheet</button>' : ''}</div>
       ${ds.length > 10 ? `<input id="fpDq" class="gp-search" placeholder="Search donors" value="${escHtml(FP_DQ)}" oninput="FP_DQ=this.value;fpDraw();const i=document.getElementById('fpDq');i.focus();i.setSelectionRange(i.value.length,i.value.length)">` : ''}
       ${shown.length ? `<div class="gp-table"><table><thead><tr><th>Name</th><th class="num">Given This Year</th><th class="num">Pledged This Year</th><th>Last Gift</th><th>Next Step</th></tr></thead><tbody>
-        ${shown.map(d => `<tr><td><a onclick="fpDonorPanel('${d.id}')">${escHtml(d.name)}</a></td><td class="num">${money(d.given_this_year)}</td><td class="num">${d.pledged_this_year ? money(d.pledged_this_year) : ''}</td>
+        ${shown.map(d => `<tr><td><a onclick="fpDonorPanel('${d.id}')">${escHtml(d.name)}</a>${(d.daf_sponsors || []).length ? ` <span class="badge" title="${escHtml(d.daf_sponsors.join(', '))}">Gives Through A DAF</span>` : ''}</td><td class="num">${money(d.given_this_year)}</td><td class="num">${d.pledged_this_year ? money(d.pledged_this_year) : ''}</td>
           <td>${d.last_gift ? escHtml(money(d.last_gift.amount) + ', ' + fpDay(d.last_gift.date)) : ''}</td><td>${escHtml(d.next_step || '')}${d.next_step_on ? ' (' + escHtml(fpDay(d.next_step_on)) + ')' : ''}</td></tr>`).join('')}
         </tbody></table></div>` : ''}
     </div>`;
@@ -265,9 +267,17 @@ function fpPanel(title, html) {
   document.getElementById('panel').classList.add('open');
   document.getElementById('scrim').style.display = 'block';
 }
+// Donor-advised funds (Nov 6 2026, Susan of Minerva; Will: approved). A gift through a DAF names its sponsor, the legal
+// giver, on the gift of the donor who recommended it; an anonymous one goes on a donor named for its sponsor.
+const FP_DAF_SPONSORS = ['Fidelity Charitable', 'Schwab Charitable (DAFgiving360)', 'Vanguard Charitable', 'National Philanthropic Trust',
+  'American Endowment Foundation', 'Daffy Charitable Fund', 'Goldman Sachs Philanthropy Fund', 'Morgan Stanley Global Impact Funding Trust',
+  'Berkshire Taconic Community Foundation', 'The Boston Foundation', 'Community Foundation of Western Massachusetts', 'Jewish Communal Fund'];
+const FP_DAF_TIP = 'Gifts from donor-advised funds: to welcome them, put your legal name and EIN in your appeals and add a DAF option to your donation page (DAFpay and DAF Direct are two). When one arrives, record it on the gift of the donor who recommended it, with its sponsor under Through A DAF.';
 let FP_EDIT = null;                         // the donor open in the panel, with its gifts as edited
-function fpDonorPanel(id) {
-  const d = id ? FP_DONORS.donors.find(x => x.id === id) : {name: '', gifts: [], pledges: {}};
+function fpDonorPanel(id, anonymousDaf) {
+  const d = id ? FP_DONORS.donors.find(x => x.id === id)
+              : anonymousDaf ? {name: 'Anonymous Through ', gifts: [{date: new Date().toISOString().slice(0, 10), amount: null, note: '', daf: ''}], pledges: {}}
+              : {name: '', gifts: [], pledges: {}};
   if (!d) return;
   FP_EDIT = {id, updated_at: d.updated_at, pledges: {...(d.pledges || {})}, gifts: (d.gifts || []).map(g => ({...g}))};
   const fy = FP.fiscal_year, val = k => escHtml(d[k] || '');
@@ -279,7 +289,9 @@ function fpDonorPanel(id) {
     <div class="row"><div><label for="fdNext">Next Step</label><input id="fdNext" value="${val('next_step')}" placeholder="e.g. Thank-you call"></div>
       <div><label for="fdNextOn">Next Step On</label><input id="fdNextOn" type="date" value="${val('next_step_on')}"></div></div>
     <label for="fdNotes">Notes</label><textarea class="t-notes" id="fdNotes">${val('notes')}</textarea>
-    <h3 class="fp-h3">Gifts</h3><div id="fdGifts"></div>
+    <h3 class="fp-h3">Gifts</h3>
+    <p>A gift through a donor-advised fund: put its sponsor (on the check or letter) under Through A DAF. Thank the sponsor and your donor both. Your donor gets no tax receipt, since they took the deduction when they funded their DAF, and a DAF cannot pay for event tickets or other benefits.${anonymousDaf ? ' For an anonymous gift, name this donor for the sponsor, such as Anonymous Through Fidelity Charitable.' : ''}</p>
+    <div id="fdGifts"></div>
     <div class="err" id="fdErr"></div>
     <div class="fp-actions"><button class="btn" onclick="fpSaveDonor()">Save</button><button class="btn ghost" onclick="closePanel()">Cancel</button>
       ${id ? `<button class="btn ghost" onclick="fpRemoveDonor('${id}')">Remove This Donor</button>` : ''}</div>`);
@@ -287,11 +299,13 @@ function fpDonorPanel(id) {
 }
 function fpDrawGifts() {
   const g = FP_EDIT.gifts;
-  document.getElementById('fdGifts').innerHTML = `<div class="gp-table"><table><thead><tr><th>Date</th><th class="num">Amount</th><th>Note</th><th>Restricted</th><th></th></tr></thead><tbody>
+  document.getElementById('fdGifts').innerHTML = `<datalist id="fdDafList">${FP_DAF_SPONSORS.map(x => `<option value="${escHtml(x)}">`).join('')}</datalist>
+    <div class="gp-table"><table><thead><tr><th>Date</th><th class="num">Amount</th><th>Note</th><th>Restricted</th><th>Through A DAF</th><th></th></tr></thead><tbody>
     ${g.map((x, i) => `<tr><td><input type="date" aria-label="Gift date" value="${escHtml(x.date || '')}" onchange="FP_EDIT.gifts[${i}].date=this.value"></td>
       <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="Gift amount" value="${x.amount ? money(x.amount) : ''}" onchange="FP_EDIT.gifts[${i}].amount=fpParse(this.value)"></td>
-      <td><input aria-label="Gift note" value="${escHtml(x.note || '')}" onchange="FP_EDIT.gifts[${i}].note=this.value"></td>
+      <td><input style="min-width:130px" aria-label="Gift note" value="${escHtml(x.note || '')}" onchange="FP_EDIT.gifts[${i}].note=this.value"></td>
       <td><input type="checkbox" aria-label="Restricted to a purpose" ${x.restricted ? 'checked' : ''} onchange="FP_EDIT.gifts[${i}].restricted=this.checked"></td>
+      <td><input list="fdDafList" style="min-width:190px" aria-label="Donor-advised fund sponsor, if it came through one" placeholder="Sponsor, if any" value="${escHtml(x.daf || '')}" onchange="FP_EDIT.gifts[${i}].daf=this.value.trim()"></td>
       <td><button class="btn ghost sm" onclick="FP_EDIT.gifts.splice(${i},1);fpDrawGifts()">Remove</button></td></tr>`).join('')}
     </tbody></table></div><button class="btn ghost sm" onclick="FP_EDIT.gifts.push({date: new Date().toISOString().slice(0, 10), amount: null, note: ''});fpDrawGifts()">Add A Gift</button>`;
 }
@@ -423,11 +437,11 @@ async function fpSendImport(apply) {
 }
 function fpCsvCell(v) { const s = String(v == null ? '' : v); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
 function fpDownloadText(ds) {
-  const lines = [['Name', 'Email', 'Phone', 'Date', 'Amount', 'Note', 'Next Step', 'Next Step On']];
+  const lines = [['Name', 'Email', 'Phone', 'Date', 'Amount', 'Note', 'Through A DAF', 'Next Step', 'Next Step On']];
   for (const d of ds) {
     const base = [d.name, d.email, d.phone];
-    if (!(d.gifts || []).length) lines.push([...base, '', '', '', d.next_step, d.next_step_on]);
-    for (const g of d.gifts || []) lines.push([...base, g.date, g.amount, g.note, d.next_step, d.next_step_on]);
+    if (!(d.gifts || []).length) lines.push([...base, '', '', '', '', d.next_step, d.next_step_on]);
+    for (const g of d.gifts || []) lines.push([...base, g.date, g.amount, g.note, g.daf || '', d.next_step, d.next_step_on]);
   }
   return lines.map(l => l.map(fpCsvCell).join(',')).join('\r\n') + '\r\n';
 }
