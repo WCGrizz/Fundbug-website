@@ -6,7 +6,7 @@
 // sends changes. nonprofit-portal.html loads this after its own script and supplies apiFetch, escHtml, money,
 // shortMoney, showPage, openListing, MONTH_NAMES and the side panel.
 
-let FP = null, FP_DONORS = null, FP_MSG = '', FP_DQ = '', FP_IMPORT = null, FP_GAP = null;
+let FP = null, FP_DONORS = null, FP_MSG = '', FP_DQ = '', FP_IMPORT = null, FP_GAP = null, FP_CF = null;
 const FP_COLORS = {earned: '#7ab870', government: '#2f5d7c', foundation: '#3d7a38', corporate: '#7a5c99',
                    individual: '#a8643a', events: '#b8901c', other: '#8a8577'};
 
@@ -28,6 +28,28 @@ async function fpLoad(year) {
   FP_GAP = null;
   fpDraw();
   fpLoadGap();
+  fpLoadCf();
+}
+// Community foundations whose donors give near you (Nov 6 2026, Will: the community foundation route to DAF donors):
+// loaded after the plan, once a visit (it does not change with the year).
+async function fpLoadCf() {
+  if (!FP_CF) {
+    try { FP_CF = await apiFetch('/api/nonprofit/donor-fund-foundations'); }
+    catch (e) { FP_CF = {error: e.message, foundations: []}; }
+  }
+  const el = document.getElementById('fpCf'); if (el) el.innerHTML = fpCfCard(FP_CF);
+}
+function fpMillions(n) { return n >= 1e6 ? '$' + (n / 1e6).toFixed(1).replace(/\.0$/, '') + ' million' : money(n); }
+function fpCfCard(c) {
+  if (!c) return '<p>Looking for community foundations near you…</p>';
+  if (c.error) return `<p>They could not be read just now (${escHtml(c.error)}).</p>`;
+  const lead = '<p>Many donors give through donor-advised funds at a community foundation, and its staff advise them on where to give. Their names are private, and FundBug never names them; a relationship with the foundation, and its own grants, are the way onto their radar.</p>';
+  if (!(c.foundations || []).length) return lead + `<p>No community foundation with donor-advised funds gives in ${escHtml(c.county ? c.county + ' County' : 'your county')} in the filings on file.</p>`;
+  return lead + `<div class="fp-picks">${c.foundations.map(f => { const d = f.donor_funds || {};
+    return `<div class="fp-pick"><div>${f.listing_id ? `<a onclick="openListing('${f.listing_id}')">${escHtml(f.name)}</a>` : escHtml(f.name)}
+      <span>${d.funds ? `${Number(d.funds).toLocaleString()} donor-advised funds${d.value ? ` holding ${escHtml(fpMillions(d.value))}` : ''}` : 'Donor-advised funds'}${d.grants ? `; its donors recommended ${escHtml(fpMillions(d.grants))} in grants in ${d.year}` : ''}.</span>
+      <span>${Number(f.here_grants).toLocaleString()} grants to organizations in ${escHtml(c.county ? c.county + ' County' : 'your county')} (${escHtml(fpMillions(f.here_dollars || 0))}) in its filings on file.</span>
+      ${d.services_url ? `<span><a href="${escHtml(d.services_url)}" target="_blank" rel="noopener">Its page for donors</a></span>` : ''}</div></div>`; }).join('')}</div>`;
 }
 // Funders that could close the gap (Nov 5 2026): loaded after the plan, so the page never waits on the matcher.
 async function fpLoadGap() {
@@ -253,6 +275,7 @@ function fpDonorsCard() {
       <p class="lead">Your own list, seen only by your team. FundBug never shares it and never uses it to write anything. Gifts dated in FY${FP.fiscal_year} count toward Individual Donors above, and pledges not yet given count as pending.</p>
       <p>${ds.length ? `<b>${ds.length.toLocaleString()}</b> donors, <b>${money(given)}</b> given this year${viaDaf ? ` (<b>${money(viaDaf)}</b> of it through donor-advised funds)` : ''}, <b>${money(open)}</b> pledged and still to come.` : 'No donors yet.'}</p>
       <p>${FP_DAF_TIP}</p>
+      <h3 class="fp-h3">Community Foundations Whose Donors Give Near You</h3><div id="fpCf">${fpCfCard(FP_CF)}</div>
       <div class="fp-actions"><button class="btn sm" onclick="fpDonorPanel(null)">Add A Donor</button><button class="btn ghost sm" onclick="fpDonorPanel(null, true)">Add An Anonymous DAF Gift</button><button class="btn ghost sm" onclick="fpImportPanel()">Import From A Spreadsheet</button>${ds.length ? '<button class="btn ghost sm" onclick="fpDownload()">Download As A Spreadsheet</button>' : ''}</div>
       ${ds.length > 10 ? `<input id="fpDq" class="gp-search" placeholder="Search donors" value="${escHtml(FP_DQ)}" oninput="FP_DQ=this.value;fpDraw();const i=document.getElementById('fpDq');i.focus();i.setSelectionRange(i.value.length,i.value.length)">` : ''}
       ${shown.length ? `<div class="gp-table"><table><thead><tr><th>Name</th><th class="num">Given This Year</th><th class="num">Pledged This Year</th><th>Last Gift</th><th>Next Step</th></tr></thead><tbody>

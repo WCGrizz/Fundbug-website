@@ -2008,6 +2008,7 @@ async function openListing(id) {
       ? `<p><a href="${escHtml(c.slice(8))}" target="_blank" rel="noopener">Its contact page</a></p>`
       : `<div class="section-text">${clampHtml(cleanSectionHtml(c, true), 4, c.length)}</div>`).join('') : ''));
     out.push(trusteesLine(L.trustees));
+    out.push(donorFundsLine(L.donor_funds));
     window.__SAID = seen;                                // what How To Apply said, so no section says it again
     // Its programs (Will, Oct 16 2026, on Kresge: "the funder profile should reference that they have many programs").
     if (L.programs && L.programs.length) {
@@ -2678,6 +2679,15 @@ async function acceptInvite(inviteToken) {
 
 // Its trustees (Nov 3 2026, Will: yes): for a family foundation, or one whose way in is a relationship, the people
 // whose word counts, from its Form 990-PF (np_funder_page.trustees): names and titles only.
+// Its donors' funds (Nov 6 2026, Will: the community foundation route to DAF donors): a community foundation's
+// donor-advised funds from its own Form 990 (Schedule D). The people behind them are never named; the filing names none.
+function donorFundsLine(d) {
+  if (!d || !(d.funds || d.grants)) return '';
+  const big = n => n >= 1e6 ? '$' + (n / 1e6).toFixed(1).replace(/\.0$/, '') + ' million' : money(n);
+  const held = d.funds ? `It holds <b>${Number(d.funds).toLocaleString()}</b> donor-advised funds${d.value ? `, worth <b>${escHtml(big(d.value))}</b>` : ''} (its ${escHtml(String(d.year || ''))} Form 990).` : '';
+  const gave = d.grants ? ` That year its donors recommended <b>${escHtml(big(d.grants))}</b> in grants${d.share != null ? `, about ${Math.round(100 * d.share)}% of its giving` : ''}.` : '';
+  return line("Its Donors' Funds", `<p>${held}${gave}</p><p>The people behind these funds are private, and FundBug never names them. Its staff advise them on where to give, so a relationship with its donor services team, and its own grants, are the way onto their radar.${d.services_url ? ` <a href="${escHtml(d.services_url)}" target="_blank" rel="noopener">Its page for donors</a>` : ''}</p>`);
+}
 function trusteesLine(t) {
   if (!t || !t.people || !t.people.length) return '';
   const who = t.people.map(p => `<li><b>${escHtml(p.name)}</b>${p.title ? ', ' + escHtml(p.title) : ''}${p.funds_it ? ' <span class="badge">Funds It</span>' : ''}</li>`).join('');
@@ -2721,7 +2731,7 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 </script>
 <script src="/nonprofit-drafting.js?v=2026-10-28"></script>
 <script src="/nonprofit-landscape.js?v=2026-11-02"></script>
-<script src="/nonprofit-funding-plan.js?v=2026-11-06"></script>
+<script src="/nonprofit-funding-plan.js?v=2026-11-06b"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
 </body>
 </html>
