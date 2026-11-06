@@ -123,4 +123,19 @@ ok(/nonprofit-funding-plan\.js\?v=\d{4}-\d{2}-\d{2}/.test(html), 'the portal loa
   ok(/<th class="num">Share Of Goal<\/th>/.test(js) && /of planned/.test(js), 'the plan table gives each source\'s share of the goal and what is left of its plan');
   ok(!t.fpStack({...v, goal: 0}).includes('(0%)'), 'no goal: no shares of it');
 }
+// Pending entered and attributed, and the Total row (Nov 6 2026, Will).
+{
+  vm.runInContext('globalThis.u = {fpPendingCell, fpTotalRow};', ctx);
+  const u = ctx.u;
+  const f = u.fpPendingCell({key: 'foundation', label: 'Foundation Grants', pending: 25000, pending_entered: 20000, pending_tracker: 5000, pending_pledges: 0, pending_unknown: 1});
+  ok(f.includes('aria-label="Foundation Grants pending, entered by you" value="$20,000"') && f.includes('+ $5,000 from applications in your Tracker')
+     && f.includes('1 application with no amount') && f.includes('<b>$25,000 in all</b>'), 'a source takes your own pending and says what FundBug attributes');
+  const i = u.fpPendingCell({key: 'individual', label: 'Individual Donors', pending: 15000, pending_entered: 0, pending_tracker: 0, pending_pledges: 15000});
+  ok(!i.includes('<input') && i.includes('$15,000') && i.includes('in pledges from your donor list'), "Individual Donors' pending is its pledges, never typed in");
+  const tr = u.fpTotalRow({goal: 450000, totals: {planned: 450000, secured: 181750, pending: 40000, secured_other: 101500, restricted_entered: 4000,
+    secured_tracker: 58000, secured_donors: 22250, pending_entered: 20000, pending_tracker: 5000, pending_pledges: 15000, still_to_raise: 268250}});
+  ok(tr.includes('<b>Total</b>') && tr.includes('<b>$450,000</b>') && tr.includes('<b>100%</b>') && tr.includes('<b>$80,250</b>') && tr.includes('<b>$268,250</b>')
+     && tr.includes('$20,000 entered, $20,000 from your Tracker and donors') && (tr.match(/<td/g) || []).length === 8, 'the Total row sums every column, one cell per column');
+  ok(/<\/tbody>\$\{fpTotalRow\(v\)\}<\/table>/.test(js) && /fpPendingCell\(s\)/.test(js), 'the plan table shows both');
+}
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

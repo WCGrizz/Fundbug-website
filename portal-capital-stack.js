@@ -69,9 +69,17 @@ function csTable(v) {
       <td class="num"><input class="cs-amt" inputmode="numeric" aria-label="${csEsc(l.label)} pending" value="${l.pending_entered ? csMoney(l.pending_entered) : ''}" onchange="csSaveLayer('${l.key}', 'pending', this.value)"></td>
       <td class="num">${l.secured_tracker || l.pending_tracker ? `${csMoney(l.secured_tracker)}${l.pending_tracker ? `<br>${csMoney(l.pending_tracker)} pending` : ''}` : ''}</td>
       <td class="num">${csMoney(l.gap)}${l.planned ? `<br>${csPct(Math.round(100 * l.gap / l.planned))} of planned` : ''}</td></tr>`).join('')}
-    </tbody></table></div>`;
+    </tbody>${csTotalRow(v)}</table></div>`;
 }
 
+// Each column summed (Nov 6 2026, Will: "the columns should show total amounts").
+function csTotalRow(v) {
+  const L = v.layers, sum = f => L.reduce((a, l) => a + (l[f] || 0), 0), t = v.totals;
+  return `<tfoot><tr class="cs-total"><td><b>Total</b></td><td class="num"><b>${csMoney(t.planned)}</b></td><td class="num"><b>${csPct(t.planned_share)}</b></td>
+      <td class="num"><b>${csMoney(sum('secured_entered'))}</b></td><td class="num"><b>${csMoney(sum('pending_entered'))}</b></td>
+      <td class="num"><b>${csMoney(sum('secured_tracker'))}</b>${sum('pending_tracker') ? `<br>${csMoney(sum('pending_tracker'))} pending` : ''}</td>
+      <td class="num"><b>${csMoney(t.gap)}</b></td></tr></tfoot>`;
+}
 function csAwards(v) {
   const rows = v.awards.map(a => ({...a, kind: 'Awarded'})).concat(v.pending.map(a => ({...a, kind: 'Pending'})));
   if (!rows.length) return '<p class="cs-lead">Nothing yet. When you mark a program Awarded in My Tracker with its amount, or Submitted with the amount you asked for, it counts in its layer here.</p>';

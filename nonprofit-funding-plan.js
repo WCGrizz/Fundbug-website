@@ -183,14 +183,39 @@ function fpDraw() {
         <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} secured, entered by you" value="${s.secured_other ? money(s.secured_other) : ''}" onchange="fpSaveSource('${s.key}', 'secured', this.value)"></td>
         <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} restricted, of what you entered" value="${s.restricted_entered ? money(s.restricted_entered) : ''}" placeholder="${s.secured_other ? '$0' : ''}" onchange="fpSaveSource('${s.key}', 'restricted', this.value)"></td>
         <td class="num">${s.key === 'individual' ? money(s.secured_donors) + (s.through_daf ? `<br>of it ${money(s.through_daf)} through donor-advised funds` : '') : s.from_tracker ? money(s.secured_tracker) : ''}</td>
-        <td class="num">${money(s.pending)}${s.pending_unknown ? `<br>and ${s.pending_unknown} with no amount` : ''}</td>
+        <td class="num">${fpPendingCell(s)}</td>
         <td class="num">${money(Math.max(0, s.planned - s.secured))}${s.planned ? `<br>${fpPct(Math.max(0, s.planned - s.secured), s.planned)} of planned` : ''}${FP_MATCH_SOURCES[s.key] && s.planned > s.secured ? `<br><a onclick="fpFindMatches('${s.key}')">${FP_MATCH_SOURCES[s.key]}</a>` : ''}</td></tr>`).join('')}
-      </tbody></table></div>
+      </tbody>${fpTotalRow(v)}</table></div>
       <p class="lead">Foundation, government and corporate awards come from your Tracker: mark one Awarded with its amount. Individual donors come from your donor list below. Enter anything else you have secured yourself, and under Of It Restricted how much of that a funder or donor tied to a purpose.</p>
     </div>`);
   h.push(fpAwardsCard(v));
   h.push(fpDonorsCard());
   document.getElementById('fpBody').innerHTML = h.join('');
+}
+// Pending you enter, and the pending FundBug can attribute (Nov 6 2026, Will: "the user should be able to edit pending
+// directly in the table ... maybe not for the donors, but maybe we should [show] whats pending thats attributed to a
+// source and what isnt"): an input for your own, then the applications in your Tracker and the pledges in your donor
+// list, each said. Individual Donors' pending is its pledges only.
+function fpPendingCell(s) {
+  const parts = [];
+  if (s.pending_tracker) parts.push(`${money(s.pending_tracker)} from applications in your Tracker`);
+  if (s.pending_pledges) parts.push(`${money(s.pending_pledges)} in pledges from your donor list`);
+  if (s.pending_unknown) parts.push(`${s.pending_unknown} application${s.pending_unknown === 1 ? '' : 's'} with no amount`);
+  const input = s.key === 'individual' ? '' :
+    `<input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} pending, entered by you" value="${s.pending_entered ? money(s.pending_entered) : ''}" placeholder="$" onchange="fpSaveSource('${s.key}', 'pending', this.value)">`;
+  if (s.key === 'individual') return parts.length ? parts.map(escHtml).join('<br>') : '$0';
+  const attributed = parts.map(x => `<br>+ ${escHtml(x)}`).join('');
+  const total = (s.pending_entered && parts.length) ? `<br><b>${money(s.pending)} in all</b>` : '';
+  return input + attributed + total;
+}
+// The table's own Total row: each column summed (Nov 6 2026, Will: "the columns should show total amounts").
+function fpTotalRow(v) {
+  const t = v.totals;
+  return `<tfoot><tr class="fp-total"><td><b>Total</b></td><td class="num"><b>${money(t.planned)}</b></td><td class="num"><b>${v.goal ? fpPct(t.planned, v.goal) : ''}</b></td>
+      <td class="num"><b>${money(t.secured_other || 0)}</b></td><td class="num"><b>${money(t.restricted_entered || 0)}</b></td>
+      <td class="num"><b>${money((t.secured_tracker || 0) + (t.secured_donors || 0))}</b></td>
+      <td class="num"><b>${money(t.pending)}</b>${(t.pending_tracker || t.pending_pledges) ? `<br>${money(t.pending_entered || 0)} entered, ${money((t.pending_tracker || 0) + (t.pending_pledges || 0))} from your Tracker and donors` : ''}</td>
+      <td class="num"><b>${money(t.still_to_raise != null ? t.still_to_raise : Math.max(0, t.planned - t.secured))}</b></td></tr></tfoot>`;
 }
 function fpSourceSelect(tid, cur) {
   return `<select class="fp-sel" aria-label="Counts toward" onchange="fpSaveAward('${tid}', {source: this.value})">${['foundation', 'government', 'corporate', 'individual', 'events', 'earned', 'other']

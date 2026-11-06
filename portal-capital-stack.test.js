@@ -22,6 +22,10 @@ const tiles = t.csTiles(view);
 ok(tiles.includes('$20,000,000') && tiles.includes('secured (3%)') && tiles.includes('pending (80%)') && tiles.includes('still to raise (97%)'), 'the tiles give shares of the project');
 const table = t.csTable(view);
 ok(table.indexOf('Owner Equity') < table.indexOf('Senior Debt') && table.includes('$15,000') && table.includes('$10,000 pending'), 'the table lists top to bottom, with the Tracker\'s award and application');
+vm.runInContext('globalThis.tr = csTotalRow;', ctx);
+const tot = ctx.tr(view);
+ok(tot.includes('<b>Total</b>') && tot.includes('<b>$19,500,000</b>') && tot.includes('<b>98%</b>') && tot.includes('<b>$500,000</b>') && tot.includes('<b>$16,000,000</b>')
+   && tot.includes('$10,000 pending') && (tot.match(/<td/g) || []).length === 7 && t.csTable(view).includes('</tbody><tfoot>'), 'the table ends with a Total row, one cell per column');
 ok(t.csAwards(view).includes('PERC CDBG Micro-Loan') && t.csAwards(view).includes('Pending'), 'the Tracker\'s awards and applications can be moved or left out');
 ok(t.csStack({...view, layers: view.layers.map(l => ({...l, shown: 0})), totals: {...view.totals, shown: 0}}).includes('Enter your total project cost'), 'an empty stack says how to start');
 ok(t.csParse('$1,500') === 1500 && t.csParse('') === 0 && Number.isNaN(t.csParse('abc')), 'amounts read as dollars');
