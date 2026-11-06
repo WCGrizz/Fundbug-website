@@ -380,6 +380,13 @@ details.more-group>summary{cursor:pointer;font-size:15px;font-weight:500;color:v
 .dr-terms-text{font-size:15.5px;line-height:1.65;margin:0 0 12px}
 .dr-terms-check{display:flex;gap:10px;align-items:flex-start;font-size:15px;margin:8px 0 20px;cursor:pointer;font-weight:400}
 .modal-actions{display:flex;gap:10px;flex-wrap:wrap}
+.chart-box{max-width:1180px}
+.chart-scroll{overflow-x:auto}
+.hide-why{border:none;padding:0;margin:0 0 16px}
+.hide-why legend{font-size:15px;font-weight:600;margin-bottom:6px;padding:0}
+.hide-why label{display:block;font-size:15px;padding:5px 0;cursor:pointer;font-weight:400}
+.hide-why input[type=radio]{margin-right:8px}
+.hide-why textarea{width:100%;box-sizing:border-box;margin-top:8px;font:15px 'Jost',sans-serif;padding:8px 10px;border:1px solid var(--border);border-radius:6px}
 /* Team (Oct 19 2026): the account's people; a teammate sees the list only, the owner invites and removes */
 body.member .owner-only{display:none}
 body.not-manager .manager-only{display:none}
@@ -717,7 +724,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
         <div class="hero">
           <div class="eyebrow" id="matchesEyebrow">For The Sample Organization</div>
           <h1 id="matchesTitle">Matches</h1>
-          <p id="matchesSub">Every listing this organization can apply to, best fit first.</p>
+          <p id="matchesSub">Every listing that may fit this organization, best fit first. Check each one's eligibility on its own site before you apply.</p>
         </div>
         <div class="toolbar">
           <input id="mSearch" placeholder="Search titles" oninput="drawMatches()">
@@ -984,6 +991,25 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
     <div class="modal-actions">
       <button class="dr-btn" id="tmRemoveGo" onclick="removeTeammate()">Remove</button>
       <button class="dr-btn ghost" onclick="closeRemove()">Cancel</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="chartModal" role="dialog" aria-modal="true" aria-labelledby="chartTitle">
+  <div class="modal-box chart-box">
+    <div class="modal-head"><div class="modal-title" id="chartTitle">Its Latest Grants</div><button class="modal-x" aria-label="Close" onclick="closeChart()">Close ✕</button></div>
+    <div class="chart-scroll" id="chartBody"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="hideModal" role="dialog" aria-modal="true" aria-labelledby="hideTitle">
+  <div class="modal-box">
+    <div class="modal-head"><div class="modal-title" id="hideTitle">Hide From Matches</div><button class="modal-x" aria-label="Close" onclick="closeHide()">Close ✕</button></div>
+    <p class="dr-terms-text" id="hideText"></p>
+    <fieldset class="hide-why"><legend>Why? (Optional)</legend><div id="hideReasons"></div>
+      <textarea id="hideNote" maxlength="250" rows="2" placeholder="Anything else you'd like us to know"></textarea></fieldset>
+    <div class="err" id="hideErr"></div>
+    <div class="modal-actions">
+      <button class="dr-btn" id="hideGo" onclick="confirmHide()">Hide It</button>
+      <button class="dr-btn ghost" onclick="closeHide()">Cancel</button>
     </div>
   </div>
 </div>
@@ -1678,7 +1704,8 @@ async function runMatches(stay) {
       RESULT = {shown: r.items, left_out: [], counts: {listings: r.counts.listings, shown: r.counts.fit, left_out: r.counts.listings - r.counts.fit}};
     } catch (e) { document.getElementById('mSummary').textContent = 'Could not match: ' + e.message; return; }
     shownCount = PAGE_SIZE;
-    document.getElementById('matchesSub').textContent = 'Every funder and program in FundBug: the ones that fit your organization first, best fit first.';
+    // Says to check eligibility, as the digest's New Matches does (Nov 6 2026, Katie Meehan and Will).
+    document.getElementById('matchesSub').textContent = 'Every funder and program in FundBug: the ones that fit your organization first, best fit first. ' + CHECK_ELIGIBILITY;
     NEW_IDS = newMatchesThisVisit(RESULT.shown.filter(m => m.fits !== false && !m.not_for_you).map(m => m.id));
     drawMatches();
     drawStrip();
@@ -1699,8 +1726,8 @@ async function runMatches(stay) {
   shownCount = PAGE_SIZE;
   const loc = RESULT.located || {};
   document.getElementById('matchesSub').textContent = loc.city
-    ? `${withArticle(orgLabel(p.org_type))} in ${loc.city}, ${loc.state}: every listing ${p.org_type === 'individual' ? 'they' : 'it'} can apply to, best fit first.`
-    : 'Every listing this organization can apply to, best fit first.';
+    ? `${withArticle(orgLabel(p.org_type))} in ${loc.city}, ${loc.state}: every listing that may fit ${p.org_type === 'individual' ? 'them' : 'it'}, best fit first. ` + CHECK_ELIGIBILITY
+    : 'Every listing that may fit this organization, best fit first. ' + CHECK_ELIGIBILITY;
   drawMatches();
   drawLeftOut();
 }
@@ -1878,7 +1905,7 @@ async function openListing(id) {
   out.push(`<div class="badges"><span class="badge ${L.kind === 'funder' ? 'funder' : 'opp'}">${L.kind === 'funder' ? 'Funder' : 'Opportunity'}</span>${L.reviewed ? '' : '<span class="badge pending">Not Reviewed Yet</span>'}</div>`);
   if (MODE === 'account') {
     const saved = ((RESULT && RESULT.shown) || []).some(m => m.id === id && m.saved);
-    out.push(`<div class="m-actions" style="justify-content:flex-start;margin:4px 0 12px"><button class="btn sm ${saved ? 'saved' : ''}" id="pSave" onclick="saveListing('${id}')">${saved ? 'Saved ✓' : 'Save To Tracker'}</button><button class="btn ghost sm" onclick="prepListing('${id}', this)">Prep Application</button><button class="btn ghost sm" onclick="hideListing('${id}'); closePanel()">Hide From Matches</button></div>`);
+    out.push(`<div class="m-actions" style="justify-content:flex-start;margin:4px 0 12px"><button class="btn sm ${saved ? 'saved' : ''}" id="pSave" onclick="saveListing('${id}')">${saved ? 'Saved ✓' : 'Save To Tracker'}</button><button class="btn ghost sm" onclick="prepListing('${id}', this)">Prep Application</button><button class="btn ghost sm" onclick="hideListing('${id}', true)">Hide From Matches</button></div>`);
   }
   // A foundation whose only page is its tax filing on ProPublica (Oct 14 2026, Will: a brief banner); its filing's
   // contact and instructions are below. Nov 5 2026, Will: no word about a website at all ("the references to no
@@ -2213,35 +2240,51 @@ async function loadGrantPoints(id) {
   try { r = await apiFetch(url); } catch (e) { const el = document.getElementById('gpScatterLine'); if (el) el.style.display = 'none'; return; }
   const el = document.getElementById('gpScatter');
   if (!el || GP.id !== id) return;
-  el.outerHTML = grantScatter(r);
+  GP.points = r;
+  el.outerHTML = grantScatter(r) + ((r.points || []).filter(p => p.amount > 0).length >= 3
+    ? '<p><button type="button" class="btn ghost sm" onclick="enlargeScatter()">Enlarge Chart</button></p>' : '');
 }
-function grantScatter(r) {
+// Enlarge Chart (Nov 6 2026, Will: "a button which expands the scattergraph, so each grant is more easily visible"):
+// the same chart, wider and with taller rows so the dots spread apart, in a dialog that closes with its button only.
+// On a phone the chart keeps its width and scrolls sideways inside the dialog.
+function enlargeScatter() {
+  if (!GP.points) return;
+  document.getElementById('chartBody').innerHTML = grantScatter(GP.points, true);
+  document.getElementById('chartModal').classList.add('open');
+}
+function closeChart() { document.getElementById('chartModal').classList.remove('open'); }
+function grantScatter(r, big) {
   const pts = (r.points || []).filter(p => p.amount > 0);
   if (pts.length < 3) return '<p>Too few grants in its latest filing to chart.</p>';
-  const W = 640, H = r.known ? 230 : 150, L = 12, R = 12, lo = Math.min(...pts.map(p => p.amount)), hi = Math.max(...pts.map(p => p.amount));
+  const lane = big ? (r.known ? 190 : 230) : (r.known ? 70 : 80);          // each row's height
+  const fs = big ? 20 : 16, dot = big ? 6 : 5, ringed = big ? 8.5 : 7;    // drawn at 900px or more when enlarged: text stays 16px or more
+  const W = big ? 1100 : 640, H = r.known ? 2 * lane + 90 : lane + 70, L = 12, R = 12, lo = Math.min(...pts.map(p => p.amount)), hi = Math.max(...pts.map(p => p.amount));
   const a = Math.log10(Math.max(1, lo * 0.8)), b = Math.log10(hi * 1.25), x = v => L + (W - L - R) * (Math.log10(v) - a) / ((b - a) || 1);
-  const lanes = r.known ? [['first', true, 'First-time grantees', 'var(--green-lt)', 22, 92], ['repeat', false, 'Repeat grantees', 'var(--green-dk)', 112, 182]]
-                        : [['all', null, 'Grants', 'var(--green-dk)', 22, 102]];
+  const lanes = r.known ? [['first', true, 'First-time grantees', 'var(--green-lt)', 22, 22 + lane], ['repeat', false, 'Repeat grantees', 'var(--green-dk)', 42 + lane, 42 + 2 * lane]]
+                        : [['all', null, 'Grants', 'var(--green-dk)', 22, 22 + lane]];
   // A ring marks a grant in your county, unless most of its grants are (a ring on nearly every dot says nothing).
   const nHere = pts.filter(p => p.here).length, ring = nHere > 0 && nHere <= pts.length * 0.6;
   const seed = s => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return (h % 1000) / 1000; };
   // The median as the funder page's tiles give it (Python statistics.median): an even count averages the two middle
   // grants (Nov 5 2026: the scatter took the upper one, so it could differ from the tile).
   const med = v => { const s = v.slice().sort((p, q) => p - q), m = Math.floor(s.length / 2); return !s.length ? 0 : s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2); };
-  const out = [`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Its latest grants by size" style="width:100%;height:auto;display:block">`];
+  const out = [`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Its latest grants by size" style="width:100%;height:auto;display:block${big ? ';min-width:900px' : ''}">`];
   const ticks = [100, 1000, 5000, 10000, 25000, 50000, 100000, 250000, 1e6, 5e6, 1e7].filter(t => t >= lo * 0.8 && t <= hi * 1.25);
   const axisY = H - 22;
   out.push(`<line x1="${L}" x2="${W - R}" y1="${axisY}" y2="${axisY}" style="stroke:var(--border)"></line>`);
   for (const t of ticks) out.push(`<line x1="${x(t)}" x2="${x(t)}" y1="12" y2="${axisY}" style="stroke:var(--border);stroke-dasharray:2 4"></line>`,
-    `<text x="${x(t)}" y="${H - 6}" text-anchor="middle" style="font:16px Jost,sans-serif;fill:var(--ink)">${escHtml(shortMoney(t))}</text>`);
+    `<text x="${x(t)}" y="${H - 6}" text-anchor="middle" style="font:${fs}px Jost,sans-serif;fill:var(--ink)">${escHtml(shortMoney(t))}</text>`);
   const notes = [];
   for (const [key, flag, label, color, top, bot] of lanes) {
     const mine = pts.filter(p => flag === null || p.first === flag);
-    out.push(`<text x="${L}" y="${top + 2}" style="font:500 16px Jost,sans-serif;fill:var(--ink)">${escHtml(label)} (${mine.length})</text>`);
-    for (const p of mine) {
+    out.push(`<text x="${L}" y="${top + 2}" style="font:500 ${fs}px Jost,sans-serif;fill:var(--ink)">${escHtml(label)} (${mine.length})</text>`);
+    // A grant in your county is drawn last, larger and with a heavier ring, so no other dot covers it (Nov 6 2026,
+    // Katie Meehan: "one of the black ringed dots was hidden behind a cluster of other dots").
+    const mark = p => p.here && ring;
+    for (const p of mine.filter(p => !mark(p)).concat(mine.filter(mark))) {
       const cy = top + 14 + (bot - top - 20) * seed(p.name + p.amount);
       const tip = `${titleCase(p.name)}${p.city ? ', ' + titleCase(p.city) : ''}: ${money(p.amount)}`;
-      out.push(`<circle data-tip="${escHtml(tip)}" cx="${x(p.amount).toFixed(1)}" cy="${cy.toFixed(1)}" r="5" style="fill:${color};fill-opacity:.8;${p.here && ring ? 'stroke:var(--ink);stroke-width:1.6' : 'stroke:var(--white);stroke-width:.8'}"><title>${escHtml(titleCase(p.name))}${p.city ? ', ' + escHtml(titleCase(p.city)) : ''}: ${money(p.amount)}</title></circle>`);
+      out.push(`<circle data-tip="${escHtml(tip)}" cx="${x(p.amount).toFixed(1)}" cy="${cy.toFixed(1)}" r="${mark(p) ? ringed : dot}" style="fill:${color};${mark(p) ? 'fill-opacity:1;stroke:var(--ink);stroke-width:2.5' : 'fill-opacity:.8;stroke:var(--white);stroke-width:.8'}"><title>${escHtml(titleCase(p.name))}${p.city ? ', ' + escHtml(titleCase(p.city)) : ''}: ${money(p.amount)}</title></circle>`);
     }
     if (mine.length) {
       const m = med(mine.map(p => p.amount));
@@ -2293,13 +2336,39 @@ async function saveListing(id) {
     TRACKER = null;
   } catch (e) { alertLine('Could not save: ' + e.message); }
 }
-async function hideListing(id) {
+const CHECK_ELIGIBILITY = "Check each one's eligibility on its own site before you apply.";
+// Hide asks why, as the digest's Not A Fit page does (Nov 6 2026: Katie Meehan noted a newcomer might not check
+// eligibility; Will: both ideas). The same reasons as feedback.html, kept in the organization's own words.
+const HIDE_REASONS = ['Looked At It Before', 'Not Eligible', 'Not Our Focus', "Grant Size Doesn't Fit", 'Deadline Too Soon', 'Something Else'];
+let HIDING = null;
+function hideListing(id, fromPanel) {
+  HIDING = {id, fromPanel: !!fromPanel};
+  const m = ((RESULT && RESULT.shown) || []).find(x => x.id === id);
+  document.getElementById('hideText').textContent = (m && m.title ? m.title + ' w' : 'W') + "on't show in your Matches or your digests again.";
+  document.getElementById('hideReasons').innerHTML = HIDE_REASONS.map(r =>
+    `<label><input type="radio" name="hideReason" value="${escHtml(r)}">${escHtml(r)}</label>`).join('');
+  document.getElementById('hideNote').value = '';
+  document.getElementById('hideErr').textContent = '';
+  document.getElementById('hideGo').disabled = false;
+  document.getElementById('hideModal').classList.add('open');
+}
+function closeHide() { HIDING = null; document.getElementById('hideModal').classList.remove('open'); }
+function hideReason() {
+  const picked = document.querySelector('input[name="hideReason"]:checked');
+  return [picked ? picked.value : '', document.getElementById('hideNote').value.trim()].filter(Boolean).join(': ') || null;
+}
+async function confirmHide() {
+  if (!HIDING) return;
+  const {id, fromPanel} = HIDING, go = document.getElementById('hideGo');
+  go.disabled = true;
   try {
-    await apiFetch('/api/nonprofit/tracker/hide', 'POST', {group_id: id});
-    if (RESULT) { RESULT.shown = RESULT.shown.filter(x => x.id !== id); RESULT.counts.shown = RESULT.shown.length; }
-    drawMatches();
-    TRACKER = null;
-  } catch (e) { alertLine('Could not hide: ' + e.message); }
+    await apiFetch('/api/nonprofit/tracker/hide', 'POST', {group_id: id, reason: hideReason()});
+  } catch (e) { document.getElementById('hideErr').textContent = 'Could not hide: ' + e.message; go.disabled = false; return; }
+  closeHide();
+  if (fromPanel) closePanel();
+  if (RESULT) { RESULT.shown = RESULT.shown.filter(x => x.id !== id); RESULT.counts.shown = RESULT.shown.length; }
+  drawMatches();
+  TRACKER = null;
 }
 function alertLine(msg) { document.getElementById('mSummary').textContent = msg; }
 async function loadTracker() {
