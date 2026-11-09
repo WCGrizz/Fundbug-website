@@ -12,8 +12,8 @@ const w = dom.window;
 w.eval([grab(/function escHtml\([\s\S]*?\n\}/), grab(/function money\(n\).*/), grab(/const shortMoney = .*/),
         "let VIEWER = 'me'; function viewerKey() { return VIEWER; } window.setViewer = v => { VIEWER = v; };",
         grab(/function homePlanHtml\(plan\) \{[\s\S]*?\n\}/), grab(/function initFitsOnly\(\) \{[\s\S]*?\n\}/),
-        grab(/function rememberFitsOnly\(\) \{[\s\S]*?\n\}/), grab(/function tierLine\(g\) \{[\s\S]*?\n\}/),
-        'window.t = {homePlanHtml, initFitsOnly, rememberFitsOnly, tierLine};'].join('\n'));
+        grab(/function rememberFitsOnly\(\) \{[\s\S]*?\n\}/), grab(/function tierLine\(g\) \{[\s\S]*?\n\}/), grab(/function librarySummary\([\s\S]*?\n\}/),
+        'window.t = {homePlanHtml, initFitsOnly, rememberFitsOnly, tierLine, librarySummary};'].join('\n'));
 const t = w.t;
 
 // Home's Funding Plan card
@@ -47,5 +47,12 @@ ok(t.tierLine(null) === '' && t.tierLine({}) === '', 'nothing for a listing with
 ok(/\$\{m\.relationship \? '<span class="badge">Relationship Funder<\/span>' : ''\}/.test(html) && /\$\{tierLine\(m\.giving\)\}/.test(html),
    'the card shows the Relationship Funder badge and the tier line');
 ok(/<a data-page="home" class="acct-only" onclick="showPage\('home'\)">Home<\/a>\s+<a data-page="profile"/.test(html), 'Home comes first in the sidebar');
+
+// The Library's count line
+const c = {listings: 1209, shown: 199};
+ok(t.librarySummary('account', c, 199, 257, 1209, 456) === '1,209 funders and programs in the library; 199 fit your organization. 257 more are under Probably Not For You.',
+   'Fits Only: the fits, and the ones under Probably Not For You named apart, never a larger "showing" count');
+ok(t.librarySummary('account', c, 12, 3, 1209, 15).includes('Showing 12 with these filters. 3 more are under Probably Not For You.'), 'a narrower filter says what it shows');
+ok(t.librarySummary('account', c, 199, 0, 1209, 199) === '1,209 funders and programs in the library; 199 fit your organization.', 'nothing else when nothing differs');
 
 process.exit(fails ? 1 : 0);

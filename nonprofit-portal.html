@@ -1827,19 +1827,26 @@ function matchCard(m) {
     ${m.description ? `<div class="desc">${escHtml(sentenceCut(m.description, 360))}</div>` : ''}
   </div>`;
 }
+// The Library's count line (Nov 9 2026: with Fits Only on by default it said "199 fit your organization. Showing 456 with
+// these filters.", the 456 counting the 257 already listed apart under Probably Not For You).
+function librarySummary(mode, c, mainCount, nfyCount, allCount, listCount) {
+  if (mode !== 'account')
+    return `${c.shown.toLocaleString()} of ${c.listings.toLocaleString()} listings fit; ${c.left_out.toLocaleString()} left out (see Left Out).` +
+      (listCount !== allCount ? ` Showing ${listCount.toLocaleString()} with these filters.` : '');
+  return `${c.listings.toLocaleString()} funders and programs in the library; ${c.shown.toLocaleString()} fit your organization.` +
+    (mainCount !== c.shown ? ` Showing ${mainCount.toLocaleString()} with these filters.` : '') +
+    (nfyCount ? ` ${nfyCount.toLocaleString()} more are under Probably Not For You.` : '');
+}
 function drawMatches() {
   if (!RESULT) return;
   const list = filtered();
   const c = RESULT.counts;
   document.getElementById('mNewBar').innerHTML = NEW_ONLY
     ? `<div class="no-site">Showing the ${NEW_ONLY.size.toLocaleString()} new since your last visit. <button class="btn ghost sm" onclick="showAllMatches()">Show Everything</button></div>` : '';
-  document.getElementById('mSummary').textContent =
-    (MODE === 'account' ? `${c.listings.toLocaleString()} funders and programs in the library; ${c.shown.toLocaleString()} fit your organization.`
-      : `${c.shown.toLocaleString()} of ${c.listings.toLocaleString()} listings fit; ${c.left_out.toLocaleString()} left out (see Left Out).`) +
-    (list.length !== RESULT.shown.length ? ` Showing ${list.length.toLocaleString()} with these filters.` : '');
   // Probably Not For You (Will, Oct 5 2026): the fit judge's "no" listings,
   // in a collapsed list after the rest, never hidden.
   const main = list.filter(m => !m.not_for_you), nfy = list.filter(m => m.not_for_you);
+  document.getElementById('mSummary').textContent = librarySummary(MODE, c, main.length, nfy.length, RESULT.shown.length, list.length);
   const again = comingAgain(RESULT.shown);
   document.getElementById('mList').innerHTML = (main.slice(0, shownCount).map(matchCard).join('') ||
     '<div class="empty">Nothing fits these filters.</div>') +
