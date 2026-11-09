@@ -118,6 +118,7 @@ details.nfy summary{font-size:15px;font-weight:600;color:var(--green-dk);cursor:
 .facts{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14.5px;margin:4px 0}
 .facts b{font-weight:500}
 .why{font-size:14.5px;color:var(--ink);margin-top:6px}
+.tier-line{font-size:14.5px;color:var(--ink);margin-top:6px}
 .why li{margin-left:18px}
 .desc{font-size:15px;margin-top:6px}
 .empty{font-size:15px;padding:20px 0}
@@ -492,6 +493,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
   </nav>
   <div class="wrap">
     <div class="sidebar">
+      <a data-page="home" class="acct-only" onclick="showPage('home')">Home</a>
       <a data-page="profile" onclick="showPage('profile')">Organization Profile</a>
       <a data-page="matches" id="navMatches" onclick="showPage('matches')">Matches</a>
       <a data-page="tracker" class="acct-only" onclick="showPage('tracker'); loadTracker()">Tracker</a>
@@ -505,6 +507,24 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
     </div>
     <div class="main">
 
+      <!-- Home (Nov 9 2026, Will: "Yes", and the portal opens here): the trial banner, Getting Started and the strip moved
+           from the Organization Profile, and where this year's funding stands -->
+      <div class="page" id="page-home">
+        <div class="hero">
+          <div class="eyebrow">Your Organization</div>
+          <h1>Home</h1>
+          <p>What is new since your last visit, what is coming up, and where this year's funding stands.</p>
+        </div>
+        <!-- Getting started (Nov 2 2026): four first steps, each ticked as it is done; hidden when all are, or by its button -->
+        <div class="trial-banner acct-only" id="trialCard" role="status" hidden></div>
+        <div class="card acct-only" id="gsCard" hidden></div>
+        <div class="pf-strip acct-only" id="pfStrip" hidden>
+          <div class="pf-tile" id="pfNew"></div>
+          <div class="pf-tile" id="pfDue"></div>
+        </div>
+        <div class="card acct-only" id="homePlan" hidden></div>
+      </div>
+
       <div class="page" id="page-profile">
         <div class="hero">
           <div class="eyebrow" id="profEyebrow">Sample Organization</div>
@@ -512,9 +532,6 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <p id="profSub">Fill this in as an organization would at signup. Matches shows what it would see; nothing here is saved anywhere but this browser.</p>
         </div>
 
-        <!-- Getting started (Nov 2 2026): four first steps, each ticked as it is done; hidden when all are, or by its button -->
-        <div class="trial-banner acct-only" id="trialCard" role="status" hidden></div>
-        <div class="card acct-only" id="gsCard" hidden></div>
 
         <!-- The meter and the strip (Oct 19 2026): what to add next, new matches since the last visit, what is due -->
         <div class="card acct-only" id="pfMeterCard">
@@ -525,10 +542,6 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
             <div class="dr-meter-note" id="pfMeterNote">Loading…</div>
           </div>
           <div class="pf-strength" id="pfStrength" hidden></div>
-        </div>
-        <div class="pf-strip acct-only" id="pfStrip" hidden>
-          <div class="pf-tile" id="pfNew"></div>
-          <div class="pf-tile" id="pfDue"></div>
         </div>
 
         <div class="card acct-only">
@@ -731,7 +744,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <input id="mSearch" placeholder="Search titles" oninput="drawMatches()">
           <select id="mKind" onchange="drawMatches()"><option value="">Funders And Opportunities</option><option value="funder">Funders</option><option value="opportunity">Opportunities</option></select>
           <select id="mSource" class="acct-only" onchange="drawMatches()" aria-label="Source"><option value="">Any Source</option><option value="foundation">Foundations</option><option value="government">Government</option><option value="corporate">Corporate</option></select>
-          <label class="chk acct-only" style="margin:0"><input type="checkbox" id="mFits" onchange="drawMatches()"> Fits Only</label>
+          <label class="chk acct-only" style="margin:0"><input type="checkbox" id="mFits" onchange="rememberFitsOnly(); drawMatches()"> Fits Only</label>
           <select id="mReviewed" class="preview-only" onchange="drawMatches()"><option value="">Reviewed Or Not</option><option value="yes">Reviewed Only</option><option value="no">Not Reviewed Yet</option></select>
         </div>
         <div id="mNewBar"></div>
@@ -1280,12 +1293,14 @@ async function openAccount() {
   setRole(ACCOUNT.you);
   drawProfileForm();
   fillProfile(accountToForm(ACCOUNT));
-  // The portal opens on the Organization Profile (Will, Oct 19 2026); #answers or #prep/<id> opens that page at once
-  // (nonprofit-drafting.js), and #listing=, #save= and #tracker are carried out once the Library is loaded.
+  // The portal opens on Home (Will, Nov 9 2026; the Organization Profile before); #answers or #prep/<id> opens that page
+  // at once (nonprofit-drafting.js), and #listing=, #save= and #tracker are carried out once the Library is loaded.
   const routed = routeDrafting();
-  if (!routed) showPage('profile');
+  if (!routed) showPage('home');
   loadProfileMeter();
   loadStripTracker();
+  loadHomePlan();
+  initFitsOnly();
   await runMatches(true);
   followDigestLink();
 }
@@ -1323,7 +1338,7 @@ function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + id));
   document.querySelectorAll('.sidebar a').forEach(a => a.classList.toggle('active', a.dataset.page === id));
   window.scrollTo(0, 0);
-  if (id === 'profile' && MODE === 'account' && !TRACKER) loadStripTracker();
+  if ((id === 'home' || id === 'profile') && MODE === 'account' && !TRACKER) loadStripTracker();
 }
 
 // ── profile form ────────────────────────────────────────────────────────
@@ -1652,6 +1667,38 @@ async function loadProfileMeter() {
   loadChecklist();
   loadStrength();
 }
+// Home's Funding Plan card (Nov 9 2026, Will: yes): secured of the goal, what is left to raise, and the source furthest
+// behind its plan, linked to the plan's funders that could close it. Nothing shown when the plan cannot be read.
+function homePlanHtml(plan) {
+  if (!plan) return '';
+  if (!(plan.saved && plan.goal)) return `<h2>Your Funding Plan</h2><p>No goal set for this year yet. <a onclick="openFundingPlan()">Set This Year's Goal</a></p>`;
+  const t = plan.totals || {}, goal = plan.goal, secured = t.secured || 0, pending = t.pending || 0;
+  const left = Math.max(goal - secured - pending, 0);
+  const behind = (plan.sources || []).map(s => ({label: s.label, gap: (s.planned || 0) - (s.secured || 0) - (s.pending || 0)}))
+    .filter(s => s.gap > 0).sort((a, b) => b.gap - a.gap)[0];
+  return `<h2>Your Funding Plan</h2><p><b>${escHtml(money(secured))}</b> secured of your ${escHtml(money(goal))} goal (${Math.round(100 * secured / goal)}%)` +
+    `${pending ? `, ${escHtml(money(pending))} pending` : ''}. ${left ? `${escHtml(money(left))} still to raise.` : 'Your goal is covered.'}</p>` +
+    (behind ? `<p>Furthest behind its plan: ${escHtml(behind.label)}, ${escHtml(money(behind.gap))} still to find. <a onclick="openFundingPlan()">See The Funders That Could Close It</a></p>` : '') +
+    `<p><a onclick="openFundingPlan()">Open Your Funding Plan</a></p>`;
+}
+async function loadHomePlan() {
+  if (MODE !== 'account') return;
+  const box = document.getElementById('homePlan');
+  let plan = null;
+  try { plan = await apiFetch('/api/nonprofit/funding-plan'); } catch (e) { box.hidden = true; return; }
+  box.innerHTML = homePlanHtml(plan);
+  box.hidden = !box.innerHTML;
+}
+// Fits Only on by default (Nov 9 2026, Will: yes: the Library opened on all 1,209 listings when 185 fit); each viewer's
+// own choice is kept in this browser.
+function initFitsOnly() {
+  let v = null;
+  try { v = localStorage.getItem('fb_np_fits_' + viewerKey()); } catch (e) {}
+  document.getElementById('mFits').checked = v !== '0';
+}
+function rememberFitsOnly() {
+  try { localStorage.setItem('fb_np_fits_' + viewerKey(), document.getElementById('mFits').checked ? '1' : '0'); } catch (e) {}
+}
 async function loadStripTracker() {
   if (MODE !== 'account') return;
   try { TRACKER = await apiFetch('/api/nonprofit/tracker'); } catch (e) { TRACKER = null; }
@@ -1744,6 +1791,14 @@ function filtered() {
     && (!kind || m.kind === kind) && (!src || m.source === src) && (!rev || (rev === 'yes') === m.reviewed) && (!fitsOnly || m.fits !== false));
 }
 const MODES = {open_call: 'Open call', loi: 'Letter of inquiry first', rolling: 'Rolling', invitation_only: 'By invitation'};
+// A Funder's giving tier where the organization is (Nov 9 2026, Will: yes to the wording, np_api.giving_line):
+// "A Major Funder In Berkshire County (147 grants, $6.27M, 2024)".
+function tierLine(g) {
+  if (!g || !g.label) return '';
+  const bits = [g.grants ? `${Number(g.grants).toLocaleString()} grant${g.grants === 1 ? '' : 's'}` : '',
+                g.dollars ? shortMoney(g.dollars) : '', g.year ? String(g.year) : ''].filter(Boolean);
+  return `<div class="tier-line"><b>${escHtml(g.label)}</b>${bits.length ? ` (${escHtml(bits.join(', '))})` : ''}</div>`;
+}
 function matchCard(m) {
   const facts = [];
   // Rounded as the digest rounds it (Oct 19 2026): $32,856 is $33,000.
@@ -1761,8 +1816,10 @@ function matchCard(m) {
         ${m.in_digest ? '<span class="badge digest">In Your Digest</span>' : ''}
         ${m.fits === false ? '<span class="badge pending">May Not Fit</span>' : ''}
         ${m.verdict === 'strong' ? '<span class="badge strong">Strong Fit</span>' : ''}
+        ${m.relationship ? '<span class="badge">Relationship Funder</span>' : ''}
         ${m.provided_by ? `<span class="badge">From ${escHtml(m.provided_by)}</span>` : ''}</div>
     </div><div class="m-actions">${MODE === 'account' ? `<button class="btn sm ${m.saved ? 'saved' : ''}" onclick="saveListing('${m.id}')">${m.saved ? 'Saved ✓' : 'Save'}</button><button class="btn ghost sm" onclick="prepListing('${m.id}', this)">Prep Application</button><button class="btn ghost sm" onclick="hideListing('${m.id}')">Hide</button>` : ''}<button class="btn ghost sm" onclick="openListing('${m.id}')">Open</button></div></div>
+    ${tierLine(m.giving)}
     <div class="facts">${facts.join('')}</div>
     ${m.why && m.why.length ? '<ul class="why">' + m.why.map(w => `<li>${escHtml(w)}</li>`).join('') + '</ul>' : ''}
     ${m.verdict_reason ? `<div class="fit-read"><b>${m.verdict === 'no' ? 'Why It May Not Fit' : 'Why It May Fit'}:</b> ${escHtml(toSecondPerson(m.verdict_reason))}</div>` : ''}
@@ -2732,7 +2789,7 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 </script>
 <script src="/nonprofit-drafting.js?v=2026-10-28"></script>
 <script src="/nonprofit-landscape.js?v=2026-11-02"></script>
-<script src="/nonprofit-funding-plan.js?v=2026-11-06d"></script>
+<script src="/nonprofit-funding-plan.js?v=2026-11-09a"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
 </body>
 </html>

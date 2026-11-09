@@ -8,7 +8,7 @@ const ctx = {};
 vm.createContext(ctx);
 vm.runInContext([grab(/const MONTH_NAMES = .*/), grab(/function escHtml\([\s\S]*?\n\}/), 'const MODE = "account"; const MODES = {};',
   'function typicalText() { return ""; } function toSecondPerson(x) { return x; } function sentenceCut(x) { return x; }',
-  grab(/function matchCard\(m\) \{[\s\S]*?\n\}/), grab(/function comingAgain\(items\)[\s\S]*?\nfunction comingAgainHtml[\s\S]*?\n\}/),
+  grab(/function tierLine\(g\) \{[\s\S]*?\n\}/), grab(/function matchCard\(m\) \{[\s\S]*?\n\}/), grab(/function comingAgain\(items\)[\s\S]*?\nfunction comingAgainHtml[\s\S]*?\n\}/),
   'globalThis.t = {comingAgain, againLine, comingAgainHtml};'].join('\n'), ctx);
 const { comingAgain, againLine, comingAgainHtml } = ctx.t;
 const items = [{id: 'a', title: 'Fits', fits: true}, {id: 'b', title: 'Closed Yearly', fits: false, why_not: 'deadline passed (2026-10-01)', coming_again: {last_deadline: '2026-10-01', next_open: null}},

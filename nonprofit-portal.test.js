@@ -72,7 +72,9 @@ eq(t.dueSoon(TR, LIB, '2026-10-19').map(d => [d.where, d.title, d.what, d.days])
    [['tracker', 'Overdue Call', 'follow_up', -18], ['tracker', 'Call Back', 'follow_up', 6], ['tracker', 'Soon Fund', 'deadline', 12], ['library', 'Open Call', 'deadline', 22]],
    'Tracker deadlines and follow-ups, then fitting Library opportunities, soonest first; none passed, far off, unfit or already tracked');
 eq(t.daysUntil('2026-11-18', '2026-10-19'), 30, 'days are counted by date');
-ok(/if \(!routed\) showPage\('profile'\);/.test(html) && /showPage\('profile'\);\s+\/\/ the profile first/.test(html), 'an account and the preview both open on the Organization Profile');
+ok(/if \(!routed\) showPage\('home'\);/.test(html) && /showPage\('profile'\);\s+\/\/ the profile first/.test(html), 'an account opens on Home (Nov 9 2026), the preview on the Organization Profile');
+ok(/<div class="page" id="page-home">[\s\S]*?id="trialCard"[\s\S]*?id="gsCard"[\s\S]*?id="pfStrip"[\s\S]*?id="homePlan"[\s\S]*?<div class="page" id="page-profile">/.test(html),
+   'Home holds the trial banner, Getting Started, the strip and the Funding Plan card, before the profile page');
 ok(/<div class="card acct-only" id="pfMeterCard">/.test(html) && /renderMeter\(PROFILE_METER, 'pf'\)/.test(html) && /function renderMeter\(p, prefix\)/.test(drafting),
    'the profile carries the drafting meter, fed by the same reply');
 
