@@ -240,13 +240,13 @@
         '<div id="vResendMsg" style="font-size:13px;color:#5a9e52;margin-top:10px;line-height:1.5;"></div>' +
         '<div id="vResendErr" style="font-size:13px;color:#c44b2a;margin-top:10px;"></div>' +
       '</div>';
-    tip.textContent      = 'Already verified? Sign in at fundbug.net/portal — questions: hello@fundbug.net.';
+    tip.textContent      = 'Already verified? Sign in at fundbug.net/portal — questions: will@fundbug.net.';
   } else if (status === 'error') {
     icon.textContent     = '⚠';
     headline.textContent = 'Something went wrong.';
     subtext.textContent  = 'We weren\'t able to verify your email. Please try again or contact us.';
-    actions.innerHTML    = '<a href="mailto:hello@fundbug.net" class="btn">Contact us</a>';
-    tip.textContent      = 'hello@fundbug.net — we\'ll get it sorted.';
+    actions.innerHTML    = '<a href="mailto:will@fundbug.net" class="btn">Contact us</a>';
+    tip.textContent      = 'will@fundbug.net — we\'ll get it sorted.';
   } else {
     icon.textContent     = '✓';
     headline.textContent = 'Thanks for verifying.';

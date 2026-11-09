@@ -1945,7 +1945,7 @@ function showApp() {
 // text ("Failed to update profile", "API error") never reaches the screen.
 // 4xx replies keep their detail because those are things they CAN act on
 // ("Invalid status", "Name cannot be empty"). (2026-09-17)
-const FRIENDLY_DOWN = "Something went wrong on our end. Please try again in a few minutes; if it keeps happening, email hello@fundbug.net.";
+const FRIENDLY_DOWN = "Something went wrong on our end. Please try again in a few minutes; if it keeps happening, email will@fundbug.net.";
 const FRIENDLY_4XX  = "That didn't go through. Please check what you entered and try again.";
 
 async function apiFetch(path, method='GET', body=null) {
