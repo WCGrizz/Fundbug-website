@@ -11,9 +11,13 @@ const grab = re => { const m = html.match(re); if (!m) throw new Error('not foun
 const ctx = {};
 vm.createContext(ctx);
 vm.runInContext([grab(/function escHtml\([\s\S]*?\n\}/), grab(/function money\(n\).*/), grab(/const shortMoney = .*/), grab(/const MONTH_NAMES = .*/),
-                 js, 'globalThis.t = {fpStack, fpYearLabel, fpParse, fpParseCsv, fpGuessColumns, fpDate, fpRowsFrom, fpDownloadText, fpTotalsLine};',
+                 js, 'globalThis.t = {fpCountyName, fpStack, fpYearLabel, fpParse, fpParseCsv, fpGuessColumns, fpDate, fpRowsFrom, fpDownloadText, fpTotalsLine};',
                  'globalThis.setFP = v => { FP = v; }; globalThis.sent = []; fpSave = c => { sent.push(c); };', 'globalThis.fpSaveAward = fpSaveAward;'].join('\n'), ctx);
 const t = ctx.t;
+
+// "Berkshire County" stored with the word is not doubled (Nov 9 2026: "organizations in Berkshire County County")
+eq([t.fpCountyName('Berkshire County'), t.fpCountyName('Berkshire'), t.fpCountyName('berkshire county'), t.fpCountyName('')],
+   ['Berkshire County', 'Berkshire County', 'berkshire county', 'your county'], 'a county name gets "County" once');
 const src = (key, label, planned, secured, pending, extra) => ({key, label, planned, secured, pending, shown: Math.max(planned, secured + pending),
   secured_other: 0, secured_tracker: 0, secured_donors: 0, pending_unknown: 0, from_tracker: false, ...extra});
 const view = {fiscal_year: 2027, end_month: 6, goal: 500000, sources: [src('earned', 'Earned Revenue', 0, 0, 0), src('government', 'Government Grants', 100000, 25000, 30000),

@@ -10,6 +10,13 @@ let FP = null, FP_DONORS = null, FP_MSG = '', FP_DQ = '', FP_IMPORT = null, FP_G
 const FP_COLORS = {earned: '#7ab870', government: '#2f5d7c', foundation: '#3d7a38', corporate: '#7a5c99',
                    individual: '#a8643a', events: '#b8901c', other: '#8a8577'};
 
+// "Berkshire" and "Berkshire County" both read "Berkshire County" (Nov 9 2026: the donor section said "Berkshire County
+// County" for an organization whose county is stored with the word).
+function fpCountyName(county) {
+  const c = String(county || '').trim();
+  if (!c) return 'your county';
+  return /\bcounty$/i.test(c) ? c : c + ' County';
+}
 async function openFundingPlan() {
   showPage('plan');
   await fpLoad(FP ? FP.fiscal_year : null);
@@ -48,7 +55,7 @@ function fpCfCard(c) {
   return lead + `<div class="fp-picks">${c.foundations.map(f => { const d = f.donor_funds || {};
     return `<div class="fp-pick"><div>${f.listing_id ? `<a onclick="openListing('${f.listing_id}')">${escHtml(f.name)}</a>` : escHtml(f.name)}
       <span>${d.funds ? `${Number(d.funds).toLocaleString()} donor-advised funds${d.value ? ` holding ${escHtml(fpMillions(d.value))}` : ''}` : 'Donor-advised funds'}${d.grants ? `; its donors recommended ${escHtml(fpMillions(d.grants))} in grants in ${d.year}` : ''}.</span>
-      <span>${Number(f.here_grants).toLocaleString()} grants to organizations in ${escHtml(c.county ? c.county + ' County' : 'your county')} (${escHtml(fpMillions(f.here_dollars || 0))}) in its filings on file.</span>
+      <span>${Number(f.here_grants).toLocaleString()} grants to organizations in ${escHtml(fpCountyName(c.county))} (${escHtml(fpMillions(f.here_dollars || 0))}) in its filings on file.</span>
       ${d.services_url ? `<span><a href="${escHtml(d.services_url)}" target="_blank" rel="noopener">Its page for donors</a></span>` : ''}</div></div>`; }).join('')}</div>`;
 }
 // Funders that could close the gap (Nov 5 2026): loaded after the plan, so the page never waits on the matcher.
