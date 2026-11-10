@@ -2849,14 +2849,25 @@ async function loadSharing() {
   try { d = await apiFetch('/api/portal/sharing'); }
   catch (e) { box.hidden = false; box.innerHTML = '<h2>Shared With Advisors</h2><div class="empty">Could not load sharing: ' + escHtml(e.message) + '</div>'; return; }
   const list = d.shares || [];
-  box.hidden = !list.length;
-  if (!list.length) { box.innerHTML = ''; return; }
+  box.hidden = false;                                           // its own page since Nov 10 2026: never blank
+  if (!list.length) { box.innerHTML = '<h2>Shared With Advisors</h2><p class="lead">You are not sharing with any advisor. An advisor you work with sends you a link to start; you choose what they see.</p>'; return; }
   const manager = !!d.can_manage;
-  box.innerHTML = '<h2>Shared With Advisors</h2><p class="lead">These advisors can see your Tracker: stages, deadlines, amounts, notes marked Team And Advisor, and your draft answers. They can add notes; they cannot change anything else.</p>' +
+  // Share My Funding Plan (Nov 10 2026, Will: "Read only, and only if allowed by the user"): its own switch per advisor,
+  // off until the owner or an admin turns it on.
+  box.innerHTML = '<h2>Shared With Advisors</h2><p class="lead">These advisors can see your Tracker: stages, deadlines, amounts, notes marked Team And Advisor, and your draft answers. They can add notes; they cannot change anything else. Your Funding Plan is shared only when you turn it on below, and they can only read it. Your donor list is never shared.</p>' +
     list.map(r => `<div class="tm-row"><div class="tm-who"><b>${escHtml(r.advisor || 'An advisor')}</b>` +
-      `<div class="tm-meta">Shared since ${escHtml(shortDate(r.shared_at))}</div></div><span></span>` +
+      `<div class="tm-meta">Shared since ${escHtml(shortDate(r.shared_at))}</div></div>` +
+      `<label class="chk" style="margin:0"><input type="checkbox" ${r.share_plan ? 'checked' : ''} ${manager ? '' : 'disabled'} onchange="setSharePlan('${escHtml(r.advisor_id)}', this)"> Share My Funding Plan</label>` +
       (manager ? `<button class="dr-btn ghost small" onclick="stopSharing('${escHtml(r.advisor_id)}')">Stop Sharing</button>` : '<span></span>') + '</div>').join('') +
+    (manager ? '' : '<p class="lead">Only your organization\'s owner or an admin can change what you share.</p>') +
     '<div class="err" id="shErr"></div>';
+}
+async function setSharePlan(advisorId, box) {
+  const err = document.getElementById('shErr'); if (err) err.textContent = '';
+  box.disabled = true;
+  try { await apiFetch('/api/portal/sharing/' + encodeURIComponent(advisorId) + '/plan', 'POST', {on: box.checked}); }
+  catch (e) { box.checked = !box.checked; if (err) err.textContent = 'Not changed: ' + e.message; }
+  box.disabled = false;
 }
 function shortDate(iso) {
   const t = Date.parse(iso || '');

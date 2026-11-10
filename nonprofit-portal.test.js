@@ -42,6 +42,10 @@ ok((html.match(/typicalText\(/g) || []).length >= 3, 'the Library card and the l
 
 // G. The address bar (Nov 10 2026): each page has its own address now; nonprofit-nav.test.js runs the router.
 ok(/function showPage\(id\) \{/.test(html) && /function go\(path, opts\)/.test(html), 'pages are shown through the router');
+// Share My Funding Plan (Nov 10 2026, Will: "Read only, and only if allowed by the user"): its own switch per advisor,
+// for the owner or an admin; the donor list is never shared.
+ok(/onchange="setSharePlan\('\$\{escHtml\(r\.advisor_id\)\}', this\)"> Share My Funding Plan/.test(html) && /\$\{manager \? '' : 'disabled'\}/.test(html)
+   && /'\/plan', 'POST', \{on: box\.checked\}/.test(html) && /Your donor list is never shared/.test(html), 'each advisor has its Share My Funding Plan switch, for the owner or an admin');
 
 // D. NY Prequalified only for an organization that works in New York.
 ok(t.worksInNY('NY', '', []) && t.worksInNY('', '12201', []) && t.worksInNY('', '00501', []), 'a New York address (state or ZIP)');
