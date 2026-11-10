@@ -398,6 +398,32 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
 .dr-empty p{font-size:15px;color:var(--ink);font-weight:400;line-height:1.6;max-width:560px;margin:0 auto 18px}
 .dr-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:22px 24px;margin-bottom:16px;box-shadow:0 1px 2px rgba(26,26,20,.04)}
 .dr-card.dirty{border-color:var(--green)}
+/* Folded answers (Nov 10 2026, answers-nav.js): one line each until opened; search, filters and groups above them. */
+.dr-card:has(.dr-sum){padding:0}
+.dr-body{padding:4px 24px 22px}
+.dr-card.folded .dr-body{display:none}
+.dr-sum{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:10px;align-items:center;padding:14px 20px;cursor:pointer;border-radius:10px}
+.dr-sum:hover{background:var(--cream)}
+.dr-sum:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.dr-chev{font-size:15px;color:var(--ink)}
+.dr-sum-main{display:flex;flex-direction:column;min-width:0}
+.dr-sum-title{font-size:16px;color:var(--ink)}
+.dr-sum-q{font-size:15px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dr-sum-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;font-size:15px;color:var(--ink)}
+.dr-sum-meta .dr-badge{margin-top:0;font-size:14px;text-transform:none;letter-spacing:0}
+.dr-unsaved{display:none;padding:4px 10px;border-radius:11px;font-size:14px;font-weight:600;background:#fde3d8;color:#7a2e14}
+.dr-card.dirty .dr-unsaved{display:inline-block}
+.dr-badge.empty{background:var(--cream2);color:var(--ink)}
+.dr-nav{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 14px}
+.dr-nav:empty{display:none}
+.dr-search{flex:1 1 240px;max-width:380px;margin:0!important}
+.dr-chips{display:flex;flex-wrap:wrap;gap:6px}
+.dr-chip{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:6px 13px;font:500 15px Jost,sans-serif;color:var(--ink);cursor:pointer;min-height:38px}
+.dr-chip.on{background:var(--green-dk);border-color:var(--green-dk);color:#fff}
+.dr-nav-acts{display:flex;gap:6px;margin-left:auto}
+.dr-group{font-family:'Fraunces',serif;font-size:19px;margin:18px 0 8px}
+.dr-none{font-size:15px;margin:10px 0}
+@media (max-width:640px){.dr-sum{grid-template-columns:20px minmax(0,1fr)}.dr-sum-meta{grid-column:2;justify-content:flex-start}.dr-nav-acts{margin-left:0}}
 .dr-head{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:6px}
 .dr-label{flex:1;min-width:180px;font-family:'Fraunces',Georgia,serif;font-size:18px;font-weight:600;color:var(--ink);border:1px solid transparent;border-radius:5px;padding:4px 6px;background:transparent}
 .dr-label:hover,.dr-label:focus{border-color:var(--border);background:var(--cream);outline:none}
@@ -1455,6 +1481,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
           <div style="margin-top:12px"><a href="#" onclick="toggleAddQuestion(true);return false;" style="font-size:13px;color:var(--green-dk)">Or add a question of your own</a></div>
         </div>
 
+        <div class="dr-nav" id="drNav"></div>
         <div id="drCards"></div>
         </div>
 
@@ -1540,6 +1567,7 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
           <span class="dr-meta" id="prProgress"></span>
         </div>
 
+        <div class="dr-nav" id="prNav"></div>
         <div id="prSlots"></div>
       </div>
 
@@ -1753,6 +1781,8 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
   </div>
 </div>
 
+<!-- My Answers' folding, search and filters (Nov 10 2026), shared with the nonprofit portal; before the page's own scripts. -->
+<script src="/answers-nav.js?v=2026-11-10a"></script>
 <script>
 const API = 'https://fundbug-production.up.railway.app';
 let token = localStorage.getItem('fb_token');
@@ -1919,9 +1949,11 @@ function showApp() {
   const hash = rawHash === 'profile' ? 'complete' : rawHash;  // legacy #profile links land on the Passport
   if (hash.startsWith('drafting/')) {
     showProgramView(decodeURIComponent(hash.slice('drafting/'.length)));
-  } else if (hash === 'drafting') {
+  } else if (hash === 'drafting' || /^answer=[A-Za-z0-9_-]+$/.test(hash)) {          // #answer=<question>: that answer (Nov 10 2026)
+    const keep = window.location.hash;
     const link = document.getElementById('nav-drafting');
     if (link) link.click();
+    if (hash !== 'drafting') history.replaceState(null, '', window.location.pathname + keep);
   } else if (hash && ['overview','complete','referral','subscription','account'].includes(hash)) {
     const link = document.querySelector(`.sidebar-nav a[onclick*="'${hash}'"]`);
     if (link) {
@@ -4565,14 +4597,32 @@ function renderDrafting(){
   draftBtn.style.display=standardMissing?'inline-block':'none';
   draftBtn.disabled=!p.ready;
   const pu=p.passport_updated_at?new Date(p.passport_updated_at):null;
-  cards.innerHTML=answers.map((a,i)=>{
+  // Folded, searchable, filtered and grouped (Nov 10 2026, as the nonprofit portal; answers-nav.js), edits not yet
+  // saved kept through the redraw, and #answer=<question> opening that answer.
+  const kept=drKeepEdits('answers', drDirty);
+  const std=new Set((drData.standard||[]).map(sq=>sq.question_type));
+  const linked=drLinkGet();
+  if(linked && answers.some(a=>a.question_type===linked)) DR_VIEW.answers.open.add(linked);
+  const counts={all:answers.length};
+  answers.forEach(a=>{const st=drState(a.review_status==='draft',a.answer_text,a.outline_text); counts[st]=(counts[st]||0)+1;});
+  document.getElementById('drNav').innerHTML=answers.length>1?drNavHtml('answers',counts):'';
+  const order=answers.map((a,i)=>[a,i]).sort((x,y)=>(std.has(y[0].question_type)-std.has(x[0].question_type))||(x[1]-y[1]));
+  const both=order.some(([a])=>std.has(a.question_type)) && order.some(([a])=>!std.has(a.question_type));
+  let lastGroup=null;
+  cards.innerHTML=order.map(([a],i)=>{
     const isDraft=a.review_status==='draft';
     const au=a.updated_at?new Date(a.updated_at):null;
     const stale=!!(pu && au && (a.answer_text||'').trim() && pu>au);
     const qt=a.question_type;
     const n=i+1;
-    return `
-    <div class="dr-card" id="drc-${drEsc(qt)}" data-qt="${drEsc(qt)}">
+    const st=drState(isDraft,a.answer_text,a.outline_text), open=DR_VIEW.answers.open.has(qt);
+    const group=std.has(qt)?'Standard Questions':'Your Own Questions';
+    const head=both && group!==lastGroup?`<h3 class="dr-group">${group}</h3>`:'';
+    lastGroup=group;
+    return `${head}
+    <div class="dr-card${open?'':' folded'}" id="drc-${drEsc(qt)}" data-qt="${drEsc(qt)}" data-state="${st}">
+      ${drSumRow('answers', drEsc(qt), a.label, a.question_text, st, drWords(a.answer_text), open)}
+      <div class="dr-body">
       <div class="dr-head">
         <div style="flex:1;min-width:180px">
           <div class="dr-field-label">Title</div>
@@ -4591,12 +4641,16 @@ function renderDrafting(){
         <button class="dr-btn small" onclick="saveAnswer('${drEsc(qt)}')" id="drsave-${drEsc(qt)}">Save</button>
         <button class="dr-btn ghost small" onclick="regenerateAnswer('${drEsc(qt)}')" ${p.ready?'':'disabled title="Complete your Passport first"'}>Regenerate</button>
         <span class="spacer"></span>
+        <button class="dr-btn ghost small" onclick="drCopyLink('${drEsc(qt)}', this)">Copy Link</button>
         <span class="dr-meta">${isDraft?'Drafted':'Saved'} ${drEsc(drWhen(isDraft?a.generated_at:(a.reviewed_at||a.updated_at)))}</span>
         <button class="dr-btn danger small" onclick="deleteAnswer('${drEsc(qt)}')" title="Remove this question">Remove</button>
       </div>
-    </div>`;
+    </div></div>`;
   }).join('');
-  requestAnimationFrame(()=>{drAutosizeAll();document.querySelectorAll('#drCards .dr-a').forEach(drWordCount);});
+  drPutEdits('answers', kept, drMarkDirty);
+  drApply('answers');
+  requestAnimationFrame(()=>{drAutosizeAll();document.querySelectorAll('#drCards .dr-a').forEach(drWordCount);
+    if(linked && DR_VIEW.answers.open.has(linked)){const c=document.getElementById('drc-'+linked); if(c) c.scrollIntoView({block:'start'});}});
 }
 
 // A box is as tall as its content, never shorter than its CSS min-height,
@@ -4624,6 +4678,18 @@ function drWordCount(el){
     out.textContent=`${words} word${words===1?'':'s'}`;
     out.classList.remove('over');
   }
+  const sw=card.querySelector('.dr-sum-wc'); if(sw) sw.textContent=out.textContent;
+}
+// An answer's own link on this portal: #answer=<its question> (Nov 10 2026), while My Answers is open.
+function drLinkGet(){ const m=/^#answer=([A-Za-z0-9_-]+)$/.exec(window.location.hash||''); return m?m[1]:''; }
+function drLinkSet(id, open){
+  const pg=document.getElementById('page-drafting');
+  if(pg && pg.classList.contains('active')) history.replaceState(null,'',window.location.pathname+(open?'#answer='+id:'#drafting'));
+}
+async function drCopyLink(qt, btn){
+  const url=window.location.origin+window.location.pathname+'#answer='+qt;
+  try{ await navigator.clipboard.writeText(url); const was=btn.textContent; btn.textContent='Copied'; setTimeout(()=>{btn.textContent=was;},1400); }
+  catch(_){ drStatus('Your browser would not let FundBug copy. The link is '+url, true); }
 }
 function drAutosizeAll(){
   document.querySelectorAll('#drCards .dr-q, #drCards .dr-a').forEach(drAutosize);
@@ -4946,12 +5012,19 @@ function renderSlots(slots){
       <p>Press <b>Add Questions</b> to pull them from the application, pick from answers you have saved, or type one in.</p></div>`;
     return;
   }
+  const kept=drKeepEdits('slots', prDirty);
+  const counts={all:slots.length};
+  slots.forEach(s=>{const st=drState(s.review_status==='draft',s.answer_text,s.outline_text); counts[st]=(counts[st]||0)+1;});
+  document.getElementById('prNav').innerHTML=slots.length>1?drNavHtml('slots',counts):'';
   wrap.innerHTML=slots.map((s,i)=>{
     const isDraft=s.review_status==='draft';
     const n=i+1;
     const ready=(prData&&prData.passport&&prData.passport.ready);
+    const st=drState(isDraft,s.answer_text,s.outline_text), open=DR_VIEW.slots.open.has(String(s.id));
     return `
-    <div class="dr-card" id="prc-${drEsc(s.id)}" data-sid="${drEsc(s.id)}">
+    <div class="dr-card${open?'':' folded'}" id="prc-${drEsc(s.id)}" data-sid="${drEsc(s.id)}" data-state="${st}">
+      ${drSumRow('slots', drEsc(s.id), n+'. '+(s.label||'Untitled'), s.question_text, st, drWords(s.answer_text), open)}
+      <div class="dr-body">
       <div class="dr-head">
         <div style="flex:1;min-width:180px">
           <div class="pr-slotnum">Question ${n}</div>
@@ -4975,8 +5048,10 @@ function renderSlots(slots){
         <span class="dr-meta">${isDraft?'Drafted':'Saved'} ${drEsc(drWhen(isDraft?s.generated_at:(s.reviewed_at||s.updated_at)))}</span>
         <button class="dr-btn danger small" onclick="deleteSlot('${drEsc(s.id)}')">Remove</button>
       </div>
-    </div>`;
+    </div></div>`;
   }).join('');
+  drPutEdits('slots', kept, prMarkDirty);
+  drApply('slots');
   requestAnimationFrame(()=>{document.querySelectorAll('#prSlots .dr-q, #prSlots .dr-a').forEach(drAutosize);document.querySelectorAll('#prSlots .dr-a').forEach(drWordCount);});
 }
 
