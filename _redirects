@@ -1,0 +1,4 @@
+# The nonprofit portal's pages (Nov 10 2026): every address under /nonprofit/ is the portal page, which shows the page
+# the address names (nonprofit-portal.html, NAV). /nonprofit-portal itself still works for links already sent.
+/nonprofit /nonprofit-portal 200
+/nonprofit/* /nonprofit-portal 200

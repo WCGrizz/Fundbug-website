@@ -204,11 +204,7 @@ async function drCopy(text, btn, statusFn) {
 }
 
 // ── My Answers ─────────────────────────────────────────────────────────
-function openAnswers() {
-  if (location.hash !== '#answers') history.replaceState(null, '', '#answers');
-  showPage('answers');
-  loadDrafting();
-}
+function openAnswers() { go('answers'); }                 // its own address since Nov 10 2026 (the portal's go)
 async function loadDrafting() {
   if (!(await drPrepare(drStatus))) return;
   drStatus('Loading your answers…');
@@ -398,11 +394,10 @@ async function prepListing(groupId, btn) {
 function backToAnswers() {
   if (prDirty.size && !confirm('You have unsaved answers on this application. Leave without saving?')) return;
   prDirty.clear();
-  location.hash = 'answers';
+  go('answers/applications');
 }
 function showPrep(pid) {
-  showPage('prep');
-  document.querySelectorAll('.sidebar a').forEach(a => a.classList.toggle('active', a.dataset.page === 'answers'));
+  showPage('prep');                                        // shown under My Answers' Applications (the portal's PAGE_UNDER)
   loadPrep(pid);
 }
 function routeDrafting() {
@@ -410,7 +405,7 @@ function routeDrafting() {
   const h = location.hash || '';
   const m = h.match(/^#prep\/(.+)$/);
   if (m) { showPrep(decodeURIComponent(m[1])); return true; }
-  if (h === '#answers') { showPage('answers'); loadDrafting(); return true; }
+  if (h === '#answers') { go('answers', {replace: true}); return true; }       // a link from before Nov 10 2026
   return false;
 }
 window.addEventListener('hashchange', routeDrafting);

@@ -46,7 +46,7 @@ ok(t.tierLine({label: 'Has Given In Berkshire County', grants: 1, dollars: 3000,
 ok(t.tierLine(null) === '' && t.tierLine({}) === '', 'nothing for a listing without a tier');
 ok(/\$\{m\.relationship \? '<span class="badge">Relationship Funder<\/span>' : ''\}/.test(html) && /\$\{tierLine\(m\.giving\)\}/.test(html),
    'the card shows the Relationship Funder badge and the tier line');
-ok(/<a data-page="home" class="acct-only" onclick="showPage\('home'\)">Home<\/a>\s+<a data-page="profile"/.test(html), 'Home comes first in the sidebar');
+ok(/const NAV = \[\n  \{key: 'home', label: 'Home', acct: true/.test(html), 'Home comes first in the top bar');
 
 // The Library's count line
 const c = {listings: 1209, shown: 199};

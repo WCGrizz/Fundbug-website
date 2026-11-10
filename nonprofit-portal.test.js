@@ -18,7 +18,7 @@ ok(a > 0 && b > a && sa >= 0 && sb > sa, 'the portal and the shared file mark th
 const ctx = {};
 vm.createContext(ctx);
 vm.runInContext(shared.slice(sa, sb) + '\n' + html.slice(a, b) +
-  '\n;globalThis.__t = {toSecondPerson, round2, typicalText, staleHash, worksInNY, newSince, daysUntil, dueSoon, pruneDetails, sameDetails, withArticle, regionLabel, whereFrom, regionsForProfile, regionsFor, teamRows, seatLine, seatsFull, fullMessage};', ctx);
+  '\n;globalThis.__t = {toSecondPerson, round2, typicalText, worksInNY, newSince, daysUntil, dueSoon, pruneDetails, sameDetails, withArticle, regionLabel, whereFrom, regionsForProfile, regionsFor, teamRows, seatLine, seatsFull, fullMessage};', ctx);
 const t = ctx.__t;
 
 // E. Why It May Fit: the fit judge's first person, spoken to the organization.
@@ -40,12 +40,8 @@ eq(t.typicalText(null, 4870), '$4,900', 'one end only');
 eq(t.typicalText(null, null), '', 'none');
 ok((html.match(/typicalText\(/g) || []).length >= 3, 'the Library card and the listing panel both use it');
 
-// G. The address bar: a page's own hash goes when another page opens; digest links are left for the start to carry out.
-ok(t.staleHash('#answers', 'profile') && t.staleHash('#answers', 'matches') && !t.staleHash('#answers', 'answers'), '#answers clears off any other page');
-ok(t.staleHash('#prep/abc', 'answers') && !t.staleHash('#prep/abc', 'prep'), '#prep/<id> clears off any page but Prep');
-ok(!t.staleHash('#listing=0b9b4c3e-1111-2222-3333-444455556666', 'profile') && !t.staleHash('#save=x', 'profile') && !t.staleHash('#tracker', 'profile') && !t.staleHash('', 'profile'),
-   'digest links (#listing=, #save=, #tracker) and no hash are left alone');
-ok(/function showPage\(id\) \{\n  if \(staleHash\(location\.hash, id\)\) history\.replaceState\(null, '', location\.pathname\);/.test(html), 'showPage clears a stale hash first');
+// G. The address bar (Nov 10 2026): each page has its own address now; nonprofit-nav.test.js runs the router.
+ok(/function showPage\(id\) \{/.test(html) && /function go\(path, opts\)/.test(html), 'pages are shown through the router');
 
 // D. NY Prequalified only for an organization that works in New York.
 ok(t.worksInNY('NY', '', []) && t.worksInNY('', '12201', []) && t.worksInNY('', '00501', []), 'a New York address (state or ZIP)');
@@ -72,7 +68,8 @@ eq(t.dueSoon(TR, LIB, '2026-10-19').map(d => [d.where, d.title, d.what, d.days])
    [['tracker', 'Overdue Call', 'follow_up', -18], ['tracker', 'Call Back', 'follow_up', 6], ['tracker', 'Soon Fund', 'deadline', 12], ['library', 'Open Call', 'deadline', 22]],
    'Tracker deadlines and follow-ups, then fitting Library opportunities, soonest first; none passed, far off, unfit or already tracked');
 eq(t.daysUntil('2026-11-18', '2026-10-19'), 30, 'days are counted by date');
-ok(/if \(!routed\) showPage\('home'\);/.test(html) && /showPage\('profile'\);\s+\/\/ the profile first/.test(html), 'an account opens on Home (Nov 9 2026), the preview on the Organization Profile');
+ok(/if \(!routeDrafting\(\)\) goInitial\(\);/.test(html) && /function homeRoute\(\) \{ return routeAt\(MODE === 'account' \? 'home' : 'organization'\); \}/.test(html),
+   'an account opens on Home (Nov 9 2026), the preview on the Organization Profile, unless the address names a page');
 ok(/<div class="page" id="page-home">[\s\S]*?id="trialCard"[\s\S]*?id="gsCard"[\s\S]*?id="pfStrip"[\s\S]*?id="homePlan"[\s\S]*?<div class="page" id="page-profile">/.test(html),
    'Home holds the trial banner, Getting Started, the strip and the Funding Plan card, before the profile page');
 ok(/<div class="card acct-only" id="pfMeterCard">/.test(html) && /renderMeter\(PROFILE_METER, 'pf'\)/.test(html) && /function renderMeter\(p, prefix\)/.test(drafting),
@@ -151,8 +148,9 @@ eq(t.teamRows(withOwnerRow, OWNER).map(r => r.name), ['Owner Row', 'Kevin Pink']
 eq(t.seatLine(SEATS), '2 of 2 seats in use', 'the seat count');
 ok(t.seatsFull(SEATS) && !t.seatsFull({seats_available: 1}), 'full when no seat is free');
 ok(t.fullMessage(SEATS).startsWith('Your plan includes 2 seats and all are in use.') && !/ [-—] /.test(t.fullMessage(SEATS)), "the cap's message, no dash mid-sentence");
-ok(/<a data-page="subscription" class="acct-only owner-only"[^>]*>Subscription<\/a>\s*<a data-page="team" class="acct-only" onclick="showPage\('team'\); loadTeam\(\)">Team<\/a>/.test(html),
-   'Team is its own sidebar item after Subscription, and Subscription is the owner\'s only');
+ok(/\{path: 'organization\/team', page: 'team', label: 'Team', acct: true/.test(html)
+   && /\{path: 'organization\/subscription', page: 'subscription', label: 'Subscription', acct: true, owner: true/.test(html),
+   'Team is its own page under Organization, and Subscription is the owner\'s only');
 ok(/body\.not-manager \.manager-only\{display:none\}/.test(html) && /<div class="card manager-only" id="inviteCard">/.test(html),
    'a teammate who is not an admin sees the list only: no invite form (Oct 22 2026: an admin manages the team too)');
 ok(/document\.body\.classList\.toggle\('member', !owner\)/.test(html) && /setRole\(ACCOUNT\.you\);/.test(html), 'the role comes from /api/nonprofit/me');

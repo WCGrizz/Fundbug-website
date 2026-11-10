@@ -64,11 +64,26 @@ nav{background:var(--ink);padding:0 28px;height:60px;display:flex;align-items:ce
 .nav-logo img{width:30px;height:30px;object-fit:contain}
 .nav-tag{font-family:'Jost',sans-serif;font-size:13px;font-weight:500;color:var(--cream);background:rgba(90,158,82,.25);border:1px solid var(--green);border-radius:20px;padding:3px 12px}
 .nav-right button{background:none;border:none;color:var(--cream);font-family:'Jost',sans-serif;font-size:14px;cursor:pointer;min-height:44px;padding:0 8px}
+/* Navigation (Nov 10 2026, Will: "main navigation on the top", each section's own pages in a column on the left, and
+   "separate URL's for each of the sections"): the sections in the dark bar, the section's pages in the left column. */
+.top-links{display:flex;align-items:stretch;gap:2px;height:100%;margin:0 auto 0 28px}
+.top-links a{display:flex;align-items:center;padding:0 14px;font-size:15px;font-weight:500;color:var(--cream);text-decoration:none;
+  border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+.top-links a:hover{background:rgba(255,255,255,.05)}
+.top-links a.active{border-bottom-color:var(--green-lt);color:#fff}
+.nav-right{display:flex;align-items:center;gap:6px}
+.nav-right a.top-org{color:var(--cream);font-size:15px;font-weight:500;text-decoration:none;padding:0 10px;cursor:pointer;min-height:44px;display:flex;align-items:center;border-bottom:3px solid transparent}
+.nav-right a.top-org.active{border-bottom-color:var(--green-lt);color:#fff}
 .wrap{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px)}
-.sidebar{background:var(--ink);border-right:1px solid rgba(255,255,255,.06);padding:24px 0}
-.sidebar a{display:block;padding:12px 24px;font-size:15px;color:var(--cream);text-decoration:none;border-left:2px solid transparent;cursor:pointer}
-.sidebar a:hover{background:rgba(255,255,255,.04)}
-.sidebar a.active{color:var(--green-lt);background:rgba(90,158,82,.12);border-left-color:var(--green);font-weight:500}
+.wrap.no-sub{grid-template-columns:1fr}
+#page-tracker.view-seen .toolbar,#page-tracker.view-seen #tSummary,#page-tracker.view-seen #tList,#page-tracker.view-seen #addOwn{display:none}
+#page-tracker:not(.view-seen) #tSeenWrap{display:none}
+.wrap.no-sub .sidebar{display:none}
+.sidebar{background:var(--cream2);border-right:1px solid var(--border);padding:24px 0}
+.sidebar .sub-head{font-family:'Fraunces',serif;font-size:18px;font-weight:600;padding:0 24px 10px;color:var(--ink)}
+.sidebar a{display:block;padding:11px 24px;font-size:15px;color:var(--ink);text-decoration:none;border-left:3px solid transparent;cursor:pointer}
+.sidebar a:hover{background:var(--cream3)}
+.sidebar a.active{background:var(--white);border-left-color:var(--green);font-weight:600}
 .main{padding:36px 44px;min-width:0}
 .page{display:none}
 .page.active{display:block}
@@ -442,10 +457,14 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
 .rows-row input,.rows-row textarea{background:var(--white)}
 .rows-row .rows-x{margin:-4px 0 10px}
 @media (max-width:760px){
-  .wrap{grid-template-columns:1fr}
-  .sidebar{display:flex;padding:0;overflow-x:auto;border-right:none;border-bottom:1px solid rgba(255,255,255,.08)}
-  .sidebar a{border-left:none;border-bottom:2px solid transparent;white-space:nowrap;padding:12px 16px}
+  .wrap{grid-template-columns:1fr;grid-template-rows:auto 1fr}          /* the pages' row stays one row high */
+  .sidebar{display:flex;padding:0;overflow-x:auto;border-right:none;border-bottom:1px solid var(--border)}
+  .sidebar .sub-head{display:none}
+  .sidebar a{border-left:none;border-bottom:3px solid transparent;white-space:nowrap;padding:12px 16px}
   .sidebar a.active{border-bottom-color:var(--green)}
+  nav{flex-wrap:wrap;height:auto;min-height:60px}
+  .top-links{order:3;width:100%;margin:0;overflow-x:auto;height:48px}
+  .top-links a{padding:0 12px}
   .main{padding:24px 16px}
   .hero{margin:-24px -16px 20px;padding:24px 16px 20px}
   .hero h1{font-size:25px}
@@ -488,23 +507,11 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
 <div id="app">
   <nav>
     <a class="nav-logo" href="/"><img src="/fundbug_logo.png" alt="">FundBug</a>
-    <span class="nav-tag" id="navTag">Nonprofit Portal</span>
-    <div class="nav-right"><button id="navOut" onclick="signOut()">Sign Out</button></div>
+    <div class="top-links" id="topLinks" role="navigation" aria-label="Sections"></div>
+    <div class="nav-right"><span class="nav-tag" id="navTag">Nonprofit Portal</span><span id="topRight"></span><button id="navOut" onclick="signOut()">Sign Out</button></div>
   </nav>
-  <div class="wrap">
-    <div class="sidebar">
-      <a data-page="home" class="acct-only" onclick="showPage('home')">Home</a>
-      <a data-page="profile" onclick="showPage('profile')">Organization Profile</a>
-      <a data-page="matches" id="navMatches" onclick="showPage('matches')">Matches</a>
-      <a data-page="tracker" class="acct-only" onclick="showPage('tracker'); loadTracker()">Tracker</a>
-      <a data-page="plan" class="acct-only" onclick="openFundingPlan()">Funding Plan</a>
-      <a data-page="answers" class="acct-only" onclick="openAnswers()">My Answers</a>
-      <a data-page="landscape" onclick="openLandscape()">Funding Landscape</a>
-      <a data-page="digests" class="acct-only" onclick="showPage('digests'); loadDigests()">Digests</a>
-      <a data-page="subscription" class="acct-only owner-only" onclick="showPage('subscription'); loadSubscription()">Subscription</a>
-      <a data-page="team" class="acct-only" onclick="showPage('team'); loadTeam()">Team</a>
-      <a data-page="leftout" class="preview-only" onclick="showPage('leftout')">Left Out</a>
-    </div>
+  <div class="wrap" id="wrap">
+    <div class="sidebar" id="subnav" role="navigation" aria-label="Pages in this section"></div>
     <div class="main">
 
       <!-- Home (Nov 9 2026, Will: "Yes", and the portal opens here): the trial banner, Getting Started and the strip moved
@@ -744,7 +751,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <input id="mSearch" placeholder="Search titles" oninput="drawMatches()">
           <select id="mKind" onchange="drawMatches()"><option value="">Funders And Opportunities</option><option value="funder">Funders</option><option value="opportunity">Opportunities</option></select>
           <select id="mSource" class="acct-only" onchange="drawMatches()" aria-label="Source"><option value="">Any Source</option><option value="foundation">Foundations</option><option value="government">Government</option><option value="corporate">Corporate</option></select>
-          <label class="chk acct-only" style="margin:0"><input type="checkbox" id="mFits" onchange="rememberFitsOnly(); drawMatches()"> Fits Only</label>
+          <label class="chk" style="display:none"><input type="checkbox" id="mFits" checked onchange="drawMatches()"> Fits Only</label>
           <select id="mReviewed" class="preview-only" onchange="drawMatches()"><option value="">Reviewed Or Not</option><option value="yes">Reviewed Only</option><option value="no">Not Reviewed Yet</option></select>
         </div>
         <div id="mNewBar"></div>
@@ -968,8 +975,17 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <div class="ok" id="tmOk"></div>
           <button class="btn" id="tmGo" onclick="inviteTeammate()">Send Invite</button>
         </div>
-        <div class="card acct-only" id="shareBox" hidden></div>
         <div class="card acct-only" id="memberNote" hidden><p class="lead" style="margin:0">Only the account's owner or an admin can invite or remove people.</p></div>
+      </div>
+
+      <!-- Advisors (Nov 10 2026): the Shared With Advisors box, from the Team page, on a page of its own -->
+      <div class="page" id="page-advisors">
+        <div class="hero">
+          <div class="eyebrow">Your Account</div>
+          <h1>Advisors</h1>
+          <p>The advisors who can see your Tracker, and turning that off.</p>
+        </div>
+        <div class="card acct-only" id="shareBox" hidden></div>
       </div>
 
       <div class="page" id="page-leftout">
@@ -1077,13 +1093,6 @@ function typicalText(lo, hi) {
   const m = n => '$' + Number(n).toLocaleString('en-US');
   if (lo && hi && lo !== hi) return m(lo) + ' to ' + m(hi);
   return (hi || lo) ? m(hi || lo) : '';
-}
-// A page's own address, left behind when another page opens (Oct 19 2026: "#answers" stayed in the bar after
-// leaving My Answers). Only #answers and #prep/<id> belong to a page; #listing=, #save= and #tracker are links the
-// start of the page carries out and clears itself.
-function staleHash(hash, page) {
-  hash = hash || '';
-  return (hash === '#answers' && page !== 'answers') || (/^#prep\//.test(hash) && page !== 'prep');
 }
 // Works in New York (Oct 19 2026: NY Prequalified shows only then): its address's state or ZIP, or a New York state or
 // county under Where You Work.
@@ -1268,7 +1277,6 @@ function setMode(mode) {
     document.getElementById('profSub').textContent = 'What your organization does and where. Your matches come from this; the more it says, the better they fit.';
     document.getElementById('matchesEyebrow').textContent = 'For Your Organization';
     document.getElementById('matchesTitle').textContent = 'Library';
-    document.getElementById('navMatches').textContent = 'Library';
     document.getElementById('saveBtn').textContent = 'Save Changes';
     document.getElementById('saveNote').textContent = 'Changes are saved when you press Save Changes.';
   }
@@ -1295,12 +1303,10 @@ async function openAccount() {
   fillProfile(accountToForm(ACCOUNT));
   // The portal opens on Home (Will, Nov 9 2026; the Organization Profile before); #answers or #prep/<id> opens that page
   // at once (nonprofit-drafting.js), and #listing=, #save= and #tracker are carried out once the Library is loaded.
-  const routed = routeDrafting();
-  if (!routed) showPage('home');
+  if (!routeDrafting()) goInitial();                     // the page at the address it was opened at, or Home
   loadProfileMeter();
   loadStripTracker();
   loadHomePlan();
-  initFitsOnly();
   await runMatches(true);
   followDigestLink();
 }
@@ -1329,17 +1335,119 @@ async function openApp(mode) {
   }
   drawProfileForm();
   const saved = readSaved();
-  showPage('profile');                   // the profile first (Oct 19 2026); Matches fills behind it
+  goInitial();                           // the profile first (Oct 19 2026); Matches fills behind it
   if (saved) { fillProfile(saved); runMatches(true); }
 }
 
-function showPage(id) {
-  if (staleHash(location.hash, id)) history.replaceState(null, '', location.pathname);
+// ── NAV START: navigation and addresses (Nov 10 2026) ───────────────────
+// Will: "most sites have the main navigation on the top, and then subnavigation" (on the left, his choice), and
+// "separate URL's for each of the sections as opposed to all of them being the same URL". Each page has its own
+// address under /nonprofit/ (Cloudflare's _redirects serves this page for every one); Back and Forward work, and the
+// links already sent (/nonprofit-portal#listing=..., #save=..., #tracker, #answers, #prep/...) still land.
+// A sub: path, the page it shows, its label; acct (accounts only), preview (Will's preview only), owner (the owner
+// only); apply (cheap, on every showing: which view of a shared page) and load (on arriving by the menu or address).
+const NAV_BASE = '/nonprofit';
+const NAV = [
+  {key: 'home', label: 'Home', acct: true, subs: [{path: 'home', page: 'home', label: 'Home'}]},
+  {key: 'library', label: 'Library', subs: [
+    {path: 'library', page: 'matches', label: 'Fits You', apply: () => setLibraryView(true)},
+    {path: 'library/all', page: 'matches', label: 'All Funders', acct: true, apply: () => setLibraryView(false)},
+    {path: 'library/landscape', page: 'landscape', label: 'Funding Landscape', load: () => openLandscape()},
+    {path: 'library/digests', page: 'digests', label: 'Digests', acct: true, load: () => loadDigests()},
+    {path: 'library/left-out', page: 'leftout', label: 'Left Out', preview: true}]},
+  {key: 'tracker', label: 'Tracker', acct: true, subs: [
+    {path: 'tracker', page: 'tracker', label: 'My Tracker', cls: '', load: () => loadTracker()},
+    {path: 'tracker/seen', page: 'tracker', label: 'Seen In Your Digest', cls: 'view-seen', load: () => loadTracker()}]},
+  {key: 'plan', label: 'Funding Plan', acct: true, subs: [
+    {path: 'plan', page: 'plan', label: "This Year's Plan", load: () => openFundingPlan()}]},
+  {key: 'answers', label: 'My Answers', acct: true, subs: [
+    {path: 'answers', page: 'answers', label: 'Answers', apply: () => drShowTab('answers'), load: () => loadDrafting()},
+    {path: 'answers/applications', page: 'answers', label: 'Applications', apply: () => drShowTab('apps'), load: () => loadDrafting()}]},
+  {key: 'organization', label: 'Organization', right: true, subs: [
+    {path: 'organization', page: 'profile', label: 'Profile'},
+    {path: 'organization/team', page: 'team', label: 'Team', acct: true, load: () => loadTeam()},
+    {path: 'organization/advisors', page: 'advisors', label: 'Advisors', acct: true, load: () => loadSharing()},
+    {path: 'organization/subscription', page: 'subscription', label: 'Subscription', acct: true, owner: true, load: () => loadSubscription()}]},
+];
+// Pages reached another way, shown under a sub: Prep Application under My Answers' Applications.
+const PAGE_UNDER = {prep: 'answers/applications'};
+let ROUTE = null;
+function navSubs() { return NAV.flatMap(sec => sec.subs.map(r => ({...r, section: sec}))); }
+function navAllowed(r) {
+  if ((r.acct || (r.section && r.section.acct)) && MODE !== 'account') return false;      // a section's limit is its pages'
+  if (r.preview && MODE !== 'preview') return false;
+  return !(r.owner && document.body.classList.contains('member'));
+}
+function routeAt(path) {
+  const p = String(path || '').replace(/^\/+|\/+$/g, '').replace(/^nonprofit(\/|$)/, '');
+  return navSubs().find(r => r.path === p && navAllowed(r)) || null;
+}
+function routeForPage(id) { return navSubs().find(r => r.path === PAGE_UNDER[id]) || navSubs().find(r => r.page === id && navAllowed(r)) || null; }
+function homeRoute() { return routeAt(MODE === 'account' ? 'home' : 'organization'); }
+function navLink(r, text, cls) {
+  return `<a href="${NAV_BASE}/${r.path}" class="${cls || ''}" data-path="${r.path}" onclick="return navClick(event, '${r.path}')">${escHtml(text)}</a>`;
+}
+// The bar and the column, for the mode and role, with the current section and page marked.
+function drawNav() {
+  const cur = ROUTE || {};
+  const first = sec => sec.subs.find(navAllowed);
+  const tops = NAV.filter(sec => !sec.right && first(sec)).map(sec => navLink(first(sec), sec.label, cur.section === sec ? 'active' : ''));
+  document.getElementById('topLinks').innerHTML = tops.join('');
+  document.getElementById('topRight').innerHTML = NAV.filter(sec => sec.right && first(sec))
+    .map(sec => navLink(first(sec), sec.label, 'top-org' + (cur.section === sec ? ' active' : ''))).join('');
+  const subs = cur.section ? cur.section.subs.filter(navAllowed) : [];
+  document.getElementById('wrap').classList.toggle('no-sub', subs.length < 2);
+  document.getElementById('subnav').innerHTML = subs.length < 2 ? '' : `<div class="sub-head">${escHtml(cur.section.label)}</div>` +
+    subs.map(r => navLink(r, r.label, r.path === cur.path ? 'active' : '')).join('');
+}
+function navClick(e, path) {
+  if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)) return true;      // a new tab keeps its own address
+  go(path);
+  return false;
+}
+// Show one page under its sub; the address follows.
+function activate(r, id) {
+  ROUTE = r;
+  id = id || (r && r.page);
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + id));
-  document.querySelectorAll('.sidebar a').forEach(a => a.classList.toggle('active', a.dataset.page === id));
+  const pg = document.getElementById('page-' + id);
+  if (pg && r && r.page === id) { pg.classList.remove('view-seen'); if (r.cls) pg.classList.add(r.cls); }
+  if (r && r.apply && r.page === id) r.apply();
+  drawNav();
   window.scrollTo(0, 0);
   if ((id === 'home' || id === 'profile') && MODE === 'account' && !TRACKER) loadStripTracker();
 }
+// By the menu, an address, or code: the address changes (pushed, or replaced at start-up), then the page and its load.
+function go(path, opts) {
+  opts = opts || {};
+  const r = routeAt(path) || homeRoute();
+  const url = NAV_BASE + '/' + r.path;
+  if (opts.pop) { /* the address is already there */ }
+  else if (opts.replace || location.pathname + location.hash === url) history.replaceState(null, '', url);
+  else history.pushState(null, '', url);
+  activate(r);
+  if (r.load) r.load();
+}
+// The page as code names it (showPage('tracker')): under its sub, keeping the current one when it shows that page.
+function showPage(id) {
+  const keep = ROUTE && ROUTE.page === id && location.pathname === NAV_BASE + '/' + ROUTE.path;
+  const r = keep ? ROUTE : routeForPage(id);
+  if (r && id === 'prep') history.replaceState(null, '', NAV_BASE + '/' + r.path + location.hash);
+  else if (r && !keep) history.pushState(null, '', NAV_BASE + '/' + r.path);
+  activate(r, id);
+}
+// Back and Forward: the page at the address, without loading it again unless it needs to.
+window.addEventListener('popstate', () => {
+  if (MODE !== 'account' && MODE !== 'preview') return;
+  if (/^#prep\//.test(location.hash)) return;                          // nonprofit-drafting.js's hashchange shows it
+  go(location.pathname, {pop: true});
+});
+// Where the portal opens: the address it was opened at, when it names a page this viewer can see; else Home.
+function goInitial() {
+  const r = routeAt(location.pathname);
+  go(r ? r.path : homeRoute().path, {replace: true});
+}
+// ── NAV END
 
 // ── profile form ────────────────────────────────────────────────────────
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -1695,6 +1803,15 @@ function initFitsOnly() {
   let v = null;
   try { v = localStorage.getItem('fb_np_fits_' + viewerKey()); } catch (e) {}
   document.getElementById('mFits').checked = v !== '0';
+}
+// Fits You and All Funders are two pages in the Library's column (Nov 10 2026); the old Fits Only box stays, hidden,
+// as the state drawMatches reads.
+function setLibraryView(fits) {
+  if (MODE !== 'account') return;
+  const box = document.getElementById('mFits');
+  if (box.checked === fits) return;
+  box.checked = fits;
+  if (typeof RESULT !== 'undefined' && RESULT) drawMatches();
 }
 function rememberFitsOnly() {
   try { localStorage.setItem('fb_np_fits_' + viewerKey(), document.getElementById('mFits').checked ? '1' : '0'); } catch (e) {}
@@ -2444,8 +2561,9 @@ function drawTracker() {
   const st = document.getElementById('tStage').value, kind = document.getElementById('tKind').value, fav = document.getElementById('tFav').checked;
   const seen = TRACKER.items.filter(i => i.seen_in_digest);
   const tracked = TRACKER.items.filter(i => !i.seen_in_digest);
-  document.getElementById('tSeenWrap').hidden = !seen.length;
-  document.getElementById('tSeen').innerHTML = seen.map(i => `<div class="t-row"><div class="t-top"><div>
+  document.getElementById('tSeenWrap').hidden = false;           // its own page since Nov 10 2026, shown by the view
+  document.getElementById('tSeen').innerHTML = seen.length ? '' : '<div class="empty">Nothing from your digests yet.</div>';
+  if (seen.length) document.getElementById('tSeen').innerHTML = seen.map(i => `<div class="t-row"><div class="t-top"><div>
       <div class="m-title">${i.group_id ? `<a onclick="openListing('${i.group_id}')">${escHtml(i.title)}</a>` : escHtml(i.title)}</div>
       <div class="badges">${i.kind === 'funder' ? '<span class="badge funder">Funder</span>' : '<span class="badge opp">Opportunity</span>'}<span class="badge digest">In Your Digest</span></div>
       <div class="facts">${i.amount ? `<span><b>Amount:</b> ${escHtml(i.amount)}</span>` : ''}${i.deadline ? `<span><b>Deadline:</b> ${escHtml(i.deadline)}</span>` : ''}</div>

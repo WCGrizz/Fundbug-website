@@ -77,7 +77,7 @@ eq(ctx.sent, [{awards: {a: {source: 'corporate', share: null, left_out: false, r
 
 ok(/FP_MATCH_SOURCES\[s\.key\] && s\.planned > s\.secured \? `<br><a onclick="fpFindMatches\('\$\{s\.key\}'\)">/.test(js) && /foundation: 'Find Foundation Matches'/.test(js), 'a source with money still to raise links to its matches');
 ok(/\(!src \|\| m\.source === src\)/.test(html) && /id="mSource"/.test(html), 'Matches filters by source');
-ok(/data-page="plan" class="acct-only" onclick="openFundingPlan\(\)">Funding Plan</.test(html) && /id="page-plan"[\s\S]*?id="fpBody"/.test(html), 'the portal has the page, for accounts only');
+ok(/\{key: 'plan', label: 'Funding Plan', acct: true/.test(html) && /id="page-plan"[\s\S]*?id="fpBody"/.test(html), 'the portal has the page, for accounts only');
 ok(/nonprofit-funding-plan\.js\?v=\d{4}-\d{2}-\d{2}/.test(html), 'the portal loads the script with a version tag');
 // Nov 5 2026, Will: "add a bit more instruction on how to use the funding plan tab".
 {
