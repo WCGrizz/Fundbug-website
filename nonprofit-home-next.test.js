@@ -25,6 +25,8 @@ const items = [
   {program_id: 'p6', title: 'Later Fund', kind: 'opportunity', status: 'invited', days_until_deadline: 60},
   {program_id: 'p7', title: 'Won Fund', kind: 'opportunity', status: 'awarded', amount_awarded: 15000, follow_up_date: '2026-10-01'},
   {program_id: 'p9', title: 'No Stage Yet', kind: 'funder'},
+  {program_id: 'p10', title: 'Started Fund', kind: 'opportunity', status: 'in_progress'},
+  {program_id: 'p11', title: 'Waiting Fund', kind: 'opportunity', status: 'under_review', days_until_deadline: 4, amount_requested: 5000},
   {program_id: 'p8', title: 'From A Digest', kind: 'opportunity', status: 'not_started', seen_in_digest: true, days_until_deadline: 2}];
 const apps = [{program_id: 'p1', questions: 8, answered: 3}, {program_id: 'p6', questions: 4, answered: 1}, {program_id: 'p5', questions: 2, answered: 0}];
 const plan = {saved: true, goal: 450000, sources: [{label: 'Foundation Grants', planned: 170000, secured: 65000, pending: 5000},
@@ -37,7 +39,7 @@ ok(has(2, 'Start your application for') && has(2, 'Youth Grant') && has(2, 'clos
 ok(has(3, 'Later Fund') && has(3, '1 of 4 answered.'), 'then other part-answered applications');
 ok(has(4, 'Find <b>$100,000</b> more in Foundation Grants') && has(4, "go('plan/gap')"), 'and the source furthest behind its plan, kept a place');
 ok(steps.length === 5 && !steps.some(s => s.includes('Mill Trust')), 'five at most: the plan keeps its place over the fifth');
-ok(!steps.some(s => s.includes('Done Fund') || s.includes('From A Digest') || s.includes('Won Fund')),
+ok(!steps.some(s => s.includes('Waiting Fund') || s.includes('Done Fund') || s.includes('From A Digest') || s.includes('Won Fund')),
    'never a submitted or decided one as an application to finish, nor one only seen in a digest');
 const fewer = t.homeNextSteps(items.filter(i => i.program_id !== 'p1' && i.program_id !== 'p2'), apps, null, today);
 ok(fewer.some(s => s.includes('Record the result for') && s.includes('Mill Trust') && s.includes('submitted Jul 1'))
@@ -49,8 +51,8 @@ ok(t.homeNextSteps(items, null, plan, today).some(s => s.includes('Start your ap
 
 const pipe = t.homePipeHtml(items);
 const tile = l => (pipe.match(new RegExp(`<span class="n">(\\d+)</span><span class="l">${l}</span>(?:<span class="d">([^<]*)</span>)?`)) || []).slice(1);
-ok(JSON.stringify(tile('Researching')) === '["4",null]' && JSON.stringify(tile('Applying')) === '["1",null]', 'saved (or no stage yet), researching and contacted are Researching; invited is Applying');
-ok(JSON.stringify(tile('Submitted')) === '["2","$35,000 asked"]' && JSON.stringify(tile('Awarded')) === '["1","$15,000 awarded"]', 'submitted and awarded with their dollars');
+ok(JSON.stringify(tile('Researching')) === '["4",null]' && JSON.stringify(tile('Applying')) === '["2",null]', 'saved (or no stage yet), researching and contacted are Researching; invited and in_progress (a business stage) are Applying');
+ok(JSON.stringify(tile('Submitted')) === '["3","$40,000 asked"]' && JSON.stringify(tile('Awarded')) === '["1","$15,000 awarded"]', 'submitted (and under_review) and awarded with their dollars');
 ok(t.homePipeHtml([]) === '' && t.homePipeHtml(items.filter(i => i.seen_in_digest)) === '', 'nothing tracked: no pipeline');
 
 const notes = [{program_id: 'p1', body: 'Called <them>', author_name: 'Karen', from_advisor: true, created_at: '2026-11-09T13:00:00+00:00'},

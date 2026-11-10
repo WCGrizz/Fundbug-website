@@ -2138,7 +2138,8 @@ function homeNotesHtml(notes, items) {
 // closing within 14 days whose application is not started or not finished; other applications part answered; a
 // submission with no result recorded after 90 days; and the plan's source furthest behind (kept a place). Nothing in
 // the Tracker yet: save from the Library.
-const HOME_DONE = new Set(['submitted', 'awarded', 'not_awarded', 'passed']);
+// in_progress and under_review are business stages a nonprofit row can carry (api_portal's feedback route sets them).
+const HOME_DONE = new Set(['submitted', 'under_review', 'awarded', 'not_awarded', 'passed']);
 function homeNextSteps(items, apps, plan, todayIso) {
   items = (items || []).filter(i => !i.seen_in_digest && !i.dismissed);
   const app = new Map((apps || []).map(a => [String(a.program_id), a]));
@@ -2168,7 +2169,7 @@ function homeNextSteps(items, apps, plan, todayIso) {
       html: `Finish your application for <a onclick="openPrep('${pid(i)}')">${escHtml(i.title)}</a>: ${a.answered} of ${a.questions} answered.`});
   }
   for (const i of items) {
-    if (i.status !== 'submitted' || !i.submitted_on) continue;
+    if (!['submitted', 'under_review'].includes(i.status) || !i.submitted_on) continue;
     const d = daysUntil(i.submitted_on, todayIso);
     if (d != null && d <= -90) steps.push({rank: 3, at: d, id: i.program_id,
       html: `Record the result for <a onclick="homeOpenTracker('${pid(i)}')">${escHtml(i.title)}</a>, submitted ${escHtml(shortDay(i.submitted_on))}.`});
@@ -2189,8 +2190,8 @@ function homeNextHtml(steps) {
     : `<p>Nothing needs you right now. <a onclick="go('tracker')">Open Your Tracker</a></p>`);
 }
 // Your Pipeline: the Tracker's stages in four groups, with the dollars asked and awarded. Declined and passed are left out.
-const HOME_PIPE = [['Researching', ['not_started', 'researching', 'contacted']], ['Applying', ['loi_sent', 'invited']],
-                   ['Submitted', ['submitted']], ['Awarded', ['awarded']]];
+const HOME_PIPE = [['Researching', ['not_started', 'researching', 'contacted']], ['Applying', ['loi_sent', 'invited', 'in_progress']],
+                   ['Submitted', ['submitted', 'under_review']], ['Awarded', ['awarded']]];
 function homePipeHtml(items) {
   items = (items || []).filter(i => !i.seen_in_digest && !i.dismissed);
   if (!items.length) return '';
