@@ -12,5 +12,5 @@ ok(h.includes('<h4>Its Trustees</h4>') && h.includes('A family foundation: its t
 ok(h.includes('<b>Alice L Flint</b>, Trustee <span class="badge">Funds It</span>') && h.includes('From its 2025 Form 990-PF.'), 'names, titles, who funds it, and the source');
 ok(ctx.f({year: '2024', family_run: false, people: [{name: 'A B', title: '', funds_it: false}]}).includes('It funds through relationships'), 'an invitation-only funder is said so');
 ok(ctx.f(null) === '' && ctx.f({people: []}) === '', 'no trustees: no line');
-ok(/out\.push\(trusteesLine\(L\.trustees\)\);/.test(html), 'the funder page shows it');
+ok(/put\('contact', trusteesLine\(L\.trustees\)\);/.test(html), 'the funder page shows it, under People And Contact');
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

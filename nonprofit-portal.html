@@ -76,6 +76,8 @@ nav{background:var(--ink);padding:0 28px;height:60px;display:flex;align-items:ce
 .nav-right a.top-org.active{border-bottom-color:var(--green-lt);color:#fff}
 .wrap{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px)}
 .wrap.no-sub{grid-template-columns:1fr}
+.lp-body{max-width:900px}
+.lp-pane[hidden]{display:none}
 #page-tracker.view-seen .toolbar,#page-tracker.view-seen #tSummary,#page-tracker.view-seen #tList,#page-tracker.view-seen #addOwn{display:none}
 #page-tracker:not(.view-seen) #tSeenWrap{display:none}
 .wrap.no-sub .sidebar{display:none}
@@ -1042,6 +1044,15 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
         <div class="card acct-only" id="memberNote" hidden><p class="lead" style="margin:0">Only the account's owner or an admin can invite or remove people.</p></div>
       </div>
 
+      <!-- A funder's or program's own page (Nov 10 2026): /nonprofit/listing/<id>, its tabs in the left column -->
+      <div class="page" id="page-listing">
+        <div class="hero">
+          <div class="eyebrow" id="lpEyebrow"></div>
+          <h1 id="lpTitle"></h1>
+        </div>
+        <div class="lp-body" id="lpBody"></div>
+      </div>
+
       <!-- Advisors (Nov 10 2026): the Shared With Advisors box, from the Team page, on a page of its own -->
       <div class="page" id="page-advisors">
         <div class="hero">
@@ -1447,7 +1458,22 @@ function navAllowed(r) {
 }
 function routeAt(path) {
   const p = String(path || '').replace(/^\/+|\/+$/g, '').replace(/^nonprofit(\/|$)/, '');
+  const m = /^listing\/([0-9a-f-]{36})(?:\/(giving|programs|contact))?$/.exec(p);
+  if (m) return listingRoute(m[1], m[2] || '');
   return navSubs().find(r => r.path === p && navAllowed(r)) || null;
+}
+// A listing's page and its tabs, made for the listing at hand: under the Library in the top bar, its tabs (the ones it
+// has) in the left column.
+const LISTING_TABS = [['', 'Overview'], ['giving', 'Giving'], ['programs', 'Programs'], ['contact', 'People And Contact']];
+const LISTING_SEC = {key: 'listing', top: 'library', get label() { return (LISTING && LISTING.ready && LISTING.title) || 'Funder'; },
+  get subs() {
+    const id = ROUTE && ROUTE.listingId; if (!id) return [];
+    const has = (LISTING && LISTING.id === id && LISTING.has) || {};
+    return LISTING_TABS.filter(([t]) => !t || has[t]).map(([t]) => listingRoute(id, t));
+  }};
+function listingRoute(id, tab) {
+  return {path: 'listing/' + id + (tab ? '/' + tab : ''), page: 'listing', label: (LISTING_TABS.find(x => x[0] === tab) || ['', 'Overview'])[1],
+          section: LISTING_SEC, listingId: id, tab, apply: () => showListingTab(tab), load: () => loadListingPage(id)};
 }
 function routeForPage(id) { return navSubs().find(r => r.path === PAGE_UNDER[id]) || navSubs().find(r => r.page === id && navAllowed(r)) || null; }
 function homeRoute() { return routeAt(MODE === 'account' ? 'home' : 'organization'); }
@@ -1458,10 +1484,11 @@ function navLink(r, text, cls) {
 function drawNav() {
   const cur = ROUTE || {};
   const first = sec => sec.subs.find(navAllowed);
-  const tops = NAV.filter(sec => !sec.right && first(sec)).map(sec => navLink(first(sec), sec.label, cur.section === sec ? 'active' : ''));
+  const top = cur.section && (cur.section.top || cur.section.key);            // a listing's page sits under the Library
+  const tops = NAV.filter(sec => !sec.right && first(sec)).map(sec => navLink(first(sec), sec.label, top === sec.key ? 'active' : ''));
   document.getElementById('topLinks').innerHTML = tops.join('');
   document.getElementById('topRight').innerHTML = NAV.filter(sec => sec.right && first(sec))
-    .map(sec => navLink(first(sec), sec.label, 'top-org' + (cur.section === sec ? ' active' : ''))).join('');
+    .map(sec => navLink(first(sec), sec.label, 'top-org' + (top === sec.key ? ' active' : ''))).join('');
   const subs = cur.section ? cur.section.subs.filter(navAllowed) : [];
   document.getElementById('wrap').classList.toggle('no-sub', subs.length < 2);
   document.getElementById('subnav').innerHTML = subs.length < 2 ? '' : `<div class="sub-head">${escHtml(cur.section.label)}</div>` +
@@ -1485,9 +1512,13 @@ function activate(r, id) {
   if ((id === 'home' || id === 'profile') && MODE === 'account' && !TRACKER) loadStripTracker();
 }
 // By the menu, an address, or code: the address changes (pushed, or replaced at start-up), then the page and its load.
+const NAV_SCROLL = {};                                   // where each address was scrolled to, for Back (Nov 10 2026)
 function go(path, opts) {
   opts = opts || {};
   const r = routeAt(path) || homeRoute();
+  if (!opts.pop) NAV_SCROLL[location.pathname] = window.scrollY;
+  const panel = document.getElementById('panel');
+  if (panel && panel.classList.contains('open')) closePanel();       // a link in the side panel opens a page
   // Opened at a page's own address with a #part (an answer's link, /nonprofit/answers#np_mission): kept.
   const url = NAV_BASE + '/' + r.path + (opts.keepHash && (routeAt(location.pathname) || {}).path === r.path ? location.hash : '');
   if (opts.pop) { /* the address is already there */ }
@@ -1495,6 +1526,8 @@ function go(path, opts) {
   else history.pushState(null, '', url);
   activate(r);
   if (r.load) r.load();
+  // Back to a long page (the Library) returns to where it was, once its cards are drawn.
+  if (opts.pop && NAV_SCROLL[location.pathname]) { const y = NAV_SCROLL[location.pathname]; requestAnimationFrame(() => window.scrollTo(0, y)); }
 }
 // The page as code names it (showPage('tracker')): under its sub, keeping the current one when it shows that page.
 function showPage(id) {
@@ -2137,21 +2170,32 @@ function junkSection(sec) {
   const scholarship = /scholarship/i.test(sec.heading || '') && !/organization|nonprofit/i.test(sec.heading || '');
   return /^\s*[\d.,%$+kKmM]+\s*$/.test(sec.heading || '') || /^From its \d{4} 990/i.test(String(sec.text || '').trim()) || plain.length < 40 || scholarship;
 }
-async function openListing(id) {
-  document.getElementById('scrim').style.display = 'block';
-  document.getElementById('panel').classList.add('open');
-  document.getElementById('panelTitle').textContent = 'Loading…';
-  document.getElementById('panelBody').innerHTML = '';
+// A funder's or program's own page (Nov 10 2026, the page-by-page plan: "its own page at its own address, with four
+// tabs": Overview, Giving, Programs, People And Contact, in the left column). /nonprofit/listing/<id>[/giving|programs|
+// contact]; the side panel it replaced held up to 25 sections in one scroll. Every tab is drawn once; a tab change
+// only shows another part.
+let LISTING = null;
+function openListing(id) { go('listing/' + id); }
+async function loadListingPage(id) {
+  if (LISTING && LISTING.id === id && LISTING.ready) return;
+  LISTING = {id, title: 'Loading…', has: {}, ready: false};
+  document.getElementById('lpTitle').textContent = 'Loading…';
+  document.getElementById('lpEyebrow').textContent = '';
+  document.getElementById('lpBody').innerHTML = '<div class="empty">Loading…</div>';
+  drawNav();
   let L;
   try {
     L = MODE === 'account' ? await apiFetch('/api/nonprofit/listing/' + encodeURIComponent(id))
       : await apiFetch('/api/nonprofit/preview/listing/' + encodeURIComponent(id));
   }
-  catch (e) { document.getElementById('panelTitle').textContent = 'Could not load this listing'; document.getElementById('panelBody').textContent = e.message; return; }
-  document.getElementById('panelTitle').textContent = L.title;
+  catch (e) { document.getElementById('lpTitle').textContent = 'Could not load this listing'; document.getElementById('lpBody').textContent = e.message; return; }
+  if (!LISTING || LISTING.id !== id) return;                 // another page was opened meanwhile
+  document.getElementById('lpTitle').textContent = L.title;
+  document.getElementById('lpEyebrow').textContent = L.kind === 'funder' ? 'Funder' : 'Opportunity';
   NAME_WORDS = String((L.funder && L.funder.name) || L.title || '').replace(/\b(Inc|Fdn|Tr|The|Of|And|For)\b\.?/gi, ' ')
     .split(/[^A-Za-z]+/).filter(w => w.length > 2).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
-  const out = [];
+  const out = [], parts = {overview: [], giving: [], programs: [], contact: []};
+  const put = (tab, x) => { if (x) parts[tab].push(x); };
   out.push(`<div class="badges"><span class="badge ${L.kind === 'funder' ? 'funder' : 'opp'}">${L.kind === 'funder' ? 'Funder' : 'Opportunity'}</span>${L.reviewed ? '' : '<span class="badge pending">Not Reviewed Yet</span>'}</div>`);
   // Nov 10 2026 (Will): every listing FundBug knows is in the Library; one not reviewed by hand yet says so first.
   if (!L.reviewed) out.push(`<div class="unverified">${L.kind === 'funder'
@@ -2168,7 +2212,7 @@ async function openListing(id) {
   if (L.kind === 'funder' && onFiling && !(L.funder && (L.funder.website || L.funder.grants_page))) {
     out.push('<div class="no-site">How to reach it comes from its tax filing: see How To Apply and Contact below.</div>');
   }
-  if (L.description) out.push(line('What It Is', `<p>${escHtml(L.description)}</p>`));
+  if (L.description) put('overview', line('What It Is', `<p>${escHtml(L.description)}</p>`));
   // Is this funder for us? (Oct 28 2026, Will: "1 through 5"): how it takes requests, its first grant, its giving in
   // the organization's county, its open programs and its website, before any chart.
   if (L.kind === 'funder' && L.funder) {
@@ -2187,36 +2231,36 @@ async function openListing(id) {
     if (open.length) rows.push(['Open programs', `${open.length} (see Its Programs below)`]);
     const site = F.website || (L.page_url && !/(^|\.)propublica\.org$/i.test(hostOf(L.page_url)) ? L.page_url : '');
     if (site) rows.push(['Website', `<a href="${escHtml(site)}" target="_blank" rel="noopener">${escHtml(hostOf(site))}</a>`]);
-    out.push(`<div class="summary-card">${rows.map(r => `<div><span>${escHtml(r[0])}</span><b>${r[0] === 'Website' ? r[1] : escHtml(r[1])}</b></div>`).join('')}</div>`);
+    put('overview', `<div class="summary-card">${rows.map(r => `<div><span>${escHtml(r[0])}</span><b>${r[0] === 'Website' ? r[1] : escHtml(r[1])}</b></div>`).join('')}</div>`);
   }
-  if (L.provided_by && L.provided_by.name) out.push(line('Provided By', `<p>${L.provided_by.listing_id ? `<a onclick="openListing('${L.provided_by.listing_id}')" style="cursor:pointer">${escHtml(L.provided_by.name)}</a>` : escHtml(L.provided_by.name)}</p>`));
+  if (L.provided_by && L.provided_by.name) put('overview', line('Provided By', `<p>${L.provided_by.listing_id ? `<a onclick="openListing('${L.provided_by.listing_id}')" style="cursor:pointer">${escHtml(L.provided_by.name)}</a>` : escHtml(L.provided_by.name)}</p>`));
   const f = L.funder;
   if (f) {
     const typical = typicalText(f.typical_min, f.typical_max);             // rounded as the digest rounds it
     const g = f.giving || {};
     const recent = g.count ? `${g.count} grants to organizations, ${money(g.total)} in all (${g.year} filing)` : '';
-    if (!L.giving) out.push(line('Typical Grant', typical || recent ? `<p>${typical ? escHtml(typical) : ''}${typical && recent ? '<br>' : ''}${escHtml(recent)}</p>` : ''));
+    if (!L.giving) put('overview', line('Typical Grant', typical || recent ? `<p>${typical ? escHtml(typical) : ''}${typical && recent ? '<br>' : ''}${escHtml(recent)}</p>` : ''));
     // What it gives an organization it has not funded before (Oct 7 2026, Will).
     const fg = f.first_grants;
     if (fg && fg.median && !L.giving) {
       const span = String(fg.years || '').replace('-', ' to ');
       const rng = fg.low !== fg.high ? ` (${money(fg.low)} to ${money(fg.high)})` : '';
-      out.push(line('First Grants', `<p>${escHtml(`Typically ${money(fg.median)}${rng} to an organization it had not funded before, from ${fg.count} first-time grantees, ${span}.`)}${fg.repeat_median ? '<br>' + escHtml(`Organizations it has funded before: typically ${money(fg.repeat_median)}.`) : ''}</p>`));
+      put('overview', line('First Grants', `<p>${escHtml(`Typically ${money(fg.median)}${rng} to an organization it had not funded before, from ${fg.count} first-time grantees, ${span}.`)}${fg.repeat_median ? '<br>' + escHtml(`Organizations it has funded before: typically ${money(fg.repeat_median)}.`) : ''}</p>`));
     }
     const gp = L.giving_places;
     const oneAddress = !!(gp && gp.one_address);
     if (oneAddress) {
-      out.push(line('Where It Gives', '<p>Its tax filing gives one address for nearly every grant, so it does not show where its grants went.</p>'));
+      put('giving', line('Where It Gives', '<p>Its tax filing gives one address for nearly every grant, so it does not show where its grants went.</p>'));
     } else if (gp && gp.counties && gp.counties.length && gp.counties.slice(0, 5).reduce((a, c) => a + (c.share || 0), 0) >= 0.25) {
       const top = gp.counties.slice(0, 5).map(c => `${c.name}, ${c.state}: ${Math.round(c.share * 100)}%`);
-      out.push(line('Where It Gives', `<p>Share of its ${gp.tax_year} grant dollars: ${escHtml(top.join('; '))}</p>`));
+      put('giving', line('Where It Gives', `<p>Share of its ${gp.tax_year} grant dollars: ${escHtml(top.join('; '))}</p>`));
     } else if (gp && gp.states && gp.states.length) {
-      out.push(line('Where It Gives', `<p>Share of its ${gp.tax_year} grant dollars: ${escHtml(gp.states.slice(0, 5).map(s => `${s.state}: ${Math.round(s.share * 100)}%`).join('; '))}</p>`));
+      put('giving', line('Where It Gives', `<p>Share of its ${gp.tax_year} grant dollars: ${escHtml(gp.states.slice(0, 5).map(s => `${s.state}: ${Math.round(s.share * 100)}%`).join('; '))}</p>`));
     }
     window.__YOUR_SUBJECTS = L.your_subjects || null;
-  if (L.giving) out.push(givingSection(L.giving));
-    if (g.purposes && g.purposes.length && !L.giving) out.push(line('Gives To', '<ul>' + g.purposes.map(p => `<li>${escHtml(filingCase(p.purpose))} (${p.grants} grants, ${money(p.dollars)})</li>`).join('') + '</ul>'));
-    if (g.largest && g.largest.length && !L.giving) out.push(line('Largest Recent Grants', '<ul>' + g.largest.map(x => `<li>${escHtml(mostlyCaps(x.name) ? titleCase(x.name) : x.name)}${x.city && !oneAddress ? ', ' + escHtml(addressCase(x.city)) : ''}: ${money(x.amount)}${x.purpose ? ' (' + escHtml(filingCase(x.purpose)) + ')' : ''}</li>`).join('') + '</ul>'));
+  if (L.giving) put('giving', givingSection(L.giving));
+    if (g.purposes && g.purposes.length && !L.giving) put('giving', line('Gives To', '<ul>' + g.purposes.map(p => `<li>${escHtml(filingCase(p.purpose))} (${p.grants} grants, ${money(p.dollars)})</li>`).join('') + '</ul>'));
+    if (g.largest && g.largest.length && !L.giving) put('giving', line('Largest Recent Grants', '<ul>' + g.largest.map(x => `<li>${escHtml(mostlyCaps(x.name) ? titleCase(x.name) : x.name)}${x.city && !oneAddress ? ', ' + escHtml(addressCase(x.city)) : ''}: ${money(x.amount)}${x.purpose ? ' (' + escHtml(filingCase(x.purpose)) + ')' : ''}</li>`).join('') + '</ul>'));
     // How To Apply, said once (Oct 28 2026, Will on Kapor: "Accepts applications", "By invitation", "How: By
     // invitation" and the filing's paragraph twice): how it takes requests, then the filing's own words once.
     const byInvitation = f.accepts_unsolicited === false || L.mode === 'invitation_only' || f.application_mode === 'invitation_only';
@@ -2241,8 +2285,8 @@ async function openListing(id) {
       if (a.restrictions) say('Restrictions', a.restrictions);
     }
     for (const [label, t] of said) { const h = cleanSectionHtml(t); apply.push(`<p><strong>${escHtml(label)}:</strong> ${clampHtml(h, 3, h.replace(/<[^>]+>/g, '').length)}</p>`); }
-    out.push(line('How To Apply', apply.join('')));
-    if (f.website) out.push(line('Website', `<p><a href="${escHtml(f.website)}" target="_blank" rel="noopener">${escHtml(f.website)}</a></p>`));
+    put('overview', line('How To Apply', apply.join('')));
+    if (f.website) put('overview', line('Website', `<p><a href="${escHtml(f.website)}" target="_blank" rel="noopener">${escHtml(f.website)}</a></p>`));
     // No "Grants Page": the funder crawl's guess at it was never shown in review, and was wrong (Oct 28 2026, Will).
     const contacts = ((f.contact && f.contact.contacts) || []).map(c => {
       const who = c.name && !/applications? (are )?accepted|online only|see (website|attached)/i.test(c.name) ? filingCase(c.name) : '';
@@ -2258,28 +2302,28 @@ async function openListing(id) {
       if (uniq.length) contacts.push(uniq.join('\n'));
       if (w.source_url && !contacts.some(c => c.startsWith('__LINK__'))) contacts.push(`__LINK__${w.source_url}`);   // one contact page
     }
-    out.push(line('Contact', contacts.length ? [...new Set(contacts)].map(c => c.startsWith('__LINK__')
+    put('contact', line('Contact', contacts.length ? [...new Set(contacts)].map(c => c.startsWith('__LINK__')
       ? `<p><a href="${escHtml(c.slice(8))}" target="_blank" rel="noopener">Its contact page</a></p>`
       : `<div class="section-text">${clampHtml(cleanSectionHtml(c, true), 4, c.length)}</div>`).join('') : ''));
-    out.push(trusteesLine(L.trustees));
-    out.push(donorFundsLine(L.donor_funds));
+    put('contact', trusteesLine(L.trustees));
+    put('contact', donorFundsLine(L.donor_funds));
     window.__SAID = seen;                                // what How To Apply said, so no section says it again
     // Its programs (Will, Oct 16 2026, on Kresge: "the funder profile should reference that they have many programs").
     if (L.programs && L.programs.length) {
-      out.push(line(`Its Programs (${L.programs.length})`, '<ul>' + L.programs.map(o =>
+      put('programs', line(`Its Programs (${L.programs.length})`, '<ul>' + L.programs.map(o =>
         `<li><a onclick="openListing('${o.id}')" style="cursor:pointer">${escHtml(o.title)}</a>: ${escHtml(o.open_as)}${o.deadline ? ', ' + escHtml(o.deadline) : ''}</li>`).join('') + '</ul>'));
-    } else if (f.opportunities && f.opportunities.length) out.push(line('Its Opportunities', '<ul>' + f.opportunities.map(o =>
+    } else if (f.opportunities && f.opportunities.length) put('programs', line('Its Opportunities', '<ul>' + f.opportunities.map(o =>
       `<li><a onclick="openListing('${o.id}')" style="cursor:pointer">${escHtml(o.title)}</a>${o.deadline ? ' (deadline ' + escHtml(o.deadline) + ')' : ''}</li>`).join('') + '</ul>'));
   } else {
     const facts = [];
     if (L.amount) facts.push('Amount: ' + L.amount);
     if (L.deadline || L.deadline_date) facts.push('Deadline: ' + (L.deadline || L.deadline_date));
     if (L.mode) facts.push('How: ' + (MODES[L.mode] || L.mode));
-    if (facts.length) out.push(line('Key Facts', '<p class="section-text">' + escHtml(facts.join('\n')) + '</p>'));
+    if (facts.length) put('overview', line('Key Facts', '<p class="section-text">' + escHtml(facts.join('\n')) + '</p>'));
   }
   // A funder page shows where its grants went (Where It Gives); "Where" stays for a program, where it says who may
   // apply (Oct 28 2026, Will: "i dont think we even need to show Where").
-  if (L.where && L.kind !== 'funder') out.push(line('Where', `<p>${escHtml(L.where)}</p>`));
+  if (L.where && L.kind !== 'funder') put('overview', line('Where', `<p>${escHtml(L.where)}</p>`));
   // Its pages' sections, readable and short (Oct 28 2026, Will on Kapor: "far to much information", "Purpose" then
   // "Our Mission", "walls of text"): the section's own heading, links as links, junk out, each folded to five lines,
   // four to a group with the rest behind a fold, and "More From Its Pages" folded whole.
@@ -2309,14 +2353,24 @@ async function openListing(id) {
   for (const grp of groups) {
     const folded = /more from its pages/i.test(grp.name);
     const shown = folded ? [] : grp.items.slice(0, 4), rest = folded ? grp.items : grp.items.slice(4);
-    if (grp.name && !folded) out.push(`<h3 class="group-head">${escHtml(grp.name)}</h3>`);
-    out.push(...shown.map(secHtml));
-    if (rest.length) out.push(`<details class="more-group"><summary>${escHtml(folded ? grp.name : 'More From Its Website')} (${rest.length})</summary>${rest.map(secHtml).join('')}</details>`);
+    if (grp.name && !folded) put('overview', `<h3 class="group-head">${escHtml(grp.name)}</h3>`);
+    shown.map(secHtml).forEach(x => put('overview', x));
+    if (rest.length) put('overview', `<details class="more-group"><summary>${escHtml(folded ? grp.name : 'More From Its Website')} (${rest.length})</summary>${rest.map(secHtml).join('')}</details>`);
   }
-  if (L.page_url) out.push(line(onFiling ? 'Its Tax Filing (ProPublica)' : 'Main Page', `<p><a href="${escHtml(L.page_url)}" target="_blank" rel="noopener">${escHtml(L.page_url)}</a></p>`));
-  document.getElementById('panelBody').innerHTML = out.join('');
-  document.getElementById('panelBody').scrollTop = 0;
+  if (L.page_url) put('overview', line(onFiling ? 'Its Tax Filing (ProPublica)' : 'Main Page', `<p><a href="${escHtml(L.page_url)}" target="_blank" rel="noopener">${escHtml(L.page_url)}</a></p>`));
+  const panes = Object.entries(parts).map(([tab, xs]) => `<div class="lp-pane" data-tab="${tab}">${xs.join('')}</div>`).join('');
+  document.getElementById('lpBody').innerHTML = out.join('') + panes;
+  LISTING = {id, title: L.title, kind: L.kind, ready: true,
+             has: {giving: !!parts.giving.join('').trim(), programs: !!parts.programs.join('').trim(), contact: !!parts.contact.join('').trim()}};
+  drawNav();
+  showListingTab(ROUTE && ROUTE.listingId === id ? ROUTE.tab : '');
   if (L.giving) { loadGrantees(id, 'county', '', 0); loadGrantPoints(id); }
+}
+// One tab of the listing page; a tab it does not have (no programs, say) shows its Overview.
+function showListingTab(tab) {
+  const has = (LISTING && LISTING.has) || {};
+  const t = tab && has[tab] ? tab : 'overview';
+  document.querySelectorAll('#lpBody .lp-pane').forEach(p => { p.hidden = p.dataset.tab !== t; });
 }
 
 // ── A funder's giving (Oct 13 2026, Will: "a page with the charts and graphs

@@ -20,7 +20,7 @@ ok(h.includes('recommended <b>$6.9 million</b> in grants, about 46% of its givin
 ok(h.includes('FundBug never names them') && !h.includes('page for donors</a>'), 'says the donors are never named; no link until Will approves one');
 ok(t.donorFundsLine({...btcf, services_url: 'https://x.org/donors'}).includes('href="https://x.org/donors"'), 'an approved donor services page is linked');
 ok(t.donorFundsLine(null) === '' && t.donorFundsLine({year: 2024}) === '', 'none on file: no line');
-ok(/out\.push\(donorFundsLine\(L\.donor_funds\)\);/.test(html), 'the funder page shows it');
+ok(/put\('contact', donorFundsLine\(L\.donor_funds\)\);/.test(html), 'the funder page shows it, under People And Contact');
 const card = t.fpCfCard({county: 'Berkshire', foundations: [{name: 'Berkshire Taconic Community Foundation', listing_id: 'L1', here_grants: 526, here_dollars: 22721962, donor_funds: btcf}]});
 ok(card.includes(`openListing('L1')`) && card.includes('186 donor-advised funds holding $56.3 million; its donors recommended $6.9 million in grants in 2024.'), 'the plan card names the foundation, its funds and its donors\' giving');
 ok(card.includes('526 grants to organizations in Berkshire County ($22.7 million)') && card.includes('FundBug never names them'), 'and its grants in your county');

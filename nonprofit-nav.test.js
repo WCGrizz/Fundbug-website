@@ -21,7 +21,7 @@ function page(id) {
 function load(mode, opts) {
   opts = opts || {};
   const pages = ['home', 'profile', 'matches', 'tracker', 'plan', 'answers', 'prep', 'landscape', 'digests', 'subscription', 'team',
-                 'advisors', 'leftout'].map(id => page('page-' + id));
+                 'advisors', 'leftout', 'listing'].map(id => page('page-' + id));
   const els = {topLinks: page('topLinks'), topRight: page('topRight'), subnav: page('subnav'), wrap: page('wrap')};
   const body = page('body');
   if (opts.member) body.classList.add('member');
@@ -31,10 +31,11 @@ function load(mode, opts) {
   const hist = [];
   const listeners = {};
   const ctx = {
-    MODE: mode, TRACKER: {}, RESULT: null, LAND: null, console,
+    MODE: mode, TRACKER: {}, RESULT: null, LAND: null, console, LISTING: null, requestAnimationFrame: f => f(), closePanel() {},
+    showListingTab: t => calls.push('tab:' + (t || 'overview')), loadListingPage: id => calls.push('listing:' + id),
     location: loc,
     history: {pushState: (s, t, u) => { hist.push(['push', u]); setUrl(u); }, replaceState: (s, t, u) => { hist.push(['replace', u]); setUrl(u); }},
-    window: {scrollTo() {}, addEventListener: (n, f) => { listeners[n] = f; }},
+    window: {scrollTo() {}, scrollY: 0, addEventListener: (n, f) => { listeners[n] = f; }},
     document: {body, getElementById: id => els[id] || pages.find(p => p.id === id) || page(id),
                querySelectorAll: sel => sel === '.page' ? pages : []},
     escHtml: s => String(s == null ? '' : s).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';'),
@@ -47,7 +48,7 @@ function load(mode, opts) {
   ctx.addEventListener = ctx.window.addEventListener;
   vm.createContext(ctx);
   vm.runInContext(html.slice(a, b).replace("window.addEventListener('popstate'", "addEventListener('popstate'") +
-    '\n;globalThis.__n = {routeAt, go, showPage, goInitial, drawNav, get ROUTE() { return ROUTE; }};', ctx);
+    '\n;globalThis.__n = {routeAt, go, showPage, goInitial, drawNav, get ROUTE() { return ROUTE; }, setListing: l => { LISTING = l; }};', ctx);
   return {n: ctx.__n, ctx, pages, els, calls, hist, loc, listeners, active: () => pages.find(p => p.has('active')).id.replace('page-', '')};
 }
 
@@ -130,6 +131,34 @@ function load(mode, opts) {
   D.n.goInitial();
   eq(D.loc.pathname + D.loc.hash, '/nonprofit/home', 'a link to the old address moves to the new one (its #listing= is kept apart, by keepDigestLink)');
 }
+
+// A funder's or program's own page (Nov 10 2026): /nonprofit/listing/<id>[/giving|programs|contact], under the Library,
+// its tabs (the ones it has) in the left column.
+{
+  const ID = '0b9b4c3e-1111-2222-3333-444455556666';
+  const T = load('account', {path: '/nonprofit/library'});
+  T.n.goInitial();
+  T.n.go('listing/' + ID + '/giving');
+  eq([T.loc.pathname, T.active()], ['/nonprofit/listing/' + ID + '/giving', 'listing'], 'a listing has its own address, a tab included');
+  ok(T.calls.includes('listing:' + ID) && T.calls.includes('tab:giving'), 'it loads the listing and shows the tab');
+  ok(/class="active"[^>]*>Library</.test(T.els.topLinks.innerHTML), 'a listing sits under the Library in the top bar');
+  T.n.setListing({id: ID, ready: true, title: 'Lee Bank Foundation', has: {giving: true, programs: false, contact: true}});
+  T.n.drawNav();
+  const tabs = [...T.els.subnav.innerHTML.matchAll(/>([^<]+)<\/a>/g)].map(m => m[1]);
+  eq(tabs, ['Overview', 'Giving', 'People And Contact'], 'its tabs: only the ones it has');
+  ok(/<div class="sub-head">Lee Bank Foundation</.test(T.els.subnav.innerHTML) && /class="active"[^>]*>Giving</.test(T.els.subnav.innerHTML), 'the column is headed by its name, the tab marked');
+  ok(T.n.routeAt('/nonprofit/listing/' + ID + '/nonsense') === null && T.n.routeAt('/nonprofit/listing/not-an-id') === null, 'only a real id and a real tab');
+  T.loc.pathname = '/nonprofit/library';
+  T.listeners.popstate();
+  eq([T.active(), T.calls.slice(-1)[0]], ['matches', 'fits:true'], 'Back returns to the Library');
+}
+
+// Each section under its tab (the plan: Overview, Giving, Programs, People And Contact).
+const lp = html.slice(html.indexOf('async function loadListingPage('), html.indexOf('function showListingTab('));
+ok(/put\('overview', line\('How To Apply'/.test(lp) && /put\('overview', line\('What It Is'/.test(lp) && /put\('overview', `<div class="summary-card">/.test(lp), 'Overview: what it is, the summary, how to apply');
+ok(/put\('giving', givingSection\(L\.giving\)\)/.test(lp) && /put\('giving', line\('Where It Gives'/.test(lp), 'Giving: where it gives and its giving');
+ok(/put\('programs', line\(`Its Programs/.test(lp) && /put\('contact', line\('Contact'/.test(lp), 'Programs and People And Contact');
+ok(!/out\.push\(line\(/.test(lp) && /function openListing\(id\) \{ go\('listing\/' \+ id\); \}/.test(html), 'no section left outside a tab; every listing link opens the page');
 
 // Cloudflare serves the portal for every address under /nonprofit/
 ok(/^\/nonprofit \/nonprofit-portal 200$/m.test(redirects) && /^\/nonprofit\/\* \/nonprofit-portal 200$/m.test(redirects), '_redirects serves the portal at /nonprofit/...');
