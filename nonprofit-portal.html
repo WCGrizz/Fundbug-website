@@ -77,6 +77,12 @@ nav{background:var(--ink);padding:0 28px;height:60px;display:flex;align-items:ce
 .wrap{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px)}
 .wrap.no-sub{grid-template-columns:1fr}
 .lp-body{max-width:900px}
+.pf-fold-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.pf-fold-head h2{margin:0}
+.pf-fold-sum{font-size:15px;color:var(--ink);margin:6px 0 0}
+.card.pf-folded .pf-fold-body{display:none}
+.card:not(.pf-folded) .pf-fold-sum{display:none}
+.card:not(.pf-folded) .pf-fold-head{margin-bottom:12px}
 .lp-pane[hidden]{display:none}
 #page-tracker.view-seen .toolbar,#page-tracker.view-seen #tSummary,#page-tracker.view-seen #tList,#page-tracker.view-seen #addOwn{display:none}
 #page-tracker:not(.view-seen) #tSeenWrap{display:none}
@@ -615,7 +621,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <div class="pf-strength" id="pfStrength" hidden></div>
         </div>
 
-        <div class="card acct-only">
+        <div class="card acct-only" data-fold="org">
           <h2 id="orgHead">Your Organization</h2>
           <div class="row">
             <div><label for="fFirst">First Name</label><input id="fFirst" autocomplete="given-name"></div>
@@ -631,7 +637,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <p class="src" style="font-size:14.5px;color:var(--ink)">A few sentences, or as much detail as you like. FundBug reads this beside each funder and program to judge whether it fits you.</p>
         </div>
 
-        <div class="card">
+        <div class="card" data-fold="basics">
           <h2>The Basics</h2>
           <div class="row">
             <div><label for="fOrgType">Kind Of Organization</label>
@@ -663,7 +669,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <p class="src acct-only" style="font-size:14.5px;color:var(--ink)">Exact numbers. FundBug uses them when it drafts your answers and fills application forms.</p>
         </div>
 
-        <div class="card" id="whereCard">
+        <div class="card" id="whereCard" data-fold="where">
           <h2>Where You Work</h2>
           <p class="lead">Where your work reaches, so funders for those places find you.</p>
           <div class="modes" id="modes">
@@ -695,16 +701,16 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <div class="facts" id="areaSummary"></div>
         </div>
 
-        <div class="card">
+        <div class="card" data-fold="subjects">
           <h2>What You Work On</h2>
           <p class="lead">Pick every area that fits; more is better here.</p>
           <div class="picker" id="pk-subjects"></div>
         </div>
-        <div class="card">
+        <div class="card" data-fold="populations">
           <h2>Who You Serve</h2>
           <div class="picker" id="pk-populations"></div>
         </div>
-        <div class="card">
+        <div class="card" data-fold="funding_purposes">
           <h2>What You Need Funding For</h2>
           <div class="picker" id="pk-funding_purposes"></div>
         </div>
@@ -1570,7 +1576,71 @@ function drawProfileForm() {
   const more = document.getElementById('moreCard');
   more.addEventListener('input', () => { drawSectionStates(); saveProfile(); });
   more.addEventListener('change', () => { drawSectionStates(); saveProfile(); });
+  pfFoldInit();
 }
+// ── Folded profile sections (Nov 10 2026, the page-by-page plan: "Each section folds into one line that shows its
+// answers, with Edit to open it. A new organization sees The Basics open and the rest folded"): a section with answers
+// starts folded to its one line; one with nothing yet starts open. Its line follows every edit.
+const PF_OPEN = new Set();
+let PF_FOLDED_ONCE = false;
+function pfFoldInit() {
+  document.querySelectorAll('#page-profile .card[data-fold]').forEach(card => {
+    if (card.querySelector('.pf-fold-body')) return;
+    const h2 = card.querySelector('h2'), head = document.createElement('div'), body = document.createElement('div');
+    head.className = 'pf-fold-head'; body.className = 'pf-fold-body';
+    while (h2.nextSibling) body.appendChild(h2.nextSibling);
+    h2.replaceWith(head); head.appendChild(h2);
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'btn ghost sm pf-fold-btn';
+    btn.addEventListener('click', () => pfFold(card.dataset.fold));
+    head.appendChild(btn);
+    const sum = document.createElement('p'); sum.className = 'pf-fold-sum';
+    card.appendChild(sum); card.appendChild(body);
+  });
+  const pg = document.getElementById('page-profile');
+  let queued = false;
+  const later = () => { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; pfFoldSummaries(); }); };
+  ['input', 'change', 'click'].forEach(ev => pg.addEventListener(ev, later));
+  pfFoldSummaries();
+  PF_FOLDED_ONCE = true;
+}
+function pfVal(id) { const el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; }
+function pfSummary(key) {
+  const sel = id => { const el = document.getElementById(id); return el && el.value ? el.options[el.selectedIndex].text : ''; };
+  const n = v => Number(String(v).replace(/[^0-9.]/g, '')) || 0;
+  if (key === 'org') {
+    const words = pfVal('fAbout').split(/\s+/).filter(Boolean).length;
+    return [pfVal('fOrg'), pfVal('fEin') && 'EIN ' + pfVal('fEin'), pfVal('fWeb') && hostOf(pfVal('fWeb')), words && `About: ${words} words`].filter(Boolean).join(' · ');
+  }
+  if (key === 'basics') {
+    return [pfVal('fZip') || pfVal('fBudget') ? sel('fOrgType') : '', pfVal('fZip') && 'ZIP ' + pfVal('fZip'),
+            pfVal('fBudget') && '$' + n(pfVal('fBudget')).toLocaleString('en-US') + ' budget', pfVal('fSince') && 'Tax-exempt since ' + pfVal('fSince'),
+            pfVal('fAudit') && 'Audited financials: ' + sel('fAudit'), pfVal('fFounded') && 'Founded ' + pfVal('fFounded'),
+            pfVal('fStaff') && pfVal('fStaff') + ' paid staff', pfVal('fVolunteers') && pfVal('fVolunteers') + ' volunteers'].filter(Boolean).join(' · ');
+  }
+  if (key === 'where') return (document.getElementById('areaSummary').textContent || '').replace(/\s+/g, ' ').trim();
+  const names = [...(picks[key] || [])].map(c => (termOf(key, c) || {}).label).filter(Boolean);
+  return names.length ? names.slice(0, 4).join(', ') + (names.length > 4 ? `, and ${names.length - 4} more` : '') : '';
+}
+function pfFoldSummaries() {
+  document.querySelectorAll('#page-profile .card[data-fold]').forEach(card => {
+    const key = card.dataset.fold, text = pfSummary(key);
+    card.querySelector('.pf-fold-sum').textContent = text || 'Nothing here yet.';
+    if (!PF_FOLDED_ONCE && !text) PF_OPEN.add(key);              // the first drawing: an empty section starts open
+    pfShow(card);
+  });
+}
+function pfShow(card) {
+  const open = PF_OPEN.has(card.dataset.fold);
+  card.classList.toggle('pf-folded', !open);
+  const btn = card.querySelector('.pf-fold-btn'); btn.textContent = open ? 'Done' : 'Edit'; btn.setAttribute('aria-expanded', String(open));
+}
+function pfFold(key) {
+  if (PF_OPEN.has(key)) PF_OPEN.delete(key); else PF_OPEN.add(key);
+  pfShow(document.querySelector(`#page-profile .card[data-fold="${key}"]`));
+}
+// Once the saved profile is in the form, sections start folded or open by what they hold.
+function pfFoldAfterFill() { PF_FOLDED_ONCE = false; PF_OPEN.clear(); pfFoldSummaries(); PF_FOLDED_ONCE = true; }
 // The pickers' changes (nonprofit-choices.js calls this).
 function onPicksChanged() { saveProfile(); }
 
@@ -1769,6 +1839,7 @@ function fillProfile(p) {
   for (const f of Object.keys(picks)) { picks[f] = new Set(p[f] || []); drawPicker(f); }
   fillDetails(p.details);
   drawCounties(); drawWhere(); applyKind();
+  pfFoldAfterFill();
 }
 
 // ── The profile's meter and strip (Oct 19 2026, Will: the portal opens on the profile) ──────────────────────
