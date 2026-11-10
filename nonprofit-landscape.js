@@ -3,7 +3,7 @@
 // nonprofit/np_landscape.py (no model call). nonprofit-portal.html and the advisor portal (np-side.js) load it and
 // supply apiFetch, escHtml, money, MODE, showPage and openListing, and nothing else (nonprofit-landscape-host.test.js).
 
-let LAND = null, LAND_VIEW = 'community', LAND_SUBJECT = '', LAND_SHOWN = 25, LAND_Q = '';
+let LAND = null, LAND_VIEW = 'community', LAND_SUBJECT = '', LAND_SHOWN = 25;
 
 async function openLandscape() {
   showPage('landscape');
@@ -49,7 +49,7 @@ function givingChangeHtml(g, period) {
   return `<span title="${escHtml(changeWords(g))}" data-tip="${escHtml(changeWords(g))}" style="white-space:nowrap">${mark}${Math.abs(g.pct).toLocaleString('en-US')}%</span>${own !== period ? ` <span style="white-space:nowrap">(${own})</span>` : ''}`;
 }
 
-function drawLandscape(keepFocus) {
+function drawLandscape() {
   const L = LAND; if (!L) return;
   const t = L.totals, subj = LAND_SUBJECT;
   const subjLabel = subj ? ((L.subjects.find(s => s.code === subj) || {}).label || subj) : '';
@@ -60,8 +60,7 @@ function drawLandscape(keepFocus) {
     .map(f => ({...f, shown: subj ? (f.by_subject[subj] || 0) : f.dollars}))
     .filter(f => f.shown > 0)
     .sort((a, b) => b.shown - a.shown);
-  const q = LAND_Q;
-  const list = q ? funders.filter(f => landName(f).toLowerCase().includes(q.toLowerCase()) || f.name.toLowerCase().includes(q.toLowerCase())) : funders;
+  const list = funders;
   const grantees = L.grantees.filter(g => !subj || g.subject === subj).slice(0, 25);
   const period = changePeriod(list.map(f => f.giving_change));
   const maxSubj = Math.max(1, ...L.subjects.map(s => s.dollars));
@@ -85,7 +84,7 @@ function drawLandscape(keepFocus) {
       <b>${pct(w.state, all)}</b> from elsewhere in ${escHtml(L.state)}, and <b>${pct(w.out_of_state, all)}</b> from out of state.</p>`);
   h.push(`<div class="card"><h2>${subj ? 'Funders Of ' + escHtml(subjLabel) : 'Top Funders'}</h2>
       <p class="lead">${subj ? 'Dollars to ' + escHtml(subjLabel.toLowerCase()) + ' organizations here. ' : ''}Open a funder FundBug lists to see its giving profile and how to apply. Giving Change compares all of a funder's giving, wherever it went, in its latest tax filing with the one before (the years in the heading, or in the cell when a funder's differ); hover it for the amounts.</p>
-      <input id="lSearch" class="gp-search" placeholder="Search funders" value="${escHtml(q)}" oninput="LAND_Q=this.value;LAND_SHOWN=25;drawLandscape(true)">
+      <p class="lead">The ${Math.min(funders.length, 50)} largest funders here. To find any other foundation, <a onclick="showPage('matches')" style="cursor:pointer">Search The Library</a>.</p>
       <div class="gp-table"><table><thead><tr><th>Funder</th><th>Based In</th><th class="num">Dollars Here</th><th class="num">${subj ? 'Grants (All Subjects)' : 'Grants'}</th><th class="num">${subj ? 'Typical Grant (All Subjects)' : 'Typical Grant'}</th><th class="num">Giving Change${period ? ', ' + period : ''}</th><th>Years</th></tr></thead><tbody>
       ${list.slice(0, LAND_SHOWN).map(f => `<tr>
         <td>${f.listing_id ? `<a onclick="openListing('${f.listing_id}')" style="cursor:pointer">${escHtml(landName(f))}</a>` : escHtml(landName(f))}
@@ -99,7 +98,7 @@ function drawLandscape(keepFocus) {
     </div>`);
   // Funders based here whose filings give their own address for every grantee (Oct 19 2026, Will: yes): their grants
   // are not in this county's figures, so they are listed apart, with all their giving, never added to the totals.
-  const unplaced = (L.unplaced_here || []).filter(f => !q || landName(f).toLowerCase().includes(q.toLowerCase()) || f.name.toLowerCase().includes(q.toLowerCase()));
+  const unplaced = L.unplaced_here || [];
   const uPeriod = changePeriod(unplaced.map(f => f.giving_change));
   if (!subj && unplaced.length) {
     h.push(`<div class="card"><h2>Based Here, Giving Not Placed</h2>
@@ -131,5 +130,4 @@ function drawLandscape(keepFocus) {
       </tbody></table></div><p class="gp-method">The latest years are incomplete: foundations' filings are published one to two years after the year they cover.</p></div>`);
   h.push(`<p class="gp-method"><b>How this is built.</b> ${escHtml(L.method)}</p>`);
   document.getElementById('lBody').innerHTML = h.join('');
-  if (keepFocus) { const el = document.getElementById('lSearch'); el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
 }

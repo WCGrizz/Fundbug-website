@@ -29,4 +29,15 @@ for (const view of ['community', 'all']) {
   ok(!err, `the ${view} view draws with only the host's six names` + (err ? `  (${err.message})` : ''));
   ok(el('lBody').innerHTML.includes('Giving Change') || el('lBody').innerHTML.length > 1000, `the ${view} view has its funder table`);
 }
+// Nov 10 2026 (Will: "Funding Landscape should just show the top 50. they can search the library if they want to find a
+// foundation"): no search box of its own, a link to the Library (each host maps showPage('matches') to its Library),
+// and the file lists 50 funders a view at most.
+for (const view of ['community', 'all']) {
+  vm.runInContext(`LAND = ${JSON.stringify(data[view])}; LAND_VIEW = '${view}';`, ctx);
+  vm.runInContext('drawLandscape()', ctx);
+  const body = el('lBody').innerHTML;
+  ok(!body.includes('id="lSearch"') && body.includes(`onclick="showPage('matches')"`) && body.includes('Search The Library'),
+     `the ${view} view links to the Library instead of its own search`);
+  ok(data[view].funders.length <= 50, `the ${view} view lists ${data[view].funders.length} funders (50 at most)`);
+}
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

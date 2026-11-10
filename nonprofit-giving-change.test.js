@@ -39,5 +39,5 @@ ok(/given in \$\{ch\.year\} than in \$\{ch\.prior_year\}/.test(html), 'the funde
 eq(givingChangeHtml(null), '', 'none: an empty cell, never 0%');
 ok(/givingChangeHtml\(f\.giving_change, period\)/.test(land), 'the Top Funders table shows it');
 ok(/givingChangeOf\(p\.by_year\)/.test(html), 'the funder page shows it in At A Glance');
-ok(/nonprofit-landscape\.js\?v=2026-11-10a/.test(html), 'the landscape script\'s version tag was bumped');
+ok(/nonprofit-landscape\.js\?v=2026-11-10b/.test(html), 'the landscape script\'s version tag was bumped');
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);
