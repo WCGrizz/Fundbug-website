@@ -1,7 +1,7 @@
 // The Funding Landscape page of the nonprofit portal (Oct 16 2026): who funds the organizations of the account's
 // county, from foundations' and grantmaking charities' IRS filings, built ahead by the backend's
-// nonprofit/np_landscape.py (no model call). nonprofit-portal.html loads this after its own script and supplies
-// apiFetch, escHtml, money, MODE and openListing.
+// nonprofit/np_landscape.py (no model call). nonprofit-portal.html and the advisor portal (np-side.js) load it and
+// supply apiFetch, escHtml, money, MODE, showPage and openListing, and nothing else (nonprofit-landscape-host.test.js).
 
 let LAND = null, LAND_VIEW = 'community', LAND_SUBJECT = '', LAND_SHOWN = 25, LAND_Q = '';
 
@@ -32,6 +32,22 @@ function pct(n, d) { return d ? Math.round(100 * n / d) + '%' : ''; }
 // The funder's name to show (Oct 19 2026): the backend's display_name (its Funder listing's title, else the filed
 // name cleaned: nonprofit/np_landscape.display_name), the filed name for a file built before it.
 function landName(f) { return f.display_name || f.name || ''; }
+// A funder's Giving Change (Oct 28 2026; moved here from nonprofit-portal.html Nov 10 2026, so the advisor portal, which
+// loads this file without that page, has them too).
+const changeWords = g => `${g.pct > 0 ? 'Up' : g.pct < 0 ? 'Down' : 'About the same as'} ${g.pct ? Math.abs(g.pct).toLocaleString('en-US') + '% from ' : ''}${g.prior_year}: ${money(g.dollars)} in its ${g.year} filing, ${money(g.prior_dollars)} in ${g.prior_year}`;
+// The two filings a table's Giving Change mostly compares (Nov 2 2026, Will: "clearer about the time period its
+// measuring"): its header names them; a funder on other years says its own in its cell.
+function changePeriod(changes) {
+  const n = {};
+  for (const g of changes) if (g) { const k = g.prior_year + ' to ' + g.year; n[k] = (n[k] || 0) + 1; }
+  return Object.keys(n).sort((a, b) => n[b] - n[a] || b.localeCompare(a))[0] || '';
+}
+function givingChangeHtml(g, period) {
+  if (!g) return '';
+  const mark = g.pct > 0 ? '▲ ' : g.pct < 0 ? '▼ ' : '';
+  const own = g.prior_year + ' to ' + g.year;
+  return `<span title="${escHtml(changeWords(g))}" data-tip="${escHtml(changeWords(g))}" style="white-space:nowrap">${mark}${Math.abs(g.pct).toLocaleString('en-US')}%</span>${own !== period ? ` <span style="white-space:nowrap">(${own})</span>` : ''}`;
+}
 
 function drawLandscape(keepFocus) {
   const L = LAND; if (!L) return;

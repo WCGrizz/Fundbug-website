@@ -2204,20 +2204,8 @@ function givingChangeOf(byYear) {
   return {year: ys[ys.length - 1], prior_year: ys[ys.length - 2], dollars: b.dollars || 0, prior_dollars: a.dollars,
           pct: Math.round(100 * ((b.dollars || 0) - a.dollars) / a.dollars)};
 }
-const changeWords = g => `${g.pct > 0 ? 'Up' : g.pct < 0 ? 'Down' : 'About the same as'} ${g.pct ? Math.abs(g.pct).toLocaleString('en-US') + '% from ' : ''}${g.prior_year}: ${money(g.dollars)} in its ${g.year} filing, ${money(g.prior_dollars)} in ${g.prior_year}`;
-// The two filings a table's Giving Change mostly compares (Nov 2 2026, Will: "clearer about the time period its
-// measuring"): its header names them; a funder on other years says its own in its cell.
-function changePeriod(changes) {
-  const n = {};
-  for (const g of changes) if (g) { const k = g.prior_year + ' to ' + g.year; n[k] = (n[k] || 0) + 1; }
-  return Object.keys(n).sort((a, b) => n[b] - n[a] || b.localeCompare(a))[0] || '';
-}
-function givingChangeHtml(g, period) {
-  if (!g) return '';
-  const mark = g.pct > 0 ? '▲ ' : g.pct < 0 ? '▼ ' : '';
-  const own = g.prior_year + ' to ' + g.year;
-  return `<span title="${escHtml(changeWords(g))}" data-tip="${escHtml(changeWords(g))}" style="white-space:nowrap">${mark}${Math.abs(g.pct).toLocaleString('en-US')}%</span>${own !== period ? ` <span style="white-space:nowrap">(${own})</span>` : ''}`;
-}
+// changeWords, changePeriod and givingChangeHtml live in nonprofit-landscape.js (Nov 10 2026): the advisor portal loads
+// that file without this page, and its landscape failed with "changePeriod is not defined".
 function givingSection(p) {
   const r = p.recent || {}, out = ['<h3 class="group-head">Its Giving</h3>'];
   const last = p.years[p.years.length - 1], lastYear = (p.by_year || {})[last] || {};
@@ -2795,7 +2783,7 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 })();
 </script>
 <script src="/nonprofit-drafting.js?v=2026-10-28"></script>
-<script src="/nonprofit-landscape.js?v=2026-11-02"></script>
+<script src="/nonprofit-landscape.js?v=2026-11-10a"></script>
 <script src="/nonprofit-funding-plan.js?v=2026-11-09a"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
 </body>

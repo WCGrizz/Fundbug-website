@@ -23,5 +23,6 @@ click(w.document.getElementById('g')); click(w.document.getElementById('plain'))
 ok(!w.document.querySelector('.tap-tip'), 'a tap anywhere else hides it');
 const js = fs.readFileSync(__dirname + '/nonprofit-funding-plan.js', 'utf8');
 ok(/class="fp-band" data-key="\$\{s\.key\}" data-tip=/.test(js), 'the stack bands carry their figures for a tap');
-ok(/<circle data-tip=/.test(html) && /data-tip="\$\{escHtml\(changeWords\(g\)\)\}"/.test(html), 'chart dots and Giving Change carry them too');
+const land = fs.readFileSync(__dirname + '/nonprofit-landscape.js', 'utf8');
+ok(/<circle data-tip=/.test(html) && /data-tip="\$\{escHtml\(changeWords\(g\)\)\}"/.test(land), 'chart dots and Giving Change carry them too');
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);
