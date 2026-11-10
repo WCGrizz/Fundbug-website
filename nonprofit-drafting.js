@@ -104,16 +104,22 @@ function drEnsureTerms() {
 }
 function drRenderModeBars() {
   const s = DR_SETTINGS || {};
-  const terms = '<p class="dr-modebar-note">Suggestions can be wrong or incomplete, and funders can ask for things FundBug has not seen. You are responsible for everything you submit, so read and approve every answer first.</p>';
+  // One line in view, the rest folded (Nov 10 2026, Will: yes to folding the long explainers): the choice stays out,
+  // what it means and the full responsibility note open under What This Means; the note's point stays in view.
+  const terms = 'Suggestions can be wrong or incomplete, and funders can ask for things FundBug has not seen. You are responsible for everything you submit, so read and approve every answer first.';
+  const what = s.may_draft
+    ? (s.mode === 'outline'
+      ? 'Each question gets an outline: what to cover, what your profile already says, and what you will need to add. You write the answer in your own words.'
+      : 'Each question gets a first draft written from your Organization Profile, with [placeholders] where details are missing. Edit every answer before you use it.')
+    : 'FundBug outlines each question for you: what to cover, what your profile already says, and what you will need to add. You write the answer in your own words.';
+  const fold = `<p class="dr-modebar-note" style="margin:6px 0 0">Read and approve every answer before you submit it.</p>
+       <details class="dr-modebar-more"><summary>What This Means</summary><p class="dr-modebar-note">${what}</p><p class="dr-modebar-note">${terms}</p></details>`;
   const html = s.may_draft
     ? `<div class="dr-modebar-row"><span class="dr-modebar-label">How FundBug Helps</span>
          <span class="dr-seg" role="group" aria-label="Outlines or drafted answers">
            <button type="button" data-mode="outline" aria-pressed="${s.mode === 'outline'}">Outlines</button>
-           <button type="button" data-mode="draft" aria-pressed="${s.mode !== 'outline'}">Drafted Answers</button></span></div>
-       <p class="dr-modebar-note">${s.mode === 'outline'
-         ? 'Each question gets an outline: what to cover, what your profile already says, and what you will need to add. You write the answer in your own words.'
-         : 'Each question gets a first draft written from your Organization Profile, with [placeholders] where details are missing. Edit every answer before you use it.'}</p>${terms}`
-    : `<p class="dr-modebar-note" style="margin:0">FundBug outlines each question for you: what to cover, what your profile already says, and what you will need to add. You write the answer in your own words.</p>${terms}`;
+           <button type="button" data-mode="draft" aria-pressed="${s.mode !== 'outline'}">Drafted Answers</button></span></div>${fold}`
+    : `<div class="dr-modebar-row"><span class="dr-modebar-label">How FundBug Helps: Outlines</span></div>${fold}`;
   ['drModeBar', 'prModeBar'].forEach(id => {
     const el = document.getElementById(id);
     el.innerHTML = html;

@@ -71,6 +71,33 @@ nav{background:var(--ink);padding:0 28px;height:60px;display:flex;align-items:ce
   border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
 .top-links a:hover{background:rgba(255,255,255,.05)}
 .top-links a.active{border-bottom-color:var(--green-lt);color:#fff}
+.top-search{position:relative;align-self:center;margin-right:14px}
+#topQ{width:220px;margin:0;min-height:36px;padding:7px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:15px;border-radius:6px}
+#topQ::placeholder{color:var(--cream)}
+#topQ:focus{background:#fff;color:var(--ink);border-color:var(--green)}
+.top-hits{position:absolute;right:0;top:calc(100% + 6px);width:360px;max-width:80vw;background:var(--white);border:1px solid var(--border);border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,.18);z-index:200;padding:6px 0}
+.top-hit{display:block;width:100%;text-align:left;background:none;border:0;padding:8px 14px;font:15px Jost,sans-serif;color:var(--ink);cursor:pointer}
+.top-hit span{display:block;font-size:14px;color:var(--ink)}
+.top-hit.on,.top-hit:hover{background:var(--cream2)}
+.top-none{padding:8px 14px;font-size:15px;color:var(--ink)}
+@media (max-width:760px){.top-search{display:none}}
+/* The guided tours (Nov 10 2026, nonprofit-tour.js): the page dimmed but for one feature, a card beside it. */
+#tourLayer{position:fixed;inset:0;z-index:1000}
+#tourLayer .tour-block{position:absolute;inset:0}
+#tourLayer .tour-hole{position:fixed;border-radius:10px;box-shadow:0 0 0 9999px rgba(20,20,15,.62);outline:3px solid var(--green-lt);transition:all .25s ease;pointer-events:none}
+#tourLayer .tour-card{position:fixed;background:var(--white);border-radius:10px;padding:16px 18px 14px;box-shadow:0 18px 50px rgba(0,0,0,.35);transition:top .25s ease,left .25s ease}
+#tourLayer .tour-card h3{font-family:'Fraunces',serif;font-size:20px;margin:2px 0 6px;color:var(--ink)}
+#tourLayer .tour-card p{font-size:15px;color:var(--ink);margin:0 0 12px;line-height:1.5}
+.tour-count{font-size:14px;font-weight:600;color:var(--green-dk)}
+.tour-btns{display:flex;align-items:center;gap:8px}
+.tour-gap{flex:1}
+@media (prefers-reduced-motion:reduce){#tourLayer .tour-hole,#tourLayer .tour-card{transition:none}}
+.tour-top-btn{border:1px solid rgba(255,255,255,.3)!important;border-radius:6px;padding:0 12px!important;min-height:34px!important;margin-right:6px}
+.tour-page-btn{position:absolute;right:44px;top:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:6px 12px;font:500 14px Jost,sans-serif;cursor:pointer}
+.tour-page-btn:hover{background:rgba(255,255,255,.18)}
+.tour-phone-only{display:none}
+@media (max-width:760px){.tour-page-btn{position:static;margin:8px 8px 0 0}.tour-top-btn{display:none}.tour-phone-only{display:inline-block}}
+.nav-new{margin-left:6px;background:var(--green);color:#fff;border-radius:10px;padding:1px 8px;font-size:14px;font-weight:600}
 .nav-right{display:flex;align-items:center;gap:6px}
 .nav-right a.top-org{color:var(--cream);font-size:15px;font-weight:500;text-decoration:none;padding:0 10px;cursor:pointer;min-height:44px;display:flex;align-items:center;border-bottom:3px solid transparent}
 .nav-right a.top-org.active{border-bottom-color:var(--green-lt);color:#fff}
@@ -84,6 +111,14 @@ nav{background:var(--ink);padding:0 28px;height:60px;display:flex;align-items:ce
 .card:not(.pf-folded) .pf-fold-sum{display:none}
 .card:not(.pf-folded) .pf-fold-head{margin-bottom:12px}
 .lp-pane[hidden]{display:none}
+.t-row .t-body{display:none}
+.t-row.open .t-body{display:block;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.t-sum{display:grid;grid-template-columns:20px minmax(0,1fr) auto 36px;gap:10px;align-items:center;cursor:pointer}
+.t-sum:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.t-sum-title{font-weight:600;font-size:16px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t-sum-meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:flex-end;font-size:15px;color:var(--ink)}
+.t-stage{background:var(--cream2);border-radius:12px;padding:2px 10px;font-size:14px;font-weight:500}
+@media (max-width:640px){.t-sum{grid-template-columns:20px minmax(0,1fr) 36px}.t-sum-meta{grid-column:2;grid-row:2;justify-content:flex-start}}
 #page-tracker.view-seen .toolbar,#page-tracker.view-seen #tSummary,#page-tracker.view-seen #tList,#page-tracker.view-seen #addOwn{display:none}
 #page-tracker:not(.view-seen) #tSeenWrap{display:none}
 .wrap.no-sub .sidebar{display:none}
@@ -95,12 +130,13 @@ nav{background:var(--ink);padding:0 28px;height:60px;display:flex;align-items:ce
 .main{padding:36px 44px;min-width:0}
 .page{display:none}
 .page.active{display:block}
-.hero{background:var(--ink);margin:-36px -44px 26px;padding:30px 44px 26px;border-bottom:3px solid var(--green);position:relative;overflow:hidden}
+/* Thinner title bands (Nov 10 2026, Will: yes): about 60px less before a page's content. */
+.hero{background:var(--ink);margin:-36px -44px 22px;padding:16px 44px 14px;border-bottom:3px solid var(--green);position:relative;overflow:hidden}
 .hero::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px);background-size:26px 26px;pointer-events:none}
 .hero>*{position:relative;z-index:1}
-.eyebrow{font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--green-lt);margin-bottom:6px}
-.hero h1{font-family:'Fraunces',serif;font-size:30px;font-weight:700;color:var(--white);line-height:1.15;letter-spacing:-.02em;margin-bottom:6px}
-.hero p{font-size:15px;color:var(--cream);max-width:680px}
+.eyebrow{font-size:14px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--green-lt);margin-bottom:2px}
+.hero h1{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:var(--white);line-height:1.15;letter-spacing:-.02em;margin-bottom:3px}
+.hero p{font-size:15px;color:var(--cream);max-width:760px;line-height:1.45}
 .card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:24px 26px;margin-bottom:18px}
 .card h2{font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--green-dk);margin-bottom:6px}
 .card .lead{font-size:15px;color:var(--ink);margin-bottom:16px}
@@ -324,6 +360,7 @@ details.more-group>summary{cursor:pointer;font-size:15px;font-weight:500;color:v
 /* Folded answers (Nov 10 2026): one line each until opened; search, filters and groups above them. */
 .dr-body{padding:4px 24px 22px}
 #page-answers .dr-tabs{display:none}
+.dr-modebar-more summary{cursor:pointer;font-size:15px;color:var(--green-dk);font-weight:500;margin-top:4px}
 .dr-strength summary{cursor:pointer;font-size:15px;color:var(--ink)}
 .dr-strength .dr-meter{margin-top:12px}
 .dr-card.folded .dr-body{display:none}
@@ -578,7 +615,13 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
   <nav>
     <a class="nav-logo" href="/"><img src="/fundbug_logo.png" alt="">FundBug</a>
     <div class="top-links" id="topLinks" role="navigation" aria-label="Sections"></div>
-    <div class="nav-right"><span class="nav-tag" id="navTag">Nonprofit Portal</span><span id="topRight"></span><button id="navOut" onclick="signOut()">Sign Out</button></div>
+    <!-- Find A Funder from any page (Nov 10 2026, Will: yes) -->
+    <div class="top-search" role="search">
+      <input id="topQ" type="search" placeholder="Find A Funder" aria-label="Find a funder or program by name" autocomplete="off"
+        aria-controls="topHits" aria-expanded="false" oninput="topFind()" onkeydown="topKey(event)" onfocus="topFind()" onblur="setTimeout(topClose, 150)">
+      <div class="top-hits" id="topHits" role="listbox" hidden></div>
+    </div>
+    <div class="nav-right"><span class="nav-tag" id="navTag">Nonprofit Portal</span><span id="topRight"></span><button class="acct-only tour-top-btn" onclick="tourStart('main')">Take The Tour</button><button id="navOut" onclick="signOut()">Sign Out</button></div>
   </nav>
   <div class="wrap" id="wrap">
     <div class="sidebar" id="subnav" role="navigation" aria-label="Pages in this section"></div>
@@ -1389,8 +1432,10 @@ async function openAccount() {
   loadProfileMeter();
   loadStripTracker();
   loadHomePlan();
+  tourButtons();                                         // Tour This Page in each page's title band (nonprofit-tour.js)
   await runMatches(true);
   followDigestLink();
+  tourMaybeAutostart();                                  // the main tour, once, for an account made from Nov 10 2026
 }
 
 function accountToForm(a) {
@@ -1483,15 +1528,20 @@ function listingRoute(id, tab) {
 }
 function routeForPage(id) { return navSubs().find(r => r.path === PAGE_UNDER[id]) || navSubs().find(r => r.page === id && navAllowed(r)) || null; }
 function homeRoute() { return routeAt(MODE === 'account' ? 'home' : 'organization'); }
-function navLink(r, text, cls) {
-  return `<a href="${NAV_BASE}/${r.path}" class="${cls || ''}" data-path="${r.path}" onclick="return navClick(event, '${r.path}')">${escHtml(text)}</a>`;
+function navLink(r, text, cls, extra) {
+  return `<a href="${NAV_BASE}/${r.path}" class="${cls || ''}" data-path="${r.path}" onclick="return navClick(event, '${r.path}')">${escHtml(text)}${extra || ''}</a>`;
+}
+// New matches since the last visit, beside Library in the top bar (Nov 10 2026, Will: yes); Home lists them.
+function navNewBadge(sec) {
+  const n = sec.key === 'library' && typeof NEW_IDS !== 'undefined' && NEW_IDS ? NEW_IDS.length : 0;
+  return n ? ` <span class="nav-new" aria-label="${n} new">${n} new</span>` : '';
 }
 // The bar and the column, for the mode and role, with the current section and page marked.
 function drawNav() {
   const cur = ROUTE || {};
   const first = sec => sec.subs.find(navAllowed);
   const top = cur.section && (cur.section.top || cur.section.key);            // a listing's page sits under the Library
-  const tops = NAV.filter(sec => !sec.right && first(sec)).map(sec => navLink(first(sec), sec.label, top === sec.key ? 'active' : ''));
+  const tops = NAV.filter(sec => !sec.right && first(sec)).map(sec => navLink(first(sec), sec.label, top === sec.key ? 'active' : '', navNewBadge(sec)));
   document.getElementById('topLinks').innerHTML = tops.join('');
   document.getElementById('topRight').innerHTML = NAV.filter(sec => sec.right && first(sec))
     .map(sec => navLink(first(sec), sec.label, 'top-org' + (top === sec.key ? ' active' : ''))).join('');
@@ -1555,6 +1605,40 @@ function goInitial() {
   go(r ? r.path : homeRoute().path, {replace: true, keepHash: true});
 }
 // ── NAV END
+// Find A Funder (Nov 10 2026): names in the Library as you type, every word matched; Enter or a click opens the page.
+let TOP_HITS = [], TOP_ON = -1;
+function topFind() {
+  const q = document.getElementById('topQ').value.trim().toLowerCase(), box = document.getElementById('topHits');
+  const all = (typeof RESULT !== 'undefined' && RESULT && RESULT.shown) || [];
+  if (q.length < 2) { topClose(); return; }
+  const words = q.split(/\s+/);
+  TOP_HITS = all.filter(m => words.every(w => (m.title + ' ' + (m.provided_by || '')).toLowerCase().includes(w)))
+    .sort((a, b) => (a.title.toLowerCase().startsWith(words[0]) ? 0 : 1) - (b.title.toLowerCase().startsWith(words[0]) ? 0 : 1)).slice(0, 8);
+  TOP_ON = TOP_HITS.length ? 0 : -1;
+  box.innerHTML = !all.length ? '<div class="top-none">Your Library is still loading.</div>'
+    : TOP_HITS.length ? TOP_HITS.map((m, i) => `<button type="button" role="option" class="top-hit${i === TOP_ON ? ' on' : ''}" onmousedown="event.preventDefault()" onclick="topOpen(${i})">${escHtml(m.title)}<span>${escHtml(m.kind === 'funder' ? 'Funder' : 'Opportunity')}${m.fits === false ? ', may not fit' : ''}</span></button>`).join('')
+    : '<div class="top-none">Nothing in your Library by that name.</div>';
+  box.hidden = false;
+  document.getElementById('topQ').setAttribute('aria-expanded', 'true');
+}
+function topKey(e) {
+  if (e.key === 'Escape') { topClose(); e.target.blur(); return; }
+  if (!TOP_HITS.length) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    TOP_ON = (TOP_ON + (e.key === 'ArrowDown' ? 1 : TOP_HITS.length - 1)) % TOP_HITS.length;
+    document.querySelectorAll('#topHits .top-hit').forEach((b, i) => b.classList.toggle('on', i === TOP_ON));
+  } else if (e.key === 'Enter' && TOP_ON >= 0) { e.preventDefault(); topOpen(TOP_ON); }
+}
+function topOpen(i) {
+  const m = TOP_HITS[i]; if (!m) return;
+  document.getElementById('topQ').value = ''; topClose(); document.getElementById('topQ').blur();
+  openListing(m.id);
+}
+function topClose() {
+  const box = document.getElementById('topHits'); if (box) box.hidden = true;
+  const q = document.getElementById('topQ'); if (q) q.setAttribute('aria-expanded', 'false');
+}
 
 // ── profile form ────────────────────────────────────────────────────────
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -2017,6 +2101,7 @@ function drawStrip() {
   strip.hidden = false;
   const fits = RESULT.shown.filter(m => m.fits !== false && !m.not_for_you);
   const n = NEW_IDS ? NEW_IDS.length : null;
+  drawNav();                                                   // the Library's "new" count in the top bar follows
   document.getElementById('pfNew').innerHTML = '<h3>New Matches</h3>' + (n === null
     ? `<p><span class="pf-big">${fits.length.toLocaleString()}</span>funders and programs fit you. <a onclick="showPage('matches')">Open Your Library</a></p>`
     : n ? `<p><span class="pf-big">${n.toLocaleString()}</span>new since your last visit. <a onclick="showNewMatches()">See ${n === 1 ? 'It' : 'Them'}</a></p>`
@@ -2091,15 +2176,23 @@ function tierLine(g) {
                 g.dollars ? shortMoney(g.dollars) : '', g.year ? String(g.year) : ''].filter(Boolean);
   return `<div class="tier-line"><b>${escHtml(g.label)}</b>${bits.length ? ` (${escHtml(bits.join(', '))})` : ''}</div>`;
 }
+// A Library card, short (Nov 10 2026, Will: yes to simpler cards; 566 fits were a lot of reading): its name and badges,
+// one line each for its giving here, its money and timing, and why it may fit. The fit bullets, the description, where
+// it gives and Prep Application are on its own page, one click away.
+function cardWhy(m) {
+  if (m.fits === false && m.why_not) return `<div class="why-not">May not fit: ${escHtml(m.why_not)}</div>`;
+  const t = m.verdict_reason ? toSecondPerson(m.verdict_reason) : (m.why && m.why.length ? m.why[0] : '');
+  if (!t) return '';
+  const label = m.verdict === 'no' ? 'Why It May Not Fit' : 'Why It May Fit';
+  return `<div class="fit-read"><b>${label}:</b> ${escHtml(sentenceCut(t, 170))}</div>`;
+}
 function matchCard(m) {
   const facts = [];
   // Rounded as the digest rounds it (Oct 19 2026): $32,856 is $33,000.
   if (m.kind === 'funder' && (m.typical_min || m.typical_max)) facts.push(`<span><b>Typical Grant:</b> ${escHtml(typicalText(m.typical_min, m.typical_max))}</span>`);
-  if (m.kind === 'funder' && m.first_grant) facts.push(`<span><b>First Grant:</b> ${escHtml(m.first_grant)}</span>`);
   if (m.kind !== 'funder' && m.amount) facts.push(`<span><b>Amount:</b> ${escHtml(m.amount)}</span>`);
   if (m.kind !== 'funder' && (m.deadline || m.deadline_date)) facts.push(`<span><b>Deadline:</b> ${escHtml(m.deadline || m.deadline_date)}</span>`);
   if (m.mode) facts.push(`<span><b>How:</b> ${escHtml(MODES[m.mode] || m.mode)}</span>`);
-  if (m.where) facts.push(`<span><b>Where:</b> ${escHtml(m.where)}</span>`);
   return `<div class="m">
     <div class="m-top"><div>
       <div class="m-title"><a onclick="openListing('${m.id}')">${escHtml(m.title)}</a></div>
@@ -2110,13 +2203,10 @@ function matchCard(m) {
         ${m.verdict === 'strong' ? '<span class="badge strong">Strong Fit</span>' : ''}
         ${m.relationship ? '<span class="badge">Relationship Funder</span>' : ''}
         ${m.provided_by ? `<span class="badge">From ${escHtml(m.provided_by)}</span>` : ''}</div>
-    </div><div class="m-actions">${MODE === 'account' ? `<button class="btn sm ${m.saved ? 'saved' : ''}" onclick="saveListing('${m.id}')">${m.saved ? 'Saved ✓' : 'Save'}</button><button class="btn ghost sm" onclick="prepListing('${m.id}', this)">Prep Application</button><button class="btn ghost sm" onclick="hideListing('${m.id}')">Hide</button>` : ''}<button class="btn ghost sm" onclick="openListing('${m.id}')">Open</button></div></div>
+    </div><div class="m-actions">${MODE === 'account' ? `<button class="btn sm ${m.saved ? 'saved' : ''}" onclick="saveListing('${m.id}')">${m.saved ? 'Saved ✓' : 'Save'}</button><button class="btn ghost sm" onclick="hideListing('${m.id}')">Hide</button>` : ''}<button class="btn ghost sm" onclick="openListing('${m.id}')">Open</button></div></div>
     ${tierLine(m.giving)}
-    <div class="facts">${facts.join('')}</div>
-    ${m.why && m.why.length ? '<ul class="why">' + m.why.map(w => `<li>${escHtml(w)}</li>`).join('') + '</ul>' : ''}
-    ${m.verdict_reason ? `<div class="fit-read"><b>${m.verdict === 'no' ? 'Why It May Not Fit' : 'Why It May Fit'}:</b> ${escHtml(toSecondPerson(m.verdict_reason))}</div>` : ''}
-    ${m.fits === false && m.why_not ? `<div class="why-not">May not fit: ${escHtml(m.why_not)}</div>` : ''}
-    ${m.description ? `<div class="desc">${escHtml(sentenceCut(m.description, 360))}</div>` : ''}
+    ${facts.length ? `<div class="facts">${facts.join('')}</div>` : ''}
+    ${cardWhy(m)}
   </div>`;
 }
 // The Library's count line (Nov 9 2026: with Fits Only on by default it said "199 fit your organization. Showing 456 with
@@ -2751,6 +2841,16 @@ async function loadTracker() {
   sel.value = keep;
   drawTracker();
 }
+// Open Tracker rows, kept through every redraw (an update redraws the list).
+const T_OPEN = new Set();
+function tToggle(pid) {
+  if (T_OPEN.has(pid)) T_OPEN.delete(pid); else T_OPEN.add(pid);
+  const row = document.getElementById('tr-' + pid); if (!row) return;
+  const open = T_OPEN.has(pid);
+  row.classList.toggle('open', open);
+  const sum = row.querySelector('.t-sum'); sum.setAttribute('aria-expanded', String(open)); sum.querySelector('.dr-chev').textContent = open ? '▾' : '▸';
+}
+function shortDay(iso) { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? `${MONTH_NAMES[+m[2] - 1].slice(0, 3)} ${+m[3]}` : iso; }
 function stageLabel(code) { return ((TRACKER && TRACKER.stages) || []).find(s => s.code === code)?.label || code; }
 function drawTracker() {
   if (!TRACKER) return;
@@ -2775,13 +2875,25 @@ function drawTracker() {
     const kindBadge = i.kind === 'funder' ? '<span class="badge funder">Funder</span>' : i.kind === 'own' ? '<span class="badge">Added By You</span>' : '<span class="badge opp">Opportunity</span>';
     const dl = i.deadline ? `<span><b>Deadline:</b> ${escHtml(i.deadline)}${i.days_until_deadline != null ? ` <span class="${i.days_until_deadline <= 14 ? 'soon' : ''}">(${i.days_until_deadline < 0 ? 'passed' : i.days_until_deadline + ' days'})</span>` : ''}</span>` : '';
     const due = i.follow_up_date && i.follow_up_date <= today ? ' <span class="soon">Follow up today or earlier</span>' : '';
-    const pid = escHtml(i.program_id);
-    return `<div class="t-row">
+    const pid = escHtml(i.program_id), open = T_OPEN.has(String(i.program_id));
+    const fu = i.follow_up_date ? (i.follow_up_date <= today ? '<span class="soon">Follow up now</span>' : `Follow up ${escHtml(shortDay(i.follow_up_date))}`) : '';
+    const dlShort = i.deadline ? (i.days_until_deadline != null && i.days_until_deadline >= 0 && i.days_until_deadline <= 14
+      ? `<span class="soon">Due in ${i.days_until_deadline} day${i.days_until_deadline === 1 ? '' : 's'}</span>` : `Deadline ${escHtml(i.deadline)}`) : '';
+    // One row each until opened (Nov 10 2026, Will: yes to a compact Tracker): name, stage, deadline, next follow-up.
+    return `<div class="t-row${open ? ' open' : ''}" id="tr-${pid}">
+      <div class="t-sum" role="button" tabindex="0" aria-expanded="${open}" onclick="tToggle('${pid}')"
+        onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); tToggle('${pid}'); }">
+        <span class="dr-chev" aria-hidden="true">${open ? '▾' : '▸'}</span>
+        <span class="t-sum-title">${escHtml(i.title)}</span>
+        <span class="t-sum-meta"><span class="t-stage">${escHtml(stageLabel(i.status))}</span>${[dlShort, fu].filter(Boolean).map(x => `<span>${x}</span>`).join('')}</span>
+        <button class="star" title="Star" onclick="event.stopPropagation(); updateItem('${pid}', {is_favorite: ${!i.is_favorite}})">${i.is_favorite ? '★' : '☆'}</button>
+      </div>
+      <div class="t-body">
       <div class="t-top"><div>
         <div class="m-title">${i.group_id ? `<a onclick="openListing('${i.group_id}')">${escHtml(i.title)}</a>` : (i.source_url ? `<a href="${escHtml(i.source_url)}" target="_blank" rel="noopener">${escHtml(i.title)}</a>` : escHtml(i.title))}</div>
         <div class="badges">${kindBadge}${i.provided_by ? `<span class="badge">From ${escHtml(i.provided_by)}</span>` : ''}${i.under_review ? '<span class="badge pending">FundBug Is Looking Into It</span>' : ''}</div>
         <div class="facts">${i.amount ? `<span><b>Amount:</b> ${escHtml(i.amount)}</span>` : ''}${dl}${due}</div>
-      </div><button class="star" title="Star" onclick="updateItem('${pid}', {is_favorite: ${!i.is_favorite}})">${i.is_favorite ? '★' : '☆'}</button></div>
+      </div></div>
       <div class="t-grid">
         <div><label>Stage</label><select onchange="updateItem('${pid}', {status: this.value})">${TRACKER.stages.map(s => `<option value="${s.code}" ${s.code === i.status ? 'selected' : ''}>${escHtml(s.label)}</option>`).join('')}</select></div>
         <div><label>Follow Up On</label><input type="date" value="${escHtml(i.follow_up_date || '')}" onchange="updateItem('${pid}', {follow_up_date: this.value || null})"></div>
@@ -2789,7 +2901,7 @@ function drawTracker() {
       ${thAwardFields(i)}
       ${thPanel(i)}
       <div class="m-actions" style="margin-top:8px"><button class="btn sm" onclick="openPrep('${pid}')">Prep Application</button>${calEvents([i], today).length ? `<button class="btn ghost sm" onclick="downloadItemIcs('${pid}')">Add To Calendar</button>` : ''}<button class="btn ghost sm" onclick="removeItem('${pid}')">Remove</button></div>
-    </div>`;
+    </div></div>`;
   }).join('');
   Object.keys(TH_OPEN).filter(k => TH_OPEN[k]).forEach(k => { if (document.getElementById('thl-' + k)) thLoad(k); });
 }
@@ -3112,9 +3224,10 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 })();
 </script>
 <script src="/answers-nav.js?v=2026-11-10a"></script>
-<script src="/nonprofit-drafting.js?v=2026-11-10b"></script>
+<script src="/nonprofit-drafting.js?v=2026-11-10c"></script>
 <script src="/nonprofit-landscape.js?v=2026-11-10b"></script>
 <script src="/nonprofit-funding-plan.js?v=2026-11-10a"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
+<script src="/nonprofit-tour.js?v=2026-11-10a"></script>
 </body>
 </html>

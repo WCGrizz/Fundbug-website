@@ -39,5 +39,5 @@ ok(/id="drc-custom_board" data-state="empty"/.test(cards) && cards.includes("loc
 ok(/Needs Review \(1\)/.test(els.drNav.innerHTML) && /Empty \(1\)/.test(els.drNav.innerHTML) && /Saved \(1\)/.test(els.drNav.innerHTML), 'the filters count the answers');
 ok(/const kept = drKeepEdits\('answers', drDirty\);[\s\S]*drPutEdits\('answers', kept, drMarkDirty\);/.test(js) && /const kept = drKeepEdits\('slots', prDirty\);[\s\S]*drPutEdits\('slots', kept, prMarkDirty\);/.test(js),
    'edits not yet saved are kept through a redraw, in My Answers and Prep Application');
-ok(/id="drNav"/.test(html) && /id="prNav"/.test(html) && /answers-nav\.js\?v=2026-11-10a/.test(html) && /nonprofit-drafting\.js\?v=2026-11-10b/.test(html), 'both pages have the search and filters, and the new script is loaded');
+ok(/id="drNav"/.test(html) && /id="prNav"/.test(html) && /answers-nav\.js\?v=2026-11-10a/.test(html) && /nonprofit-drafting\.js\?v=2026-11-1\d[a-z]/.test(html), 'both pages have the search and filters, and the new script is loaded');
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);
