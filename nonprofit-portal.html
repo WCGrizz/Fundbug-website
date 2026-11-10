@@ -2855,7 +2855,10 @@ function tToggle(pid) {
   const sum = row.querySelector('.t-sum'); sum.setAttribute('aria-expanded', String(open)); sum.querySelector('.dr-chev').textContent = open ? '▾' : '▸';
 }
 function shortDay(iso) { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? `${MONTH_NAMES[+m[2] - 1].slice(0, 3)} ${+m[3]}` : iso; }
-function stageLabel(code) { return ((TRACKER && TRACKER.stages) || []).find(s => s.code === code)?.label || code; }
+function stageLabel(code) {
+  const s = ((TRACKER && TRACKER.stages) || []).find(x => x.code === code);
+  return s ? s.label : String(code || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());      // in_progress: In Progress
+}
 function drawTracker() {
   if (!TRACKER) return;
   const st = document.getElementById('tStage').value, kind = document.getElementById('tKind').value, fav = document.getElementById('tFav').checked;
@@ -2881,8 +2884,11 @@ function drawTracker() {
     const due = i.follow_up_date && i.follow_up_date <= today ? ' <span class="soon">Follow up today or earlier</span>' : '';
     const pid = escHtml(i.program_id), open = T_OPEN.has(String(i.program_id));
     const fu = i.follow_up_date ? (i.follow_up_date <= today ? '<span class="soon">Follow up now</span>' : `Follow up ${escHtml(shortDay(i.follow_up_date))}`) : '';
-    const dlShort = i.deadline ? (i.days_until_deadline != null && i.days_until_deadline >= 0 && i.days_until_deadline <= 14
-      ? `<span class="soon">Due in ${i.days_until_deadline} day${i.days_until_deadline === 1 ? '' : 's'}</span>` : `Deadline ${escHtml(i.deadline)}`) : '';
+    // The row's deadline, short: none once passed, "Due in 3 days" when close, else its date (the full text is inside).
+    const dd = i.days_until_deadline, dueOn = dd != null ? new Date(Date.parse(today + 'T12:00:00Z') + dd * 864e5).toISOString().slice(0, 10) : '';
+    const dlShort = !i.deadline || (dd != null && dd < 0) ? ''
+      : dd != null && dd <= 14 ? `<span class="soon">${dd === 0 ? 'Due today' : `Due in ${dd} day${dd === 1 ? '' : 's'}`}</span>`
+      : dd != null ? `Due ${escHtml(shortDay(dueOn))}` : escHtml(i.deadline.length > 40 ? i.deadline.slice(0, 38).replace(/\s+\S*$/, '') + '…' : i.deadline);
     // One row each until opened (Nov 10 2026, Will: yes to a compact Tracker): name, stage, deadline, next follow-up.
     return `<div class="t-row${open ? ' open' : ''}" id="tr-${pid}">
       <div class="t-sum" role="button" tabindex="0" aria-expanded="${open}" onclick="tToggle('${pid}')"
