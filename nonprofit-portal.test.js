@@ -74,8 +74,9 @@ eq(t.dueSoon(TR, LIB, '2026-10-19').map(d => [d.where, d.title, d.what, d.days])
 eq(t.daysUntil('2026-11-18', '2026-10-19'), 30, 'days are counted by date');
 ok(/if \(!routeDrafting\(\)\) goInitial\(\);/.test(html) && /function homeRoute\(\) \{ return routeAt\(MODE === 'account' \? 'home' : 'organization'\); \}/.test(html),
    'an account opens on Home (Nov 9 2026), the preview on the Organization Profile, unless the address names a page');
-ok(/<div class="page" id="page-home">[\s\S]*?id="trialCard"[\s\S]*?id="gsCard"[\s\S]*?id="pfStrip"[\s\S]*?id="homePlan"[\s\S]*?<div class="page" id="page-profile">/.test(html),
-   'Home holds the trial banner, Getting Started, the strip and the Funding Plan card, before the profile page');
+ok(/<div class="page" id="page-home">[\s\S]*?id="trialCard"[\s\S]*?id="gsCard"[\s\S]*?id="homeDigest"[\s\S]*?id="homePlan"[\s\S]*?id="pfStrip"[\s\S]*?id="homeNext"[\s\S]*?id="pfDue"[\s\S]*?id="homePipe"[\s\S]*?id="homeNotes"[\s\S]*?<div class="page" id="page-profile">/.test(html)
+   && !/id="pfNew"/.test(html),
+   'Home (Nov 10 2026): the trial banner, Getting Started, the digest link, the plan, Next Steps beside Due Soon, the pipeline, the notes; no New Matches tile');
 ok(/<div class="card acct-only" id="pfMeterCard">/.test(html) && /renderMeter\(PROFILE_METER, 'pf'\)/.test(html) && /function renderMeter\(p, prefix\)/.test(drafting),
    'the profile carries the drafting meter, fed by the same reply');
 

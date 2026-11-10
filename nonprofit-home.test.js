@@ -16,16 +16,15 @@ w.eval([grab(/function escHtml\([\s\S]*?\n\}/), grab(/function money\(n\).*/), g
         'window.t = {homePlanHtml, initFitsOnly, rememberFitsOnly, tierLine, librarySummary};'].join('\n'));
 const t = w.t;
 
-// Home's Funding Plan card
+// Home's Funding Plan card (Nov 10 2026: the plan's bar; the source furthest behind moved to Your Next Steps)
 const plan = {saved: true, goal: 450000, totals: {secured: 123750, pending: 15000},
   sources: [{label: 'Foundation Grants', planned: 170000, secured: 65000, pending: 0},
             {label: 'Government Grants', planned: 45000, secured: 12500, pending: 0},
             {label: 'Events', planned: 30000, secured: 30000, pending: 0}]};
 const card = t.homePlanHtml(plan);
-ok(card.includes('$123,750</b> secured of your $450,000 goal (28%)') && card.includes('$15,000 pending') && card.includes('$311,250 still to raise.'),
-   'secured of the goal, pending, and what is left to raise');
-ok(card.includes('Furthest behind its plan: Foundation Grants, $105,000 still to find.') && card.includes('See The Funders That Could Close It'),
-   'the source furthest behind its plan, linked to the funders that could close it');
+ok(card.includes("<h2>This Year's Funding</h2>") && card.includes('$123,750</b> secured of your $450,000 goal (28%)') && card.includes('$15,000 pending') &&
+   card.includes('<b>$311,250</b> still to raise.') && card.includes("go('plan')"), 'secured of the goal, pending, what is left to raise, and a link');
+ok(!card.includes('Furthest behind'), 'the source furthest behind is a next step, not on the card');
 ok(t.homePlanHtml({saved: false, goal: 0}).includes("Set This Year's Goal"), 'no goal yet: a link to set one');
 ok(t.homePlanHtml(null) === '', 'a plan that could not be read shows nothing, never a wrong figure');
 ok(t.homePlanHtml({...plan, totals: {secured: 450000, pending: 0}, sources: []}).includes('Your goal is covered.'), 'a covered goal says so');

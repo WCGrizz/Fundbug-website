@@ -16,7 +16,7 @@ const TOURS = {
     {go: 'home', el: '#topLinks', title: 'Your Sections',
      text: 'Everything is here: your Funding Plan, Tracker, My Answers and Library. Each section\'s pages are in the column on the left.'},
     {go: 'home', el: '#pfStrip', title: 'Home',
-     text: 'New matches since your last visit, and what is due in the next 30 days.'},
+     text: 'What to do next, and what is due in the next 30 days. Below them, your pipeline and what your team added since your last visit.'},
     {go: 'plan', el: '.fp-stack-card', title: 'Funding Plan',
      text: 'Set this year\'s goal, then add what you expect under each source: a grant, a bake sale, a donor.'},
     {go: 'answers', el: '#drNav, #drCards, #drEmpty', title: 'My Answers',
@@ -29,9 +29,12 @@ const TOURS = {
      text: 'The more your profile says, the better your matches and drafts. Take The Tour is always in the top bar, and every page has its own tour under Tour This Page.'},
   ],
   home: [
-    {el: '#pfNew', title: 'New Matches', text: 'Funders and programs that fit you now and did not at your last visit. Open them from here.'},
+    {el: '#homePlan', title: "This Year's Funding", text: 'How much of this year\'s goal is secured or pending, and what is left to raise.'},
+    {el: '#homeNext', title: 'Your Next Steps', text: 'Up to five things to do now: a follow-up that is overdue, an application to start or finish before it closes, a result to record, and the source furthest behind your plan.'},
     {el: '#pfDue', title: 'Due Soon', text: 'Deadlines and follow-ups in the next 30 days, from your Tracker and your Library.'},
-    {el: '#homePlan', title: 'Your Funding Plan', text: 'How much of this year\'s goal is secured, and what is left to raise.'},
+    {el: '#homePipe', title: 'Your Pipeline', text: 'How many funders and programs are at each stage of your Tracker, with the dollars asked and awarded.'},
+    {el: '#homeNotes', title: 'Since Your Last Visit', text: 'Notes your teammates or your advisor added to your Tracker since you were last here.'},
+    {el: '#homeDigest', title: 'Your Digest', text: 'A link to your latest digest. Every digest is under Library, in Digests.'},
     {el: '#gsCard', title: 'Getting Started', text: 'Four first steps. Each is ticked when it is done, and you can hide the list.'},
   ],
   matches: [

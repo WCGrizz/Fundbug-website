@@ -547,6 +547,25 @@ body.not-manager .manager-only{display:none}
 .pf-tile li{padding:3px 0}
 .pf-tile a,.dr-meter-note a.pf-go{color:var(--green-dk);font-weight:500;cursor:pointer}
 .pf-big{font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:600;color:var(--green-dk);margin-right:6px}
+/* Home (Nov 10 2026): the digest link, Your Next Steps, the pipeline and the notes since the last visit. */
+.home-digest{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px 18px;margin:0 0 18px;font-size:15px;color:var(--ink)}
+.home-digest a{color:var(--green-dk);font-weight:500;cursor:pointer}
+.home-plan-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 16px;margin-top:10px;font-size:15px}
+.pf-tile ol.home-next{list-style:none;margin:6px 0 0;padding:0}
+.pf-tile ol.home-next li{padding:9px 0;border-top:1px solid var(--border);line-height:1.45}
+.pf-tile ol.home-next li:first-child{border-top:none;padding-top:2px}
+.home-pipe{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:6px}
+.home-pipe button{text-align:left;background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer;font:inherit;color:var(--ink);min-height:44px}
+.home-pipe button:hover{border-color:var(--green)}
+.home-pipe .n{display:block;font-family:'Fraunces',Georgia,serif;font-size:28px;font-weight:600;line-height:1.1}
+.home-pipe .l{display:block;font-size:15px;font-weight:600;margin-top:2px}
+.home-pipe .d{display:block;font-size:15px;margin-top:2px}
+@media (max-width:640px){.home-pipe{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.home-notes{list-style:none;margin:6px 0 0;padding:0}
+.home-notes li{padding:10px 0;border-top:1px solid var(--border);font-size:15px}
+.home-notes li:first-child{border-top:none}
+.home-notes .who{font-size:15px;color:var(--ink)}
+.home-notes .body{white-space:pre-wrap;margin-top:3px;overflow-wrap:anywhere}
 .modes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .mode{font-size:15px;padding:9px 16px;min-height:44px;font-weight:500}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
@@ -638,22 +657,27 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
     <div class="sidebar" id="subnav" role="navigation" aria-label="Pages in this section"></div>
     <div class="main">
 
-      <!-- Home (Nov 9 2026, Will: "Yes", and the portal opens here): the trial banner, Getting Started and the strip moved
-           from the Organization Profile, and where this year's funding stands -->
+      <!-- Home (Nov 9 2026, Will: "Yes", and the portal opens here). Rebuilt Nov 10 2026 (Will: "i dont like the New Matches
+           section"; "all 5, but i dont want the latest digest, just a link to it"): the link to the latest digest, this
+           year's funding as the plan's bar, Your Next Steps beside what is due, the pipeline, and teammates' and the
+           advisor's notes since the last visit. Getting Started stays until its four steps are done. -->
       <div class="page" id="page-home">
         <div class="hero">
           <div class="eyebrow">Your Organization</div>
           <h1>Home</h1>
-          <p>What is new since your last visit, what is coming up, and where this year's funding stands.</p>
+          <p>What to do next, what is coming up, and where this year's funding stands.</p>
         </div>
         <!-- Getting started (Nov 2 2026): four first steps, each ticked as it is done; hidden when all are, or by its button -->
         <div class="trial-banner acct-only" id="trialCard" role="status" hidden></div>
         <div class="card acct-only" id="gsCard" hidden></div>
+        <p class="home-digest acct-only" id="homeDigest" hidden></p>
+        <div class="card acct-only" id="homePlan" hidden></div>
         <div class="pf-strip acct-only" id="pfStrip" hidden>
-          <div class="pf-tile" id="pfNew"></div>
+          <div class="pf-tile" id="homeNext"></div>
           <div class="pf-tile" id="pfDue"></div>
         </div>
-        <div class="card acct-only" id="homePlan" hidden></div>
+        <div class="card acct-only" id="homePipe" hidden></div>
+        <div class="card acct-only" id="homeNotes" hidden></div>
       </div>
 
       <div class="page" id="page-profile">
@@ -1443,6 +1467,7 @@ async function openAccount() {
   loadProfileMeter();
   loadStripTracker();
   loadHomePlan();
+  loadHomeExtra();
   tourButtons();                                         // Tour This Page in each page's title band (nonprofit-tour.js)
   await runMatches(true);
   followDigestLink();
@@ -2046,27 +2071,144 @@ async function loadProfileMeter() {
   loadChecklist();
   loadStrength();
 }
-// Home's Funding Plan card (Nov 9 2026, Will: yes): secured of the goal, what is left to raise, and the source furthest
-// behind its plan, linked to the plan's funders that could close it. Nothing shown when the plan cannot be read.
+// Home's Funding Plan card (Nov 9 2026, Will: yes; Nov 10: the plan's own bar, Will: "all 5"): the bar as the Funding
+// Plan draws it (fpStack), what is left to raise, and a link. The source furthest behind is one of Your Next Steps.
+// Nothing shown when the plan cannot be read.
 function homePlanHtml(plan) {
   if (!plan) return '';
-  if (!(plan.saved && plan.goal)) return `<h2>Your Funding Plan</h2><p>No goal set for this year yet. <a onclick="openFundingPlan()">Set This Year's Goal</a></p>`;
+  if (!(plan.saved && plan.goal)) return `<h2>This Year's Funding</h2><p>No goal set for this year yet. <a onclick="go('plan')">Set This Year's Goal</a></p>`;
   const t = plan.totals || {}, goal = plan.goal, secured = t.secured || 0, pending = t.pending || 0;
   const left = Math.max(goal - secured - pending, 0);
-  const behind = (plan.sources || []).map(s => ({label: s.label, gap: (s.planned || 0) - (s.secured || 0) - (s.pending || 0)}))
-    .filter(s => s.gap > 0).sort((a, b) => b.gap - a.gap)[0];
-  return `<h2>Your Funding Plan</h2><p><b>${escHtml(money(secured))}</b> secured of your ${escHtml(money(goal))} goal (${Math.round(100 * secured / goal)}%)` +
-    `${pending ? `, ${escHtml(money(pending))} pending` : ''}. ${left ? `${escHtml(money(left))} still to raise.` : 'Your goal is covered.'}</p>` +
-    (behind ? `<p>Furthest behind its plan: ${escHtml(behind.label)}, ${escHtml(money(behind.gap))} still to find. <a onclick="openFundingPlan()">See The Funders That Could Close It</a></p>` : '') +
-    `<p><a onclick="openFundingPlan()">Open Your Funding Plan</a></p>`;
+  const bar = typeof fpStack === 'function' && plan.sources && t.shown != null ? fpStack(plan, true) : '';
+  return `<h2>This Year's Funding</h2>` + (bar ||
+    `<p><b>${escHtml(money(secured))}</b> secured of your ${escHtml(money(goal))} goal (${Math.round(100 * secured / goal)}%)${pending ? `, ${escHtml(money(pending))} pending` : ''}.</p>`) +
+    `<div class="home-plan-foot"><span>${left ? `<b>${escHtml(money(left))}</b> still to raise.` : 'Your goal is covered.'}</span><a onclick="go('plan')">Open Your Funding Plan</a></div>`;
 }
+let HOME_PLAN = null;
 async function loadHomePlan() {
   if (MODE !== 'account') return;
   const box = document.getElementById('homePlan');
   let plan = null;
   try { plan = await apiFetch('/api/nonprofit/funding-plan'); } catch (e) { box.hidden = true; return; }
+  HOME_PLAN = plan;
   box.innerHTML = homePlanHtml(plan);
   box.hidden = !box.innerHTML;
+  drawStrip();
+}
+// Home's other parts (np_home): each Prep Application's answered count, notes since the last visit, the latest digest.
+// A part that could not be read is null and shows nothing.
+let HOME_EXTRA = null;
+async function loadHomeExtra() {
+  if (MODE !== 'account') return;
+  const since = homeSince();
+  try { HOME_EXTRA = await apiFetch('/api/nonprofit/home' + (since ? '?since=' + encodeURIComponent(since) : '')); }
+  catch (e) { HOME_EXTRA = null; }
+  drawHomeExtra();
+}
+// The viewer's last visit, kept for the whole visit (sessionStorage) and this one saved for the next (localStorage).
+function homeSince() {
+  const key = 'fb_np_visit_' + viewerKey(), skey = 'fb_np_visit_prev_' + viewerKey();
+  try {
+    let prev = sessionStorage.getItem(skey);
+    if (prev === null) { prev = localStorage.getItem(key) || ''; sessionStorage.setItem(skey, prev); }
+    localStorage.setItem(key, new Date().toISOString());
+    return prev || null;
+  } catch (e) { return null; }
+}
+function drawHomeExtra() {
+  const x = HOME_EXTRA || {};
+  const dg = document.getElementById('homeDigest');
+  dg.innerHTML = x.latest_digest ? `Your latest digest came ${escHtml(niceDate(x.latest_digest.sent_at))}. <a onclick="openDigest('${escHtml(x.latest_digest.id)}')">Open It</a> &nbsp;·&nbsp; <a onclick="go('library/digests')">All Digests</a>` : '';
+  dg.hidden = !dg.innerHTML;
+  const nb = document.getElementById('homeNotes');
+  nb.innerHTML = homeNotesHtml(x.notes, TRACKER ? TRACKER.items : []);
+  nb.hidden = !nb.innerHTML;
+  drawStrip();
+}
+// Since Your Last Visit: notes a teammate or the advisor wrote on the Tracker. None (or none readable): nothing shown.
+function homeNotesHtml(notes, items) {
+  if (!notes || !notes.length) return '';
+  const title = pid => ((items || []).find(i => String(i.program_id) === String(pid)) || {}).title;
+  return `<h2>Since Your Last Visit</h2><ul class="home-notes">${notes.map(n => {
+    const t = title(n.program_id), who = (n.author_name || 'Someone') + (n.from_advisor ? ' (your advisor)' : '');
+    return `<li><div class="who"><b>${escHtml(who)}</b>${t ? ` on <a onclick="homeOpenTracker('${escHtml(n.program_id)}')">${escHtml(t)}</a>` : ''}, ${escHtml(shortDay(n.created_at))}</div>
+      <div class="body">${escHtml(n.body)}</div></li>`; }).join('')}</ul>`;
+}
+// Your Next Steps (Nov 10 2026): up to five things to do now, most pressing first. Overdue follow-ups; a saved program
+// closing within 14 days whose application is not started or not finished; other applications part answered; a
+// submission with no result recorded after 90 days; and the plan's source furthest behind (kept a place). Nothing in
+// the Tracker yet: save from the Library.
+const HOME_DONE = new Set(['submitted', 'awarded', 'not_awarded', 'passed']);
+function homeNextSteps(items, apps, plan, todayIso) {
+  items = (items || []).filter(i => !i.seen_in_digest && !i.dismissed);
+  const app = new Map((apps || []).map(a => [String(a.program_id), a]));
+  const steps = [], used = new Set();
+  const days = n => n === 0 ? 'today' : n === 1 ? 'tomorrow' : `in ${n} days`;
+  const pid = i => escHtml(String(i.program_id));
+  for (const i of items) {
+    if (!i.follow_up_date || ['awarded', 'not_awarded', 'passed'].includes(i.status)) continue;
+    const d = daysUntil(i.follow_up_date, todayIso);
+    if (d != null && d < 0) steps.push({rank: 0, at: d, id: i.program_id,
+      html: `Follow up on <a onclick="homeOpenTracker('${pid(i)}')">${escHtml(i.title)}</a>: it was due ${escHtml(shortDay(i.follow_up_date))}.`});
+  }
+  for (const i of items) {
+    const d = i.days_until_deadline;
+    if (i.kind !== 'opportunity' || d == null || d < 0 || d > 14 || HOME_DONE.has(i.status)) continue;
+    const a = app.get(String(i.program_id));
+    if (a && a.questions && a.answered >= a.questions) continue;
+    used.add(String(i.program_id));
+    steps.push({rank: 1, at: d, id: i.program_id, html: a && a.questions
+      ? `Finish your application for <a onclick="openPrep('${pid(i)}')">${escHtml(i.title)}</a>: ${a.answered} of ${a.questions} answered, and it closes ${days(d)}.`
+      : `Start your application for <a onclick="openPrep('${pid(i)}')">${escHtml(i.title)}</a>: it closes ${days(d)}.`});
+  }
+  for (const i of items) {
+    const a = app.get(String(i.program_id));
+    if (!a || !a.questions || a.answered >= a.questions || used.has(String(i.program_id)) || HOME_DONE.has(i.status)) continue;
+    steps.push({rank: 2, at: a.questions - a.answered, id: i.program_id,
+      html: `Finish your application for <a onclick="openPrep('${pid(i)}')">${escHtml(i.title)}</a>: ${a.answered} of ${a.questions} answered.`});
+  }
+  for (const i of items) {
+    if (i.status !== 'submitted' || !i.submitted_on) continue;
+    const d = daysUntil(i.submitted_on, todayIso);
+    if (d != null && d <= -90) steps.push({rank: 3, at: d, id: i.program_id,
+      html: `Record the result for <a onclick="homeOpenTracker('${pid(i)}')">${escHtml(i.title)}</a>, submitted ${escHtml(shortDay(i.submitted_on))}.`});
+  }
+  steps.sort((x, y) => x.rank - y.rank || x.at - y.at);
+  const out = steps.slice(0, 5).map(s => s.html);
+  const behind = plan && plan.saved && plan.goal ? (plan.sources || []).map(s => ({label: s.label, gap: (s.planned || 0) - (s.secured || 0) - (s.pending || 0)}))
+    .filter(s => s.gap > 0).sort((a, b) => b.gap - a.gap)[0] : null;
+  if (behind) {
+    if (out.length === 5) out.pop();
+    out.push(`Find <b>${escHtml(money(behind.gap))}</b> more in ${escHtml(behind.label)}, the source furthest behind its plan. <a onclick="go('plan/gap')">See The Funders That Could Close It</a>`);
+  }
+  if (!items.length) out.unshift(`Save the funders and programs you will pursue. <a onclick="go('library')">Open Your Library</a>`);
+  return out;
+}
+function homeNextHtml(steps) {
+  return '<h3>Your Next Steps</h3>' + (steps.length ? `<ol class="home-next">${steps.map(s => `<li>${s}</li>`).join('')}</ol>`
+    : `<p>Nothing needs you right now. <a onclick="go('tracker')">Open Your Tracker</a></p>`);
+}
+// Your Pipeline: the Tracker's stages in four groups, with the dollars asked and awarded. Declined and passed are left out.
+const HOME_PIPE = [['Researching', ['not_started', 'researching', 'contacted']], ['Applying', ['loi_sent', 'invited']],
+                   ['Submitted', ['submitted']], ['Awarded', ['awarded']]];
+function homePipeHtml(items) {
+  items = (items || []).filter(i => !i.seen_in_digest && !i.dismissed);
+  if (!items.length) return '';
+  const tiles = HOME_PIPE.map(([label, codes]) => {
+    const these = items.filter(i => codes.includes(i.status || 'not_started'));
+    const sum = f => these.reduce((a, i) => a + (Number(i[f]) || 0), 0);
+    const d = label === 'Submitted' && sum('amount_requested') ? `${money(sum('amount_requested'))} asked`
+      : label === 'Awarded' && sum('amount_awarded') ? `${money(sum('amount_awarded'))} awarded` : '';
+    return `<button type="button" onclick="go('tracker')"><span class="n">${these.length}</span><span class="l">${label}</span>${d ? `<span class="d">${escHtml(d)}</span>` : ''}</button>`;
+  });
+  return `<h2>Your Pipeline</h2><div class="home-pipe">${tiles.join('')}</div>`;
+}
+// A Tracker row opened from Home: the Tracker, with that row unfolded and in view.
+function homeOpenTracker(pid) {
+  T_OPEN.add(String(pid));
+  go('tracker');
+  let n = 0;
+  const t = setInterval(() => { const r = document.getElementById('tr-' + pid); if (r || ++n > 40) { clearInterval(t); if (r) r.scrollIntoView({block: 'center'}); } }, 100);
 }
 // Fits Only on by default (Nov 9 2026, Will: yes: the Library opened on all 1,209 listings when 185 fit); each viewer's
 // own choice is kept in this browser.
@@ -2090,7 +2232,7 @@ function rememberFitsOnly() {
 async function loadStripTracker() {
   if (MODE !== 'account') return;
   try { TRACKER = await apiFetch('/api/nonprofit/tracker'); } catch (e) { TRACKER = null; }
-  drawStrip();
+  if (HOME_EXTRA) drawHomeExtra(); else drawStrip();
 }
 function viewerKey() { try { return (JSON.parse(load(SUB_KEY) || '{}').id) || (ACCOUNT && ACCOUNT.subscriber && ACCOUNT.subscriber.email) || 'me'; } catch (e) { return 'me'; } }
 // The fits seen before this visit, kept for the whole visit (sessionStorage), and today's fits saved for the next one.
@@ -2109,21 +2251,20 @@ let NEW_IDS = null;
 function drawStrip() {
   if (MODE !== 'account') return;
   const strip = document.getElementById('pfStrip');
-  if (!RESULT) { strip.hidden = true; return; }
+  if (!RESULT && !TRACKER) { strip.hidden = true; return; }
   strip.hidden = false;
-  const fits = RESULT.shown.filter(m => m.fits !== false && !m.not_for_you);
-  const n = NEW_IDS ? NEW_IDS.length : null;
   drawNav();                                                   // the Library's "new" count in the top bar follows
-  document.getElementById('pfNew').innerHTML = '<h3>New Matches</h3>' + (n === null
-    ? `<p><span class="pf-big">${fits.length.toLocaleString()}</span>funders and programs fit you. <a onclick="showPage('matches')">Open Your Library</a></p>`
-    : n ? `<p><span class="pf-big">${n.toLocaleString()}</span>new since your last visit. <a onclick="showNewMatches()">See ${n === 1 ? 'It' : 'Them'}</a></p>`
-      : `<p>Nothing new since your last visit. <a onclick="showPage('matches')">Open Your Library</a></p>`);
-  const due = dueSoon(TRACKER ? TRACKER.items : [], RESULT.shown, new Date().toISOString().slice(0, 10));
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('homeNext').innerHTML = homeNextHtml(homeNextSteps(TRACKER ? TRACKER.items : [], (HOME_EXTRA || {}).applications, HOME_PLAN, today));
+  const pipe = document.getElementById('homePipe');
+  pipe.innerHTML = homePipeHtml(TRACKER ? TRACKER.items : []);
+  pipe.hidden = !pipe.innerHTML;
+  const due = dueSoon(TRACKER ? TRACKER.items : [], RESULT ? RESULT.shown : [], today);
   const when = d => d.what === 'follow_up' ? (d.days < 0 ? 'follow up, overdue' : d.days === 0 ? 'follow up today' : `follow up in ${d.days} day${d.days === 1 ? '' : 's'}`)
     : d.days === 0 ? 'closes today' : `closes in ${d.days} day${d.days === 1 ? '' : 's'}`;
-  const go = d => d.where === 'tracker' ? `showPage('tracker'); loadTracker()` : `openListing('${d.id}')`;
+  const act = d => d.where === 'tracker' ? `homeOpenTracker('${escHtml(d.id)}')` : `openListing('${d.id}')`;
   document.getElementById('pfDue').innerHTML = '<h3>Due In The Next 30 Days</h3>' + (due.length
-    ? `<ul>${due.slice(0, 4).map(d => `<li><a onclick="${go(d)}">${escHtml(d.title)}</a>: ${when(d)}${d.where === 'library' ? ' (in your Library)' : ''}</li>`).join('')}</ul>` +
+    ? `<ul>${due.slice(0, 4).map(d => `<li><a onclick="${act(d)}">${escHtml(d.title)}</a>: ${when(d)}${d.where === 'library' ? ' (in your Library)' : ''}</li>`).join('')}</ul>` +
       (due.length > 4 ? `<p>And ${due.length - 4} more. <a onclick="showPage('tracker'); loadTracker()">Open Your Tracker</a></p>` : '')
     : `<p>Nothing due in the next 30 days. <a onclick="showPage('tracker'); loadTracker()">Open Your Tracker</a></p>`);
 }
@@ -3244,8 +3385,8 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 <script src="/answers-nav.js?v=2026-11-10a"></script>
 <script src="/nonprofit-drafting.js?v=2026-11-10c"></script>
 <script src="/nonprofit-landscape.js?v=2026-11-10b"></script>
-<script src="/nonprofit-funding-plan.js?v=2026-11-10b"></script>
+<script src="/nonprofit-funding-plan.js?v=2026-11-10c"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
-<script src="/nonprofit-tour.js?v=2026-11-10b"></script>
+<script src="/nonprofit-tour.js?v=2026-11-10c"></script>
 </body>
 </html>

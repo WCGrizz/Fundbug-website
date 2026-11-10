@@ -118,7 +118,7 @@ function fpParse(v) {
 // Percentages beside the dollars (Nov 6 2026, Will: "we should show percentages in the funding plan screen, not just
 // $$ amounts"): each source's secured share of what is planned, and the totals' shares of the goal.
 function fpPct(part, whole) { return whole > 0 ? Math.round(100 * (part || 0) / whole) + '%' : ''; }
-function fpStack(v) {
+function fpStack(v, home) {                                      // home: Home's card, which has no Your Sources below
   const goal = v.goal || 0, bands = v.sources.filter(s => s.shown > 0);
   if (!bands.length && !goal) return `<div class="fp-empty">Set this year's goal and plan your sources below, and your capital stack appears here.</div>`;
   const max = Math.max(goal, v.totals.shown, 1), pct = n => (100 * n / max).toFixed(2) + '%';
@@ -137,7 +137,7 @@ function fpStack(v) {
   const out = [`<div class="fp-stack" role="img" aria-label="Your capital stack for FY${v.fiscal_year}: ${escHtml(money(v.totals.secured))} secured of ${escHtml(money(goal || v.totals.shown))}">`,
     `<div class="fp-top"><span>${escHtml(money(v.totals.secured))} secured${goal ? ` (${fpPct(v.totals.secured, goal)})` : ''}${v.totals.pending ? `, ${escHtml(money(v.totals.pending))} pending${goal ? ` (${fpPct(v.totals.pending, goal)})` : ''}` : ''}</span>${goal ? `<span>Goal ${escHtml(money(goal))}</span>` : ''}</div>`,
     `<div class="fp-bar">${segs.join('')}${unplanned ? `<i class="fp-seg fp-unplanned" style="margin-left:auto;width:${pct(unplanned)}" data-tip="Not yet planned: ${escHtml(money(unplanned))}"></i>` : ''}</div>`];
-  if (unplanned) out.push(`<p class="fp-note">Not yet planned: ${escHtml(money(unplanned))} of your goal. Plan it under Your Sources below.</p>`);
+  if (unplanned && !home) out.push(`<p class="fp-note">Not yet planned: ${escHtml(money(unplanned))} of your goal. Plan it under Your Sources below.</p>`);
   out.push('</div>');
   return out.join('');
 }
