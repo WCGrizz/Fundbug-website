@@ -128,4 +128,9 @@ const drafting = fs.readFileSync(__dirname + '/nonprofit-drafting.js', 'utf8');
 ok(/if \(h === '#answers'\) \{ go\('answers', \{replace: true\}\); return true; \}/.test(drafting), 'a #answers link sent before still opens My Answers');
 ok(!/\.sidebar a/.test(drafting + html.slice(html.indexOf('<script>'))), 'no code marks the old side menu');
 
+// A digest link (/nonprofit-portal#listing=..., #save=..., #tracker) is kept before the opening address replaces the old
+// one and drops its hash (Nov 10 2026: the first deploy landed #tracker on Home).
+const acct = html.slice(html.indexOf('async function openAccount()'), html.indexOf('function accountToForm('));
+ok(/\n  keepDigestLink\(\);[^\n]*\n  if \(!routeDrafting\(\)\) goInitial\(\);/.test(acct) && acct.indexOf('followDigestLink()') > acct.indexOf('goInitial()'),
+   'a digest link is kept before the address changes, and carried out after');
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

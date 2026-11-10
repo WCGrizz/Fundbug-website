@@ -1303,6 +1303,7 @@ async function openAccount() {
   fillProfile(accountToForm(ACCOUNT));
   // The portal opens on Home (Will, Nov 9 2026; the Organization Profile before); #answers or #prep/<id> opens that page
   // at once (nonprofit-drafting.js), and #listing=, #save= and #tracker are carried out once the Library is loaded.
+  keepDigestLink();                                      // #listing=, #save=, #tracker: kept before the address changes
   if (!routeDrafting()) goInitial();                     // the page at the address it was opened at, or Home
   loadProfileMeter();
   loadStripTracker();
