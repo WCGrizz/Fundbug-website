@@ -32,4 +32,6 @@ ok(!state('populations').classList.has('pf-folded'), 'an empty picker starts ope
 f.pfFold('org');
 ok(!state('org').classList.has('pf-folded') && state('org').btn.textContent === 'Done', 'Edit opens it, Done folds it');
 ok((html.match(/<div class="card[^"]*"[^>]* data-fold="/g) || []).length === 6 && /pfFoldAfterFill\(\);\n\}/.test(html), 'six sections fold, and they fold by what the saved profile holds');
+ok(/const fold = el\.closest\('\.card\[data-fold\]'\);\n  if \(fold && fold\.classList\.contains\('pf-folded'\)\) pfFold\(fold\.dataset\.fold\);/.test(html),
+   'a link to a profile field (EIN, website, Where You Work) opens its folded section first');
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

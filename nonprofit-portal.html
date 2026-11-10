@@ -1860,6 +1860,9 @@ function goToProfileItem(id) {
   const el = document.getElementById(id); if (!el) return;
   const sec = el.closest('details.sec') || (el.matches('details.sec') ? el : null);
   if (sec) sec.open = true;
+  // A folded section (Nov 10 2026) opens first, so the field is there to see.
+  const fold = el.closest('.card[data-fold]');
+  if (fold && fold.classList.contains('pf-folded')) pfFold(fold.dataset.fold);
   el.scrollIntoView({block: 'center'});
   const focusable = el.matches('input,select,textarea') ? el : el.querySelector('input,select,textarea');
   if (focusable) focusable.focus({preventScroll: true});
