@@ -72,7 +72,7 @@ nav{background:var(--ink);padding:0 28px;height:60px;display:flex;align-items:ce
 .top-links a:hover{background:rgba(255,255,255,.05)}
 .top-links a.active{border-bottom-color:var(--green-lt);color:#fff}
 .top-search{position:relative;align-self:center;margin-right:14px}
-#topQ{width:220px;margin:0;min-height:36px;padding:7px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:15px;border-radius:6px}
+#topQ{width:190px;margin:0;min-height:36px;padding:7px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:15px;border-radius:6px}
 #topQ::placeholder{color:var(--cream)}
 #topQ:focus{background:#fff;color:var(--ink);border-color:var(--green)}
 .top-hits{position:absolute;right:0;top:calc(100% + 6px);width:360px;max-width:80vw;background:var(--white);border:1px solid var(--border);border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,.18);z-index:200;padding:6px 0}
@@ -92,11 +92,15 @@ nav{background:var(--ink);padding:0 28px;height:60px;display:flex;align-items:ce
 .tour-btns{display:flex;align-items:center;gap:8px}
 .tour-gap{flex:1}
 @media (prefers-reduced-motion:reduce){#tourLayer .tour-hole,#tourLayer .tour-card{transition:none}}
+/* The bar's right end stays on one line (Nov 10 2026): its buttons do not wrap, and the portal's name tag shows only
+   where there is room for it. */
+.nav-right button,.nav-right a.top-org{white-space:nowrap}
+@media (max-width:1440px){.nav-tag{display:none}}
 .tour-top-btn{border:1px solid rgba(255,255,255,.3)!important;border-radius:6px;padding:0 12px!important;min-height:34px!important;margin-right:6px}
-.tour-page-btn{position:absolute;right:44px;top:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:6px 12px;font:500 14px Jost,sans-serif;cursor:pointer}
+.hero>.tour-page-btn{position:absolute;right:44px;top:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:6px 12px;font:500 14px Jost,sans-serif;cursor:pointer}
 .tour-page-btn:hover{background:rgba(255,255,255,.18)}
 .tour-phone-only{display:none}
-@media (max-width:760px){.tour-page-btn{position:static;margin:8px 8px 0 0}.tour-top-btn{display:none}.tour-phone-only{display:inline-block}}
+@media (max-width:760px){.hero>.tour-page-btn{position:static;margin:8px 8px 0 0}.tour-top-btn{display:none}.tour-phone-only{display:inline-block}}
 .nav-new{margin-left:6px;background:var(--green);color:#fff;border-radius:10px;padding:1px 8px;font-size:14px;font-weight:600}
 .nav-right{display:flex;align-items:center;gap:6px}
 .nav-right a.top-org{color:var(--cream);font-size:15px;font-weight:500;text-decoration:none;padding:0 10px;cursor:pointer;min-height:44px;display:flex;align-items:center;border-bottom:3px solid transparent}
