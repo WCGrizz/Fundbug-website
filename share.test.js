@@ -67,12 +67,15 @@ async function runShare({ t, signedIn, invite, accept }) {
     return { box: e.get('shareBox'), calls };
   }
   let c = await card({ shares: [], can_manage: true });
-  ok(c.box.hidden === true, 'no card when nobody is shared with');
+  // The card is the Advisors page's whole content since Nov 10 2026: with nobody shared with, it says so.
+  ok(c.box.hidden === false && /You are not sharing with any advisor/.test(c.box.innerHTML) && !/stopSharing/.test(c.box.innerHTML), 'nobody shared with: the page says so');
   const one = { shares: [{ advisor_id: 'brpc', advisor: 'Berkshire Funding Focus', shared_at: '2026-10-22T15:00:00Z' }] };
   c = await card({ ...one, can_manage: true });
   ok(c.box.hidden === false && /Berkshire Funding Focus/.test(c.box.innerHTML) && /stopSharing\('brpc'\)/.test(c.box.innerHTML), 'the owner or an admin can stop sharing');
-  c = await card({ ...one, can_manage: false });
+  ok(/onchange="setSharePlan\('brpc', this\)"/.test(c.box.innerHTML) && !/type="checkbox" checked/.test(c.box.innerHTML), 'Share My Funding Plan starts off');
+  c = await card({ shares: [{ ...one.shares[0], share_plan: true }], can_manage: false });
   ok(/Berkshire Funding Focus/.test(c.box.innerHTML) && !/Stop Sharing/.test(c.box.innerHTML), 'a member sees who it is shared with, and no Stop Sharing');
+  ok(/type="checkbox" checked disabled/.test(c.box.innerHTML) && /owner or an admin can change what you share/.test(c.box.innerHTML), 'a member sees the plan is shared, and cannot change it');
   c = await card(new Error('Server error'));
   ok(c.box.hidden === false && /Could not load sharing/.test(c.box.innerHTML), 'a failed load says so, never "nobody"');
   ok(/loadSharing\(\);\n\}/.test(html) && /id="shareBox" hidden/.test(html), 'the Team page loads the card');
