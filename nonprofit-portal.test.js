@@ -185,4 +185,11 @@ ok(/nonprofit-landscape\.js\?v=2026-11-10b/.test(html), 'the portal loads the la
 ok(/if \(!L\.reviewed\) out\.push\(`<div class="unverified">/.test(html)
    && html.includes("We haven't verified these funder details by hand yet. They come from the funder's tax filings and website."),
    'a funder page not reviewed yet opens with the unverified note');
+// Nov 10 2026 (Will: "headings and subheadings having different font sizes"): a card's title is bigger than its parts'.
+{
+  const px = re => { const m = html.match(re); return m ? +m[1] : 0; };
+  const h2 = px(/\n\.card h2\{[^}]*font-size:(\d+)px/), h3 = px(/\n\.fp-h3\{[^}]*font-size:(\d+)px/), tile = px(/\n\.pf-tile h3\{[^}]*font-size:(\d+)px/);
+  ok(h2 >= 20 && h3 >= 17 && h2 > h3 && tile > 16 && !/\n\.card h2\{[^}]*uppercase/.test(html), 'card titles 20px or more and above their parts; no small capitals for titles');
+  ok(/\n\.card \.fp-h3\{[^}]*border-top/.test(html), 'a part of a card has a rule above it');
+}
 process.exit(fails ? 1 : 0);

@@ -73,7 +73,7 @@ function load(mode, opts) {
   eq([T.loc.pathname, T.active()], ['/nonprofit/home', 'home'], 'an account opens on Home at /nonprofit/home');
   eq(T.hist, [['replace', '/nonprofit/home']], 'the opening address replaces the old one (Back does not return to /nonprofit-portal)');
   const tops = [...T.els.topLinks.innerHTML.matchAll(/>([^<]+)<\/a>/g)].map(m => m[1]);
-  eq(tops, ['Home', 'Library', 'Tracker', 'Funding Plan', 'My Answers'], 'the top bar: the five sections');
+  eq(tops, ['Home', 'Funding Plan', 'Tracker', 'My Answers', 'Library'], "the top bar: the five sections, in Will's order (Nov 10 2026)");
   ok(/class="top-org"[^>]*>Organization</.test(T.els.topRight.innerHTML), 'Organization at the right end of the bar');
   ok(T.els.wrap.has('no-sub') && T.els.subnav.innerHTML === '', 'Home has no left column');
   T.n.go('library');

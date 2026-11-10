@@ -27,4 +27,11 @@ ok(card.includes('526 grants to organizations in Berkshire County ($22.7 million
 ok(t.fpCfCard({county: 'Berkshire', foundations: []}).includes('No community foundation with donor-advised funds gives in Berkshire County'), 'none: says so');
 ok(t.fpCfCard({error: 'down', foundations: []}).includes('could not be read just now'), 'a failed read says so, never "none"');
 ok(/<h3 class="fp-h3">Community Foundations Whose Donors Give Near You<\/h3><div id="fpCf">/.test(js) && /fpLoadCf\(\);/.test(js), 'the donor card loads it');
+const tbf = t.fpCfCard({county: 'Berkshire', foundations: [{name: 'The Boston Foundation', here_grants: 38, here_dollars: 1300000, donor_funds: {...btcf, value: 1403500000}}]});
+ok(tbf.includes('holding $1.4 billion') && !tbf.includes('1403.5 million'), 'a fund over a billion reads as billions (Will saw "$1403.5 million")');
+// Nov 10 2026 (Will: "reads very flatly"): the donor list comes first, then DAF gifts and the community foundations, each its own part.
+const dc = js.slice(js.indexOf('function fpDonorsCard'), js.indexOf('function fpPanel('));
+const at = x => dc.indexOf(x);
+ok(at('class="fp-actions"') > 0 && at('class="fp-actions"') < at('Gifts From Donor-Advised Funds') && at('Gifts From Donor-Advised Funds') < at('Community Foundations Whose Donors'),
+   'Donors: the list and its buttons first, then two parts with their own headings');
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);
