@@ -11,7 +11,7 @@ const grab = re => { const m = html.match(re); if (!m) throw new Error('not foun
 const ctx = {};
 vm.createContext(ctx);
 vm.runInContext([grab(/function escHtml\([\s\S]*?\n\}/), grab(/function money\(n\).*/), grab(/const shortMoney = .*/), grab(/const MONTH_NAMES = .*/),
-                 js, 'globalThis.t = {fpCountyName, fpStack, fpYearLabel, fpParse, fpParseCsv, fpGuessColumns, fpDate, fpRowsFrom, fpDownloadText, fpTotalsLine};',
+                 js, 'globalThis.t = {fpCountyName, fpStack, fpBandHtml, fpSourceRow, fpItemsHtml, fpPlannedLine, fpStoredItems, fpYearLabel, fpParse, fpParseCsv, fpGuessColumns, fpDate, fpRowsFrom, fpDownloadText, fpTotalsLine};',
                  'globalThis.setFP = v => { FP = v; }; globalThis.sent = []; fpSave = c => { sent.push(c); };', 'globalThis.fpSaveAward = fpSaveAward;'].join('\n'), ctx);
 const t = ctx.t;
 
@@ -26,17 +26,19 @@ const view = {fiscal_year: 2027, end_month: 6, goal: 500000, sources: [src('earn
 
 // The stack (Nov 5 2026: one bar to the goal over a row per source, Will's "B over A")
 const svg = t.fpStack(view);
-ok((svg.match(/class="fp-band"/g) || []).length === 3, 'one row per source with anything in it (none for an empty one)');
-ok(/Foundation Grants<\/span>.*?\$60K of \$200K/s.test(svg) && /Government Grants<\/span>.*?\$25K of \$100K/s.test(svg), 'each row says what is secured of what is planned');
-ok(/\$70K of \$50K.*?\(more than planned\)/s.test(svg), 'a source past its plan says so');
-ok(/fp-band" data-key="government".*?fp-pending/s.test(svg) && !/fp-band" data-key="foundation"[^]*?fp-pending[^]*?data-key="individual"/s.test(svg), 'pending is striped, only where there is some');
+// Each source's bar is its row under Your Sources since Nov 10 2026 (every source, so each has its Add Source).
+const rows = view.sources.map(t.fpBandHtml).join('');
+ok((rows.match(/class="fp-band"/g) || []).length === 4 && !svg.includes('class="fp-band"'), 'every source has a row under Your Sources, none in the stack');
+ok(/Foundation Grants<\/span>.*?\$60K of \$200K/s.test(rows) && /Government Grants<\/span>.*?\$25K of \$100K/s.test(rows), 'each row says what is secured of what is planned');
+ok(/\$70K of \$50K.*?\(more than planned\)/s.test(rows), 'a source past its plan says so');
+ok(/fp-band" data-key="government".*?fp-pending/s.test(rows) && !/fp-band" data-key="foundation"[^]*?fp-pending[^]*?data-key="individual"/s.test(rows), 'pending is striped, only where there is some');
 ok(svg.includes('Not yet planned: $130,000') && svg.includes('Goal $500,000'), 'the goal heads the bar and the unplanned part up to it is shown');
 const widths = Object.fromEntries([...svg.matchAll(/<i class="fp-seg" style="width:([\d.]+)%;background:([^"]+)"/g)].map(m => [m[2], +m[1]]));
 ok(Math.abs(widths['#3d7a38'] - 12) < 0.01 && Math.abs(widths['#2f5d7c'] - 5) < 0.01, 'the goal bar shows each source\'s secured money in proportion to the goal');
 ok(!svg.includes('<svg') && !svg.includes('fp-label'), 'no text drawn over the colors');
 ok(t.fpStack({...view, goal: null, sources: view.sources.map(s => ({...s, shown: 0})), totals: {...view.totals, shown: 0}}).includes('Set this year'), 'nothing yet: an invitation, not an empty box');
 ok(!t.fpStack({...view, goal: 100000}).includes('Not yet planned'), 'planned past the goal: no unplanned part');
-ok(t.fpStack({...view, sources: [src('other', '<b>x</b>', 10, 0, 0)], totals: {...view.totals, shown: 10}}).includes('&lt;b&gt;'), 'labels are escaped');
+ok(t.fpBandHtml(src('other', '<b>x</b>', 10, 0, 0)).includes('&lt;b&gt;'), 'labels are escaped');
 ok(t.fpTotalsLine(view).includes('$155,000') && t.fpTotalsLine(view).includes('(31% of goal)') && t.fpTotalsLine(view).includes('$345,000'), 'the totals over the stack');
 
 // Words and figures
@@ -75,7 +77,35 @@ ctx.fpSaveAward('a', {source: 'foundation'});
 eq(ctx.sent, [{awards: {a: {source: 'corporate', share: null, left_out: false, restricted: false}}}, {awards: {a: {source: null, share: 20000, left_out: false, restricted: false}}}, {awards: {a: null}}],
    'a choice is sent as a change; back to the defaults clears it');
 
-ok(/FP_MATCH_SOURCES\[s\.key\] && s\.planned > s\.secured \? `<br><a onclick="fpFindMatches\('\$\{s\.key\}'\)">/.test(js) && /foundation: 'Find Foundation Matches'/.test(js), 'a source with money still to raise links to its matches');
+ok(/FP_MATCH_SOURCES\[s\.key\] && s\.planned > s\.secured \? `<button class="btn ghost sm" onclick="fpFindMatches\('\$\{s\.key\}'\)">/.test(js) && /foundation: 'Find Foundation Matches'/.test(js), 'a source with money still to raise links to its matches');
+
+// Your Sources (Nov 10 2026, Will: "Under sources such as Earned revenue or foundation grant etc, there should be a button
+// like Add source"; "a toggle ... between sum of items and manual entry"; the gap "its own page ... not expanded by default").
+const ev = src('events', 'Events', 21200, 1200, 0, {planned_mode: 'items', planned_manual: 0, items_total: 21200, items: [
+  {id: 'bake01', name: 'Bake Sale Fundraiser', amount: 1200, date: '2026-10-04', status: 'secured', restricted: true, notes: null, counted_by_tracker: false},
+  {id: 'gala01', name: 'Spring <Gala>', amount: 20000, date: null, status: 'planned', counted_by_tracker: false}]});
+ctx.setFP({...view, sources: [ev, src('foundation', 'Foundation Grants', 40000, 35000, 0, {planned_mode: 'manual', planned_manual: 40000, items_total: 40000, items: [
+  {id: 'item0a', name: 'Coolidge Hill', amount: 40000, status: 'planned', tracking_id: 'a', counted_by_tracker: true}]})],
+  awards: [{tracking_id: 'a', title: 'Coolidge Hill Foundation', source: 'foundation', amount: 35000, counted: 35000, decided_on: '2026-09-15'}], pending: []});
+const folded = t.fpSourceRow(ev);
+ok(folded.includes('aria-expanded="false"') && !folded.includes('Add Source') && !folded.includes('Bake Sale'), 'a source starts folded to its bar');
+vm.runInContext("FP_OPEN.add('events')", ctx);
+const opened = t.fpSourceRow(ev);
+ok(opened.includes('aria-expanded="true"') && opened.includes(`onclick="fpAddPanel('events')">Add Source</button>`), 'open, it has its Add Source button');
+ok(/Bake Sale Fundraiser<\/b>\s*<span class="fp-pill secured">Secured<\/span><span class="fp-pill">Restricted<\/span>/.test(opened) && opened.includes('$1,200 · Oct 4, 2026'),
+   'an item shows its name, status, restricted, amount and date');
+ok(opened.includes('Spring &lt;Gala&gt;') && !opened.includes('<Gala>'), "an item's name is escaped");
+ok(/class="on" aria-pressed="true"[^>]*>Sum Of Items/.test(t.fpPlannedLine(ev)) && !t.fpPlannedLine(ev).includes('<input'), 'Sum Of Items: the sum, no box to type in');
+const fnd = ctx.t.fpPlannedLine({...ev, key: 'foundation', planned_mode: 'manual', planned_manual: 40000, items_total: 35000});
+ok(/class="on" aria-pressed="true"[^>]*>Enter An Amount/.test(fnd) && fnd.includes('value="$40,000"') && fnd.includes('$35,000 in the items below'), 'Enter An Amount: the typed amount, with the items\' sum beside it');
+const fItems = t.fpItemsHtml(vm.runInContext('FP.sources[1]', ctx));
+ok(fItems.includes('Counted From Your Tracker') && fItems.includes('Awarded In Your Tracker') && fItems.includes('$35,000 awarded'),
+   'an item the Tracker counts says so, beside the award itself (never counted twice)');
+ok(fItems.includes('<summary>More Detail</summary>') && fItems.includes('Leave Out Of The Plan') && fItems.includes("This Year's Share"), "an award's choices sit behind More Detail");
+eq(t.fpStoredItems('events')[0], {id: 'bake01', name: 'Bake Sale Fundraiser', amount: 1200, date: '2026-10-04', status: 'secured', restricted: true, notes: null, tracking_id: undefined, group_id: undefined},
+   'what is sent back is the stored form, without the figures the page was given');
+ok(/if \(FP_VIEW === 'gap'\)/.test(js) && /\{path: 'plan\/gap', page: 'plan', label: 'Close The Gap'/.test(html) && /\{path: 'plan\/donors', page: 'plan', label: 'Donors'/.test(html),
+   'Close The Gap and Donors are their own pages in Funding Plan\'s column');
 ok(/\(!src \|\| m\.source === src\)/.test(html) && /id="mSource"/.test(html), 'Matches filters by source');
 ok(/\{key: 'plan', label: 'Funding Plan', acct: true/.test(html) && /id="page-plan"[\s\S]*?id="fpBody"/.test(html), 'the portal has the page, for accounts only');
 ok(/nonprofit-funding-plan\.js\?v=\d{4}-\d{2}-\d{2}/.test(html), 'the portal loads the script with a version tag');
@@ -85,7 +115,7 @@ ok(/nonprofit-funding-plan\.js\?v=\d{4}-\d{2}-\d{2}/.test(html), 'the portal loa
   const g = ctx.__g;
   ok(g && /<details class="card fp-guide" open>/.test(g({totals: {planned: 0, secured: 0, pending: 0}})), 'an empty plan opens How This Page Works');
   ok(g && !/ open>/.test(g({totals: {planned: 1000, secured: 0, pending: 0}})), 'a plan with figures folds it');
-  ok(g && /marked? Awarded|mark Awarded/.test(g({totals: {}})) && /donor list/.test(g({totals: {}})), 'it says what counts by itself');
+  ok(g && /mark Submitted or Awarded in your Tracker/.test(g({totals: {}})) && /donor list/.test(g({totals: {}})) && /Add Source/.test(g({totals: {}})), 'it says what counts by itself, and how to add the rest');
 }
 // Nov 5 2026: restricted money, and funders that could close the gap.
 {
@@ -111,7 +141,7 @@ ok(/nonprofit-funding-plan\.js\?v=\d{4}-\d{2}-\d{2}/.test(html), 'the portal loa
   ok(card.includes('($2,500</b> of it through donor-advised funds)') || card.includes('<b>$2,500</b> of it through donor-advised funds'), 'the donor list says how much came through DAFs');
   ok((card.match(/Gives Through A DAF/g) || []).length === 1, 'a donor who gave through a DAF is marked; one who did not is not');
   ok(card.includes('Add An Anonymous DAF Gift') && card.includes('legal name and EIN'), 'an anonymous DAF gift can be added, and the list says how to welcome DAF gifts');
-  ok(/s\.through_daf \? `<br>of it \$\{money\(s\.through_daf\)\} through donor-advised funds`/.test(js), 'the Individual Donors row says how much came through DAFs');
+  ok(/s\.through_daf \? ` \(\$\{money\(s\.through_daf\)\} through donor-advised funds\)`/.test(js), 'the Individual Donors row says how much came through DAFs');
   ok(/list="fdDafList"/.test(js) && /FP_EDIT\.gifts\[\$\{i\}\]\.daf=this\.value\.trim\(\)/.test(js) && /'Fidelity Charitable'/.test(js), 'each gift takes a sponsor, with the common ones suggested');
   ok(/no tax receipt/.test(js) && /cannot pay for event tickets/.test(js), 'the panel says how to thank and what a DAF cannot pay for');
 }
@@ -122,24 +152,24 @@ ok(/nonprofit-funding-plan\.js\?v=\d{4}-\d{2}-\d{2}/.test(html), 'the portal loa
                        {key: 'individual', label: 'Individual Donors', planned: 70000, secured: 22250, pending: 15000, shown: 70000}]};
   const st = t.fpStack(v), tl = t.fpTotalsLine(v);
   ok(st.includes('$181,750 secured (40%), $15,000 pending (3%)'), 'the stack says what share of the goal is secured and pending');
-  ok(st.includes('$58K of $90K <b>64%</b>') && st.includes('$22K of $70K <b>32%</b>'), 'each source says what share of its plan is secured');
+  const bands = v.sources.map(t.fpBandHtml).join('');
+  ok(bands.includes('$58K of $90K <b>64%</b>') && bands.includes('$22K of $70K <b>32%</b>'), 'each source says what share of its plan is secured');
   ok(tl.includes('pending (3% of goal)') && tl.includes('still to raise (60% of goal)'), 'the tiles give shares of the goal');
-  ok(/<th class="num">Share Of Goal<\/th>/.test(js) && /of planned/.test(js), 'the plan table gives each source\'s share of the goal and what is left of its plan');
+  vm.runInContext('globalThis.__foot = fpTotalsFoot;', ctx);
+  ok(ctx.__foot({goal: 450000, totals: {planned: 450000, secured: 181750, pending: 40000, still_to_raise: 268250}}).includes('$450,000 planned (100% of your goal)'),
+     "the sources' total gives its share of the goal");
   ok(!t.fpStack({...v, goal: 0}).includes('(0%)'), 'no goal: no shares of it');
 }
-// Pending entered and attributed, and the Total row (Nov 6 2026, Will).
+// Pending entered and attributed (Nov 6 2026, Will), as items since Nov 10 2026: an amount entered the earlier way is
+// its own line, editable; the Tracker's applications and the donors' pledges each say where they come from.
 {
-  vm.runInContext('globalThis.u = {fpPendingCell, fpTotalRow};', ctx);
-  const u = ctx.u;
-  const f = u.fpPendingCell({key: 'foundation', label: 'Foundation Grants', pending: 25000, pending_entered: 20000, pending_tracker: 5000, pending_pledges: 0, pending_unknown: 1});
-  ok(f.includes('aria-label="Foundation Grants pending, entered by you" value="$20,000"') && f.includes('+ $5,000 from applications in your Tracker')
-     && f.includes('1 application with no amount') && f.includes('<b>$25,000 in all</b>'), 'a source takes your own pending and says what FundBug attributes');
-  const i = u.fpPendingCell({key: 'individual', label: 'Individual Donors', pending: 15000, pending_entered: 0, pending_tracker: 0, pending_pledges: 15000});
-  ok(!i.includes('<input') && i.includes('$15,000') && i.includes('in pledges from your donor list'), "Individual Donors' pending is its pledges, never typed in");
-  const tr = u.fpTotalRow({goal: 450000, totals: {planned: 450000, secured: 181750, pending: 40000, secured_other: 101500, restricted_entered: 4000,
-    secured_tracker: 58000, secured_donors: 22250, pending_entered: 20000, pending_tracker: 5000, pending_pledges: 15000, still_to_raise: 268250}});
-  ok(tr.includes('<b>Total</b>') && tr.includes('<b>$450,000</b>') && tr.includes('<b>100%</b>') && tr.includes('<b>$80,250</b>') && tr.includes('<b>$268,250</b>')
-     && tr.includes('$20,000 entered, $20,000 from your Tracker and donors') && (tr.match(/<td/g) || []).length === 8, 'the Total row sums every column, one cell per column');
-  ok(/<\/tbody>\$\{fpTotalRow\(v\)\}<\/table>/.test(js) && /fpPendingCell\(s\)/.test(js), 'the plan table shows both');
+  ctx.setFP({fiscal_year: 2027, sources: [], awards: [], pending: [{tracking_id: 'p1', title: 'Mass Cultural Council', source: 'foundation', amount_requested: 5000}]});
+  const f = t.fpItemsHtml({key: 'foundation', label: 'Foundation Grants', items: [], secured_other: 0, pending_entered: 20000, restricted_entered: 0});
+  ok(f.includes('Entered as one amount') && f.includes('$20,000 pending') && f.includes(`fpOneAmountPanel('foundation')`), 'pending entered as one amount stays, and can be changed');
+  ok(f.includes('Submitted In Your Tracker') && f.includes('$5,000 asked'), 'an application in the Tracker counts as pending, said');
+  const i = t.fpItemsHtml({key: 'individual', label: 'Individual Donors', items: [], secured_donors: 22250, pending_pledges: 15000, through_daf: 0});
+  ok(i.includes('Your donor list') && i.includes('$22,250 given this year') && i.includes('$15,000 pledged and still to come') && i.includes("go('plan/donors')"),
+     "Individual Donors shows its donors' gifts and pledges, and opens the Donors page");
+  ok(/key === 'individual' \? \['planned', 'secured'\]/.test(js), "an item under Individual Donors is never Pending (pledges are)");
 }
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

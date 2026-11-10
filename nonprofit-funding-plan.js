@@ -7,6 +7,11 @@
 // shortMoney, showPage, openListing, MONTH_NAMES and the side panel.
 
 let FP = null, FP_DONORS = null, FP_MSG = '', FP_DQ = '', FP_IMPORT = null, FP_GAP = null, FP_CF = null;
+// Nov 10 2026 (Will, after demoing it: "the funding plan needs to be much more simple to change, add donors, add
+// revenue"; "Funders that can close the gap should be its own page ... not expanded by default"; an Add Source button
+// under each source): three pages under Funding Plan's column (This Year's Plan, Close The Gap, Donors), and on the
+// first, one folded row per source holding its items.
+let FP_VIEW = 'plan', FP_OPEN = new Set(), FP_ADD = null;
 const FP_COLORS = {earned: '#7ab870', government: '#2f5d7c', foundation: '#3d7a38', corporate: '#7a5c99',
                    individual: '#a8643a', events: '#b8901c', other: '#8a8577'};
 
@@ -17,8 +22,10 @@ function fpCountyName(county) {
   if (!c) return 'your county';
   return /\bcounty$/i.test(c) ? c : c + ' County';
 }
-async function openFundingPlan() {
+async function openFundingPlan(view) {
+  FP_VIEW = view || 'plan';
   showPage('plan');
+  if (FP) fpDraw();                                       // the page at once, then fresh figures
   await fpLoad(FP ? FP.fiscal_year : null);
 }
 async function fpLoad(year) {
@@ -127,16 +134,21 @@ function fpStack(v) {
   const out = [`<div class="fp-stack" role="img" aria-label="Your capital stack for FY${v.fiscal_year}: ${escHtml(money(v.totals.secured))} secured of ${escHtml(money(goal || v.totals.shown))}">`,
     `<div class="fp-top"><span>${escHtml(money(v.totals.secured))} secured${goal ? ` (${fpPct(v.totals.secured, goal)})` : ''}${v.totals.pending ? `, ${escHtml(money(v.totals.pending))} pending${goal ? ` (${fpPct(v.totals.pending, goal)})` : ''}` : ''}</span>${goal ? `<span>Goal ${escHtml(money(goal))}</span>` : ''}</div>`,
     `<div class="fp-bar">${segs.join('')}${unplanned ? `<i class="fp-seg fp-unplanned" style="margin-left:auto;width:${pct(unplanned)}" data-tip="Not yet planned: ${escHtml(money(unplanned))}"></i>` : ''}</div>`];
-  if (unplanned) out.push(`<p class="fp-note">Not yet planned: ${escHtml(money(unplanned))} of your goal. Plan it under The Plan below.</p>`);
-  out.push('<div class="fp-rows">');
-  for (const s of bands) {
+  if (unplanned) out.push(`<p class="fp-note">Not yet planned: ${escHtml(money(unplanned))} of your goal. Plan it under Your Sources below.</p>`);
+  out.push('</div>');
+  return out.join('');
+}
+// One source's bar and figures: secured of planned, pending beside it.
+function fpBandHtml(s) {
+  const out = [];
+  {
+    const tipOf = s => `${s.label}: ${money(s.secured)} secured, ${money(s.pending)} pending, ${money(s.planned)} planned`;
     const base = Math.max(s.planned, s.shown, 1), sec = Math.min(s.secured, base), pen = Math.min(s.pending, base - sec), c = FP_COLORS[s.key];
     out.push(`<div class="fp-band" data-key="${s.key}" data-tip="${escHtml(tipOf(s))}">`,
       `<span class="fp-name"><i class="fp-dot" style="background:${c}"></i>${escHtml(s.label)}</span>`,
       `<span class="fp-rowbar"><i style="width:${(100 * sec / base).toFixed(1)}%;background:${c}"></i>${pen > 0 ? `<i class="fp-pending" style="width:${(100 * pen / base).toFixed(1)}%;--c:${c}"></i>` : ''}</span>`,
       `<span class="fp-fig">${escHtml(shortMoney(s.secured))} of ${escHtml(shortMoney(s.planned || s.shown))} <b>${fpPct(s.secured, s.planned || s.shown)}</b>${s.pending ? ` <small>+${escHtml(shortMoney(s.pending))} pending</small>` : ''}${s.restricted ? ` <small>${escHtml(shortMoney(s.restricted))} restricted</small>` : ''}${s.planned && s.secured > s.planned ? ' <small>(more than planned)</small>' : ''}</span></div>`);
   }
-  out.push('</div></div>');
   return out.join('');
 }
 function fpTotalsLine(v) {
@@ -156,11 +168,11 @@ function fpGuide(v) {
   const empty = !(v.totals && (v.totals.planned || v.totals.secured || v.totals.pending));
   return `<details class="card fp-guide"${empty ? ' open' : ''}><summary>How This Page Works</summary>
       <ol>
-        <li><b>Set your goal for the year.</b> It starts as the annual budget in your Organization Profile; change it under The Plan below.</li>
-        <li><b>Plan each source.</b> Under Planned, enter how much you expect from each one: earned revenue, government, foundation and corporate grants, individual donors, events and anything else. Together they should reach your goal.</li>
-        <li><b>Record what is secured.</b> Most of it counts by itself: a grant you mark Awarded in your Tracker, with its amount, and the gifts in your donor list below. Enter anything else you already have under Secured.</li>
+        <li><b>Set your goal for the year</b> at the top. It starts as the annual budget in your Organization Profile.</li>
+        <li><b>Add what you expect under each source.</b> Open a source and press Add Source: a name, an amount and a date are enough (a bake sale, a gala, a grant you plan to apply for). Grants can come from your Tracker or the Library.</li>
+        <li><b>Mark each one Planned, Pending or Secured</b> as it moves along. A grant you mark Submitted or Awarded in your Tracker, and the gifts in your donor list, count by themselves.</li>
       </ol>
-      <p class="lead">Your capital stack then shows, for each source, what is secured (solid), what is pending (striped: applications you have submitted and pledges not yet given), and what is still to raise (light). Anything your plan does not cover yet shows dashed, up to your goal. Everyone on your team sees and can change the same plan.</p>
+      <p class="lead">Each source's planned amount is the sum of what is in it, or an amount you enter instead. Everyone on your team sees and can change the same plan.</p>
     </details>`;
 }
 
@@ -169,96 +181,261 @@ function fpDraw() {
   const v = FP; if (!v) return;
   const h = [];
   if (FP_MSG) h.push(`<div class="fp-msg">${FP_MSG}</div>`);
-  h.push(fpGuide(v));
-  h.push(`<div class="card fp-stack-card"><h2>Your Capital Stack</h2>${fpTotalsLine(v)}
-      ${fpStack(v)}
-      <div class="fp-key"><span><i class="fp-k solid"></i>Secured</span><span><i class="fp-k striped"></i>Pending</span><span><i class="fp-k light"></i>Still to raise</span><span><i class="fp-k dashed"></i>Not yet planned</span></div>
-      <p class="lead">Tap a band for its figures; every figure is also in the table below.${v.updated_by_name ? ` Last changed by ${escHtml(v.updated_by_name)}.` : ''}</p></div>`);
-  h.push(`<div class="card"><h2>Funders That Could Close The Gap</h2><p class="lead">From your own matches: funders and programs open to you whose typical grant fits what each source still needs.</p><div id="fpGap">${fpGapCard(FP_GAP)}</div></div>`);
-  const years = v.years.includes(v.fiscal_year) ? v.years : v.years.concat([v.fiscal_year]).sort();
-  h.push(`<div class="card"><h2>The Plan</h2>
-      <div class="row">
+  if (FP_VIEW === 'gap') {
+    h.push(`<div class="card"><h2>Close The Gap</h2><p class="lead">From your own matches: funders and programs open to you whose typical grant fits what each grant source still needs for FY${v.fiscal_year}.</p><div id="fpGap">${fpGapCard(FP_GAP)}</div></div>`);
+  } else if (FP_VIEW === 'donors') {
+    h.push(fpDonorsCard());
+  } else {
+    h.push(fpGuide(v));
+    const years = v.years.includes(v.fiscal_year) ? v.years : v.years.concat([v.fiscal_year]).sort();
+    h.push(`<div class="card fp-stack-card"><div class="fp-head">
         <div><label for="fpYear">Fiscal Year</label><select id="fpYear" onchange="fpLoad(this.value)">${years.map(y => `<option value="${y}" ${y === v.fiscal_year ? 'selected' : ''}>${escHtml(fpYearLabel(y, v.end_month))}</option>`).join('')}</select></div>
         <div><label for="fpGoal">Goal For The Year</label><input id="fpGoal" inputmode="numeric" value="${v.goal != null ? money(v.goal) : ''}" placeholder="$" onchange="fpSaveGoal(this.value)"></div>
       </div>
-      <p class="lead">Your fiscal year ends in ${MONTH_NAMES[v.end_month - 1]}; change it under Fiscal Year Ends in your <a onclick="showPage('profile')">Organization Profile</a>.${v.goal_from === 'budget' ? ' The goal is your profile\'s annual budget until you set one here.' : ''}</p>
-      <div class="gp-table"><table class="fp-sources"><thead><tr><th>Source</th><th class="num">Planned</th><th class="num">Share Of Goal</th><th class="num">Secured, Entered By You</th><th class="num">Of It Restricted</th><th class="num">From Your Tracker And Donors</th><th class="num">Pending</th><th class="num">Still To Raise</th></tr></thead><tbody>
-      ${v.sources.map(s => `<tr>
-        <td><i class="fp-sw" style="background:${FP_COLORS[s.key]}"></i>${escHtml(s.label)}</td>
-        <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} planned" value="${s.planned ? money(s.planned) : ''}" onchange="fpSaveSource('${s.key}', 'planned', this.value)"></td>
-        <td class="num">${v.goal && s.planned ? fpPct(s.planned, v.goal) : ''}</td>
-        <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} secured, entered by you" value="${s.secured_other ? money(s.secured_other) : ''}" onchange="fpSaveSource('${s.key}', 'secured', this.value)"></td>
-        <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} restricted, of what you entered" value="${s.restricted_entered ? money(s.restricted_entered) : ''}" placeholder="${s.secured_other ? '$0' : ''}" onchange="fpSaveSource('${s.key}', 'restricted', this.value)"></td>
-        <td class="num">${s.key === 'individual' ? money(s.secured_donors) + (s.through_daf ? `<br>of it ${money(s.through_daf)} through donor-advised funds` : '') : s.from_tracker ? money(s.secured_tracker) : ''}</td>
-        <td class="num">${fpPendingCell(s)}</td>
-        <td class="num">${money(Math.max(0, s.planned - s.secured))}${s.planned ? `<br>${fpPct(Math.max(0, s.planned - s.secured), s.planned)} of planned` : ''}${FP_MATCH_SOURCES[s.key] && s.planned > s.secured ? `<br><a onclick="fpFindMatches('${s.key}')">${FP_MATCH_SOURCES[s.key]}</a>` : ''}</td></tr>`).join('')}
-      </tbody>${fpTotalRow(v)}</table></div>
-      <p class="lead">Foundation, government and corporate awards come from your Tracker: mark one Awarded with its amount. Individual donors come from your donor list below. Enter anything else you have secured yourself, and under Of It Restricted how much of that a funder or donor tied to a purpose.</p>
-    </div>`);
-  h.push(fpAwardsCard(v));
-  h.push(fpDonorsCard());
+      ${fpTotalsLine(v)}
+      ${fpStack(v)}
+      <div class="fp-key"><span><i class="fp-k solid"></i>Secured</span><span><i class="fp-k striped"></i>Pending</span><span><i class="fp-k light"></i>Still to raise</span><span><i class="fp-k dashed"></i>Not yet planned</span></div>
+      <p class="lead">${v.goal_from === 'budget' ? "The goal is your profile's annual budget until you set one here. " : ''}Your fiscal year ends in ${MONTH_NAMES[v.end_month - 1]} (Fiscal Year Ends in your <a onclick="showPage('profile')">Organization Profile</a>).${v.updated_by_name ? ` Last changed by ${escHtml(v.updated_by_name)}.` : ''}</p>
+      <div class="fp-actions"><button class="btn sm" onclick="go('plan/gap')">Find Funders To Close The Gap</button><button class="btn ghost sm" onclick="go('plan/donors')">Your Donors</button></div></div>`);
+    h.push(`<div class="card"><h2>Your Sources</h2><p class="lead">Open a source to see what is in it and add to it.</p>
+      <div class="fp-srcs">${v.sources.map(fpSourceRow).join('')}</div>${fpTotalsFoot(v)}</div>`);
+  }
   document.getElementById('fpBody').innerHTML = h.join('');
 }
-// Pending you enter, and the pending FundBug can attribute (Nov 6 2026, Will: "the user should be able to edit pending
-// directly in the table ... maybe not for the donors, but maybe we should [show] whats pending thats attributed to a
-// source and what isnt"): an input for your own, then the applications in your Tracker and the pledges in your donor
-// list, each said. Individual Donors' pending is its pledges only.
-function fpPendingCell(s) {
-  const parts = [];
-  if (s.pending_tracker) parts.push(`${money(s.pending_tracker)} from applications in your Tracker`);
-  if (s.pending_pledges) parts.push(`${money(s.pending_pledges)} in pledges from your donor list`);
-  if (s.pending_unknown) parts.push(`${s.pending_unknown} application${s.pending_unknown === 1 ? '' : 's'} with no amount`);
-  const input = s.key === 'individual' ? '' :
-    `<input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} pending, entered by you" value="${s.pending_entered ? money(s.pending_entered) : ''}" placeholder="$" onchange="fpSaveSource('${s.key}', 'pending', this.value)">`;
-  if (s.key === 'individual') return parts.length ? parts.map(escHtml).join('<br>') : '$0';
-  const attributed = parts.map(x => `<br>+ ${escHtml(x)}`).join('');
-  const total = (s.pending_entered && parts.length) ? `<br><b>${money(s.pending)} in all</b>` : '';
-  return input + attributed + total;
-}
-// The table's own Total row: each column summed (Nov 6 2026, Will: "the columns should show total amounts").
-function fpTotalRow(v) {
+function fpTotalsFoot(v) {
   const t = v.totals;
-  return `<tfoot><tr class="fp-total"><td><b>Total</b></td><td class="num"><b>${money(t.planned)}</b></td><td class="num"><b>${v.goal ? fpPct(t.planned, v.goal) : ''}</b></td>
-      <td class="num"><b>${money(t.secured_other || 0)}</b></td><td class="num"><b>${money(t.restricted_entered || 0)}</b></td>
-      <td class="num"><b>${money((t.secured_tracker || 0) + (t.secured_donors || 0))}</b></td>
-      <td class="num"><b>${money(t.pending)}</b>${(t.pending_tracker || t.pending_pledges) ? `<br>${money(t.pending_entered || 0)} entered, ${money((t.pending_tracker || 0) + (t.pending_pledges || 0))} from your Tracker and donors` : ''}</td>
-      <td class="num"><b>${money(t.still_to_raise != null ? t.still_to_raise : Math.max(0, t.planned - t.secured))}</b></td></tr></tfoot>`;
+  return `<p class="fp-foot"><b>All sources:</b> ${money(t.planned)} planned${v.goal ? ` (${fpPct(t.planned, v.goal)} of your goal)` : ''}, ${money(t.secured)} secured, ${money(t.pending)} pending, ${money(t.still_to_raise != null ? t.still_to_raise : Math.max(0, t.planned - t.secured))} still to raise.</p>`;
+}
+// A source, folded to its bar and figures; open, its planned amount, everything in it and Add Source.
+function fpSourceRow(s) {
+  const open = FP_OPEN.has(s.key);
+  return `<div class="fp-src${open ? ' open' : ''}">
+    <div class="fp-src-head" role="button" tabindex="0" aria-expanded="${open}" onclick="fpToggle('${s.key}')"
+      onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); fpToggle('${s.key}'); }"><span class="fp-chev" aria-hidden="true">${open ? '▾' : '▸'}</span>${fpBandHtml(s)}</div>
+    ${open ? `<div class="fp-src-body">${fpPlannedLine(s)}${fpItemsHtml(s)}
+      <div class="fp-actions"><button class="btn sm" onclick="fpAddPanel('${s.key}')">Add Source</button>${FP_MATCH_SOURCES[s.key] && s.planned > s.secured ? `<button class="btn ghost sm" onclick="fpFindMatches('${s.key}')">${FP_MATCH_SOURCES[s.key]}</button>` : ''}</div></div>` : ''}
+  </div>`;
+}
+function fpToggle(key) { if (FP_OPEN.has(key)) FP_OPEN.delete(key); else FP_OPEN.add(key); fpDraw(); }
+// Planned: the sum of what is in the source, or an amount entered (Will, Nov 10 2026: "a toggle ... between sum of
+// items and manual entry").
+function fpPlannedLine(s) {
+  const manual = s.planned_mode === 'manual';
+  return `<div class="fp-planned"><span><b>Planned:</b></span>
+    <span class="fp-toggle" role="group" aria-label="${escHtml(s.label)}: how planned is counted">
+      <button class="${manual ? '' : 'on'}" aria-pressed="${!manual}" onclick="fpSetMode('${s.key}', 'items')">Sum Of Items</button>
+      <button class="${manual ? 'on' : ''}" aria-pressed="${manual}" onclick="fpSetMode('${s.key}', 'manual')">Enter An Amount</button></span>
+    ${manual ? `<input class="fp-amt" inputmode="numeric" aria-label="${escHtml(s.label)} planned" value="${s.planned_manual ? money(s.planned_manual) : ''}" placeholder="$" onchange="fpSaveSource('${s.key}', 'planned', this.value)">
+      <span class="fp-sub">${money(s.items_total)} in the items below</span>` : `<b>${money(s.items_total)}</b>`}</div>`;
+}
+const FP_STATUS = {planned: 'Planned', pending: 'Pending', secured: 'Secured'};
+// Everything in a source: its own items, the Tracker's awards and applications counted toward it, its donors, and an
+// amount entered the earlier way (one figure for the source).
+function fpItemsHtml(s) {
+  const v = FP, rows = [];
+  for (const it of s.items || []) {
+    rows.push(`<div class="fp-item"><div class="fp-item-main"><b>${escHtml(it.name)}</b>
+        <span class="fp-pill ${it.counted_by_tracker ? 'tracker' : it.status}">${it.counted_by_tracker ? 'Counted From Your Tracker' : FP_STATUS[it.status]}</span>${it.restricted ? '<span class="fp-pill">Restricted</span>' : ''}
+        <div class="fp-sub">${[it.amount ? money(it.amount) : '', it.date ? fpDay(it.date) : '', it.notes || ''].filter(Boolean).map(escHtml).join(' · ')}</div></div>
+      <div class="fp-item-acts"><button class="btn ghost sm" onclick="fpAddPanel('${s.key}', '${it.id}')">Edit</button><button class="btn ghost sm" onclick="fpRemoveItem('${s.key}', '${it.id}')">Remove</button></div></div>`);
+  }
+  for (const a of (v.awards || []).filter(a => a.source === s.key)) {
+    rows.push(fpTrackerLine(a, `${money(a.counted)} awarded${a.counted !== a.amount ? ` (of ${money(a.amount)})` : ''}${a.decided_on ? ', ' + fpDay(a.decided_on) : ''}`, 'secured', true));
+  }
+  for (const a of (v.pending || []).filter(a => a.source === s.key)) {
+    rows.push(fpTrackerLine(a, a.amount_requested ? `${money(a.amount_requested)} asked` : 'No amount asked in your Tracker', 'pending', false));
+  }
+  if (s.key === 'individual' && (s.secured_donors || s.pending_pledges)) {
+    rows.push(`<div class="fp-item"><div class="fp-item-main"><b>Your donor list</b><span class="fp-pill secured">From Your Donors</span>
+      <div class="fp-sub">${money(s.secured_donors)} given this year${s.through_daf ? ` (${money(s.through_daf)} through donor-advised funds)` : ''}${s.pending_pledges ? `, ${money(s.pending_pledges)} pledged and still to come` : ''}</div></div>
+      <div class="fp-item-acts"><button class="btn ghost sm" onclick="go('plan/donors')">Open Your Donors</button></div></div>`);
+  }
+  if (s.secured_other || s.pending_entered) {
+    rows.push(`<div class="fp-item"><div class="fp-item-main"><b>Entered as one amount</b>
+      <div class="fp-sub">${[s.secured_other ? money(s.secured_other) + ' secured' + (s.restricted_entered ? ` (${money(s.restricted_entered)} restricted)` : '') : '', s.pending_entered ? money(s.pending_entered) + ' pending' : ''].filter(Boolean).join(', ')}</div></div>
+      <div class="fp-item-acts"><button class="btn ghost sm" onclick="fpOneAmountPanel('${s.key}')">Edit</button></div></div>`);
+  }
+  return rows.length ? `<div class="fp-items">${rows.join('')}</div>` : `<p class="fp-sub">Nothing here yet. Add what you expect from ${escHtml(s.label.toLowerCase())}.</p>`;
+}
+// A Tracker row counted toward this source, with its choices behind More Detail (counts toward, this year's share,
+// restricted, leave out): what the Awards card held before Nov 10 2026.
+function fpTrackerLine(a, what, status, awarded) {
+  const id = 'fpd_' + a.tracking_id;
+  return `<div class="fp-item"><div class="fp-item-main"><b>${fpTitle(a)}</b><span class="fp-pill ${status}">${awarded ? 'Awarded' : 'Submitted'} In Your Tracker</span>${a.restricted ? '<span class="fp-pill">Restricted</span>' : ''}${a.left_out ? '<span class="fp-pill">Left Out</span>' : ''}
+      <div class="fp-sub">${escHtml(what)}</div>
+      <details class="fp-more" id="${id}"><summary>More Detail</summary>
+        <div class="fp-more-grid"><label>Counts Toward ${fpSourceSelect(a.tracking_id, a.source)}</label>
+        ${awarded ? `<label>This Year's Share <input class="fp-amt" inputmode="numeric" value="${a.share != null ? money(a.share) : ''}" placeholder="${escHtml(money(a.amount))}" onchange="fpSaveAward('${a.tracking_id}', {share: this.value})"></label>
+        <label class="chk"><input type="checkbox" ${a.restricted ? 'checked' : ''} onchange="fpSaveAward('${a.tracking_id}', {restricted: this.checked})"> Restricted To A Purpose</label>` : ''}
+        <label class="chk"><input type="checkbox" ${a.left_out ? 'checked' : ''} onchange="fpSaveAward('${a.tracking_id}', {left_out: this.checked})"> Leave Out Of The Plan</label></div>
+      </details></div></div>`;
 }
 function fpSourceSelect(tid, cur) {
   return `<select class="fp-sel" aria-label="Counts toward" onchange="fpSaveAward('${tid}', {source: this.value})">${['foundation', 'government', 'corporate', 'individual', 'events', 'earned', 'other']
     .map(k => `<option value="${k}" ${k === cur ? 'selected' : ''}>${escHtml((FP.sources.find(s => s.key === k) || {}).label || k)}</option>`).join('')}</select>`;
 }
 function fpTitle(a) { return a.group_id ? `<a onclick="openListing('${a.group_id}')">${escHtml(a.title || '')}</a>` : escHtml(a.title || ''); }
-function fpAwardsCard(v) {
-  const h = [`<div class="card"><h2>Awards And Applications In Your Tracker</h2>`];
-  if (!v.awards.length && !v.pending.length && !v.other_year_awards.length) {
-    h.push(`<p class="lead">Nothing yet. When you mark a funder Submitted or Awarded in your <a onclick="showPage('tracker'); loadTracker()">Tracker</a> with its amount, it counts here.</p></div>`);
-    return h.join('');
+
+// ── Add Source ─────────────────────────────────────────────────────────
+// Type it in (a name, an amount, a date, its status; more detail if wanted), or for a grant source pick it from the
+// Tracker or find it in the Library (saved to the Tracker first, so it follows its stage). The panel closes only by
+// its own buttons (the side panel's X, or Cancel).
+const FP_GRANT_SOURCES = ['foundation', 'government', 'corporate'];
+function fpSrc(key) { return FP.sources.find(s => s.key === key); }
+function fpAddPanel(key, itemId, tab) {
+  const s = fpSrc(key), it = itemId ? (s.items || []).find(x => x.id === itemId) : null;
+  FP_ADD = {key, itemId: it ? it.id : null, tab: it ? 'type' : (tab || 'type'), q: ''};
+  const tabs = !it && FP_GRANT_SOURCES.includes(key) ? [['type', 'Type It In'], ['tracker', 'From Your Tracker'], ['find', 'Find A Program Or Funder']]
+    : !it && key === 'individual' ? [['type', 'Type It In'], ['donor', 'From Your Donors']] : [];
+  fpPanel(it ? 'Edit ' + it.name : 'Add To ' + s.label, `
+    ${tabs.length ? `<div class="fp-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" class="${k === FP_ADD.tab ? 'on' : ''}" onclick="fpAddTab('${k}')">${l}</button>`).join('')}</div>` : ''}
+    <div id="fpAddBody"></div>`);
+  fpAddDraw();
+}
+function fpAddTab(tab) { FP_ADD.tab = tab; document.querySelectorAll('.fp-tabs button').forEach(b => b.classList.toggle('on', b.getAttribute('onclick').includes(`'${tab}'`))); fpAddDraw(); }
+function fpAddDraw() {
+  const box = document.getElementById('fpAddBody'); if (!box) return;
+  const key = FP_ADD.key, s = fpSrc(key), it = FP_ADD.itemId ? (s.items || []).find(x => x.id === FP_ADD.itemId) : {};
+  if (FP_ADD.tab === 'tracker') return fpAddFromTracker(box);
+  if (FP_ADD.tab === 'find') return fpAddFind(box);
+  if (FP_ADD.tab === 'donor') {
+    box.innerHTML = `<p class="lead">Each donor's gifts this year count toward Individual Donors by themselves, and their pledges count as pending.</p>
+      <div class="fp-actions"><button class="btn sm" onclick="closePanel(); fpDonorPanel(null)">Add A Donor</button><button class="btn ghost sm" onclick="closePanel(); go('plan/donors')">Open Your Donors</button></div>`;
+    return;
   }
-  if (v.awards.length) {
-    h.push(`<h3 class="fp-h3">Awarded</h3><div class="gp-table"><table><thead><tr><th>Funder Or Program</th><th class="num">Awarded</th><th>Decided</th><th>Counts Toward</th><th class="num">This Year's Share</th><th>Restricted</th><th>Leave Out</th></tr></thead><tbody>
-      ${v.awards.map(a => `<tr><td>${fpTitle(a)}</td><td class="num">${money(a.amount)}</td><td>${a.no_date ? 'No date in your Tracker: counted this year' : escHtml(fpDay(a.decided_on))}${a.other_year ? ' (another year)' : ''}</td>
-        <td>${fpSourceSelect(a.tracking_id, a.source)}</td>
-        <td class="num"><input class="fp-amt" inputmode="numeric" aria-label="This year's share" value="${a.share != null ? money(a.share) : ''}" placeholder="${escHtml(money(a.amount))}" onchange="fpSaveAward('${a.tracking_id}', {share: this.value})"></td>
-        <td><input type="checkbox" aria-label="Restricted to a purpose" ${a.restricted ? 'checked' : ''} onchange="fpSaveAward('${a.tracking_id}', {restricted: this.checked})"></td>
-        <td><input type="checkbox" aria-label="Leave out" ${a.left_out ? 'checked' : ''} onchange="fpSaveAward('${a.tracking_id}', {left_out: this.checked})"></td></tr>`).join('')}
-      </tbody></table></div><p class="lead">A multi-year award: enter this year's share, and add it to each later year's plan below. Tick Restricted when the funder tied the money to a project or purpose.</p>`);
+  const statuses = key === 'individual' ? ['planned', 'secured'] : ['planned', 'pending', 'secured'];
+  const more = !!(it.restricted || it.notes);
+  box.innerHTML = `
+    <label for="fiName">Name</label><input id="fiName" value="${escHtml(it.name || '')}" placeholder="${key === 'events' ? 'e.g. Bake Sale Fundraiser' : key === 'earned' ? 'e.g. Summer Program Fees' : 'e.g. Spring Appeal'}">
+    <div class="row"><div><label for="fiAmount">Amount</label><input id="fiAmount" inputmode="numeric" value="${it.amount ? money(it.amount) : ''}" placeholder="$"></div>
+      <div><label for="fiDate">Date (If Any)</label><input id="fiDate" type="date" value="${escHtml(it.date || '')}"></div></div>
+    <label for="fiStatus">Status</label><select id="fiStatus">${statuses.map(x => `<option value="${x}" ${x === (it.status || 'planned') ? 'selected' : ''}>${FP_STATUS[x]}</option>`).join('')}</select>
+    <details class="fp-more"${more ? ' open' : ''}><summary>More Detail</summary>
+      <label class="chk"><input type="checkbox" id="fiRestricted" ${it.restricted ? 'checked' : ''}> Restricted To A Purpose</label>
+      <label for="fiNotes">Notes</label><textarea class="t-notes" id="fiNotes">${escHtml(it.notes || '')}</textarea></details>
+    <div class="err" id="fiErr"></div>
+    <div class="fp-actions"><button class="btn" onclick="fpSaveItem()">${FP_ADD.itemId ? 'Save' : 'Add It'}</button><button class="btn ghost" onclick="closePanel()">Cancel</button></div>`;
+}
+// The stored form of a source's items (what the backend keeps), without the figures the page is given.
+function fpStoredItems(key) {
+  return (fpSrc(key).items || []).map(({id, name, amount, date, status, restricted, notes, tracking_id, group_id}) =>
+    ({id, name, amount, date, status, restricted, notes, tracking_id, group_id}));
+}
+async function fpSaveItem() {
+  const v = id => document.getElementById(id).value, err = document.getElementById('fiErr');
+  const amount = fpParse(v('fiAmount'));
+  if (!v('fiName').trim()) { err.textContent = 'Give it a name.'; return; }
+  if (Number.isNaN(amount)) { err.textContent = 'The amount must be in dollars, like 2,500.'; return; }
+  const key = FP_ADD.key, items = fpStoredItems(key);
+  const fields = {name: v('fiName').trim(), amount: amount || 0, date: v('fiDate') || null, status: v('fiStatus'),
+                  restricted: document.getElementById('fiRestricted').checked, notes: v('fiNotes').trim() || null};
+  if (FP_ADD.itemId) { const i = items.findIndex(x => x.id === FP_ADD.itemId); items[i] = {...items[i], ...fields}; }
+  else items.push(fields);
+  await fpSaveItems(key, items, err);
+}
+async function fpSaveItems(key, items, errEl) {
+  try {
+    FP = await apiFetch('/api/nonprofit/funding-plan/' + FP.fiscal_year, 'POST', {sources: {[key]: {items}}, updated_at: FP.updated_at});
+  } catch (e) {
+    if (errEl) { errEl.innerHTML = escHtml(e.message) + (e.status === 409 ? ` <button class="btn ghost sm" onclick="closePanel();fpLoad(${FP.fiscal_year})">Reload</button>` : ''); return false; }
+    FP_MSG = escHtml(e.message); fpDraw(); return false;
   }
-  if (v.pending.length) {
-    h.push(`<h3 class="fp-h3">Submitted, Waiting To Hear</h3><div class="gp-table"><table><thead><tr><th>Funder Or Program</th><th class="num">Asked</th><th>Counts Toward</th><th>Leave Out</th></tr></thead><tbody>
-      ${v.pending.map(a => `<tr><td>${fpTitle(a)}</td><td class="num">${a.amount_requested ? money(a.amount_requested) : 'No amount in your Tracker'}</td>
-        <td>${fpSourceSelect(a.tracking_id, a.source)}</td>
-        <td><input type="checkbox" aria-label="Leave out" ${a.left_out ? 'checked' : ''} onchange="fpSaveAward('${a.tracking_id}', {left_out: this.checked})"></td></tr>`).join('')}
-      </tbody></table></div>`);
+  FP_MSG = ''; FP_OPEN.add(key); closePanel(); fpDraw();
+  return true;
+}
+function fpRemoveItem(key, id) {
+  const it = (fpSrc(key).items || []).find(x => x.id === id);
+  if (!it || !confirm(`Remove ${it.name} from your plan?`)) return;
+  fpSaveItems(key, fpStoredItems(key).filter(x => x.id !== id));
+}
+function fpSetMode(key, mode) { fpSave({sources: {[key]: {planned_mode: mode}}}); }
+// The earlier one-figure entries (secured, its restricted part, pending), still editable.
+function fpOneAmountPanel(key) {
+  const s = fpSrc(key);
+  fpPanel(s.label + ': Entered As One Amount', `
+    <p class="lead">An amount entered for the whole source before items. Set any of these to 0 to clear it, and add the money as items instead.</p>
+    <div class="row"><div><label for="foSec">Secured</label><input id="foSec" inputmode="numeric" value="${s.secured_other ? money(s.secured_other) : ''}" placeholder="$"></div>
+      <div><label for="foRes">Of It Restricted</label><input id="foRes" inputmode="numeric" value="${s.restricted_entered ? money(s.restricted_entered) : ''}" placeholder="$"></div></div>
+    ${key === 'individual' ? '' : `<label for="foPen">Pending</label><input id="foPen" inputmode="numeric" value="${s.pending_entered ? money(s.pending_entered) : ''}" placeholder="$">`}
+    <div class="err" id="foErr"></div>
+    <div class="fp-actions"><button class="btn" onclick="fpSaveOneAmount('${key}')">Save</button><button class="btn ghost" onclick="closePanel()">Cancel</button></div>`);
+}
+async function fpSaveOneAmount(key) {
+  const g = id => { const el = document.getElementById(id); return el ? fpParse(el.value) : undefined; };
+  const ch = {secured: g('foSec'), restricted: g('foRes')};
+  if (key !== 'individual') ch.pending = g('foPen');
+  if (Object.values(ch).some(n => Number.isNaN(n))) { document.getElementById('foErr').textContent = 'Each amount must be in dollars, like 2,500.'; return; }
+  Object.keys(ch).forEach(k => { ch[k] = ch[k] || 0; });
+  closePanel();
+  await fpSave({sources: {[key]: ch}});
+}
+// From the Tracker: a funder or program saved there and not yet submitted (one Submitted or Awarded counts by itself),
+// added with the amount expected. Awards from another year can be counted this year with their share.
+async function fpAddFromTracker(box) {
+  box.innerHTML = '<div class="empty">Loading your Tracker…</div>';
+  if (typeof TRACKER === 'undefined' || !TRACKER) {
+    try { TRACKER = await apiFetch('/api/nonprofit/tracker'); }
+    catch (e) { box.innerHTML = `<div class="empty">Could not load your Tracker: ${escHtml(e.message)}</div>`; return; }
   }
-  if (v.other_year_awards.length) {
-    h.push(`<h3 class="fp-h3">Count An Award From Another Year</h3><div class="row">
-        <div><label for="fpOther">Award</label><select id="fpOther">${v.other_year_awards.map(a => `<option value="${a.tracking_id}">${escHtml(a.title || '')}: ${escHtml(money(a.amount))}${a.decided_on ? ', ' + escHtml(fpDay(a.decided_on)) : ''}</option>`).join('')}</select></div>
+  if (FP_ADD.tab !== 'tracker') return;
+  const inPlan = new Set(FP.sources.flatMap(s => (s.items || []).map(i => i.tracking_id)).filter(Boolean));
+  const rows = (TRACKER.items || []).filter(i => !i.seen_in_digest && i.tracking_id && !inPlan.has(String(i.tracking_id))
+                                             && !['submitted', 'awarded', 'not_awarded', 'passed'].includes(i.status));
+  const others = FP.other_year_awards || [];
+  box.innerHTML = `<p class="lead">Grants you mark Submitted or Awarded in your Tracker count here by themselves. Add one you plan to apply for, with the amount you expect.</p>
+    ${rows.length ? `<div class="fp-picks">${rows.map(i => `<div class="fp-pick"><div><b>${escHtml(i.title)}</b><span>${escHtml([i.amount, i.deadline].filter(Boolean).join(' · '))}</span></div>
+      <span class="fp-pick-add"><input class="fp-amt" inputmode="numeric" id="fta_${i.tracking_id}" aria-label="Amount you expect from ${escHtml(i.title)}" placeholder="$ expected">
+      <button class="btn ghost sm" onclick="fpAddTracked('${i.tracking_id}')">Add</button></span></div>`).join('')}</div>`
+      : '<p class="fp-sub">Nothing in your Tracker to add: everything there is already in your plan, submitted or decided.</p>'}
+    ${others.length ? `<h3 class="fp-h3">Count An Award From Another Year</h3><div class="row">
+        <div><label for="fpOther">Award</label><select id="fpOther">${others.map(a => `<option value="${a.tracking_id}">${escHtml(a.title || '')}: ${escHtml(money(a.amount))}${a.decided_on ? ', ' + escHtml(fpDay(a.decided_on)) : ''}</option>`).join('')}</select></div>
         <div><label for="fpOtherShare">This Year's Share</label><input id="fpOtherShare" inputmode="numeric" placeholder="$"></div>
-      </div><button class="btn ghost sm" onclick="fpAddOther()">Count It This Year</button>`);
-  }
-  h.push('</div>');
-  return h.join('');
+      </div><button class="btn ghost sm" onclick="closePanel(); fpAddOther()">Count It This Year</button>` : ''}
+    <div class="err" id="fiErr"></div>`;
+}
+async function fpAddTracked(tid) {
+  const i = (TRACKER.items || []).find(x => String(x.tracking_id) === String(tid)), err = document.getElementById('fiErr');
+  const amount = fpParse(document.getElementById('fta_' + tid).value);
+  if (amount === null || Number.isNaN(amount)) { err.textContent = 'Enter the amount you expect, in dollars.'; return; }
+  const items = fpStoredItems(FP_ADD.key);
+  items.push({name: i.title, amount, status: 'planned', tracking_id: String(tid), group_id: i.group_id || null});
+  await fpSaveItems(FP_ADD.key, items, err);
+}
+// Find it in the Library: saved to the Tracker, then added (Will: "search for a program/funder").
+function fpAddFind(box) {
+  box.innerHTML = `<label for="fpFindQ">Program Or Funder</label><input id="fpFindQ" placeholder="Start typing a name" value="${escHtml(FP_ADD.q)}" oninput="FP_ADD.q=this.value;fpFindDraw()">
+    <div id="fpFindList"></div><div class="err" id="fiErr"></div>`;
+  fpFindDraw();
+  const q = document.getElementById('fpFindQ'); q.focus(); q.setSelectionRange(q.value.length, q.value.length);
+}
+function fpFindDraw() {
+  const el = document.getElementById('fpFindList'); if (!el) return;
+  const all = (typeof RESULT !== 'undefined' && RESULT && RESULT.shown) || [];
+  if (!all.length) { el.innerHTML = '<p class="fp-sub">Your Library is still loading. Try again in a moment.</p>'; return; }
+  const words = FP_ADD.q.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) { el.innerHTML = '<p class="fp-sub">Every funder and program in your Library can be found here.</p>'; return; }
+  const hits = all.filter(m => words.every(w => (m.title + ' ' + (m.provided_by || '')).toLowerCase().includes(w))).slice(0, 12);
+  el.innerHTML = hits.length ? `<div class="fp-picks">${hits.map(m => `<div class="fp-pick"><div><b>${escHtml(m.title)}</b><span>${escHtml([m.kind === 'funder' ? 'Funder' : 'Opportunity',
+      m.typical_min || m.typical_max ? 'Typical grant ' + [m.typical_min, m.typical_max].filter(Boolean).map(shortMoney).join(' to ') : m.amount].filter(Boolean).join(' · '))}</span></div>
+      <span class="fp-pick-add"><input class="fp-amt" inputmode="numeric" id="ffa_${m.id}" aria-label="Amount you expect from ${escHtml(m.title)}" placeholder="$ expected" value="${m.typical_max || m.typical_min ? money(m.typical_max || m.typical_min) : ''}">
+      <button class="btn ghost sm" onclick="fpAddFound('${m.id}', this)">Add</button></span></div>`).join('')}</div>` : '<p class="fp-sub">Nothing in your Library by that name.</p>';
+}
+async function fpAddFound(gid, btn) {
+  const m = RESULT.shown.find(x => x.id === gid), err = document.getElementById('fiErr');
+  const amount = fpParse(document.getElementById('ffa_' + gid).value);
+  if (amount === null || Number.isNaN(amount)) { err.textContent = 'Enter the amount you expect, in dollars.'; return; }
+  btn.disabled = true; btn.textContent = 'Adding…';
+  let tid;
+  try {
+    await apiFetch('/api/nonprofit/tracker', 'POST', {group_id: gid});           // into the Tracker, to follow its stage
+    m.saved = true;
+    TRACKER = await apiFetch('/api/nonprofit/tracker');
+    const row = (TRACKER.items || []).find(x => x.group_id === gid);
+    tid = row && row.tracking_id;
+  } catch (e) { err.textContent = 'Could not save it to your Tracker: ' + e.message; btn.disabled = false; btn.textContent = 'Add'; return; }
+  const items = fpStoredItems(FP_ADD.key);
+  items.push({name: m.title, amount, status: 'planned', tracking_id: tid ? String(tid) : null, group_id: gid});
+  if (!(await fpSaveItems(FP_ADD.key, items, err))) { btn.disabled = false; btn.textContent = 'Add'; }
 }
 
 // A source with money still to raise links to the Matches that would fill it (Nov 2 2026, Will: yes): the funders and

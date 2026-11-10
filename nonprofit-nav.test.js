@@ -122,6 +122,15 @@ function load(mode, opts) {
   eq([P.loc.pathname, P.active()], ['/nonprofit/organization', 'profile'], 'the preview opens on the Organization Profile');
 }
 
+{
+  const T = load('account', {path: '/nonprofit/answers', hash: '#np_mission'});
+  T.n.goInitial();
+  eq(T.loc.pathname + T.loc.hash, '/nonprofit/answers#np_mission', "an answer's link keeps its #part when the portal opens on it");
+  const D = load('account', {path: '/nonprofit-portal', hash: '#listing=abc'});
+  D.n.goInitial();
+  eq(D.loc.pathname + D.loc.hash, '/nonprofit/home', 'a link to the old address moves to the new one (its #listing= is kept apart, by keepDigestLink)');
+}
+
 // Cloudflare serves the portal for every address under /nonprofit/
 ok(/^\/nonprofit \/nonprofit-portal 200$/m.test(redirects) && /^\/nonprofit\/\* \/nonprofit-portal 200$/m.test(redirects), '_redirects serves the portal at /nonprofit/...');
 const drafting = fs.readFileSync(__dirname + '/nonprofit-drafting.js', 'utf8');
