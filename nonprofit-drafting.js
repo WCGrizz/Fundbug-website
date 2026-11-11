@@ -148,6 +148,11 @@ async function drPrepare(statusFn) {
 }
 
 // ── Shared pieces ──────────────────────────────────────────────────────
+// After a tag is set or cleared (answers-nav.js drSetTag): the answers again from the server, and what happened.
+async function drTagDone(kind, err) {
+  if (kind === 'slots') { if (prPid) await loadPrep(prPid); prStatus(err ? 'Could not change the tag: ' + err.message : 'Tag saved.', !!err); }
+  else { await loadDrafting(); drStatus(err ? 'Could not change the tag: ' + err.message : 'Tag saved.', !!err); }
+}
 function drBadge(isDraft, answer, outline) {
   if (isDraft) return '<span class="dr-badge draft">Draft</span>';
   if (!(answer || '').trim() && (outline || '').trim()) return '<span class="dr-badge draft">Outline</span>';
@@ -270,7 +275,7 @@ function renderDrafting() {
   const linked = decodeURIComponent((location.hash || '').slice(1));
   if (linked && answers.some(a => a.question_type === linked)) DR_VIEW.answers.open.add(linked);
   const counts = {all: answers.length};
-  answers.forEach(a => { const st = drState(a.review_status === 'draft', a.answer_text, a.outline_text); counts[st] = (counts[st] || 0) + 1; });
+  answers.forEach(a => { const st = drState(a.review_status === 'draft', a.answer_text, a.outline_text); counts[st] = (counts[st] || 0) + 1; if (a.user_tag) counts[a.user_tag] = (counts[a.user_tag] || 0) + 1; });
   document.getElementById('drNav').innerHTML = answers.length > 1 ? drNavHtml('answers', counts) : '';
   // The standard questions first, then the organization's own, each under its heading when there are both.
   const order = answers.map((a, i) => [a, i]).sort((x, y) => (std.has(y[0].question_type) - std.has(x[0].question_type)) || (x[1] - y[1]));
@@ -284,13 +289,13 @@ function renderDrafting() {
     const group = std.has(a.question_type) ? 'Standard Questions' : 'Your Own Questions';
     const head = both && group !== lastGroup ? `<h3 class="dr-group">${group}</h3>` : '';
     lastGroup = group;
-    return `${head}<div class="dr-card${open ? '' : ' folded'}" id="drc-${qt}" data-state="${st}">
-      ${drSumRow('answers', qt, a.label, a.question_text, st, drWords(a.answer_text), open)}
+    return `${head}<div class="dr-card${open ? '' : ' folded'}" id="drc-${qt}" data-state="${st}" data-tag="${drEsc(a.user_tag || '')}">
+      ${drSumRow('answers', qt, a.label, a.question_text, st, drWords(a.answer_text), open, a.user_tag)}
       <div class="dr-body">
       <div class="dr-head"><div style="flex:1;min-width:180px">
           <div class="dr-field-label">Title</div>
           <input class="dr-label" value="${drEsc(a.label)}" maxlength="200" oninput="drMarkDirty('${qt}')" aria-label="Title">
-        </div>${drBadge(isDraft, a.answer_text, a.outline_text)}</div>
+        </div>${drTagControl('answers', a.id, a.user_tag, drData.tags_ready)}</div>
       <div class="dr-field-label">Question ${num}</div>
       <textarea class="dr-q" oninput="drMarkDirty('${qt}');drAutosize(this);drWordCount(this)" aria-label="Question ${num}">${drEsc(a.question_text)}</textarea>
       ${drOutlinePanel(a.outline_text, a.outline_at)}
@@ -554,19 +559,19 @@ function renderSlots(slots) {
   }
   const kept = drKeepEdits('slots', prDirty);
   const counts = {all: slots.length};
-  slots.forEach(s => { const st = drState(s.review_status === 'draft', s.answer_text, s.outline_text); counts[st] = (counts[st] || 0) + 1; });
+  slots.forEach(s => { const st = drState(s.review_status === 'draft', s.answer_text, s.outline_text); counts[st] = (counts[st] || 0) + 1; if (s.user_tag) counts[s.user_tag] = (counts[s.user_tag] || 0) + 1; });
   document.getElementById('prNav').innerHTML = slots.length > 1 ? drNavHtml('slots', counts) : '';
   wrap.innerHTML = slots.map((s, i) => {
     const isDraft = s.review_status === 'draft', n = i + 1, sid = drEsc(s.id);
     const verb = drIsOutline() ? (s.outline_text ? 'Redo The Outline' : 'Outline This Question') : ((s.answer_text || '').trim() ? 'Redraft This Answer' : 'Draft This Answer');
     const st = drState(isDraft, s.answer_text, s.outline_text), open = DR_VIEW.slots.open.has(String(s.id));
-    return `<div class="dr-card${open ? '' : ' folded'}" id="prc-${sid}" data-state="${st}">
-      ${drSumRow('slots', sid, n + '. ' + (s.label || 'Untitled'), s.question_text, st, drWords(s.answer_text), open)}
+    return `<div class="dr-card${open ? '' : ' folded'}" id="prc-${sid}" data-state="${st}" data-tag="${drEsc(s.user_tag || '')}">
+      ${drSumRow('slots', sid, n + '. ' + (s.label || 'Untitled'), s.question_text, st, drWords(s.answer_text), open, s.user_tag)}
       <div class="dr-body">
       <div class="dr-head"><div style="flex:1;min-width:180px"><div class="pr-slotnum">Question ${n}</div>
           <div class="dr-field-label">Title</div>
           <input class="dr-label" value="${drEsc(s.label)}" maxlength="200" oninput="prMarkDirty('${sid}')" aria-label="Title">
-        </div>${drBadge(isDraft, s.answer_text, s.outline_text)}</div>
+        </div>${drTagControl('slots', s.id, s.user_tag, prData && prData.tags_ready)}</div>
       <div class="dr-field-label">Question ${n}</div>
       <textarea class="dr-q" oninput="prMarkDirty('${sid}');drAutosize(this);drWordCount(this)" aria-label="Question ${n}">${drEsc(s.question_text)}</textarea>
       ${drOutlinePanel(s.outline_text, s.outline_at)}

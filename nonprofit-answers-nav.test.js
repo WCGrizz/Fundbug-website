@@ -21,7 +21,7 @@ const d = ctx.__d;
 ok(d.drState(true, 'x', '') === 'answered' && d.drState(false, 'x', '') === 'answered' && d.drState(false, '', 'an outline') === 'outline',
    "Nov 11 2026 (Will): FundBug's draft is never flagged Needs Review; it is Answered, like the organization's own");
 ok(d.drState(false, '', '') === 'empty', 'nothing is Empty');
-ok(!/Needs Review/.test(js + fs.readFileSync(__dirname + '/answers-nav.js', 'utf8')), 'Needs Review appears nowhere until the user can set it');
+ok(['answered', 'outline', 'empty'].every(k => !/Needs Review/.test(k)) && !/review/.test(String(d.drState(true, '', ''))), 'FundBug never sets Needs Review; only a person tags an answer');
 ok(d.drQuestionStart('word '.repeat(60)).length <= 111 && d.drQuestionStart('Short question?') === 'Short question?', 'the folded line shows the start of the question');
 const row = d.drSumRow('answers', 'np_x', '<b>Mission</b>', 'Describe it', 'empty', 1, false);
 ok(row.includes('&#60;b&#62;Mission') && row.includes('aria-expanded="false"') && row.includes('1 word<') && row.includes('Empty'), 'the folded line: escaped title, closed, word count, status');
@@ -40,7 +40,18 @@ ok(/id="drc-np_mission" data-state="answered"/.test(cards) && /class="dr-card fo
 ok(/class="dr-card" id="drc-np_who_you_serve" data-state="answered"/.test(cards), 'the answer its link names (#np_who_you_serve) opens');
 ok(/id="drc-custom_board" data-state="empty"/.test(cards) && cards.includes("location.origin + '/nonprofit/answers#np_mission'"), 'statuses on each card, and a link to copy');
 ok(/Answered \(2\)/.test(els.drNav.innerHTML) && /Empty \(1\)/.test(els.drNav.innerHTML), 'the filters count the answers');
+
+// The organization's own tag (Nov 11 2026): shown and filtered once tags are ready; never on an untagged FundBug draft.
+d.setData({passport: {ready: true}, tags_ready: true, standard: [{question_type: 'np_mission'}],
+  answers: [{id: 'm1', question_type: 'np_mission', label: 'Mission', question_text: 'What is your mission?', answer_text: 'Art.', review_status: 'draft', user_tag: 'final'},
+            {id: 'm2', question_type: 'custom_x', label: 'X', question_text: 'Q?', answer_text: 'A.', review_status: 'draft', user_tag: null}]});
+d.renderDrafting();
+const tg = els.drCards.innerHTML;
+ok(/id="drc-np_mission"[^>]*data-tag="final"/.test(tg) && /dr-badge tag-final">Final</.test(tg) && (tg.match(/dr-badge tag-/g) || []).length === 1,
+   'the tag a person set shows; an untagged FundBug draft has none');
+ok(/drSetTag\('answers', 'm2', 'needs_review', null\)/.test(tg) && /Final \(1\)/.test(els.drNav.innerHTML), 'tag buttons on each card, and a filter for the tag in use');
+ok(/drTagControl\('slots', s\.id, s\.user_tag, prData && prData\.tags_ready\)/.test(js), 'Prep Application questions take tags too');
 ok(/const kept = drKeepEdits\('answers', drDirty\);[\s\S]*drPutEdits\('answers', kept, drMarkDirty\);/.test(js) && /const kept = drKeepEdits\('slots', prDirty\);[\s\S]*drPutEdits\('slots', kept, prMarkDirty\);/.test(js),
    'edits not yet saved are kept through a redraw, in My Answers and Prep Application');
-ok(/id="drNav"/.test(html) && /id="prNav"/.test(html) && /answers-nav\.js\?v=2026-11-11a/.test(html) && /nonprofit-drafting\.js\?v=2026-11-1\d[a-z]/.test(html), 'both pages have the search and filters, and the new script is loaded');
+ok(/id="drNav"/.test(html) && /id="prNav"/.test(html) && /answers-nav\.js\?v=2026-11-11b/.test(html) && /nonprofit-drafting\.js\?v=2026-11-1\d[a-z]/.test(html), 'both pages have the search and filters, and the new script is loaded');
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

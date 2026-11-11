@@ -43,4 +43,25 @@ ok(/class="dr-card folded" id="prc-s1"/.test(els.prSlots.innerHTML) && /1\. Miss
 ok(/id="drNav"/.test(html) && /id="prNav"/.test(html) && html.indexOf('<script src="/answers-nav.js') < html.indexOf('<script>\nconst API'),
    'both pages have the bars, and the shared file loads before the page\'s own scripts');
 ok(/\/\^answer=\[A-Za-z0-9_-\]\+\$\/\.test\(hash\)/.test(html), 'opened at #answer=<question>, the portal opens My Answers');
+
+// The organization's own tag (Nov 11 2026, Will: "only the user should be able to tag things"): shown, counted and
+// filtered when the server says tags are ready; never on an answer nobody tagged; no control before the columns exist.
+p.setDr({passport: {ready: true}, tags_ready: true, standard: [{question_type: 'business_description'}],
+  answers: [{id: 'a1', question_type: 'business_description', label: 'About', question_text: 'Describe it.', answer_text: 'Bread.', review_status: 'draft', user_tag: 'needs_review'},
+            {id: 'a2', question_type: 'custom_q1', label: 'Hiring', question_text: 'Hires?', answer_text: 'Two.', review_status: 'draft', user_tag: null}]});
+p.renderDrafting();
+const tc = els.drCards.innerHTML;
+ok(/id="drc-business_description"[^>]*data-tag="needs_review"/.test(tc) && /dr-badge tag-needs_review">Needs Review</.test(tc), 'a tag a person set shows on its line');
+ok(/id="drc-custom_q1"[^>]*data-tag=""/.test(tc) && (tc.match(/dr-badge tag-/g) || []).length === 1, 'an answer nobody tagged has no tag, though FundBug drafted it');
+ok(/drSetTag\('answers', 'a1', 'needs_review', 'needs_review'\)/.test(tc) && /drSetTag\('answers', 'a2', 'final', null\)/.test(tc), 'each card has the tag buttons, with the tag it shows');
+ok(/Needs Review \(1\)/.test(els.drNav.innerHTML) && !/Final \(/.test(els.drNav.innerHTML), 'a filter for each tag in use, none for a tag nobody used');
+p.setDr({passport: {ready: true}, standard: [], answers: [{id: 'a1', question_type: 'x', label: 'X', question_text: 'Q', answer_text: 'A', review_status: 'reviewed'}]});
+p.renderDrafting();
+ok(!/class="dr-tags"/.test(els.drCards.innerHTML), 'before tags are ready, no tag buttons');
+ctx.apiFetch = (path, method, body) => { ctx.__sent = [path, method, body]; return Promise.resolve({ok: true}); };
+ctx.drTagDone = () => {};
+vm.runInContext("drSetTag('answers', 'a1', 'final', 'final')", ctx);
+ok(JSON.stringify(ctx.__sent) === JSON.stringify(['/api/portal/drafts/answers/a1/tag', 'PATCH', {tag: null, seen: 'final'}]), 'pressing the chosen tag clears it, sending what the page showed');
+vm.runInContext("drSetTag('answers', 'a1', 'final', null)", ctx);
+ok(JSON.stringify(ctx.__sent[2]) === JSON.stringify({tag: 'final', seen: null}), 'pressing another sets it');
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

@@ -40,4 +40,20 @@ const run = (made) => {
 ok(run('2026-10-01T12:00:00Z').length === 0, 'an account made before Nov 10 2026 is not shown it by itself');
 ok(run('2026-11-12T09:00:00Z').join() === 'main' && run('2026-11-12T09:00:00Z').length === 0, 'a new account sees it once, then not again');
 ok(/tourButtons\(\);/.test(html) && /tourMaybeAutostart\(\);/.test(html) && /nonprofit-tour\.js\?v=/.test(html), 'the portal loads it and starts it');
+// Never over what it shows (Nov 11 2026, Will: "the box overlaps what it is trying to show").
+const {tourSpot} = ctx.module.exports;
+const over = (a, r, cw, ch) => a.x < r.right && a.x + cw > r.left && a.y < r.bottom && a.y + ch > r.top;
+const W = 1280, H = 800, cw = 380, ch = 200;
+const col = {left: 0, top: 60, right: 230, bottom: 800, height: 740};          // the left column, the full height
+const a1 = tourSpot(col, cw, ch, W, H, 14);
+ok(!over(a1, col, cw, ch) && a1.x >= 230, 'a tall column on the left: the card goes to its right');
+const bar = {left: 0, top: 0, right: 1280, bottom: 60, height: 60};
+const a2 = tourSpot(bar, cw, ch, W, H, 14);
+ok(!over(a2, bar, cw, ch) && a2.y >= 60, 'the top bar: the card goes below it');
+const low = {left: 300, top: 650, right: 900, bottom: 760, height: 110};
+ok(!over(tourSpot(low, cw, ch, W, H, 14), low, cw, ch), 'near the bottom: above it');
+const right = {left: 900, top: 0, right: 1280, bottom: 800, height: 800};
+ok(!over(tourSpot(right, cw, ch, W, H, 14), right, cw, ch), 'a tall feature on the right: to its left');
+ok(Object.values(TOURS).flat().every(s => s.el !== '#subnav') && /class="sub-box"/.test(html) && /\.sidebar \.sub-box\{position:sticky/.test(html),
+   "the column's tours light up its links, which stay in view as the page scrolls");
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

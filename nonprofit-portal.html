@@ -126,6 +126,7 @@ nav{background:var(--ink);padding:0 28px;height:60px;display:flex;align-items:ce
 #page-tracker:not(.view-seen) #tSeenWrap{display:none}
 .wrap.no-sub .sidebar{display:none}
 .sidebar{background:var(--cream2);border-right:1px solid var(--border);padding:24px 0}
+.sidebar .sub-box{position:sticky;top:84px}
 .sidebar .sub-head{font-family:'Fraunces',serif;font-size:18px;font-weight:600;padding:0 24px 10px;color:var(--ink)}
 .sidebar a{display:block;padding:11px 24px;font-size:15px;color:var(--ink);text-decoration:none;border-left:3px solid transparent;cursor:pointer}
 .sidebar a:hover{background:var(--cream3)}
@@ -394,6 +395,13 @@ details.more-group>summary{cursor:pointer;font-size:15px;font-weight:500;color:v
 .dr-unsaved{display:none;padding:4px 10px;border-radius:11px;font-size:14px;font-weight:600;background:#fde3d8;color:#7a2e14}
 .dr-card.dirty .dr-unsaved{display:inline-block}
 .dr-badge.empty{background:var(--cream2);color:var(--ink)}
+/* The organization's own tag on an answer (Nov 11 2026): set only by its people. */
+.dr-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.dr-tags .dr-field-label{width:100%;margin:0}
+.dr-tag{font:500 14px Jost,sans-serif;padding:6px 12px;min-height:36px;border:1px solid var(--border);border-radius:16px;background:var(--white);color:var(--ink);cursor:pointer}
+.dr-tag.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.dr-badge.tag-needs_review{background:#fbf1dc;color:#6e4a0c}
+.dr-badge.tag-final{background:rgba(90,158,82,.14);color:var(--green-dk)}
 .dr-nav{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 14px}
 .dr-nav:empty{display:none}
 .dr-search{flex:1 1 240px;max-width:380px;margin:0!important}
@@ -544,6 +552,46 @@ body.not-manager .manager-only{display:none}
 .tm-meta{font-size:15px;color:var(--ink)}
 .tm-count{font-size:15px;font-weight:600;margin:4px 0 6px}
 
+/* The Tracker board mockup (Nov 11 2026, nonprofit-board.js) */
+.bd-preview{background:#fff6dc;border:1px solid #e8d38a;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:15px;color:var(--ink)}
+.bd-preview a{color:var(--green-dk);font-weight:500;cursor:pointer}
+.bd-key{display:flex;gap:18px;font-size:15px;margin:2px 0 4px}
+.bd-key span{display:inline-flex;align-items:center;gap:7px}
+.bd-k{display:inline-block;width:12px;height:12px;border-radius:50%}
+.bd-k.dl,.bd-dot.dl{background:var(--green)}
+.bd-k.fu,.bd-dot.fu{background:var(--clay)}
+.bd-tl{position:relative;height:120px;margin:8px 10px 0}
+.bd-band{position:absolute;top:0;bottom:36px;left:0;background:#fbeeea;border-right:1px dashed #d99a86;border-radius:4px 0 0 0}
+.bd-band span{position:absolute;top:8px;left:9px;font-size:14px;font-weight:600;color:#8f3620;white-space:nowrap}
+.bd-track{position:absolute;left:0;right:0;top:82px;height:3px;background:var(--ink)}
+.bd-tick{position:absolute;top:76px;width:1px;height:15px;background:var(--ink)}
+.bd-tlab{position:absolute;top:96px;transform:translateX(-50%);font-size:14px;white-space:nowrap}
+.bd-tlab.first{transform:none}.bd-tlab.last{transform:translateX(-100%)}
+.bd-dot{position:absolute;top:73px;width:20px;height:20px;margin-left:-10px;border-radius:50%;border:2px solid var(--white);box-shadow:0 0 0 1px rgba(26,26,26,.35);cursor:pointer;color:#fff;font:600 14px Jost,sans-serif;padding:0;display:flex;align-items:center;justify-content:center}
+.bd-dot.many{width:30px;height:30px;margin-left:-15px;top:68px}
+.bd-dot:hover,.bd-dot:focus-visible{transform:scale(1.2);outline:none;box-shadow:0 0 0 2px var(--ink)}
+.bd-inbox{margin-top:18px}
+.bd-inbox p{font-size:15px;margin-bottom:10px}
+.bd-inbox-list{display:flex;flex-direction:column;gap:8px}
+.bd-inbox-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:15px}
+.bd-inbox-acts{display:flex;gap:8px;flex:0 0 auto}
+.bd-board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:14px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory}
+.bd-col{background:var(--cream2);border:1px solid var(--border);border-radius:10px;padding:12px;min-height:260px;scroll-snap-align:start;display:flex;flex-direction:column;gap:10px}
+.bd-col.over{border-color:var(--green);background:#eef4ec}
+.bd-col.bd-folded{min-height:0;align-self:start;background:none;border-style:dashed}
+.bd-head{font-family:'Fraunces',Georgia,serif;font-size:18px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.bd-fold,.bd-unfold{font:500 14px Jost,sans-serif;background:none;border:none;color:var(--green-dk);cursor:pointer;padding:6px 0}
+.bd-add{margin:0;font-size:15px}
+.bd-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:grab;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.bd-card:hover{border-color:var(--green)}
+.bd-title{font-weight:600;font-size:15px;line-height:1.35}
+.bd-meta{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:14px;margin-top:4px}
+.bd-stage{background:var(--cream2);border-radius:10px;padding:1px 8px}
+.bd-next{font-size:14px;margin-top:6px}
+.bd-next.soon{color:#a4261d;font-weight:600}
+.bd-empty{font-size:14px;padding:8px 2px}
+.bd-many{margin-left:18px;font-size:15px}.bd-many li{padding:4px 0}.bd-many a{cursor:pointer;color:var(--green-dk)}
+@media (max-width:760px){.bd-board{grid-auto-columns:85%}}
 /* The Organization Profile (Oct 19 2026): its meter and strip, Where You Work's four choices, the signup's pickers
    (nonprofit-choices.js) and the optional detail, every secondary line 14px or more in ink */
 .pf-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:-4px 0 18px}
@@ -912,6 +960,16 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
         <div class="summary" id="mSummary"></div>
         <div id="mList"></div>
         <div style="text-align:center;margin-top:10px"><button class="btn ghost" id="mMore" onclick="moreMatches()" style="display:none">Show More</button></div>
+      </div>
+
+      <!-- The Tracker as a board, a mockup to try (Nov 11 2026, nonprofit-board.js); /nonprofit/tracker/board -->
+      <div class="page" id="page-board">
+        <div class="hero">
+          <div class="eyebrow">Your Organization</div>
+          <h1>Tracker Board</h1>
+          <p>Your saved funders and programs by stage, and what is coming up.</p>
+        </div>
+        <div id="boardBox"></div>
       </div>
 
       <div class="page" id="page-tracker">
@@ -1519,7 +1577,9 @@ const NAV = [
     {path: 'plan/donors', page: 'plan', label: 'Donors', load: () => openFundingPlan('donors')}]},
   {key: 'tracker', label: 'Tracker', acct: true, subs: [
     {path: 'tracker', page: 'tracker', label: 'My Tracker', cls: '', load: () => loadTracker()},
-    {path: 'tracker/seen', page: 'tracker', label: 'Seen In Your Digest', cls: 'view-seen', load: () => loadTracker()}]},
+    {path: 'tracker/seen', page: 'tracker', label: 'Seen In Your Digest', cls: 'view-seen', load: () => loadTracker()},
+    // The board mockup (Nov 11 2026, nonprofit-board.js): reached by its address only, and in the column only while open.
+    {path: 'tracker/board', page: 'board', label: 'Board (Mockup)', hidden: true, load: () => loadBoard()}]},
   {key: 'answers', label: 'My Answers', acct: true, subs: [
     {path: 'answers', page: 'answers', label: 'Answers', apply: () => drShowTab('answers'), load: () => loadDrafting()},
     {path: 'answers/applications', page: 'answers', label: 'Applications', apply: () => drShowTab('apps'), load: () => loadDrafting()}]},
@@ -1579,10 +1639,11 @@ function drawNav() {
   document.getElementById('topLinks').innerHTML = tops.join('');
   document.getElementById('topRight').innerHTML = NAV.filter(sec => sec.right && first(sec))
     .map(sec => navLink(first(sec), sec.label, 'top-org' + (top === sec.key ? ' active' : ''))).join('');
-  const subs = cur.section ? cur.section.subs.filter(navAllowed) : [];
+  const subs = cur.section ? cur.section.subs.filter(r => navAllowed(r) && (!r.hidden || r.path === cur.path)) : [];
   document.getElementById('wrap').classList.toggle('no-sub', subs.length < 2);
-  document.getElementById('subnav').innerHTML = subs.length < 2 ? '' : `<div class="sub-head">${escHtml(cur.section.label)}</div>` +
-    subs.map(r => navLink(r, r.label, r.path === cur.path ? 'active' : '')).join('');
+  // The heading and links in one box that stays in view as the page scrolls (Nov 11 2026; the tours light it up).
+  document.getElementById('subnav').innerHTML = subs.length < 2 ? '' : `<div class="sub-box"><div class="sub-head">${escHtml(cur.section.label)}</div>` +
+    subs.map(r => navLink(r, r.label, r.path === cur.path ? 'active' : '')).join('') + '</div>';
 }
 function navClick(e, path) {
   if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)) return true;      // a new tab keeps its own address
@@ -3361,11 +3422,12 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
   showGate();
 })();
 </script>
-<script src="/answers-nav.js?v=2026-11-11a"></script>
-<script src="/nonprofit-drafting.js?v=2026-11-10c"></script>
+<script src="/answers-nav.js?v=2026-11-11b"></script>
+<script src="/nonprofit-drafting.js?v=2026-11-11a"></script>
 <script src="/nonprofit-landscape.js?v=2026-11-10b"></script>
 <script src="/nonprofit-funding-plan.js?v=2026-11-11a"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
-<script src="/nonprofit-tour.js?v=2026-11-10c"></script>
+<script src="/nonprofit-board.js?v=2026-11-11a"></script>
+<script src="/nonprofit-tour.js?v=2026-11-11a"></script>
 </body>
 </html>

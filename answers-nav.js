@@ -5,7 +5,7 @@
 // ── Finding an answer among many (Nov 10 2026) ─────────────────────────
 // Will: "what if someone has 30 different answers? they currently have to scroll and look at every single one to know
 // what question they are looking for"; then "Yes, folded by default". Each answer is one line (its title, the start of
-// its question, its status and word count) until opened; search, filters by status (All, Answered, Outline, Empty),
+// its question, its status and word count) until opened; search, filters by status (All, Answered, Outline, Empty) and by the organization's own tag (Needs Review, Final),
 // the standard questions apart from the organization's own, a link for each answer (/nonprofit/answers#<its type>),
 // and edits not yet saved kept through every redraw. The Prep Application slots work the same way.
 const DR_VIEW = {answers: {open: new Set(), filter: 'all', q: ''}, slots: {open: new Set(), filter: 'all', q: ''}};
@@ -20,15 +20,32 @@ function drState(isDraft, answer, outline) {
   return (outline || '').trim() ? 'outline' : 'empty';
 }
 const DR_STATE_BADGE = {answered: '', outline: '<span class="dr-badge empty">Outline</span>', empty: '<span class="dr-badge empty">Empty</span>'};
+// The organization's own tag (Will: "Yes"; fundbug_answer_tags.py): Needs Review or Final, set and cleared only by its
+// people; pressing the chosen one clears it. Shown only when the server says tags are ready (tags_ready).
+const DR_TAGS = [['needs_review', 'Needs Review'], ['final', 'Final']];
+function drTagBadge(tag) { const t = DR_TAGS.find(x => x[0] === tag); return t ? `<span class="dr-badge tag-${t[0]}">${t[1]}</span>` : ''; }
+function drTagControl(kind, answerId, tag, ready) {
+  if (!ready || !answerId) return '';
+  const seen = tag ? `'${tag}'` : 'null';
+  return `<div class="dr-tags" role="group" aria-label="Your tag"><span class="dr-field-label">Your Tag</span>${DR_TAGS.map(([k, l]) =>
+    `<button type="button" class="dr-tag${tag === k ? ' on' : ''}" aria-pressed="${tag === k}" onclick="drSetTag('${kind}', '${drEsc(answerId)}', '${k}', ${seen})">${l}</button>`).join('')}</div>`;
+}
+async function drSetTag(kind, answerId, k, seen) {
+  const tag = seen === k ? null : k;
+  let err = null;
+  try { await apiFetch('/api/portal/drafts/answers/' + encodeURIComponent(answerId) + '/tag', 'PATCH', {tag, seen}); }
+  catch (e) { err = e; }
+  if (typeof drTagDone === 'function') drTagDone(kind, err);          // each page reloads and says what happened
+}
 function drWords(t) { return String(t || '').trim().split(/\s+/).filter(Boolean).length; }
 function drQuestionStart(q) { const t = String(q || '').replace(/\s+/g, ' ').trim(); return t.length > 110 ? t.slice(0, 107).replace(/\s+\S*$/, '') + '…' : t; }
 // The folded line, which opens and closes the card.
-function drSumRow(kind, id, label, question, state, words, open) {
+function drSumRow(kind, id, label, question, state, words, open, tag) {
   return `<div class="dr-sum" role="button" tabindex="0" aria-expanded="${open}" onclick="drFold('${kind}', '${id}')"
       onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); drFold('${kind}', '${id}'); }">
     <span class="dr-chev" aria-hidden="true">${open ? '▾' : '▸'}</span>
     <span class="dr-sum-main"><b class="dr-sum-title">${drEsc(label || 'Untitled')}</b><span class="dr-sum-q">${drEsc(drQuestionStart(question))}</span></span>
-    <span class="dr-sum-meta">${DR_STATE_BADGE[state]}<span class="dr-unsaved">Unsaved</span><span class="dr-sum-wc">${words} word${words === 1 ? '' : 's'}</span></span></div>`;
+    <span class="dr-sum-meta">${drTagBadge(tag)}${DR_STATE_BADGE[state]}<span class="dr-unsaved">Unsaved</span><span class="dr-sum-wc">${words} word${words === 1 ? '' : 's'}</span></span></div>`;
 }
 function drFold(kind, id, open) {
   const v = DR_VIEW[kind], card = document.getElementById(DR_KIND[kind].prefix + id); if (!card) return;
@@ -47,7 +64,7 @@ function drFoldAll(kind, open) {
 function drNavHtml(kind, counts) {
   const v = DR_VIEW[kind];
   return `<input type="search" class="dr-search" aria-label="Search your ${DR_KIND[kind].noun}" placeholder="Search your ${DR_KIND[kind].noun}" value="${drEsc(v.q)}" oninput="DR_VIEW.${kind}.q = this.value; drApply('${kind}')">
-    <div class="dr-chips" role="group" aria-label="Show">${DR_STATES.filter(([k]) => k === 'all' || counts[k] || v.filter === k).map(([k, l]) => `<button class="dr-chip${v.filter === k ? ' on' : ''}" data-k="${k}" aria-pressed="${v.filter === k}" onclick="drSetFilter('${kind}', '${k}')">${l} (${counts[k] || 0})</button>`).join('')}</div>
+    <div class="dr-chips" role="group" aria-label="Show">${DR_STATES.concat(DR_TAGS).filter(([k]) => k === 'all' || counts[k] || v.filter === k).map(([k, l]) => `<button class="dr-chip${v.filter === k ? ' on' : ''}" data-k="${k}" aria-pressed="${v.filter === k}" onclick="drSetFilter('${kind}', '${k}')">${l} (${counts[k] || 0})</button>`).join('')}</div>
     <span class="dr-nav-acts"><button class="dr-btn ghost small" onclick="drFoldAll('${kind}', true)">Open All</button><button class="dr-btn ghost small" onclick="drFoldAll('${kind}', false)">Fold All</button></span>`;
 }
 function drSetFilter(kind, f) {
@@ -61,7 +78,7 @@ function drApply(kind) {
   let shown = 0;
   box.querySelectorAll('.dr-card').forEach(c => {
     const text = [...c.querySelectorAll('.dr-label, .dr-q, .dr-a')].map(e => e.value).join(' ').toLowerCase();
-    const ok = (v.filter === 'all' || c.dataset.state === v.filter) && words.every(w => text.includes(w));
+    const ok = (v.filter === 'all' || c.dataset.state === v.filter || c.dataset.tag === v.filter) && words.every(w => text.includes(w));
     c.hidden = !ok; if (ok) shown++;
   });
   box.querySelectorAll('.dr-group').forEach(g => {

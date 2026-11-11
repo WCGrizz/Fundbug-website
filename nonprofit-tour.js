@@ -38,21 +38,21 @@ const TOURS = {
     {el: '#gsCard', title: 'Getting Started', text: 'Four first steps. Each is ticked when it is done, and you can hide the list.'},
   ],
   matches: [
-    {el: '#subnav', title: 'Fits You And All Funders', text: 'Fits You shows what fits your organization. All Funders shows everything FundBug knows, with the reason for any that may not fit.'},
+    {el: '#subnav .sub-box', title: 'Fits You And All Funders', text: 'Fits You shows what fits your organization. All Funders shows everything FundBug knows, with the reason for any that may not fit.'},
     {el: '#page-matches .toolbar', title: 'Narrow It Down', text: 'Search by name, or show only funders or only programs, or one kind of source.'},
     {el: '#mList .m', title: 'A Card', text: 'Its name, how much it gives in your county, its typical grant and how to apply, and one line on why it may fit. Open it for everything else.'},
     {el: '#mList .m .m-actions', title: 'Save, Hide Or Open', text: 'Save puts it in your Tracker. Hide takes it out of your Library for good. Open shows its full page.'},
     {el: '.top-search', title: 'Find A Funder', text: 'Know a name? Type it here from any page.'},
   ],
   listing: [
-    {el: '#subnav', title: 'Its Pages', text: 'Overview, Giving, Programs and People And Contact. Only the ones it has are shown.'},
+    {el: '#subnav .sub-box', title: 'Its Pages', text: 'Overview, Giving, Programs and People And Contact. Only the ones it has are shown.'},
     {el: '#lpBody .summary-card, #lpBody .lp-pane:not([hidden])', title: 'Is It For You?', text: 'How it takes requests, its first grant to a new organization, and its giving in your county.'},
     {el: '#pSave', title: 'Save To Tracker', text: 'Keep it in your Tracker to follow it from first contact to award.'},
   ],
   tracker: [
     {el: '#page-tracker .toolbar', title: 'Your Tracker', text: 'Show one stage at a time, add a funder FundBug does not list yet, or put your deadlines in your own calendar.'},
     {el: '#tList .t-row', title: 'One Row Each', text: 'Its stage, its deadline and when to follow up. Open it to change the stage, record an award, and add notes.'},
-    {el: '#subnav', title: 'Seen In Your Digest', text: 'Everything your digests sent you. Add any of it to your Tracker.'},
+    {el: '#subnav .sub-box', title: 'Seen In Your Digest', text: 'Everything your digests sent you. Add any of it to your Tracker.'},
   ],
   plan: [
     {el: '.fp-head', title: 'Your Goal', text: 'The year and how much you need. It starts as your profile\'s annual budget.'},
@@ -64,7 +64,7 @@ const TOURS = {
     {el: '#drModeBar', title: 'How FundBug Helps', text: 'Choose outlines or drafted answers. Read and approve every answer before you use it.'},
     {el: '#drNav', title: 'Find An Answer', text: 'Search, or show only those that need review, are empty or are saved.'},
     {el: '#drCards .dr-card', title: 'One Line Each', text: 'Open an answer to edit it, save it, copy it or copy its link.'},
-    {el: '#subnav', title: 'Applications', text: 'Prepare a particular application: bring in its questions and answer them from your saved answers.'},
+    {el: '#subnav .sub-box', title: 'Applications', text: 'Prepare a particular application: bring in its questions and answer them from your saved answers.'},
   ],
   profile: [
     {el: '#pfMeterCard', title: 'Your Profile\'s Strength', text: 'How complete your profile is, and what to add next for better matches and drafts.'},
@@ -96,7 +96,7 @@ async function tourShow() {
   let el = null;
   for (let t = 0; t < 30 && !el; t++) { el = tourFind(st.el); if (!el) await new Promise(r => setTimeout(r, 100)); }     // up to 3 seconds
   if (!TOUR_NOW) return;
-  if (el) el.scrollIntoView({block: 'center', behavior: 'instant'});
+  if (el) el.scrollIntoView({block: el.getBoundingClientRect().height > window.innerHeight * 0.6 ? 'start' : 'center', behavior: 'instant'});
   let layer = document.getElementById('tourLayer');
   if (!layer) {
     layer = document.createElement('div');
@@ -122,8 +122,18 @@ function tourStep(d) {
   TOUR_NOW.i = Math.max(0, Math.min(TOURS[TOUR_NOW.name].length - 1, TOUR_NOW.i + d));
   tourShow();
 }
-// The cut-out around the feature and the card beside it (below it when there is room, above it otherwise, in the middle
-// when nothing is lit), kept inside the window.
+// The cut-out around the feature and the card beside it, never over it (Nov 11 2026, Will: "the box overlaps what it
+// is trying to show"): below it when there is room, else above, else to its right, else to its left; only when none
+// fits, at the window's edge farthest from it. In the middle when nothing is lit. Kept inside the window.
+function tourSpot(r, cw, ch, W, H, gap) {
+  const m = 16, fitsX = x => x >= m && x + cw <= W - m, fitsY = y => y >= m && y + ch <= H - m;
+  const clampX = x => Math.min(W - cw - m, Math.max(m, x)), clampY = y => Math.min(H - ch - m, Math.max(m, y));
+  if (fitsY(r.bottom + gap)) return {x: clampX(r.left), y: r.bottom + gap};
+  if (fitsY(r.top - gap - ch)) return {x: clampX(r.left), y: r.top - gap - ch};
+  if (fitsX(r.right + gap)) return {x: r.right + gap, y: clampY(r.top)};
+  if (fitsX(r.left - gap - cw)) return {x: r.left - gap - cw, y: clampY(r.top)};
+  return {x: clampX(r.left), y: r.top + r.height / 2 > H / 2 ? m : H - ch - m};
+}
 function tourPlace() {
   const layer = document.getElementById('tourLayer'); if (!layer || !TOUR_NOW) return;
   const hole = layer.querySelector('.tour-hole'), card = layer.querySelector('.tour-card'), el = TOUR_NOW.el;
@@ -139,12 +149,9 @@ function tourPlace() {
   const top = Math.max(4, r.top - pad), left = Math.max(4, r.left - pad);
   const w = Math.min(W - 8 - left, r.width + pad * 2), h = Math.min(H - 8 - top, r.height + pad * 2);
   hole.style.cssText = `left:${left}px;top:${top}px;width:${w}px;height:${h}px`;
-  const ch = card.offsetHeight;
-  let y = top + h + gap;
-  if (y + ch > H - 16) y = top - gap - ch;
-  if (y < 16) y = Math.min(H - ch - 16, Math.max(16, top + 16));
-  card.style.top = y + 'px';
-  card.style.left = Math.min(W - cw - 16, Math.max(16, left)) + 'px';
+  const at = tourSpot({left, top, right: left + w, bottom: top + h, height: h}, cw, card.offsetHeight, W, H, gap);
+  card.style.left = at.x + 'px';
+  card.style.top = at.y + 'px';
 }
 // Take The Tour (the top bar) and Tour This Page (each page's title band).
 function tourButtons() {
@@ -173,4 +180,4 @@ function tourMaybeAutostart() {
   setTimeout(() => tourStart('main'), 800);
 }
 
-if (typeof module !== 'undefined') module.exports = { TOURS, TOUR_PAGES, TOUR_SINCE };
+if (typeof module !== 'undefined') module.exports = { TOURS, TOUR_PAGES, TOUR_SINCE, tourSpot };
