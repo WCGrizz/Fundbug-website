@@ -552,6 +552,21 @@ body.not-manager .manager-only{display:none}
 .tm-meta{font-size:15px;color:var(--ink)}
 .tm-count{font-size:15px;font-weight:600;margin:4px 0 6px}
 
+/* Files (Nov 11 2026, nonprofit-files.js) */
+.fx{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.fx-h{font-size:17px;font-weight:600;margin-bottom:6px}
+.fx-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--border)}
+.fx-main{min-width:0;flex:1 1 260px}
+.fx-name{font-weight:600;font-size:15px;color:var(--green-dk);cursor:pointer;overflow-wrap:anywhere}
+.fx-meta{font-size:14px;color:var(--ink);margin-top:2px}
+.fx-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fx-acts select,.fx-add select{width:auto;margin:0;min-height:36px;font-size:14px}
+.fx-ver{cursor:pointer}
+.fx-add{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.fx-add input[type=file]{margin:0;font-size:14px;width:auto;max-width:100%;padding:6px}
+.fx-msg{font-size:14px}.fx-msg.bad{color:#a4261d}
+.fx-note{font-size:14px;color:var(--ink);margin-top:6px}
+.fx-removed{margin-top:10px}.fx-removed summary{font-size:14px;font-weight:600;color:var(--green-dk);cursor:pointer;padding:6px 0}
 /* The Tracker board mockup (Nov 11 2026, nonprofit-board.js) */
 .bd-preview{background:#fff6dc;border:1px solid #e8d38a;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:15px;color:var(--ink)}
 .bd-preview a{color:var(--green-dk);font-weight:500;cursor:pointer}
@@ -1170,6 +1185,16 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
         <div class="card" id="subBox"><div class="empty">Loading…</div></div>
       </div>
 
+      <!-- Documents (Nov 11 2026, nonprofit-files.js): what every application asks for, added once -->
+      <div class="page" id="page-documents">
+        <div class="hero">
+          <div class="eyebrow">Your Organization</div>
+          <h1>Documents</h1>
+          <p>The documents funders ask for again and again, added once and ready for every application.</p>
+        </div>
+        <div id="docsBox"></div>
+      </div>
+
       <div class="page" id="page-team">
         <div class="hero">
           <div class="eyebrow">Your Account</div>
@@ -1591,6 +1616,7 @@ const NAV = [
     {path: 'library/left-out', page: 'leftout', label: 'Left Out', preview: true}]},
   {key: 'organization', label: 'Organization', right: true, subs: [
     {path: 'organization', page: 'profile', label: 'Profile'},
+    {path: 'organization/documents', page: 'documents', label: 'Documents', acct: true, load: () => filesLoad('docs')},
     {path: 'organization/team', page: 'team', label: 'Team', acct: true, load: () => loadTeam()},
     {path: 'organization/advisors', page: 'advisors', label: 'Advisors', acct: true, load: () => loadSharing()},
     {path: 'organization/subscription', page: 'subscription', label: 'Subscription', acct: true, owner: true, load: () => loadSubscription()}]},
@@ -3040,6 +3066,7 @@ function tToggle(pid) {
   if (T_OPEN.has(pid)) T_OPEN.delete(pid); else T_OPEN.add(pid);
   const row = document.getElementById('tr-' + pid); if (!row) return;
   const open = T_OPEN.has(pid);
+  if (open && !FILES['p:' + pid]) filesLoad('p:' + pid);       // the item's Files, read when it is first opened
   row.classList.toggle('open', open);
   const sum = row.querySelector('.t-sum'); sum.setAttribute('aria-expanded', String(open)); sum.querySelector('.dr-chev').textContent = open ? '▾' : '▸';
 }
@@ -3099,6 +3126,7 @@ function drawTracker() {
       </div>
       ${thAwardFields(i)}
       ${thPanel(i)}
+      <div class="tf" id="tf-${pid}">${FILES['p:' + i.program_id] ? filesSectionHtml('p:' + i.program_id, FILES['p:' + i.program_id]) : ''}</div>
       <div class="m-actions" style="margin-top:8px"><button class="btn sm" onclick="openPrep('${pid}')">Prep Application</button>${calEvents([i], today).length ? `<button class="btn ghost sm" onclick="downloadItemIcs('${pid}')">Add To Calendar</button>` : ''}<button class="btn ghost sm" onclick="removeItem('${pid}')">Remove</button></div>
     </div></div>`;
   }).join('');
@@ -3427,6 +3455,7 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 <script src="/nonprofit-landscape.js?v=2026-11-10b"></script>
 <script src="/nonprofit-funding-plan.js?v=2026-11-11a"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
+<script src="/nonprofit-files.js?v=2026-11-11a"></script>
 <script src="/nonprofit-board.js?v=2026-11-11a"></script>
 <script src="/nonprofit-tour.js?v=2026-11-11a"></script>
 </body>
