@@ -192,4 +192,7 @@ ok(/if \(!L\.reviewed\) out\.push\(`<div class="unverified">/.test(html)
   ok(/\n\.card \.fp-h3\{[^}]*border-top/.test(html), 'a part of a card has a rule above it');
 }
 ok(!/ new<\/span>|nav-new|NEW_IDS|newSince/.test(html), 'no "N new" count anywhere (Will, Nov 11 2026)');
+// Suggested by an advisor (Nov 11 2026, fundbug_suggest): the row says so, short on its line and in full inside.
+ok(/\$\{i\.suggested_by \? `<span class="t-sugg"[^`]*>Suggested By \$\{escHtml\(String\(i\.suggested_by\)\.replace/.test(html)
+   && /<span class="badge digest">Suggested By \$\{escHtml\(i\.suggested_by\)\}/.test(html), 'a suggested Tracker item says who suggested it');
 process.exit(fails ? 1 : 0);

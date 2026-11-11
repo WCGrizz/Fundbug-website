@@ -120,6 +120,7 @@ nav{background:var(--ink);padding:0 28px;height:60px;display:flex;align-items:ce
 .t-sum:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .t-sum-title{font-weight:600;font-size:16px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .t-sum-meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:flex-end;font-size:15px;color:var(--ink)}
+.t-sugg{background:#e7eef9;color:#24447e;border-radius:12px;padding:2px 10px;font-size:14px;font-weight:500}
 .t-stage{background:var(--cream2);border-radius:12px;padding:2px 10px;font-size:14px;font-weight:500}
 @media (max-width:640px){.t-sum{grid-template-columns:20px minmax(0,1fr) 36px}.t-sum-meta{grid-column:2;grid-row:2;justify-content:flex-start}}
 #page-tracker.view-seen .toolbar,#page-tracker.view-seen #tSummary,#page-tracker.view-seen #tList,#page-tracker.view-seen #addOwn{display:none}
@@ -3206,13 +3207,13 @@ function drawTracker() {
         onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); tToggle('${pid}'); }">
         <span class="dr-chev" aria-hidden="true">${open ? '▾' : '▸'}</span>
         <span class="t-sum-title">${escHtml(i.title)}</span>
-        <span class="t-sum-meta"><span class="t-stage">${escHtml(stageLabel(i.status))}</span>${[dlShort, fu].filter(Boolean).map(x => `<span>${x}</span>`).join('')}</span>
+        <span class="t-sum-meta">${i.suggested_by ? `<span class="t-sugg" title="Suggested by ${escHtml(i.suggested_by)}">Suggested By ${escHtml(String(i.suggested_by).replace(/\s*\(.*\)\s*$/, ''))}</span>` : ''}<span class="t-stage">${escHtml(stageLabel(i.status))}</span>${[dlShort, fu].filter(Boolean).map(x => `<span>${x}</span>`).join('')}</span>
         <button class="star" title="Star" onclick="event.stopPropagation(); updateItem('${pid}', {is_favorite: ${!i.is_favorite}})">${i.is_favorite ? '★' : '☆'}</button>
       </div>
       <div class="t-body">
       <div class="t-top"><div>
         <div class="m-title">${i.group_id ? `<a onclick="openListing('${i.group_id}')">${escHtml(i.title)}</a>` : (i.source_url ? `<a href="${escHtml(i.source_url)}" target="_blank" rel="noopener">${escHtml(i.title)}</a>` : escHtml(i.title))}</div>
-        <div class="badges">${kindBadge}${i.provided_by ? `<span class="badge">From ${escHtml(i.provided_by)}</span>` : ''}${i.under_review ? '<span class="badge pending">FundBug Is Looking Into It</span>' : ''}</div>
+        <div class="badges">${kindBadge}${i.suggested_by ? `<span class="badge digest">Suggested By ${escHtml(i.suggested_by)}${i.suggested_at ? ', ' + escHtml(shortDay(i.suggested_at)) : ''}</span>` : ''}${i.provided_by ? `<span class="badge">From ${escHtml(i.provided_by)}</span>` : ''}${i.under_review ? '<span class="badge pending">FundBug Is Looking Into It</span>' : ''}</div>
         <div class="facts">${i.amount ? `<span><b>Amount:</b> ${escHtml(i.amount)}</span>` : ''}${dl}${due}</div>
       </div></div>
       <div class="t-grid">
@@ -3563,7 +3564,7 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
 <script src="/nonprofit-bell.js?v=2026-11-11a"></script>
 <script src="/nonprofit-files.js?v=2026-11-11d"></script>
-<script src="/nonprofit-board.js?v=2026-11-11a"></script>
+<script src="/nonprofit-board.js?v=2026-11-11b"></script>
 <script src="/nonprofit-tour.js?v=2026-11-11a"></script>
 </body>
 </html>

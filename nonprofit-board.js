@@ -53,6 +53,7 @@ function boardCard(i, todayIso) {
   return `<div class="bd-card" draggable="true" data-pid="${pid}" ondragstart="event.dataTransfer.setData('text/plain', '${pid}')"
       onclick="boardOpen('${pid}')" onkeydown="if (event.key === 'Enter') boardOpen('${pid}')" tabindex="0" role="button">
     <div class="bd-title">${escHtml(i.title)}</div>
+    ${i.suggested_by ? `<div class="bd-meta"><span class="t-sugg">Suggested By ${escHtml(String(i.suggested_by).replace(/\s*\(.*\)\s*$/, ''))}</span></div>` : ''}
     <div class="bd-meta"><span class="bd-stage">${escHtml(i.preview ? 'Added Here' : stageLabel(BOARD.moved[i.program_id] ? '' : i.status) || 'Moved Here')}</span>${i.kind === 'funder' ? '<span>Funder</span>' : ''}</div>
     ${nx ? `<div class="bd-next${nx.soon ? ' soon' : ''}">${escHtml(nx.text)}</div>` : ''}
   </div>`;
