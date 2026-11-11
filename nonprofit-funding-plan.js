@@ -309,14 +309,15 @@ async function fpSaveItems(key, items, errEl) {
     FP = await apiFetch('/api/nonprofit/funding-plan/' + FP.fiscal_year, 'POST', {sources: {[key]: {items}}, updated_at: FP.updated_at});
   } catch (e) {
     if (errEl) { errEl.innerHTML = escHtml(e.message) + (e.status === 409 ? ` <button class="btn ghost sm" onclick="closePanel();fpLoad(${FP.fiscal_year})">Reload</button>` : ''); return false; }
-    FP_MSG = escHtml(e.message); fpDraw(); return false;
+    FP_MSG = escHtml(e.message); fpDraw(); fbProblem('Not saved: ' + e.message); return false;
   }
   FP_MSG = ''; FP_OPEN.add(key); closePanel(); fpDraw();
+  fbSaved();
   return true;
 }
-function fpRemoveItem(key, id) {
+async function fpRemoveItem(key, id) {
   const it = (fpSrc(key).items || []).find(x => x.id === id);
-  if (!it || !confirm(`Remove ${it.name} from your plan?`)) return;
+  if (!it || !(await fbConfirm(`${it.name} comes off your plan, and its amount stops counting.`, {title: 'Remove From Your Plan?', yes: 'Remove It', danger: true}))) return;
   fpSaveItems(key, fpStoredItems(key).filter(x => x.id !== id));
 }
 function fpSetMode(key, mode) { fpSave({sources: {[key]: {planned_mode: mode}}}); }
@@ -424,7 +425,9 @@ async function fpSave(changes) {
   FP_MSG = '';
   try {
     FP = await apiFetch('/api/nonprofit/funding-plan/' + FP.fiscal_year, 'POST', {...changes, updated_at: FP.updated_at});
+    fbSaved();
   } catch (e) {
+    fbProblem('Not saved: ' + e.message);
     FP_MSG = escHtml(e.message) + (e.status === 409 ? ` <button class="btn ghost sm" onclick="FP_MSG='';fpLoad(${FP.fiscal_year})">Reload</button>` : '');
   }
   fpDraw();
@@ -537,7 +540,7 @@ async function fpSaveDonor() {
   await fpLoad(FP.fiscal_year);
 }
 async function fpRemoveDonor(id) {
-  if (!confirm('Remove this donor from your list? Their gifts stop counting toward your plan.')) return;
+  if (!(await fbConfirm('They come off your donor list, and their gifts stop counting toward your plan.', {title: 'Remove This Donor?', yes: 'Remove Donor', danger: true}))) return;
   try { await apiFetch('/api/nonprofit/donors/' + id + '/remove', 'POST', {}); }
   catch (e) { document.getElementById('fdErr').textContent = e.message; return; }
   closePanel();

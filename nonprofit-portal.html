@@ -552,12 +552,28 @@ body.not-manager .manager-only{display:none}
 .tm-meta{font-size:15px;color:var(--ink)}
 .tm-count{font-size:15px;font-weight:600;margin:4px 0 6px}
 
+/* The Saved note and FundBug's own confirm (Nov 11 2026) */
+#fbNote{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1500;display:flex;align-items:center;gap:14px;max-width:min(560px,calc(100vw - 32px));
+  background:var(--ink);color:#fff;border-radius:10px;padding:12px 14px 12px 18px;font-size:15px;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:opacity .2s}
+#fbNote.bad{background:#7d1f16}
+#fbNote.gone{opacity:0;pointer-events:none}
+#fbNote button{background:none;border:none;color:#fff;font-size:16px;cursor:pointer;min-width:32px;min-height:32px}
+#fbConfirm{display:none;position:fixed;inset:0;z-index:1600;background:rgba(20,20,18,.45);align-items:center;justify-content:center;padding:16px}
+#fbConfirm.open{display:flex}
+.fbc-card{background:var(--white);border-radius:12px;max-width:440px;width:100%;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.fbc-card h3{font-family:'Fraunces',Georgia,serif;font-size:21px;margin-bottom:8px}
+.fbc-card p{font-size:15px;color:var(--ink);line-height:1.5}
+.fbc-btns{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;flex-wrap:wrap}
+.btn.danger{background:#a4261d;border-color:#a4261d;color:#fff}
 /* Files (Nov 11 2026, nonprofit-files.js) */
 .fx{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
 .fx-h{font-size:17px;font-weight:600;margin-bottom:6px}
 .fx-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--border)}
 .fx-main{min-width:0;flex:1 1 260px}
 .fx-name{font-weight:600;font-size:15px;color:var(--green-dk);cursor:pointer;overflow-wrap:anywhere}
+.fx-title-line{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.fx-lnk{background:none;border:none;padding:4px 0;font:500 14px Jost,sans-serif;color:var(--green-dk);cursor:pointer;text-decoration:underline}
+.fx-title-in{margin:0;width:auto;min-width:240px;flex:1 1 240px;font-size:15px}
 .fx-meta{font-size:14px;color:var(--ink);margin-top:2px}
 .fx-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .fx-acts select,.fx-add select{width:auto;margin:0;min-height:36px;font-size:14px}
@@ -565,6 +581,7 @@ body.not-manager .manager-only{display:none}
 .fx-add{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
 .fx-add input[type=file]{margin:0;font-size:14px;width:auto;max-width:100%;padding:6px}
 .fx-msg{font-size:14px}.fx-msg.bad{color:#a4261d}
+.fx-saved{font-size:14px;font-weight:600;color:var(--green-dk)}
 .fx-note{font-size:14px;color:var(--ink);margin-top:6px}
 .fx-removed{margin-top:10px}.fx-removed summary{font-size:14px;font-weight:600;color:var(--green-dk);cursor:pointer;padding:6px 0}
 /* The Tracker board mockup (Nov 11 2026, nonprofit-board.js) */
@@ -1426,21 +1443,73 @@ function sentenceCut(t, n) {
 function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function money(n) { return n == null ? '' : '$' + Number(n).toLocaleString('en-US'); }
 
+// What went wrong, in plain words (Nov 11 2026, Will: 1, 2, 3 of "where else do things feel unfinished"): the
+// server's own message when it wrote one for people (they all are), otherwise a sentence that says what to do.
+function fbErrorText(status, detail) {
+  const d = typeof detail === 'string' ? detail : (detail && detail.message) || '';
+  if (d && status < 500) return d;
+  if (status === 401) return 'Your sign-in has expired. Sign in again to carry on.';
+  if (status === 403) return "Your account doesn't have access to that.";
+  if (status === 404) return "That couldn't be found. It may have been removed.";
+  if (status === 409) return 'Someone changed this just now. Reload the page to see the latest.';
+  if (status === 413) return 'That is too large to send.';
+  if (status === 429) return 'Too many tries in a short time. Wait a minute, then try again.';
+  if (status >= 500) return "Something went wrong on FundBug's side. Try again in a minute; if it keeps happening, email will@fundbug.net.";
+  return d || "That didn't work. Try again.";
+}
+const FB_OFFLINE = "FundBug couldn't be reached. Check your internet connection and try again.";
 async function apiFetch(path, method, body) {
   const opts = {method: method || 'GET',
     headers: MODE === 'account' ? {'Authorization': 'Bearer ' + (load(TOKEN_KEY) || '')} : {'X-Review-Secret': load(SECRET_KEY) || ''}};
   if (body !== undefined) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
-  const r = await fetch(API_BASE + path, opts);
+  let r;
+  try { r = await fetch(API_BASE + path, opts); }
+  catch (e) { const err = new Error(FB_OFFLINE); err.status = 0; throw err; }
   let data = null;
   try { data = await r.json(); } catch (e) {}
   if (!r.ok) {
     const d = data && data.detail;
-    const err = new Error(typeof d === 'string' ? d : (d && d.message) || ('The server answered ' + r.status));
+    const err = new Error(fbErrorText(r.status, d));
     err.status = r.status;
     err.detail = d;                     // a drafting refusal names what the profile still needs
     throw err;
   }
   return data;
+}
+// One rule for saving (Nov 11 2026): a change that saves at once says so at the foot of the screen for a few seconds;
+// a problem says what happened, in red, until closed or replaced. Never the browser's own alert box.
+let FB_NOTE_T = null;
+function fbNote(text, bad) {
+  let el = document.getElementById('fbNote');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'fbNote'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
+    document.body.appendChild(el);
+  }
+  el.className = bad ? 'bad' : '';
+  el.innerHTML = `<span>${bad ? '' : '✓ '}${escHtml(text)}</span><button type="button" aria-label="Close" onclick="this.parentElement.classList.add('gone')">✕</button>`;
+  el.classList.remove('gone');
+  clearTimeout(FB_NOTE_T);
+  FB_NOTE_T = setTimeout(() => el.classList.add('gone'), bad ? 9000 : 3500);
+}
+function fbSaved(text) { fbNote(text || 'Saved.'); }
+function fbProblem(text) { fbNote(text, true); }
+// FundBug's own "are you sure" (never the browser's): what will happen, Cancel, and a button that names the action.
+// It closes only by its buttons (CLAUDE.md). Resolves true for the action, false for Cancel.
+function fbConfirm(text, opts) {
+  opts = opts || {};
+  return new Promise(resolve => {
+    let el = document.getElementById('fbConfirm');
+    if (!el) { el = document.createElement('div'); el.id = 'fbConfirm'; document.body.appendChild(el); }
+    el.innerHTML = `<div class="fbc-card" role="dialog" aria-modal="true" aria-labelledby="fbcTitle">
+      <h3 id="fbcTitle">${escHtml(opts.title || 'Are You Sure?')}</h3><p>${escHtml(text)}</p>
+      <div class="fbc-btns"><button type="button" class="btn ghost" data-a="0">${escHtml(opts.no || 'Cancel')}</button>
+        <button type="button" class="btn${opts.danger ? ' danger' : ''}" data-a="1">${escHtml(opts.yes || 'Continue')}</button></div></div>`;
+    el.classList.add('open');
+    const done = v => { el.classList.remove('open'); el.innerHTML = ''; resolve(v); };
+    el.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => done(b.dataset.a === '1')));
+    el.querySelector('[data-a="1"]').focus();
+  });
 }
 
 // ── sign-in and preview ─────────────────────────────────────────────────
@@ -3188,10 +3257,19 @@ async function updateItem(pid, changes) {
     await apiFetch('/api/nonprofit/tracker/' + encodeURIComponent(pid), 'PATCH', changes);
     const i = TRACKER.items.find(x => x.program_id === pid);
     if (i) Object.assign(i, changes);
+    fbSaved(trackerSavedText(changes));
     // A stage or award change: the server dates it and the summary changes, so read the Tracker again (Oct 22 2026).
     if (['status', 'amount_requested', 'amount_awarded', 'submitted_on', 'decided_on', 'decline_reason'].some(k => k in changes)) await loadTracker();
     else if (!('notes' in changes)) drawTracker();
-  } catch (e) { document.getElementById('tSummary').textContent = 'Not saved: ' + e.message; }
+  } catch (e) { fbProblem('Not saved: ' + e.message); }
+}
+// What a Tracker change saved, in words.
+function trackerSavedText(c) {
+  if ('dismissed' in c) return 'Removed from your Tracker.';
+  if ('status' in c) return 'Saved: stage set to ' + stageLabel(c.status) + '.';
+  if ('is_favorite' in c) return c.is_favorite ? 'Starred.' : 'Star removed.';
+  if ('follow_up_date' in c) return c.follow_up_date ? 'Saved: follow up on ' + shortDay(c.follow_up_date) + '.' : 'Saved: no follow-up date.';
+  return 'Saved.';
 }
 async function removeItem(pid) {
   await updateItem(pid, {dismissed: true});
@@ -3332,8 +3410,10 @@ async function loadSharing() {
 async function setSharePlan(advisorId, box) {
   const err = document.getElementById('shErr'); if (err) err.textContent = '';
   box.disabled = true;
-  try { await apiFetch('/api/portal/sharing/' + encodeURIComponent(advisorId) + '/plan', 'POST', {on: box.checked}); }
-  catch (e) { box.checked = !box.checked; if (err) err.textContent = 'Not changed: ' + e.message; }
+  try {
+    await apiFetch('/api/portal/sharing/' + encodeURIComponent(advisorId) + '/plan', 'POST', {on: box.checked});
+    fbSaved(box.checked ? 'Saved: your advisor can see your Funding Plan.' : 'Saved: your Funding Plan is no longer shared.');
+  } catch (e) { box.checked = !box.checked; if (err) err.textContent = 'Not changed: ' + e.message; fbProblem('Not changed: ' + e.message); }
   box.disabled = false;
 }
 function shortDate(iso) {
@@ -3390,7 +3470,7 @@ async function acceptInvite(inviteToken) {
   let r = await send(false);
   let d = await r.json().catch(() => ({}));
   // A login that has its own account (Nov 2 2026): it joins only once the person says so.
-  if (r.status === 409 && d.can_link && confirm(linkQuestion(d))) { r = await send(true); d = await r.json().catch(() => ({})); }
+  if (r.status === 409 && d.can_link && await fbConfirm(linkQuestion(d), {title: 'Join This Team?', yes: 'Join The Team'})) { r = await send(true); d = await r.json().catch(() => ({})); }
   if (!r.ok) throw new Error(d.detail || 'This invite could not be accepted.');
   store(TOKEN_KEY, d.token);
   store(SUB_KEY, JSON.stringify({id: d.subscriber_id, email: d.email || '', first_name: d.first_name || '',
@@ -3451,11 +3531,11 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 })();
 </script>
 <script src="/answers-nav.js?v=2026-11-11b"></script>
-<script src="/nonprofit-drafting.js?v=2026-11-11a"></script>
+<script src="/nonprofit-drafting.js?v=2026-11-11b"></script>
 <script src="/nonprofit-landscape.js?v=2026-11-10b"></script>
-<script src="/nonprofit-funding-plan.js?v=2026-11-11a"></script>
+<script src="/nonprofit-funding-plan.js?v=2026-11-11b"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
-<script src="/nonprofit-files.js?v=2026-11-11a"></script>
+<script src="/nonprofit-files.js?v=2026-11-11d"></script>
 <script src="/nonprofit-board.js?v=2026-11-11a"></script>
 <script src="/nonprofit-tour.js?v=2026-11-11a"></script>
 </body>

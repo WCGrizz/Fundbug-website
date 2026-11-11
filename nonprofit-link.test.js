@@ -11,7 +11,7 @@ const q = ctx.q({account_name: 'Berkshire Black Economic Council'});
 ok(q.startsWith('This email already has its own FundBug account. Join Berkshire Black Economic Council with that same login?') &&
    q.includes('FundBug keeps them, and can put them back'), 'the question names the team and says what happens to their own account');
 for (const [name, page] of [['nonprofit portal', np], ['business portal', biz]]) {
-  ok(/r\.status === 409 && d\.can_link && confirm\(/.test(page) && /link_own_account: !!link/.test(page), `the ${name} links only after the person confirms`);
+  ok(/r\.status === 409 && d\.can_link && (confirm\(|await fbConfirm\()/.test(page) && /link_own_account: !!link/.test(page), `the ${name} links only after the person confirms`);
   ok(/let r = await send\(false\);/.test(page), `the ${name} asks the plain way first`);
 }
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

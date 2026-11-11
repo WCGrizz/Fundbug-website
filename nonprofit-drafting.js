@@ -90,7 +90,7 @@ function drEnsureTerms() {
         DR_SETTINGS.terms_accepted = true;
         m.classList.remove('open'); go.textContent = 'Continue';
         resolve(true);
-      } catch (e) { go.disabled = false; go.textContent = 'Continue'; alert(e.message); }
+      } catch (e) { go.disabled = false; go.textContent = 'Continue'; fbProblem(e.message); }
     };
     document.getElementById('drTermsNo').onclick = () => {
       m.classList.remove('open');
@@ -137,7 +137,8 @@ async function drSetMode(mode) {
     drRenderModeBars();
     if (document.getElementById('page-prep').classList.contains('active') && prData) renderSlots(prData.slots);
     else if (drData) renderDrafting();
-  } catch (e) { alert(e.message); }
+    fbSaved(mode === 'outline' ? 'Saved: FundBug will write outlines.' : 'Saved: FundBug will write drafts.');
+  } catch (e) { fbProblem('Not changed: ' + e.message); }
 }
 async function drPrepare(statusFn) {
   try { await drLoadSettings(); }
@@ -150,8 +151,8 @@ async function drPrepare(statusFn) {
 // ── Shared pieces ──────────────────────────────────────────────────────
 // After a tag is set or cleared (answers-nav.js drSetTag): the answers again from the server, and what happened.
 async function drTagDone(kind, err) {
-  if (kind === 'slots') { if (prPid) await loadPrep(prPid); prStatus(err ? 'Could not change the tag: ' + err.message : 'Tag saved.', !!err); }
-  else { await loadDrafting(); drStatus(err ? 'Could not change the tag: ' + err.message : 'Tag saved.', !!err); }
+  if (kind === 'slots') { if (prPid) await loadPrep(prPid); } else await loadDrafting();
+  if (err) fbProblem('Not saved: ' + err.message); else fbSaved('Tag saved.');
 }
 function drBadge(isDraft, answer, outline) {
   if (isDraft) return '<span class="dr-badge draft">Draft</span>';
@@ -182,10 +183,10 @@ function drOutlinePanel(outline, at) {
 function drCheckLine(isDraft, answer, outline) {
   return (isDraft || (outline || '').trim() || (answer || '').trim()) ? `<p class="dr-check">${DRAFT_LINE}</p>` : '';
 }
-function drConfirmReplace(dirty, savedAnswer) {
-  if (drIsOutline()) return !dirty || confirm('You have unsaved changes to this answer. They will be lost when the page refreshes. Continue?');
-  if ((savedAnswer || '').trim()) return confirm('Replace your current answer with a new draft? Your current answer will not be kept on this page.');
-  return !dirty || confirm('You have unsaved changes to this answer. They will be lost. Continue?');
+async function drConfirmReplace(dirty, savedAnswer) {
+  if (drIsOutline()) return !dirty || fbConfirm('You have changes to this answer that are not saved. They will be lost when the outline is written.', {title: 'Lose Your Changes?', yes: 'Write The Outline'});
+  if ((savedAnswer || '').trim()) return fbConfirm('FundBug will write a new draft in place of your current answer, which will no longer show on this page.', {title: 'Replace This Answer?', yes: 'Write A New Draft'});
+  return !dirty || fbConfirm('You have changes to this answer that are not saved. They will be lost.', {title: 'Lose Your Changes?', yes: 'Write A Draft'});
 }
 function drAutosize(el) { if (!el) return; el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; }
 function drWordCount(el) {
@@ -353,7 +354,7 @@ async function saveAnswer(qt) {
   } catch (e) { await loadDrafting(); drStatus(e.message, true); drCardMsg('drc-' + qt, e.message, true); }
 }
 async function regenerateAnswer(qt) {
-  if (!drConfirmReplace(drDirty.has(qt), ((drData && drData.answers || []).find(a => a.question_type === qt) || {}).answer_text)) return;
+  if (!(await drConfirmReplace(drDirty.has(qt), ((drData && drData.answers || []).find(a => a.question_type === qt) || {}).answer_text))) return;
   drBusy(qt, drIsOutline() ? 'Outlining…' : 'Drafting…');
   drStatus(drIsOutline() ? 'Writing an outline for this question.' : 'Writing a new draft.');
   try {
@@ -364,7 +365,7 @@ async function regenerateAnswer(qt) {
 }
 async function deleteAnswer(qt) {
   const a = (drData && drData.answers || []).find(x => x.question_type === qt);
-  if (!confirm(`Remove "${a ? a.label : 'this question'}" and its history? A standard question comes back empty the next time you draft.`)) return;
+  if (!(await fbConfirm(`"${a ? a.label : 'This question'}" and its history will be removed. A standard question comes back empty the next time you draft.`, {title: 'Remove This Question?', yes: 'Remove It', danger: true}))) return;
   drBusy(qt, 'Removing…');
   try { await apiFetch('/api/portal/drafts/library/' + encodeURIComponent(qt), 'DELETE'); drDirty.delete(qt); await loadDrafting(); drStatus('Removed.'); }
   catch (e) { await loadDrafting(); drStatus(e.message, true); drCardMsg('drc-' + qt, e.message, true); }
@@ -430,8 +431,8 @@ async function prepListing(groupId, btn) {
     if (btn) { btn.disabled = false; btn.textContent = 'Prep Application'; }
   }
 }
-function backToAnswers() {
-  if (prDirty.size && !confirm('You have unsaved answers on this application. Leave without saving?')) return;
+async function backToAnswers() {
+  if (prDirty.size && !(await fbConfirm('You have answers on this application that are not saved. They will be lost if you leave now.', {title: 'Leave Without Saving?', yes: 'Leave Without Saving', no: 'Stay Here'}))) return;
   prDirty.clear();
   go('answers/applications');
 }
@@ -638,7 +639,7 @@ async function saveSlot(sid) {
   catch (e) { await loadPrep(prPid); prStatus(e.message, true); drCardMsg('prc-' + sid, e.message, true); }
 }
 async function adaptSlot(sid) {
-  if (!drConfirmReplace(prDirty.has(sid), (((prData && prData.slots) || []).find(x => String(x.id) === String(sid)) || {}).answer_text)) return;
+  if (!(await drConfirmReplace(prDirty.has(sid), (((prData && prData.slots) || []).find(x => String(x.id) === String(sid)) || {}).answer_text))) return;
   prBusy(sid, drIsOutline() ? 'Outlining…' : 'Drafting…');
   prStatus(drIsOutline() ? 'Writing an outline for this question.' : 'Writing a draft for this application.');
   try {
@@ -648,7 +649,7 @@ async function adaptSlot(sid) {
   } catch (e) { await loadPrep(prPid); prStatus(drGateMessage(e), true); drCardMsg('prc-' + sid, drGateMessage(e), true, drIsGate(e)); }
 }
 async function deleteSlot(sid) {
-  if (!confirm('Remove this question from this application? Your saved answers are not affected.')) return;
+  if (!(await fbConfirm('It comes off this application only. Your saved answers in My Answers are not affected.', {title: 'Remove This Question?', yes: 'Remove It', danger: true}))) return;
   prBusy(sid, 'Removing…');
   try { await apiFetch(prBase() + '/slots/' + encodeURIComponent(sid), 'DELETE'); prDirty.delete(sid); await loadPrep(prPid); prStatus('Removed.'); }
   catch (e) { await loadPrep(prPid); prStatus(e.message, true); drCardMsg('prc-' + sid, e.message, true); }
@@ -738,7 +739,9 @@ async function extractApplication() {
   try {
     const fd = new FormData();
     if (file) fd.append('file', file); else if (url) fd.append('url', url); else fd.append('text', text);
-    const r = await fetch(API_BASE + prBase() + '/extract', {method: 'POST', headers: {'Authorization': 'Bearer ' + (load(TOKEN_KEY) || '')}, body: fd});
+    let r;
+    try { r = await fetch(API_BASE + prBase() + '/extract', {method: 'POST', headers: {'Authorization': 'Bearer ' + (load(TOKEN_KEY) || '')}, body: fd}); }
+    catch (_) { throw new Error(FB_OFFLINE); }
     let data = {}; try { data = await r.json(); } catch (_) {}
     if (!r.ok) {
       const d = data.detail;
