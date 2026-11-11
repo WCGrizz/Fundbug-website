@@ -11,13 +11,12 @@ const grab = re => { const m = html.match(re); if (!m) throw new Error('not foun
 const ctx = {};
 vm.createContext(ctx);
 vm.runInContext([grab(/function escHtml\([\s\S]*?\n\}/), grab(/function money\(n\).*/), grab(/const shortMoney = .*/), grab(/const MONTH_NAMES = .*/),
-                 js, 'globalThis.t = {fpCountyName, fpStack, fpBandHtml, fpSourceRow, fpItemsHtml, fpPlannedLine, fpStoredItems, fpYearLabel, fpParse, fpParseCsv, fpGuessColumns, fpDate, fpRowsFrom, fpDownloadText, fpTotalsLine};',
+                 js, 'globalThis.t = {fpStack, fpBandHtml, fpSourceRow, fpItemsHtml, fpPlannedLine, fpStoredItems, fpYearLabel, fpParse, fpParseCsv, fpGuessColumns, fpDate, fpRowsFrom, fpDownloadText, fpTotalsLine};',
                  'globalThis.setFP = v => { FP = v; }; globalThis.sent = []; fpSave = c => { sent.push(c); };', 'globalThis.fpSaveAward = fpSaveAward;'].join('\n'), ctx);
 const t = ctx.t;
 
 // "Berkshire County" stored with the word is not doubled (Nov 9 2026: "organizations in Berkshire County County")
-eq([t.fpCountyName('Berkshire County'), t.fpCountyName('Berkshire'), t.fpCountyName('berkshire county'), t.fpCountyName('')],
-   ['Berkshire County', 'Berkshire County', 'berkshire county', 'your county'], 'a county name gets "County" once');
+// fpCountyName left with the community foundation list (Nov 11 2026).
 const src = (key, label, planned, secured, pending, extra) => ({key, label, planned, secured, pending, shown: Math.max(planned, secured + pending),
   secured_other: 0, secured_tracker: 0, secured_donors: 0, pending_unknown: 0, from_tracker: false, ...extra});
 const view = {fiscal_year: 2027, end_month: 6, goal: 500000, sources: [src('earned', 'Earned Revenue', 0, 0, 0), src('government', 'Government Grants', 100000, 25000, 30000),
@@ -140,7 +139,7 @@ ok(/nonprofit-funding-plan\.js\?v=\d{4}-\d{2}-\d{2}/.test(html), 'the portal loa
   const card = ctx.__card;
   ok(card.includes('($2,500</b> of it through donor-advised funds)') || card.includes('<b>$2,500</b> of it through donor-advised funds'), 'the donor list says how much came through DAFs');
   ok((card.match(/Gives Through A DAF/g) || []).length === 1, 'a donor who gave through a DAF is marked; one who did not is not');
-  ok(card.includes('Add An Anonymous DAF Gift') && card.includes('legal name and EIN'), 'an anonymous DAF gift can be added, and the list says how to welcome DAF gifts');
+  ok(card.includes('Add An Anonymous DAF Gift') && card.includes('A DAF button on your donation page'), 'an anonymous DAF gift can be added, and the list says how to welcome DAF gifts');
   ok(/s\.through_daf \? ` \(\$\{money\(s\.through_daf\)\} through donor-advised funds\)`/.test(js), 'the Individual Donors row says how much came through DAFs');
   ok(/list="fdDafList"/.test(js) && /FP_EDIT\.gifts\[\$\{i\}\]\.daf=this\.value\.trim\(\)/.test(js) && /'Fidelity Charitable'/.test(js), 'each gift takes a sponsor, with the common ones suggested');
   ok(/no tax receipt/.test(js) && /cannot pay for event tickets/.test(js), 'the panel says how to thank and what a DAF cannot pay for');

@@ -325,6 +325,14 @@ input.fp-amt:not([type]){width:130px;margin:0;text-align:right;min-height:40px;p
 .gp-table th,.gp-table td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top}
 .gp-table th{font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--green-dk)}
 .gp-table .num{text-align:right;font-variant-numeric:tabular-nums}
+/* The donor list (Nov 11 2026, Will: "a mix of left justified and right justified columns spaced weirdly"): set widths,
+   the two dollar columns right aligned with their headings, room before the text columns, second lines beneath. */
+.gp-table table.fp-dtable{table-layout:fixed;font-size:15px}
+.fp-dtable col.c-name{width:30%}.fp-dtable col.c-num{width:15%}.fp-dtable col.c-last{width:18%}.fp-dtable col.c-next{width:22%}
+.fp-dtable th,.fp-dtable td{padding:10px 12px;vertical-align:middle}
+.fp-dtable .gap{padding-left:32px}
+.fp-dtable .sub{display:block;font-size:14px;color:var(--ink)}
+.fp-dtable td:first-child{overflow-wrap:anywhere}
 .gp-method{font-size:14px;color:var(--ink);margin:4px 2px 14px}
 .no-site,.unverified{font-size:15px;color:var(--ink);background:#f4efe3;border-left:3px solid #c9a227;padding:8px 12px;margin:0 0 14px;border-radius:3px}
 .gp-parts{font-size:15px;color:var(--ink);margin:8px 0 0;padding-left:20px}.gp-parts li{margin:4px 0}
@@ -3386,7 +3394,7 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 <script src="/answers-nav.js?v=2026-11-10a"></script>
 <script src="/nonprofit-drafting.js?v=2026-11-10c"></script>
 <script src="/nonprofit-landscape.js?v=2026-11-10b"></script>
-<script src="/nonprofit-funding-plan.js?v=2026-11-10c"></script>
+<script src="/nonprofit-funding-plan.js?v=2026-11-11a"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
 <script src="/nonprofit-tour.js?v=2026-11-10c"></script>
 </body>

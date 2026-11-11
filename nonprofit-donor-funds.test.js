@@ -11,7 +11,7 @@ const ctx = {};
 vm.createContext(ctx);
 vm.runInContext([grab(/function escHtml\([\s\S]*?\n\}/), grab(/function money\(n\).*/), grab(/const shortMoney = .*/), grab(/const MONTH_NAMES = .*/),
                  grab(/function line\(title, html\).*/), grab(/function donorFundsLine\(d\)[\s\S]*?\n\}/), js,
-                 'globalThis.t = {donorFundsLine, fpCfCard};'].join('\n'), ctx);
+                 'globalThis.t = {donorFundsLine};'].join('\n'), ctx);
 const t = ctx.t;
 const btcf = {year: 2024, funds: 186, value: 56326926, grants: 6857531, contributions: 6176306, share: 0.46, services_url: null};
 const h = t.donorFundsLine(btcf);
@@ -21,17 +21,21 @@ ok(h.includes('FundBug never names them') && !h.includes('page for donors</a>'),
 ok(t.donorFundsLine({...btcf, services_url: 'https://x.org/donors'}).includes('href="https://x.org/donors"'), 'an approved donor services page is linked');
 ok(t.donorFundsLine(null) === '' && t.donorFundsLine({year: 2024}) === '', 'none on file: no line');
 ok(/put\('contact', donorFundsLine\(L\.donor_funds\)\);/.test(html), 'the funder page shows it, under People And Contact');
-const card = t.fpCfCard({county: 'Berkshire', foundations: [{name: 'Berkshire Taconic Community Foundation', listing_id: 'L1', here_grants: 526, here_dollars: 22721962, donor_funds: btcf}]});
-ok(card.includes(`openListing('L1')`) && card.includes('186 donor-advised funds holding $56.3 million; its donors recommended $6.9 million in grants in 2024.'), 'the plan card names the foundation, its funds and its donors\' giving');
-ok(card.includes('526 grants to organizations in Berkshire County ($22.7 million)') && card.includes('FundBug never names them'), 'and its grants in your county');
-ok(t.fpCfCard({county: 'Berkshire', foundations: []}).includes('No community foundation with donor-advised funds gives in Berkshire County'), 'none: says so');
-ok(t.fpCfCard({error: 'down', foundations: []}).includes('could not be read just now'), 'a failed read says so, never "none"');
-ok(/<h3 class="fp-h3">Community Foundations Whose Donors Give Near You<\/h3><div id="fpCf">/.test(js) && /fpLoadCf\(\);/.test(js), 'the donor card loads it');
-const tbf = t.fpCfCard({county: 'Berkshire', foundations: [{name: 'The Boston Foundation', here_grants: 38, here_dollars: 1300000, donor_funds: {...btcf, value: 1403500000}}]});
-ok(tbf.includes('holding $1.4 billion') && !tbf.includes('1403.5 million'), 'a fund over a billion reads as billions (Will saw "$1403.5 million")');
-// Nov 10 2026 (Will: "reads very flatly"): the donor list comes first, then DAF gifts and the community foundations, each its own part.
+// Nov 11 2026 (Will): the community foundation list left the Donors page ("i dont know if we need" it); each community
+// foundation's own page keeps Its Donors' Funds (above). The DAF note is said simply, and the list is "your
+// organization's donor list".
 const dc = js.slice(js.indexOf('function fpDonorsCard'), js.indexOf('function fpPanel('));
+ok(!/Community Foundations Whose Donors|fpCfCard|fpLoadCf|donor-fund-foundations/.test(js), 'no community foundation list on the Donors page, and nothing loads one');
+ok(dc.includes("<p class=\"lead\">Your organization's donor list.") && !dc.includes('FundBug never shares it'), "the list is introduced as your organization's donor list");
+ok(/const FP_DAF_TIP = 'Some donors give through a donor-advised fund \(DAF\)/.test(js) && !/EIN/.test(js.match(/const FP_DAF_TIP = .*/)[0]), 'the DAF note is short and plain');
 const at = x => dc.indexOf(x);
-ok(at('class="fp-actions"') > 0 && at('class="fp-actions"') < at('Gifts From Donor-Advised Funds') && at('Gifts From Donor-Advised Funds') < at('Community Foundations Whose Donors'),
-   'Donors: the list and its buttons first, then two parts with their own headings');
+ok(at('class="fp-actions"') > 0 && at('class="fp-actions"') < at('Gifts From Donor-Advised Funds'), 'Donors: the list and its buttons first, then the DAF note');
+// The table (Will: "a mix of left justified and right justified columns spaced weirdly"): set widths, dollars right
+// aligned under right-aligned headings, room before the text columns, a dash for an empty cell, second lines beneath.
+ok(/<table class="fp-dtable"><colgroup>(<col class="c-[a-z]+">){5}<\/colgroup>/.test(dc) && /\.gp-table table\.fp-dtable\{table-layout:fixed/.test(html),
+   'the donor table has set column widths');
+ok(/<th class="num">Given This Year<\/th><th class="num">Pledged This Year<\/th><th class="gap">Last Gift<\/th>/.test(dc) && /\.fp-dtable \.gap\{padding-left:\d{2}px\}/.test(html),
+   'the dollar columns and their headings are right aligned, with room before Last Gift');
+ok(/d\.given_this_year \? money\(d\.given_this_year\) : '–'/.test(dc) && /d\.pledged_this_year \? money\(d\.pledged_this_year\) : '–'/.test(dc),
+   'an empty cell shows a dash, never a blank beside a figure');
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);
