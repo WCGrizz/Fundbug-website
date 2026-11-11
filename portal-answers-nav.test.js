@@ -29,10 +29,10 @@ p.renderDrafting();
 const cards = els.drCards.innerHTML;
 ok(cards.indexOf('Standard Questions') < cards.indexOf('id="drc-business_description"') && cards.indexOf('Your Own Questions') < cards.indexOf('id="drc-custom_q1"')
    && cards.indexOf('id="drc-use_of_funds"') < cards.indexOf('Your Own Questions'), 'standard questions first, then the business\'s own, under headings');
-ok(/class="dr-card folded" id="drc-business_description"[^>]*data-state="saved"/.test(cards), 'an answer starts folded, Saved');
-ok(/class="dr-card" id="drc-use_of_funds"[^>]*data-state="review"/.test(cards), 'the answer its link names opens (a draft: Needs Review)');
+ok(/class="dr-card folded" id="drc-business_description"[^>]*data-state="answered"/.test(cards), 'an answer starts folded, Answered');
+ok(/class="dr-card" id="drc-use_of_funds"[^>]*data-state="answered"/.test(cards), 'the answer its link names opens (a draft is Answered, never flagged)');
 ok(/id="drc-custom_q1"[^>]*data-state="empty"/.test(cards) && cards.includes(`drCopyLink('business_description', this)`), 'Empty, and a link to copy');
-ok(/All \(3\)/.test(els.drNav.innerHTML) && /Needs Review \(1\)/.test(els.drNav.innerHTML), 'the filters count the answers');
+ok(/All \(3\)/.test(els.drNav.innerHTML) && /Answered \(2\)/.test(els.drNav.innerHTML) && !/Needs Review/.test(els.drNav.innerHTML), 'the filters count the answers');
 
 p.setPr({passport: {ready: true}});
 els.prToolbar = el('prToolbar'); els.prProgress = el('prProgress'); els.prDraftAllBtn = el('prDraftAllBtn');

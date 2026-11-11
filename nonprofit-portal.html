@@ -101,7 +101,6 @@ nav{background:var(--ink);padding:0 28px;height:60px;display:flex;align-items:ce
 .tour-page-btn:hover{background:rgba(255,255,255,.18)}
 .tour-phone-only{display:none}
 @media (max-width:760px){.hero>.tour-page-btn{position:static;margin:8px 8px 0 0}.tour-top-btn{display:none}.tour-phone-only{display:inline-block}}
-.nav-new{margin-left:6px;background:var(--green);color:#fff;border-radius:10px;padding:1px 8px;font-size:14px;font-weight:600}
 .nav-right{display:flex;align-items:center;gap:6px}
 .nav-right a.top-org{color:var(--cream);font-size:15px;font-weight:500;text-decoration:none;padding:0 10px;cursor:pointer;min-height:44px;display:flex;align-items:center;border-bottom:3px solid transparent}
 .nav-right a.top-org.active{border-bottom-color:var(--green-lt);color:#fff}
@@ -910,7 +909,6 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <label class="chk" style="display:none"><input type="checkbox" id="mFits" checked onchange="drawMatches()"> Fits Only</label>
           <select id="mReviewed" class="preview-only" onchange="drawMatches()"><option value="">Reviewed Or Not</option><option value="yes">Reviewed Only</option><option value="no">Not Reviewed Yet</option></select>
         </div>
-        <div id="mNewBar"></div>
         <div class="summary" id="mSummary"></div>
         <div id="mList"></div>
         <div style="text-align:center;margin-top:10px"><button class="btn ghost" id="mMore" onclick="moreMatches()" style="display:none">Show More</button></div>
@@ -1231,7 +1229,7 @@ let TERMS = null, PLACES = null, RESULT = null, shownCount = PAGE_SIZE;
 let picks = {subjects: new Set(), populations: new Set(), funding_purposes: new Set()};
 // Where You Work (Oct 19 2026): the signup's four choices, stored the same way (nonprofit-choices.js regionsFor).
 let where = whereFrom([]);
-let DETAIL_ROWS = {programs: [], past_funders: []}, NEW_ONLY = null, PROFILE_METER = null;
+let DETAIL_ROWS = {programs: [], past_funders: []}, PROFILE_METER = null;
 
 // ── PORTAL HELPERS START (no page state; nonprofit-portal.test.js runs them in node) ──
 // The fit judge's sentence is written as the organization ("our region", np_fit_judge); the card speaks to it (Will,
@@ -1268,12 +1266,6 @@ function worksInNY(state, zip, regions) {
   const z = String(zip || '').slice(0, 3);
   if (/^\d{3}$/.test(z) && ((z >= '100' && z <= '149') || z === '005' || String(zip).slice(0, 5) === '06390')) return true;
   return (regions || []).some(r => r && ((r.type === 'state' && r.value === 'NY') || (r.type === 'county' && r.state === 'NY')));
-}
-// New matches since the last visit: what fits now and did not then; null on a first visit (nothing to compare).
-function newSince(fitIds, prevIds) {
-  if (!Array.isArray(prevIds)) return null;
-  const prev = new Set(prevIds);
-  return fitIds.filter(id => !prev.has(id));
 }
 function daysUntil(iso, todayIso) {
   const d = Date.parse(String(iso || '').slice(0, 10) + 'T00:00:00Z'), t = Date.parse(String(todayIso).slice(0, 10) + 'T00:00:00Z');
@@ -1576,17 +1568,14 @@ function homeRoute() { return routeAt(MODE === 'account' ? 'home' : 'organizatio
 function navLink(r, text, cls, extra) {
   return `<a href="${NAV_BASE}/${r.path}" class="${cls || ''}" data-path="${r.path}" onclick="return navClick(event, '${r.path}')">${escHtml(text)}${extra || ''}</a>`;
 }
-// New matches since the last visit, beside Library in the top bar (Nov 10 2026, Will: yes); Home lists them.
-function navNewBadge(sec) {
-  const n = sec.key === 'library' && typeof NEW_IDS !== 'undefined' && NEW_IDS ? NEW_IDS.length : 0;
-  return n ? ` <span class="nav-new" aria-label="${n} new">${n} new</span>` : '';
-}
+// No "N new" count anywhere (Nov 11 2026, Will: "while it may look good today, one day it may say zero new. Id rather it
+// didnt say anything").
 // The bar and the column, for the mode and role, with the current section and page marked.
 function drawNav() {
   const cur = ROUTE || {};
   const first = sec => sec.subs.find(navAllowed);
   const top = cur.section && (cur.section.top || cur.section.key);            // a listing's page sits under the Library
-  const tops = NAV.filter(sec => !sec.right && first(sec)).map(sec => navLink(first(sec), sec.label, top === sec.key ? 'active' : '', navNewBadge(sec)));
+  const tops = NAV.filter(sec => !sec.right && first(sec)).map(sec => navLink(first(sec), sec.label, top === sec.key ? 'active' : ''));
   document.getElementById('topLinks').innerHTML = tops.join('');
   document.getElementById('topRight').innerHTML = NAV.filter(sec => sec.right && first(sec))
     .map(sec => navLink(first(sec), sec.label, 'top-org' + (top === sec.key ? ' active' : ''))).join('');
@@ -2244,25 +2233,11 @@ async function loadStripTracker() {
   if (HOME_EXTRA) drawHomeExtra(); else drawStrip();
 }
 function viewerKey() { try { return (JSON.parse(load(SUB_KEY) || '{}').id) || (ACCOUNT && ACCOUNT.subscriber && ACCOUNT.subscriber.email) || 'me'; } catch (e) { return 'me'; } }
-// The fits seen before this visit, kept for the whole visit (sessionStorage), and today's fits saved for the next one.
-function newMatchesThisVisit(fitIds) {
-  const key = 'fb_np_seen_' + viewerKey(), skey = 'fb_np_prev_' + viewerKey();
-  let prev = null;
-  try {
-    const kept = sessionStorage.getItem(skey);
-    if (kept !== null) prev = JSON.parse(kept);
-    else { prev = JSON.parse(localStorage.getItem(key) || 'null'); sessionStorage.setItem(skey, JSON.stringify(prev)); }
-    localStorage.setItem(key, JSON.stringify(fitIds));
-  } catch (e) { return null; }
-  return newSince(fitIds, prev);
-}
-let NEW_IDS = null;
 function drawStrip() {
   if (MODE !== 'account') return;
   const strip = document.getElementById('pfStrip');
   if (!RESULT && !TRACKER) { strip.hidden = true; return; }
   strip.hidden = false;
-  drawNav();                                                   // the Library's "new" count in the top bar follows
   const today = new Date().toISOString().slice(0, 10);
   document.getElementById('homeNext').innerHTML = homeNextHtml(homeNextSteps(TRACKER ? TRACKER.items : [], (HOME_EXTRA || {}).applications, HOME_PLAN, today));
   const pipe = document.getElementById('homePipe');
@@ -2277,8 +2252,6 @@ function drawStrip() {
       (due.length > 4 ? `<p>And ${due.length - 4} more. <a onclick="showPage('tracker'); loadTracker()">Open Your Tracker</a></p>` : '')
     : `<p>Nothing due in the next 30 days. <a onclick="showPage('tracker'); loadTracker()">Open Your Tracker</a></p>`);
 }
-function showNewMatches() { NEW_ONLY = new Set(NEW_IDS || []); shownCount = PAGE_SIZE; showPage('matches'); drawMatches(); }
-function showAllMatches() { NEW_ONLY = null; drawMatches(); }
 
 // ── matches ─────────────────────────────────────────────────────────────
 async function runMatches(stay) {
@@ -2293,7 +2266,6 @@ async function runMatches(stay) {
     shownCount = PAGE_SIZE;
     // Says to check eligibility, as the digest's New Matches does (Nov 6 2026, Katie Meehan and Will).
     document.getElementById('matchesSub').textContent = 'Every funder and program in FundBug: the ones that fit your organization first, best fit first. ' + CHECK_ELIGIBILITY;
-    NEW_IDS = newMatchesThisVisit(RESULT.shown.filter(m => m.fits !== false && !m.not_for_you).map(m => m.id));
     drawMatches();
     drawStrip();
     return;
@@ -2326,7 +2298,7 @@ function filtered() {
   const kind = document.getElementById('mKind').value, rev = document.getElementById('mReviewed').value;
   const src = (document.getElementById('mSource') || {}).value || '';
   const fitsOnly = MODE === 'account' && document.getElementById('mFits').checked;
-  return RESULT.shown.filter(m => (!NEW_ONLY || NEW_ONLY.has(m.id)) && (!q || m.title.toLowerCase().includes(q) || (m.provided_by || '').toLowerCase().includes(q))
+  return RESULT.shown.filter(m => (!q || m.title.toLowerCase().includes(q) || (m.provided_by || '').toLowerCase().includes(q))
     && (!kind || m.kind === kind) && (!src || m.source === src) && (!rev || (rev === 'yes') === m.reviewed) && (!fitsOnly || m.fits !== false));
 }
 const MODES = {open_call: 'Open call', loi: 'Letter of inquiry first', rolling: 'Rolling', invitation_only: 'By invitation'};
@@ -2385,8 +2357,6 @@ function drawMatches() {
   if (!RESULT) return;
   const list = filtered();
   const c = RESULT.counts;
-  document.getElementById('mNewBar').innerHTML = NEW_ONLY
-    ? `<div class="no-site">Showing the ${NEW_ONLY.size.toLocaleString()} new since your last visit. <button class="btn ghost sm" onclick="showAllMatches()">Show Everything</button></div>` : '';
   // Probably Not For You (Will, Oct 5 2026): the fit judge's "no" listings,
   // in a collapsed list after the rest, never hidden.
   const main = list.filter(m => !m.not_for_you), nfy = list.filter(m => m.not_for_you);
@@ -3391,7 +3361,7 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
   showGate();
 })();
 </script>
-<script src="/answers-nav.js?v=2026-11-10a"></script>
+<script src="/answers-nav.js?v=2026-11-11a"></script>
 <script src="/nonprofit-drafting.js?v=2026-11-10c"></script>
 <script src="/nonprofit-landscape.js?v=2026-11-10b"></script>
 <script src="/nonprofit-funding-plan.js?v=2026-11-11a"></script>

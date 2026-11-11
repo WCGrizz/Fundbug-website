@@ -18,7 +18,7 @@ ok(a > 0 && b > a && sa >= 0 && sb > sa, 'the portal and the shared file mark th
 const ctx = {};
 vm.createContext(ctx);
 vm.runInContext(shared.slice(sa, sb) + '\n' + html.slice(a, b) +
-  '\n;globalThis.__t = {toSecondPerson, round2, typicalText, worksInNY, newSince, daysUntil, dueSoon, pruneDetails, sameDetails, withArticle, regionLabel, whereFrom, regionsForProfile, regionsFor, teamRows, seatLine, seatsFull, fullMessage};', ctx);
+  '\n;globalThis.__t = {toSecondPerson, round2, typicalText, worksInNY, daysUntil, dueSoon, pruneDetails, sameDetails, withArticle, regionLabel, whereFrom, regionsForProfile, regionsFor, teamRows, seatLine, seatsFull, fullMessage};', ctx);
 const t = ctx.__t;
 
 // E. Why It May Fit: the fit judge's first person, spoken to the organization.
@@ -54,8 +54,6 @@ ok(!t.worksInNY('MA', '01201', [{type: 'national'}, {type: 'state', value: 'VT'}
 ok(/<div id="nyBox" hidden>/.test(html), 'the box starts hidden');
 
 // A. New matches since the last visit, and what is due in 30 days.
-eq(t.newSince(['a', 'b', 'c'], ['a']), ['b', 'c'], 'what fits now and did not then');
-ok(t.newSince(['a'], null) === null, 'a first visit has nothing to compare');
 const TR = [{program_id: 'p1', group_id: 'g1', title: 'Soon Fund', days_until_deadline: 12},
             {program_id: 'p2', group_id: 'g2', title: 'Later Fund', days_until_deadline: 45},
             {program_id: 'p3', title: 'Call Back', follow_up_date: '2026-10-25'},
@@ -193,4 +191,5 @@ ok(/if \(!L\.reviewed\) out\.push\(`<div class="unverified">/.test(html)
   ok(h2 >= 20 && h3 >= 17 && h2 > h3 && tile > 16 && !/\n\.card h2\{[^}]*uppercase/.test(html), 'card titles 20px or more and above their parts; no small capitals for titles');
   ok(/\n\.card \.fp-h3\{[^}]*border-top/.test(html), 'a part of a card has a rule above it');
 }
+ok(!/ new<\/span>|nav-new|NEW_IDS|newSince/.test(html), 'no "N new" count anywhere (Will, Nov 11 2026)');
 process.exit(fails ? 1 : 0);
