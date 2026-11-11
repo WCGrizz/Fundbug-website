@@ -591,6 +591,21 @@ body.not-manager .manager-only{display:none}
 .fbc-card p{font-size:15px;color:var(--ink);line-height:1.5}
 .fbc-btns{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;flex-wrap:wrap}
 .btn.danger{background:#a4261d;border-color:#a4261d;color:#fff}
+/* What To Attach (Nov 11 2026, nonprofit-checklist.js) */
+.ck{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.ck-list{list-style:none;margin:8px 0 0;padding:0}
+.ck-line{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border)}
+.ck-main{flex:1 1 280px;min-width:0}
+.ck-label{font-weight:600;font-size:15px}
+.ck-line.not_needed .ck-label{color:var(--ink);font-weight:500;text-decoration:line-through}
+.ck-meta{font-size:14px;margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;align-items:baseline}
+.ck-words{display:inline}.ck-words summary{display:inline;cursor:pointer;color:var(--green-dk);font-weight:500}
+.ck-words q{display:block;margin-top:4px;padding:6px 10px;background:var(--cream);border-left:3px solid var(--border);font-size:14px}
+.ck-prop{font-size:14px;margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ck-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ck-acts select{width:auto;margin:0;min-height:36px;font-size:14px;max-width:260px}
+.ck-state{font-size:14px;font-weight:600;padding:3px 10px;border-radius:12px;background:var(--cream2)}
+.ck-state.need{background:#fff6dc;color:#7a5b00}.ck-state.ok{background:rgba(90,158,82,.14);color:var(--green-dk)}
 /* Files (Nov 11 2026, nonprofit-files.js) */
 .fx{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
 .fx-h{font-size:17px;font-weight:600;margin-bottom:6px}
@@ -3163,6 +3178,7 @@ function tToggle(pid) {
   const row = document.getElementById('tr-' + pid); if (!row) return;
   const open = T_OPEN.has(pid);
   if (open && !FILES['p:' + pid]) filesLoad('p:' + pid);       // the item's Files, read when it is first opened
+  if (open && !(CHECK[pid] && !CHECK[pid].error)) checkLoad(pid);   // and its What To Attach
   row.classList.toggle('open', open);
   const sum = row.querySelector('.t-sum'); sum.setAttribute('aria-expanded', String(open)); sum.querySelector('.dr-chev').textContent = open ? '▾' : '▸';
 }
@@ -3222,6 +3238,7 @@ function drawTracker() {
       </div>
       ${thAwardFields(i)}
       ${thPanel(i)}
+      <div class="tc" id="tc-${pid}">${CHECK[i.program_id] ? checkHtml(i.program_id, CHECK[i.program_id]) : ''}</div>
       <div class="tf" id="tf-${pid}">${FILES['p:' + i.program_id] ? filesSectionHtml('p:' + i.program_id, FILES['p:' + i.program_id]) : ''}</div>
       <div class="m-actions" style="margin-top:8px"><button class="btn sm" onclick="openPrep('${pid}')">Prep Application</button>${calEvents([i], today).length ? `<button class="btn ghost sm" onclick="downloadItemIcs('${pid}')">Add To Calendar</button>` : ''}<button class="btn ghost sm" onclick="removeItem('${pid}')">Remove</button></div>
     </div></div>`;
@@ -3563,7 +3580,8 @@ document.getElementById('emailIn').addEventListener('keydown', e => { if (e.key 
 <script src="/nonprofit-funding-plan.js?v=2026-11-11b"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
 <script src="/nonprofit-bell.js?v=2026-11-11a"></script>
-<script src="/nonprofit-files.js?v=2026-11-11d"></script>
+<script src="/nonprofit-checklist.js?v=2026-11-11a"></script>
+<script src="/nonprofit-files.js?v=2026-11-11e"></script>
 <script src="/nonprofit-board.js?v=2026-11-11b"></script>
 <script src="/nonprofit-tour.js?v=2026-11-11a"></script>
 </body>

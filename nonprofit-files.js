@@ -118,6 +118,7 @@ async function filesUpload(key, input, group) {
   } catch (e) { filesMsg(key, e.message, true); input.value = ''; return; }
   await filesLoad(key);
   filesMsg(key, group ? 'New version added.' : 'Added.');
+  if (key !== 'docs' && typeof checkLoad === 'function' && CHECK[key.slice(2)]) checkLoad(key.slice(2));   // the checklist can now choose it
 }
 // Edit Title, in place: the title becomes a box with Save and Cancel; saved only if it is still what the page showed.
 function filesEditTitle(key, group) {
