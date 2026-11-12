@@ -758,7 +758,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
     <div class="err" id="signErr"></div>
     <div class="ok" id="signOk"></div>
     <button class="btn" style="width:100%" onclick="signIn()">Sign In</button>
-    <div class="gate-link-row"><a href="#" class="gate-link" onclick="forgotPassword();return false">Forgot Your Password?</a></div>
+    <div class="gate-link-row"><a href="#" class="gate-link" onclick="forgotPassword();return false">Forgot/Set Your Password?</a></div>
     <div class="gate-or"><span>or</span></div>
     <button class="btn ghost" style="width:100%" onclick="requestLink()">Email Me A Login Link</button>
     <div class="gate-note">No password, or never set one? We'll email you a link that signs you in.</div>
@@ -1594,8 +1594,8 @@ async function signIn() {
     r = await fetch(API_BASE + '/api/portal/login', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password})});
     data = await r.json().catch(() => ({}));
   } catch (e) { err.textContent = 'Could not reach FundBug. Try again in a moment.'; return; }
-  if (r.status === 403) { err.textContent = "This account doesn't have a password yet. Use Email Me A Login Link, or Forgot Your Password? to set one."; return; }
-  if (r.status === 401) { err.textContent = "That email and password don't match. Try again, use Forgot Your Password?, or use Email Me A Login Link."; return; }
+  if (r.status === 403) { err.textContent = "This account doesn't have a password yet. Use Email Me A Login Link, or Forgot/Set Your Password? to set one."; return; }
+  if (r.status === 401) { err.textContent = "That email and password don't match. Try again, use Forgot/Set Your Password?, or use Email Me A Login Link."; return; }
   if (!r.ok) { err.textContent = data.detail || 'Sign in failed. Try again in a moment.'; return; }
   store(TOKEN_KEY, data.token);
   store(SUB_KEY, JSON.stringify({id: data.subscriber_id, email: data.email, first_name: data.first_name || '',
@@ -1607,7 +1607,7 @@ async function forgotPassword() {
   const email = document.getElementById('emailIn').value.trim().toLowerCase();
   const err = document.getElementById('signErr'), ok = document.getElementById('signOk');
   err.textContent = ''; ok.textContent = '';
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Enter your email above, then press Forgot Your Password?'; return; }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Enter your email above, then press Forgot/Set Your Password?'; return; }
   try {
     await fetch(API_BASE + '/api/forgot-password', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email})});
     ok.textContent = "If that email is registered, you'll receive a link to set your password within a few minutes.";

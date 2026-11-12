@@ -20,7 +20,7 @@ const at = s => first.indexOf(s);
 ok(at('id="loginEmail"') > 0 && at('id="loginPassword"') > at('id="loginEmail"'), 'the first screen asks for email, then password');
 ok(at('onclick="doLogin()"') > at('id="loginPassword"') && at('onclick="doPrimaryMagic()"') > at('onclick="doLogin()"'),
    'Sign In comes before Email Me A Login Link');
-ok(at('showForgotPassword()') > 0, 'Forgot Your Password? is on the first screen');
+ok(at('showForgotPassword()') > 0, 'Forgot/Set Your Password? is on the first screen');
 ok(!/id="pwWrap"|showPwLogin|pwEmail|pwErr/.test(html), 'no separate password screen is left behind');
 
 // doLogin: reads the first screen, trims and lower-cases the email, and says plainly what went wrong.
@@ -45,7 +45,7 @@ ok(!/id="pwWrap"|showPwLogin|pwEmail|pwErr/.test(html), 'no separate password sc
   r = await run('a@b.com', 'wrong', 401, {detail: 'Invalid credentials'});
   ok(/don't match/.test(r.err) && /Email Me A Login Link/.test(r.err), 'a wrong password points to the other ways in');
   r = await run('a@b.com', 'x', 403, {detail: 'This account does not use a password.'});
-  ok(/doesn't have a password yet/.test(r.err) && /Forgot Your Password\?/.test(r.err), 'an account with no password is told how to set one');
+  ok(/doesn't have a password yet/.test(r.err) && /Forgot\/Set Your Password\?/.test(r.err), 'an account with no password is told how to set one');
   // The nonprofit portal has its own sign-in screen (Will, Nov 12 2026: "the sign in page doesnt seem pushed").
   const np = fs.readFileSync(__dirname + '/nonprofit-portal.html', 'utf8');
   const g = np.slice(np.indexOf('<div class="gate" id="gate"'), np.indexOf('<div class="gate" id="linkGate"'));
