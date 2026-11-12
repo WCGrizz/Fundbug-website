@@ -47,8 +47,9 @@ const code = html.slice(html.indexOf('// Find A Funder (Nov 10 2026)'), html.ind
      'a funder\'s page has its own address, /nonprofit/funder/<id>');
   ok(/if \(onFile && L\.group_id\) \{ LISTING = null; go\('listing\/' \+ L\.group_id, \{replace: true\}\); return; \}/.test(lp),
      'a funder in the Library opens its listing instead');
-  ok(/if \(MODE === 'account' && !L\.on_file_only\)/.test(lp) && /if \(L\.giving && !L\.on_file_only\)/.test(lp),
-     'no Save and no grantee list on a page from the record');
+  ok(/if \(MODE === 'account' && !L\.on_file_only\)/.test(lp), 'no Save on a page from the record (saving needs a listing)');
+  ok((html.match(/\(LISTING && LISTING\.onFile \? 'funder\/' : 'listing\/'\)/g) || []).length === 2,
+     'its grantees and latest grants come from the funder\'s own routes');
   if (fails) { console.log(fails + ' failed'); process.exit(1); }
   console.log('all passed');
 })();

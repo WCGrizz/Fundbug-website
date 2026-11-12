@@ -2980,7 +2980,7 @@ async function loadListingPage(id, onFile) {
              has: {giving: !!parts.giving.join('').trim(), programs: !!parts.programs.join('').trim(), contact: !!parts.contact.join('').trim()}};
   drawNav();
   showListingTab(ROUTE && ROUTE.listingId === id ? ROUTE.tab : '');
-  if (L.giving && !L.on_file_only) { loadGrantees(id, 'county', '', 0); loadGrantPoints(id); }   // both read a listing
+  if (L.giving) { loadGrantees(id, 'county', '', 0); loadGrantPoints(id); }   // a funder's own routes when it has no listing
 }
 // One tab of the listing page; a tab it does not have (no programs, say) shows its Overview.
 function showListingTab(tab) {
@@ -3147,7 +3147,7 @@ let GP = {id: null, scope: 'county', q: '', rows: [], timer: null};
 // millions), first-time grantees light green above, repeat grantees dark green below, each group's median marked; a dot
 // ringed in ink is a grant in your county. Hover a dot for the organization and amount.
 async function loadGrantPoints(id) {
-  let url = '/api/nonprofit/' + (MODE === 'account' ? '' : 'preview/') + 'listing/' + encodeURIComponent(id) + '/grant-points';
+  let url = '/api/nonprofit/' + (MODE === 'account' ? '' : 'preview/') + (LISTING && LISTING.onFile ? 'funder/' : 'listing/') + encodeURIComponent(id) + '/grant-points';
   if (MODE !== 'account') { const p = currentProfile(); url += '?zip=' + encodeURIComponent(p.zip_code || '') + '&state=' + encodeURIComponent(p.state || ''); }
   let r;
   try { r = await apiFetch(url); } catch (e) { const el = document.getElementById('gpScatterLine'); if (el) el.style.display = 'none'; return; }
@@ -3211,7 +3211,7 @@ function grantScatter(r, big) {
 }
 async function loadGrantees(id, scope, q, offset) {
   GP = Object.assign(GP, {id, scope, q});
-  let url = '/api/nonprofit/' + (MODE === 'account' ? '' : 'preview/') + 'listing/' + encodeURIComponent(id) + '/grantees?scope=' + encodeURIComponent(scope) +
+  let url = '/api/nonprofit/' + (MODE === 'account' ? '' : 'preview/') + (LISTING && LISTING.onFile ? 'funder/' : 'listing/') + encodeURIComponent(id) + '/grantees?scope=' + encodeURIComponent(scope) +
     '&q=' + encodeURIComponent(q) + '&offset=' + offset;
   if (MODE !== 'account') { const p = currentProfile(); url += '&zip=' + encodeURIComponent(p.zip_code || '') + '&state=' + encodeURIComponent(p.state || ''); }
   let r;
