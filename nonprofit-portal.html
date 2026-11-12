@@ -76,6 +76,7 @@ nav{background:var(--ink);padding:0 28px;height:60px;display:flex;align-items:ce
   border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
 .top-links a:hover{background:rgba(255,255,255,.05)}
 .top-links a.active{border-bottom-color:var(--green-lt);color:#fff}
+.nl-short{display:none}
 .top-search{position:relative;align-self:center;margin-right:14px}
 #topQ{width:190px;margin:0;min-height:36px;padding:7px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:15px;border-radius:6px}
 #topQ::placeholder{color:var(--cream)}
@@ -177,7 +178,7 @@ details.more .pills{margin-top:8px}
 .m-title a{color:var(--ink);text-decoration:none;cursor:pointer}
 .m-title a:hover{color:var(--green-dk)}
 .badges{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
-.badge{font-size:13px;font-weight:500;padding:2px 10px;border-radius:12px;border:1px solid var(--border);background:var(--cream)}
+.badge{font-size:14px;font-weight:500;padding:2px 10px;border-radius:12px;border:1px solid var(--border);background:var(--cream)}
 .badge.funder{background:#e6efe4;border-color:#b9d2b4;color:var(--green-dk)}
 .badge.opp{background:#f3e9df;border-color:#e0c7b0;color:var(--clay)}
 .badge.pending{background:#fff6dc;border-color:#e8d38a;color:#7a5b00}
@@ -730,6 +731,15 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
   .wrap{grid-template-columns:1fr;grid-template-rows:auto 1fr}          /* the pages' row stays one row high */
   .sidebar{display:flex;padding:0;overflow-x:auto;border-right:none;border-bottom:1px solid var(--border)}
   .sidebar .sub-head{display:none}
+  /* Nov 12 2026, the phone check: the box that keeps the column in view (Nov 11) stacked these links down the page,
+     four rows before the Library's title; on a phone they are one row across, and the box does not stick. */
+  .sidebar .sub-box{display:flex;position:static}
+  /* The five sections across a phone: Library had been pushed off the edge. Shorter names where there are some. */
+  .top-links a.has-short .nl-long{display:none}
+  .top-links a.has-short .nl-short{display:inline}
+  /* A thumb's worth to tap: card titles and the Landscape's subject links were about 22px high. */
+  .m-title a{display:inline-block;padding:9px 0;margin:-9px 0}
+  td>a[onclick]{display:inline-block;padding:8px 0}
   .sidebar a{border-left:none;border-bottom:3px solid transparent;white-space:nowrap;padding:12px 16px}
   .sidebar a.active{border-bottom-color:var(--green)}
   nav{flex-wrap:wrap;height:auto;min-height:60px}
@@ -1777,7 +1787,7 @@ const NAV_BASE = '/nonprofit';
 // The order (Nov 10 2026, Will): Home, Funding Plan, Tracker, My Answers, Library.
 const NAV = [
   {key: 'home', label: 'Home', acct: true, subs: [{path: 'home', page: 'home', label: 'Home'}]},
-  {key: 'plan', label: 'Funding Plan', acct: true, subs: [
+  {key: 'plan', label: 'Funding Plan', short: 'Plan', acct: true, subs: [
     {path: 'plan', page: 'plan', label: "This Year's Plan", load: () => openFundingPlan('plan')},
     {path: 'plan/gap', page: 'plan', label: 'Close The Gap', load: () => openFundingPlan('gap')},
     {path: 'plan/donors', page: 'plan', label: 'Donors', load: () => openFundingPlan('donors')}]},
@@ -1786,7 +1796,7 @@ const NAV = [
     {path: 'tracker/seen', page: 'tracker', label: 'Seen In Your Digest', cls: 'view-seen', load: () => loadTracker()},
     // The board mockup (Nov 11 2026, nonprofit-board.js): reached by its address only, and in the column only while open.
     {path: 'tracker/board', page: 'board', label: 'Board (Mockup)', hidden: true, load: () => loadBoard()}]},
-  {key: 'answers', label: 'My Answers', acct: true, subs: [
+  {key: 'answers', label: 'My Answers', short: 'Answers', acct: true, subs: [
     {path: 'answers', page: 'answers', label: 'Answers', apply: () => drShowTab('answers'), load: () => loadDrafting()},
     {path: 'answers/applications', page: 'answers', label: 'Applications', apply: () => drShowTab('apps'), load: () => loadDrafting()}]},
   {key: 'library', label: 'Library', subs: [
@@ -1842,7 +1852,11 @@ function drawNav() {
   const cur = ROUTE || {};
   const first = sec => sec.subs.find(navAllowed);
   const top = cur.section && (cur.section.top || cur.section.key);            // a listing's page sits under the Library
-  const tops = NAV.filter(sec => !sec.right && first(sec)).map(sec => navLink(first(sec), sec.label, top === sec.key ? 'active' : ''));
+  // A shorter name for a phone (Nov 12 2026), shown in place of the full one there (the bar's phone styles).
+  const tops = NAV.filter(sec => !sec.right && first(sec)).map(sec => sec.short
+    ? navLink(first(sec), '', (sec.key === top ? 'active ' : '') + 'has-short',
+              `<span class="nl-long">${escHtml(sec.label)}</span><span class="nl-short">${escHtml(sec.short)}</span>`)
+    : navLink(first(sec), sec.label, top === sec.key ? 'active' : ''));
   document.getElementById('topLinks').innerHTML = tops.join('');
   document.getElementById('topRight').innerHTML = NAV.filter(sec => sec.right && first(sec))
     .map(sec => navLink(first(sec), sec.label, 'top-org' + (top === sec.key ? ' active' : ''))).join('');

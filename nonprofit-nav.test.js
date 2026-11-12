@@ -72,8 +72,12 @@ function load(mode, opts) {
   T.n.goInitial();
   eq([T.loc.pathname, T.active()], ['/nonprofit/home', 'home'], 'an account opens on Home at /nonprofit/home');
   eq(T.hist, [['replace', '/nonprofit/home']], 'the opening address replaces the old one (Back does not return to /nonprofit-portal)');
-  const tops = [...T.els.topLinks.innerHTML.matchAll(/>([^<]+)<\/a>/g)].map(m => m[1]);
+  // Each link's full name (a phone shows the shorter one where there is one, Nov 12 2026).
+  const links = [...T.els.topLinks.innerHTML.matchAll(/<a [^>]*>([\s\S]*?)<\/a>/g)].map(m => m[1]);
+  const tops = links.map(h => (/class="nl-long">([^<]+)</.exec(h) || [null, h])[1]);
   eq(tops, ['Home', 'Funding Plan', 'Tracker', 'My Answers', 'Library'], "the top bar: the five sections, in Will's order (Nov 10 2026)");
+  const shorts = links.map(h => (/class="nl-short">([^<]+)</.exec(h) || [null, null])[1]);
+  eq(shorts, [null, 'Plan', null, 'Answers', null], 'on a phone, Plan and Answers, so all five fit across (Nov 12 2026)');
   ok(/class="top-org"[^>]*>Organization</.test(T.els.topRight.innerHTML), 'Organization at the right end of the bar');
   ok(T.els.wrap.has('no-sub') && T.els.subnav.innerHTML === '', 'Home has no left column');
   T.n.go('library');
@@ -171,4 +175,13 @@ ok(!/\.sidebar a/.test(drafting + html.slice(html.indexOf('<script>'))), 'no cod
 const acct = html.slice(html.indexOf('async function openAccount()'), html.indexOf('function accountToForm('));
 ok(/\n  keepDigestLink\(\);[^\n]*\n  if \(!routeDrafting\(\)\) goInitial\(\);/.test(acct) && acct.indexOf('followDigestLink()') > acct.indexOf('goInitial()'),
    'a digest link is kept before the address changes, and carried out after');
+// The phone check (Nov 12 2026): on a phone the section's pages are one row across (the box that keeps the column in
+// view, Nov 11, had stacked them down the page), and Plan and Answers take their short names so all five sections fit.
+{
+  const phone = (/@media \(max-width:760px\)\{\n  \.wrap\{[\s\S]*?\n\}/.exec(html) || [''])[0];
+  ok(/\.sidebar \.sub-box\{display:flex;position:static\}/.test(phone), 'on a phone the section\'s pages are one row');
+  ok(/\.top-links a\.has-short \.nl-long\{display:none\}/.test(phone) && /\.top-links a\.has-short \.nl-short\{display:inline\}/.test(phone),
+     'on a phone the short names show');
+}
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);
+

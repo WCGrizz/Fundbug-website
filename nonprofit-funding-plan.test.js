@@ -106,7 +106,7 @@ eq(t.fpStoredItems('events')[0], {id: 'bake01', name: 'Bake Sale Fundraiser', am
 ok(/if \(FP_VIEW === 'gap'\)/.test(js) && /\{path: 'plan\/gap', page: 'plan', label: 'Close The Gap'/.test(html) && /\{path: 'plan\/donors', page: 'plan', label: 'Donors'/.test(html),
    'Close The Gap and Donors are their own pages in Funding Plan\'s column');
 ok(/\(!src \|\| m\.source === src\)/.test(html) && /id="mSource"/.test(html), 'Matches filters by source');
-ok(/\{key: 'plan', label: 'Funding Plan', acct: true/.test(html) && /id="page-plan"[\s\S]*?id="fpBody"/.test(html), 'the portal has the page, for accounts only');
+ok(/\{key: 'plan', label: 'Funding Plan', (short: 'Plan', )?acct: true/.test(html) && /id="page-plan"[\s\S]*?id="fpBody"/.test(html), 'the portal has the page, for accounts only');
 ok(/nonprofit-funding-plan\.js\?v=\d{4}-\d{2}-\d{2}/.test(html), 'the portal loads the script with a version tag');
 // Nov 5 2026, Will: "add a bit more instruction on how to use the funding plan tab".
 {
