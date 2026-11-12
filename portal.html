@@ -817,6 +817,19 @@ nav{background:var(--ink);padding:0 32px;height:60px;display:flex;align-items:ce
   </div>
 </div>
 
+<!-- A TEAMMATE'S OWN PASSWORD (Nov 12 2026, see askNewPassword) -->
+<div id="newPwWrap" class="login-wrap" style="display:none">
+  <a class="login-brand" href="https://fundbug.net"><img src="/fundbug_logo.png" alt="FundBug"><span>FundBug</span></a>
+  <div class="login-card">
+    <div class="login-logo" style="text-align:center;">FundBug</div>
+    <p class="login-note" style="font-size:15px;margin:10px 0 18px">Create your password to finish joining the team. You'll sign in with your email and this password.</p>
+    <div id="newPwErr" class="login-err"></div>
+    <div class="form-group"><label for="newPw1">Create A Password</label><input type="password" id="newPw1" autocomplete="new-password"></div>
+    <div class="form-group"><label for="newPw2">Confirm Password</label><input type="password" id="newPw2" autocomplete="new-password"></div>
+    <button class="btn" id="newPwGo">Join The Team</button>
+  </div>
+</div>
+
 <!-- EMAIL LINK: waits for a person's click (see waitForClick) -->
 <div id="linkWrap" class="login-wrap" style="display:none">
   <a class="login-brand" href="https://fundbug.net"><img src="/fundbug_logo.png" alt="FundBug"><span>FundBug</span></a>
@@ -2227,6 +2240,28 @@ function waitForClick(sub, label) {
   }, {once: true}));
 }
 
+// A teammate's new login gets its own password (Nov 12 2026, Will: required): the server answers needs_password and
+// writes nothing until one comes. Resolves with the password once it passes the server's own rule.
+function askNewPassword(note) {
+  const wrap = document.getElementById('newPwWrap');
+  document.getElementById('newPwErr').textContent = note || '';
+  document.getElementById('newPw1').value = ''; document.getElementById('newPw2').value = '';
+  wrap.style.display = 'flex';
+  return new Promise(done => {
+    const go = () => {
+      const p = document.getElementById('newPw1').value, again = document.getElementById('newPw2').value;
+      const problem = !p || p.length < 8 ? 'Please create a password of at least 8 characters.'
+        : new TextEncoder().encode(p).length > 72 ? 'Please choose a password of 72 characters or fewer.'
+        : p !== again ? "The two passwords don't match." : '';
+      if (problem) { document.getElementById('newPwErr').textContent = problem; return; }
+      wrap.style.display = 'none';
+      document.getElementById('newPwGo').removeEventListener('click', go);
+      done(p);
+    };
+    document.getElementById('newPwGo').addEventListener('click', go);
+  });
+}
+
 async function consumeSeatInviteIfPresent() {
   // Invite links land as ?seat_invite=<token>. Redeem it for a session the
   // same way the magic link does, then strip it from the URL so it is not
@@ -2240,12 +2275,17 @@ async function consumeSeatInviteIfPresent() {
     window.history.replaceState({}, document.title, window.location.pathname);
   } catch(_) {}
   try {
+    let password = '';
     const send = link => fetch(API + '/api/portal/seats/accept', {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({token: inviteToken, link_own_account: !!link}),
+      body: JSON.stringify({token: inviteToken, link_own_account: !!link, password}),
     });
     let r = await send(false);
     let d = await r.json();
+    while (r.status === 400 && d.needs_password) {              // a new login: its own password first
+      password = await askNewPassword(password ? d.detail : '');
+      r = await send(false); d = await r.json();
+    }
     // A login that has its own account (Nov 2 2026): it joins only once the person says so.
     if (r.status === 409 && d.can_link && confirm('This email already has its own FundBug account. Join ' + (d.account_name || 'this team') +
         ' with that same login?\n\nYour own account\'s profile, Tracker and digests will no longer be used. FundBug keeps them, and can put them back if you ask.')) {

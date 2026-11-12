@@ -772,6 +772,19 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
   </div>
 </div>
 
+<div class="gate" id="newPwGate" style="display:none">
+  <div class="gate-card">
+    <div class="gate-logo">FundBug</div>
+    <div class="gate-sub">Create your password to finish joining the team. You'll sign in with your email and this password.</div>
+    <div class="err" id="newPwErr"></div>
+    <label for="newPw1">Create A Password</label>
+    <input id="newPw1" type="password" autocomplete="new-password">
+    <label for="newPw2">Confirm Password</label>
+    <input id="newPw2" type="password" autocomplete="new-password">
+    <button class="btn" style="width:100%" id="newPwGo">Join The Team</button>
+  </div>
+</div>
+
 <div class="gate" id="linkGate" style="display:none">
   <div class="gate-card">
     <div class="gate-logo">FundBug</div>
@@ -1273,7 +1286,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
         <div class="card" id="teamBox"><div class="empty">Loading…</div></div>
         <div class="card manager-only" id="inviteCard">
           <h2>Invite Someone</h2>
-          <p class="lead">They get an email with a link to set up their own login. No password needed; the link works for 14 days.</p>
+          <p class="lead">They get an email with a link to join. They create their own password when they join; the link works for 14 days.</p>
           <div class="row">
             <div><label for="tmName">Name</label><input id="tmName" autocomplete="off"></div>
             <div><label for="tmEmail">Email</label><input id="tmEmail" type="email" autocomplete="off" placeholder="name@yourorganization.org"></div>
@@ -1282,6 +1295,19 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <div class="err" id="tmErr"></div>
           <div class="ok" id="tmOk"></div>
           <button class="btn" id="tmGo" onclick="inviteTeammate()">Send Invite</button>
+        </div>
+        <!-- Your own password (Nov 12 2026, Will: each person has their own): set or changed for the person signed in -->
+        <div class="card acct-only" id="pwCard">
+          <h2>Your Password</h2>
+          <p class="lead" id="pwLead">Your own password, for signing in with your email. The email link still works too.</p>
+          <div id="pwOldRow" hidden><label for="pwOld">Current Password</label><input id="pwOld" type="password" autocomplete="current-password"></div>
+          <div class="row">
+            <div><label for="pwNew">New Password</label><input id="pwNew" type="password" autocomplete="new-password"></div>
+            <div><label for="pwNew2">Confirm New Password</label><input id="pwNew2" type="password" autocomplete="new-password"></div>
+          </div>
+          <div class="err" id="pwErr"></div>
+          <div class="ok" id="pwOk"></div>
+          <button class="btn" id="pwSave" onclick="savePassword()">Save Password</button>
         </div>
         <div class="card acct-only" id="memberNote" hidden><p class="lead" style="margin:0">Only the account's owner or an admin can invite or remove people.</p></div>
       </div>
@@ -3456,7 +3482,37 @@ function setRole(you) {
   document.body.classList.toggle('not-manager', !manager);          // the team: the owner or an admin
   document.getElementById('memberNote').hidden = manager;
 }
+// Your Password (Nov 12 2026): the person signed in sets or changes their own (/api/portal/change-password works on
+// the caller's login, never the owner's). With none yet, no current password is asked.
+async function loadPasswordCard() {
+  if (MODE !== 'account') return;
+  let has = true;
+  try { has = (await apiFetch('/api/portal/profile')).has_password !== false; } catch (e) {}
+  document.getElementById('pwOldRow').hidden = !has;
+  document.getElementById('pwLead').textContent = has
+    ? 'Change the password you sign in with. The email link still works too.'
+    : "You don't have a password yet. Set one to sign in with your email and password; the email link still works too.";
+  document.getElementById('pwSave').textContent = has ? 'Change Password' : 'Set Password';
+}
+async function savePassword() {
+  const err = document.getElementById('pwErr'), ok = document.getElementById('pwOk');
+  err.textContent = ''; ok.textContent = '';
+  const p = document.getElementById('pwNew').value, again = document.getElementById('pwNew2').value;
+  const problem = !p || p.length < 8 ? 'Please choose a password of at least 8 characters.'
+    : new TextEncoder().encode(p).length > 72 ? 'Please choose a password of 72 characters or fewer.'
+    : p !== again ? "The two passwords don't match." : '';
+  if (problem) { err.textContent = problem; return; }
+  const body = {new_password: p};
+  if (!document.getElementById('pwOldRow').hidden) body.old_password = document.getElementById('pwOld').value;
+  try {
+    const out = await apiFetch('/api/portal/change-password', 'POST', body);
+    ok.textContent = out.first_time ? 'Your password is set.' : 'Your password is changed.';
+    ['pwOld', 'pwNew', 'pwNew2'].forEach(id => { document.getElementById(id).value = ''; });
+    loadPasswordCard();
+  } catch (e) { err.textContent = e.status === 401 ? 'That current password is not right.' : e.message; }
+}
 async function loadTeam() {
+  loadPasswordCard();
   const box = document.getElementById('teamBox');
   box.innerHTML = '<div class="empty">Loading…</div>';
   try { TEAM = await apiFetch('/api/portal/seats'); }
@@ -3551,12 +3607,38 @@ async function removeTeammate() {
 }
 // A team invite's link (?seat_invite=<token>, api_portal accept_seat): a session for the new teammate, routed on the
 // ACCOUNT's kind, so a teammate on a nonprofit account stays here and a business invite goes to its own portal.
+// A teammate's new login gets its own password (Nov 12 2026, Will: required): the server answers needs_password and
+// writes nothing until one comes. Resolves with the password once it passes the server's own rule.
+function askNewPassword(note) {
+  const wrap = document.getElementById('newPwGate');
+  document.getElementById('newPwErr').textContent = note || '';
+  document.getElementById('newPw1').value = ''; document.getElementById('newPw2').value = '';
+  wrap.style.display = 'flex';
+  return new Promise(done => {
+    const go = () => {
+      const p = document.getElementById('newPw1').value, again = document.getElementById('newPw2').value;
+      const problem = !p || p.length < 8 ? 'Please create a password of at least 8 characters.'
+        : new TextEncoder().encode(p).length > 72 ? 'Please choose a password of 72 characters or fewer.'
+        : p !== again ? "The two passwords don't match." : '';
+      if (problem) { document.getElementById('newPwErr').textContent = problem; return; }
+      wrap.style.display = 'none';
+      document.getElementById('newPwGo').removeEventListener('click', go);
+      done(p);
+    };
+    document.getElementById('newPwGo').addEventListener('click', go);
+  });
+}
 async function acceptInvite(inviteToken) {
   history.replaceState(null, '', location.pathname);
+  let password = '';
   const send = link => fetch(API_BASE + '/api/portal/seats/accept', {method: 'POST', headers: {'Content-Type': 'application/json'},
-                                                                    body: JSON.stringify({token: inviteToken, link_own_account: !!link})});
+                                                                    body: JSON.stringify({token: inviteToken, link_own_account: !!link, password})});
   let r = await send(false);
   let d = await r.json().catch(() => ({}));
+  while (r.status === 400 && d.needs_password) {                   // a new login: its own password first
+    password = await askNewPassword(password ? d.detail : '');
+    r = await send(false); d = await r.json().catch(() => ({}));
+  }
   // A login that has its own account (Nov 2 2026): it joins only once the person says so.
   if (r.status === 409 && d.can_link && await fbConfirm(linkQuestion(d), {title: 'Join This Team?', yes: 'Join The Team'})) { r = await send(true); d = await r.json().catch(() => ({})); }
   if (!r.ok) throw new Error(d.detail || 'This invite could not be accepted.');

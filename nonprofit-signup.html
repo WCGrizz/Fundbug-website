@@ -148,6 +148,13 @@ textarea:focus{border-color:var(--green);background:var(--white)}
       </div>
       <label for="email">Email</label><input id="email" type="email" autocomplete="email" placeholder="you@yourorganization.org" required>
       <p class="note" id="joinNote" hidden></p>
+      <div id="pwFields">
+        <div class="row">
+          <div><label for="pw1">Create A Password</label><input id="pw1" type="password" autocomplete="new-password"></div>
+          <div><label for="pw2">Confirm Password</label><input id="pw2" type="password" autocomplete="new-password"></div>
+        </div>
+        <p class="note">At least 8 characters. You'll sign in with your email and this password.</p>
+      </div>
     </div>
 
     <div class="card">
@@ -294,6 +301,13 @@ function joinLine(info) {
 }
 function joinPath(token) { return '/api/nonprofit/join/' + encodeURIComponent(token || ''); }
 function withJoin(body, token) { return token ? Object.assign({}, body, {join_token: token}) : body; }
+// A new password, checked as the server checks it (fundbug_passwords, Nov 12 2026): "" when it will do.
+function newPasswordProblem(p, again) {
+  if (!p || p.length < 8) return 'Please create a password of at least 8 characters.';
+  if (new TextEncoder().encode(p).length > 72) return 'Please choose a password of 72 characters or fewer.';
+  if (p !== again) return "The two passwords don't match.";
+  return '';
+}
 // ── JOIN HELPERS END ──
 
 async function start() {
@@ -318,6 +332,7 @@ function fillJoin() {
   if (JOINED.business_name) document.getElementById('org').value = JOINED.business_name;
   const em = document.getElementById('email');
   em.value = JOINED.email || ''; em.readOnly = true;
+  document.getElementById('pwFields').hidden = true;           // an existing login keeps its own password
   const note = document.getElementById('joinNote');
   note.innerHTML = joinLine(JOINED); note.hidden = false;
 }
@@ -577,6 +592,9 @@ async function submitSignup(e) {
   if (whereProblem) { err.textContent = whereProblem; return; }
   if (JOINED && !compValid) { err.textContent = 'A valid code from FundBug is needed to add nonprofit matching to an existing login.'; return; }
   if (!OPEN && !compValid) { err.textContent = 'Signup is not open yet; a code from FundBug is needed.'; return; }
+  // Nov 12 2026 (Will): every person has their own password, required (fundbug_passwords on the server).
+  const pwProblem = JOINED ? '' : newPasswordProblem(document.getElementById('pw1').value, document.getElementById('pw2').value);
+  if (pwProblem) { err.textContent = pwProblem; return; }
   const budget = document.getElementById('budget').value.replace(/[^0-9]/g, '');
   const since = ind ? '' : document.getElementById('since').value.trim();
   if (since && !/^(19|20)\d\d$/.test(since)) { err.textContent = 'Tax-exempt since must be a four-digit year.'; return; }
@@ -592,6 +610,7 @@ async function submitSignup(e) {
     acquisition_source: params.get('src') || params.get('utm_source') || (params.get('t') ? 'outreach' : null),
     outreach_token: params.get('t') || null,
     certified_adult: document.getElementById('adult').checked,
+    ...(JOINED ? {} : {password: document.getElementById('pw1').value}),
     description: document.getElementById('about').value.trim(),
     description_source: document.getElementById('about').value.trim() ? (descSource || 'person') : '',
   };

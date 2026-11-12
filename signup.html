@@ -47,11 +47,11 @@
   label { font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 500; color: var(--ink); display: block; margin-bottom: 6px; }
   .req { color: var(--green); }
   .field-explanation { font-size: 13px; font-weight: 300; color: var(--muted); margin: 2px 0 4px; }
-  input[type="text"], input[type="email"] {
+  input[type="text"], input[type="email"], input[type="password"] {
     width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 7px;
     font-family: 'Jost', sans-serif; font-size: 15px; color: var(--ink); background: var(--white); transition: border-color .15s;
   }
-  input[type="text"]:focus, input[type="email"]:focus { outline: none; border-color: var(--green); }
+  input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus { outline: none; border-color: var(--green); }
 
   /* Industry picker — identical behavior to the main form */
   .tag-selector.grouped { display: block; }
@@ -110,6 +110,15 @@
 .aud-toggle a:hover { background: #d6ead2; }
 @media (max-width: 420px) { .aud-label { display: none; } .aud-toggle a, .aud-toggle span { padding: 6px 14px; } }
 </style>
+<script>
+// A new password, checked as the server checks it (fundbug_passwords, Nov 12 2026): "" when it will do.
+function newPasswordProblem(p, again) {
+  if (!p || p.length < 8) return 'Please create a password of at least 8 characters.';
+  if (new TextEncoder().encode(p).length > 72) return 'Please choose a password of 72 characters or fewer.';
+  if (p !== again) return "The two passwords don't match.";
+  return '';
+}
+</script>
 <script>
 // Channel attribution: captures ?src= (preferred) or utm_source/utm_campaign
 // from the URL on load and keeps it for the session, so homepage -> signup
@@ -210,6 +219,16 @@ function getAcquisitionSource() {
       <div class="field">
         <label for="email">Email <span class="req">*</span></label>
         <input type="email" id="email" autocomplete="email" placeholder="you@yourbusiness.com">
+      </div>
+
+      <div class="field">
+        <label for="password">Create a password <span class="req">*</span></label>
+        <p class="field-explanation" style="font-size:14px;font-weight:400;color:var(--ink)">At least 8 characters. You'll sign in with your email and this password.</p>
+        <input type="password" id="password" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label for="password2">Confirm password <span class="req">*</span></label>
+        <input type="password" id="password2" autocomplete="new-password">
       </div>
       </div>
 
@@ -623,6 +642,8 @@ async function submitThin() {
   const last_name = document.getElementById('last-name').value.trim();
   const business_name = document.getElementById('business-name').value.trim();
   const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const password2 = document.getElementById('password2').value;
   const zip = document.getElementById('zip-code').value.trim();
   const industry = selectedIndustries();
   const adult = document.getElementById('certified-adult').checked;
@@ -630,6 +651,9 @@ async function submitThin() {
   if (!first_name || !last_name) { err.textContent = 'Please enter your first and last name.'; return; }
   if (!business_name) { err.textContent = 'Please enter your business name.'; return; }
   if (!email || !email.includes('@')) { err.textContent = 'Please enter a valid email address.'; return; }
+  // Nov 12 2026 (Will): every person has their own password, required (fundbug_passwords on the server).
+  const pwProblem = newPasswordProblem(password, password2);
+  if (pwProblem) { err.textContent = pwProblem; return; }
   if (!/^[0-9]{5}(-[0-9]{4})?$/.test(zip)) { err.textContent = 'Please enter a valid ZIP code.'; return; }
   if (industry.length === 0) { err.textContent = 'Please select at least one industry.'; return; }
   if (!adult) { err.textContent = 'Please confirm you are 18 years of age or older.'; return; }
@@ -655,6 +679,7 @@ async function submitThin() {
     last_name,
     business_name,
     email,
+    password,
     zip_code: zip,
     industry,
     owner_demographics: selectedDemographics(),
