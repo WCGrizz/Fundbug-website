@@ -86,6 +86,7 @@ nav{background:var(--ink);padding:0 28px;height:60px;display:flex;align-items:ce
 .top-hit span{display:block;font-size:14px;color:var(--ink)}
 .top-hit.on,.top-hit:hover{background:var(--cream2)}
 .top-none{padding:8px 14px;font-size:15px;color:var(--ink)}
+.top-group{padding:10px 14px 4px;font-size:14px;font-weight:600;color:var(--green-dk);border-top:1px solid var(--border);margin-top:4px}
 @media (max-width:760px){.top-search{display:none}}
 /* The guided tours (Nov 10 2026, nonprofit-tour.js): the page dimmed but for one feature, a card beside it. */
 #tourLayer{position:fixed;inset:0;z-index:1000}
@@ -1823,8 +1824,8 @@ function navAllowed(r) {
 }
 function routeAt(path) {
   const p = String(path || '').replace(/^\/+|\/+$/g, '').replace(/^nonprofit(\/|$)/, '');
-  const m = /^listing\/([0-9a-f-]{36})(?:\/(giving|programs|contact))?$/.exec(p);
-  if (m) return listingRoute(m[1], m[2] || '');
+  const m = /^(listing|funder)\/([0-9a-f-]{36})(?:\/(giving|programs|contact))?$/.exec(p);
+  if (m) return listingRoute(m[2], m[3] || '', m[1] === 'funder');
   return navSubs().find(r => r.path === p && navAllowed(r)) || null;
 }
 // A listing's page and its tabs, made for the listing at hand: under the Library in the top bar, its tabs (the ones it
@@ -1834,11 +1835,12 @@ const LISTING_SEC = {key: 'listing', top: 'library', get label() { return (LISTI
   get subs() {
     const id = ROUTE && ROUTE.listingId; if (!id) return [];
     const has = (LISTING && LISTING.id === id && LISTING.has) || {};
-    return LISTING_TABS.filter(([t]) => !t || has[t]).map(([t]) => listingRoute(id, t));
+    return LISTING_TABS.filter(([t]) => !t || has[t]).map(([t]) => listingRoute(id, t, ROUTE && ROUTE.onFile));
   }};
-function listingRoute(id, tab) {
-  return {path: 'listing/' + id + (tab ? '/' + tab : ''), page: 'listing', label: (LISTING_TABS.find(x => x[0] === tab) || ['', 'Overview'])[1],
-          section: LISTING_SEC, listingId: id, tab, apply: () => showListingTab(tab), load: () => loadListingPage(id)};
+// onFile (Nov 12 2026, Find A Funder): a funder with no Library listing, its page from its record at /nonprofit/funder/<id>.
+function listingRoute(id, tab, onFile) {
+  return {path: (onFile ? 'funder/' : 'listing/') + id + (tab ? '/' + tab : ''), page: 'listing', onFile: !!onFile, label: (LISTING_TABS.find(x => x[0] === tab) || ['', 'Overview'])[1],
+          section: LISTING_SEC, listingId: id, tab, apply: () => showListingTab(tab), load: () => loadListingPage(id, onFile)};
 }
 function routeForPage(id) { return navSubs().find(r => r.path === PAGE_UNDER[id]) || navSubs().find(r => r.page === id && navAllowed(r)) || null; }
 function homeRoute() { return routeAt(MODE === 'account' ? 'home' : 'organization'); }
@@ -1922,34 +1924,66 @@ function goInitial() {
 }
 // ── NAV END
 // Find A Funder (Nov 10 2026): names in the Library as you type, every word matched; Enter or a click opens the page.
-let TOP_HITS = [], TOP_ON = -1;
+// Nov 12 2026 (Will: yes): then every funder FundBug knows (the server's search, /api/nonprofit/funders/find), below the
+// Library's; one with no Library listing opens its page from its record (/nonprofit/funder/<id>).
+let TOP_HITS = [], TOP_MORE = [], TOP_ON = -1, TOP_T = null, TOP_SEQ = 0, TOP_Q = '', TOP_WAIT = false;
 function topFind() {
-  const q = document.getElementById('topQ').value.trim().toLowerCase(), box = document.getElementById('topHits');
+  const q = document.getElementById('topQ').value.trim().toLowerCase();
   const all = (typeof RESULT !== 'undefined' && RESULT && RESULT.shown) || [];
   if (q.length < 2) { topClose(); return; }
   const words = q.split(/\s+/);
   TOP_HITS = all.filter(m => words.every(w => (m.title + ' ' + (m.provided_by || '')).toLowerCase().includes(w)))
     .sort((a, b) => (a.title.toLowerCase().startsWith(words[0]) ? 0 : 1) - (b.title.toLowerCase().startsWith(words[0]) ? 0 : 1)).slice(0, 8);
-  TOP_ON = TOP_HITS.length ? 0 : -1;
-  box.innerHTML = !all.length ? '<div class="top-none">Your Library is still loading.</div>'
-    : TOP_HITS.length ? TOP_HITS.map((m, i) => `<button type="button" role="option" class="top-hit${i === TOP_ON ? ' on' : ''}" onmousedown="event.preventDefault()" onclick="topOpen(${i})">${escHtml(m.title)}<span>${escHtml(m.kind === 'funder' ? 'Funder' : 'Opportunity')}${m.fits === false ? ', may not fit' : ''}</span></button>`).join('')
-    : '<div class="top-none">Nothing in your Library by that name.</div>';
+  if (q !== TOP_Q) TOP_MORE = [];
+  TOP_Q = q;
+  TOP_WAIT = MODE === 'account' && q.length >= 3;
+  topDraw();
+  clearTimeout(TOP_T);
+  if (TOP_WAIT) TOP_T = setTimeout(() => topMore(q), 250);
+}
+async function topMore(q) {
+  const seq = ++TOP_SEQ;
+  let r = null;
+  try { r = await apiFetch('/api/nonprofit/funders/find?q=' + encodeURIComponent(q)); } catch (e) { r = null; }
+  if (seq !== TOP_SEQ || q !== TOP_Q) return;                    // a newer search has started
+  TOP_WAIT = false;
+  const have = new Set(TOP_HITS.map(m => m.id));
+  TOP_MORE = r ? (r.funders || []).filter(f => !(f.group_id && have.has(f.group_id))).slice(0, 6) : [];
+  topDraw(r ? '' : 'The full search could not be reached. Try again in a moment.');
+}
+function topMoreLine(f) {
+  const where = f.group_id ? 'In your Library' : f.relationship ? 'Not in your Library: a relationship to build' : 'Not in your Library';
+  return (f.place ? f.place + ', ' : '') + where.charAt(0).toLowerCase() + where.slice(1);
+}
+function topDraw(problem) {
+  const box = document.getElementById('topHits'), all = (typeof RESULT !== 'undefined' && RESULT && RESULT.shown) || [];
+  const n = TOP_HITS.length + TOP_MORE.length;
+  if (TOP_ON >= n || TOP_ON < 0) TOP_ON = n ? 0 : -1;
+  const lib = TOP_HITS.map((m, i) => `<button type="button" role="option" class="top-hit${i === TOP_ON ? ' on' : ''}" onmousedown="event.preventDefault()" onclick="topOpen(${i})">${escHtml(m.title)}<span>${escHtml(m.kind === 'funder' ? 'Funder' : 'Opportunity')}${m.fits === false ? ', may not fit' : ''}</span></button>`).join('');
+  const more = TOP_MORE.map((f, j) => `<button type="button" role="option" class="top-hit${TOP_HITS.length + j === TOP_ON ? ' on' : ''}" onmousedown="event.preventDefault()" onclick="topOpen(${TOP_HITS.length + j})">${escHtml(f.name)}<span>${escHtml(topMoreLine(f))}</span></button>`).join('');
+  const none = !all.length && MODE !== 'account' ? 'Your Library is still loading.' : TOP_WAIT ? (TOP_HITS.length ? '' : 'Searching every funder…')
+    : problem || (n ? '' : 'No funder by that name.');
+  box.innerHTML = lib + (more ? `<div class="top-group">More Funders</div>${more}` : '') + (none ? `<div class="top-none">${escHtml(none)}</div>` : '');
   box.hidden = false;
   document.getElementById('topQ').setAttribute('aria-expanded', 'true');
 }
 function topKey(e) {
   if (e.key === 'Escape') { topClose(); e.target.blur(); return; }
-  if (!TOP_HITS.length) return;
+  const n = TOP_HITS.length + TOP_MORE.length;
+  if (!n) return;
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     e.preventDefault();
-    TOP_ON = (TOP_ON + (e.key === 'ArrowDown' ? 1 : TOP_HITS.length - 1)) % TOP_HITS.length;
+    TOP_ON = (TOP_ON + (e.key === 'ArrowDown' ? 1 : n - 1)) % n;
     document.querySelectorAll('#topHits .top-hit').forEach((b, i) => b.classList.toggle('on', i === TOP_ON));
   } else if (e.key === 'Enter' && TOP_ON >= 0) { e.preventDefault(); topOpen(TOP_ON); }
 }
 function topOpen(i) {
-  const m = TOP_HITS[i]; if (!m) return;
+  const m = i < TOP_HITS.length ? TOP_HITS[i] : null, f = m ? null : TOP_MORE[i - TOP_HITS.length];
+  if (!m && !f) return;
   document.getElementById('topQ').value = ''; topClose(); document.getElementById('topQ').blur();
-  openListing(m.id);
+  if (m) openListing(m.id);
+  else if (f.group_id) openListing(f.group_id);
+  else go('funder/' + f.funder_id);
 }
 function topClose() {
   const box = document.getElementById('topHits'); if (box) box.hidden = true;
@@ -2754,7 +2788,7 @@ function junkSection(sec) {
 // only shows another part.
 let LISTING = null;
 function openListing(id) { go('listing/' + id); }
-async function loadListingPage(id) {
+async function loadListingPage(id, onFile) {
   if (LISTING && LISTING.id === id && LISTING.ready) return;
   LISTING = {id, title: 'Loading…', has: {}, ready: false};
   document.getElementById('lpTitle').textContent = 'Loading…';
@@ -2763,23 +2797,27 @@ async function loadListingPage(id) {
   drawNav();
   let L;
   try {
-    L = MODE === 'account' ? await apiFetch('/api/nonprofit/listing/' + encodeURIComponent(id))
+    L = onFile ? await apiFetch('/api/nonprofit/funder/' + encodeURIComponent(id))
+      : MODE === 'account' ? await apiFetch('/api/nonprofit/listing/' + encodeURIComponent(id))
       : await apiFetch('/api/nonprofit/preview/listing/' + encodeURIComponent(id));
   }
   catch (e) { document.getElementById('lpTitle').textContent = 'Could not load this listing'; document.getElementById('lpBody').textContent = e.message; return; }
   if (!LISTING || LISTING.id !== id) return;                 // another page was opened meanwhile
+  if (onFile && L.group_id) { LISTING = null; go('listing/' + L.group_id, {replace: true}); return; }   // it is in the Library
   document.getElementById('lpTitle').textContent = L.title;
   document.getElementById('lpEyebrow').textContent = L.kind === 'funder' ? 'Funder' : 'Opportunity';
   NAME_WORDS = String((L.funder && L.funder.name) || L.title || '').replace(/\b(Inc|Fdn|Tr|The|Of|And|For)\b\.?/gi, ' ')
     .split(/[^A-Za-z]+/).filter(w => w.length > 2).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
   const out = [], parts = {overview: [], giving: [], programs: [], contact: []};
   const put = (tab, x) => { if (x) parts[tab].push(x); };
-  out.push(`<div class="badges"><span class="badge ${L.kind === 'funder' ? 'funder' : 'opp'}">${L.kind === 'funder' ? 'Funder' : 'Opportunity'}</span>${L.reviewed ? '' : '<span class="badge pending">Not Reviewed Yet</span>'}</div>`);
+  out.push(`<div class="badges"><span class="badge ${L.kind === 'funder' ? 'funder' : 'opp'}">${L.kind === 'funder' ? 'Funder' : 'Opportunity'}</span>${L.on_file_only ? '<span class="badge">Not In Your Library</span>' : L.reviewed ? '' : '<span class="badge pending">Not Reviewed Yet</span>'}</div>`);
+  // A funder found with Find A Funder that has no Library listing (Nov 12 2026): why, in place of the review note.
+  if (L.on_file_only) out.push(`<div class="unverified">${escHtml(L.not_in_library || '')}</div>`);
   // Nov 10 2026 (Will): every listing FundBug knows is in the Library; one not reviewed by hand yet says so first.
-  if (!L.reviewed) out.push(`<div class="unverified">${L.kind === 'funder'
+  if (!L.reviewed && !L.on_file_only) out.push(`<div class="unverified">${L.kind === 'funder'
     ? "We haven't verified these funder details by hand yet. They come from the funder's tax filings and website."
     : "We haven't verified these program details by hand yet. They come from the program's own pages."}</div>`);
-  if (MODE === 'account') {
+  if (MODE === 'account' && !L.on_file_only) {                  // saving needs a listing
     const saved = ((RESULT && RESULT.shown) || []).some(m => m.id === id && m.saved);
     out.push(`<div class="m-actions" style="justify-content:flex-start;margin:4px 0 12px"><button class="btn sm ${saved ? 'saved' : ''}" id="pSave" onclick="saveListing('${id}')">${saved ? 'Saved ✓' : 'Save To Tracker'}</button><button class="btn ghost sm" onclick="prepListing('${id}', this)">Prep Application</button><button class="btn ghost sm" onclick="hideListing('${id}', true)">Hide From Matches</button></div>`);
   }
@@ -2938,11 +2976,11 @@ async function loadListingPage(id) {
   if (L.page_url) put('overview', line(onFiling ? 'Its Tax Filing (ProPublica)' : 'Main Page', `<p><a href="${escHtml(L.page_url)}" target="_blank" rel="noopener">${escHtml(L.page_url)}</a></p>`));
   const panes = Object.entries(parts).map(([tab, xs]) => `<div class="lp-pane" data-tab="${tab}">${xs.join('')}</div>`).join('');
   document.getElementById('lpBody').innerHTML = out.join('') + panes;
-  LISTING = {id, title: L.title, kind: L.kind, ready: true,
+  LISTING = {id, title: L.title, kind: L.kind, ready: true, onFile: !!L.on_file_only,
              has: {giving: !!parts.giving.join('').trim(), programs: !!parts.programs.join('').trim(), contact: !!parts.contact.join('').trim()}};
   drawNav();
   showListingTab(ROUTE && ROUTE.listingId === id ? ROUTE.tab : '');
-  if (L.giving) { loadGrantees(id, 'county', '', 0); loadGrantPoints(id); }
+  if (L.giving && !L.on_file_only) { loadGrantees(id, 'county', '', 0); loadGrantPoints(id); }   // both read a listing
 }
 // One tab of the listing page; a tab it does not have (no programs, say) shows its Overview.
 function showListingTab(tab) {
