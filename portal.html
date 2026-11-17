@@ -3749,8 +3749,20 @@ async function openDigest(logId) {
     const sent = d.sent_at ? new Date(d.sent_at).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}) : '';
     document.getElementById('digestModalTitle').textContent = (progs.length || d.slot_count || 0) + ' matches';
     document.getElementById('digestModalDate').textContent = sent;
+    // The Basics this digest carried (Nov 17 2026, fundbug_basics): free help shown in a first digest, after the matches.
+    const basics = (data.basics || []).filter(b => b && b.title);
+    const basicsBlock = !basics.length ? '' : `
+      <div style="margin-top:18px;padding-top:14px;border-top:2px solid var(--border)">
+        <div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">The Basics</div>
+        <div style="font-size:14px;color:var(--ink);margin-bottom:8px">Free help every business here should know about, whatever it applies for.</div>
+        ${basics.map(b => `<div style="padding:10px 0;border-top:1px solid var(--border)">
+          <div style="font-size:15px;font-weight:600;color:var(--ink)">${escapeHtml(b.title)}</div>
+          ${b.note ? `<div style="font-size:14px;color:var(--ink);margin-top:3px">${escapeHtml(b.note)}</div>` : ''}
+          ${b.url ? `<a href="${encodeURI(b.url)}" target="_blank" rel="noopener" style="font-size:14px;color:var(--green-dk);text-decoration:underline">${escapeHtml(b.cta || 'Learn More')} →</a>` : ''}
+        </div>`).join('')}
+      </div>`;
     if (!progs.length) {
-      document.getElementById('digestModalBody').innerHTML = '<div style="font-size:14px;color:var(--muted);font-weight:400">No program details are available for this digest.</div>';
+      document.getElementById('digestModalBody').innerHTML = '<div style="font-size:14px;color:var(--muted);font-weight:400">No program details are available for this digest.</div>' + basicsBlock;
       return;
     }
     document.getElementById('digestModalBody').innerHTML = progs.map(p => {
@@ -3778,7 +3790,7 @@ async function openDigest(logId) {
           </div>
         </div>
       </div>`;
-    }).join('');
+    }).join('') + basicsBlock;
   } catch(e) {
     document.getElementById('digestModalBody').innerHTML = `<div style="font-size:14px;color:var(--red)">Couldn't load this digest: ${escapeHtml(e.message)}</div>`;
   }
