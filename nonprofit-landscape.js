@@ -4,6 +4,7 @@
 // supply apiFetch, escHtml, money, MODE, showPage and openListing, and nothing else (nonprofit-landscape-host.test.js).
 
 let LAND = null, LAND_VIEW = 'community', LAND_SUBJECT = '', LAND_SHOWN = 25;
+let LMAP = null, LMAP_VIEW = '', LMAP_RADIUS = '', LMAP_TOWN = '', LMAP_ERR = '', LMAP_LOADING = false;
 
 async function openLandscape() {
   showPage('landscape');
@@ -82,6 +83,7 @@ function drawLandscape() {
     </div>
     <p class="lead">Where the money comes from: <b>${pct(w.county, all)}</b> from funders based in ${escHtml(L.county)},
       <b>${pct(w.state, all)}</b> from elsewhere in ${escHtml(L.state)}, and <b>${pct(w.out_of_state, all)}</b> from out of state.</p>`);
+  h.push(`<div class="card fmap-card"><h2>Funding Map</h2><div id="lMap">${LMAP && LMAP_VIEW === LAND_VIEW ? '' : '<div class="empty">Loading the map…</div>'}</div></div>`);
   h.push(`<div class="card"><h2>${subj ? 'Funders Of ' + escHtml(subjLabel) : 'Top Funders'}</h2>
       <p class="lead">${subj ? 'Dollars to ' + escHtml(subjLabel.toLowerCase()) + ' organizations here. ' : ''}Open a funder FundBug lists to see its giving profile and how to apply. Giving Change compares all of a funder's giving, wherever it went, in its latest tax filing with the one before (the years in the heading, or in the cell when a funder's differ); hover it for the amounts.</p>
       <p class="lead">The ${Math.min(funders.length, 50)} largest funders here. To find any other foundation, <a onclick="showPage('matches')" style="cursor:pointer">Search The Library</a>.</p>
@@ -130,4 +132,107 @@ function drawLandscape() {
       </tbody></table></div><p class="gp-method">The latest years are incomplete: foundations' filings are published one to two years after the year they cover.</p></div>`);
   h.push(`<p class="gp-method"><b>How this is built.</b> ${escHtml(L.method)}</p>`);
   document.getElementById('lBody').innerHTML = h.join('');
+  drawFundingMap();
+}
+
+// ── The Funding Map (Nov 18 2026; backend nonprofit/np_funding_map) ─────────────────────────────────────────────────
+// Where grant money went, town by town, in the organization's county and its neighbors: each town shaded by the dollars
+// foundations gave to organizations there (or to the chosen subject), and opened to its funders. Town level only: no
+// funder and no person is ever placed on the map. Its own styles, so the advisor portal (np-side.js) shows it too.
+const FMAP_COLORS = ['#e3eedc', '#b9d6ac', '#86b977', '#4f8f43', '#2f5c28'];
+const FMAP_RADII = [['', 'Your County And Its Neighbors'], ['10', 'Within 10 Miles'], ['25', 'Within 25 Miles'], ['50', 'Within 50 Miles']];
+function fmapStyle() {
+  if (document.getElementById('fmapStyle')) return;
+  const st = document.createElement('style'); st.id = 'fmapStyle';
+  st.textContent = `.fmap-wrap{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:22px;align-items:start}
+.fmap-svg{width:100%;height:auto;display:block;background:#f7f5f0;border-radius:10px}
+.fmap-svg path{stroke:#fff;stroke-width:.9;cursor:pointer;vector-effect:non-scaling-stroke}
+.fmap-svg path:hover{stroke:#1a1a14;stroke-width:1.6}
+.fmap-svg path.home{stroke:#1a1a14;stroke-width:2.6}
+.fmap-svg path.sel{stroke:#c44b2a;stroke-width:2.6}
+.fmap-svg text{font-family:Jost,sans-serif;font-weight:600;fill:#1a1a14;pointer-events:none;paint-order:stroke;stroke:#f7f5f0;stroke-width:3px}
+.fmap-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 0 0;font-size:14px;color:#1a1a14}
+.fmap-legend i{display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:5px;vertical-align:-2px}
+.fmap-town h3{margin:0 0 4px}.fmap-town p{font-size:15px;color:#1a1a14;margin:0 0 10px}
+.fmap-town ol{margin:0;padding-left:20px;font-size:15px}.fmap-town li{margin:0 0 6px}
+.fmap-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 12px}
+@media (max-width:800px){.fmap-wrap{grid-template-columns:1fr}}`;
+  document.head.appendChild(st);
+}
+async function loadFundingMap() {
+  if (LMAP_LOADING) return;
+  LMAP_LOADING = true; LMAP_ERR = '';
+  try {
+    LMAP = MODE === 'account'
+      ? await apiFetch('/api/nonprofit/landscape/map?view=' + LAND_VIEW)
+      : await apiFetch('/api/nonprofit/preview/landscape/map?state=MA&county=25003&city=Pittsfield&view=' + LAND_VIEW);
+    LMAP_VIEW = LAND_VIEW;
+    if (!LMAP_TOWN) LMAP_TOWN = LMAP.home_town || '';
+  } catch (e) { LMAP = null; LMAP_ERR = e.status === 404 ? e.message : 'Could not load the map: ' + e.message; }
+  LMAP_LOADING = false;
+  drawFundingMap();
+}
+function fmapMiles(a, b) {
+  const r = x => x * Math.PI / 180, dLat = r(b.lat - a.lat), dLon = r(b.lon - a.lon);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLon / 2) ** 2;
+  return 3958.8 * 2 * Math.asin(Math.sqrt(h));
+}
+// The towns shown: all of them, or those whose center is within the chosen miles of the organization's own town.
+function fmapTowns(M, radius) {
+  const home = M.towns.find(t => t.fips === M.home_town);
+  if (!radius || !home) return M.towns;
+  return M.towns.filter(t => fmapMiles(home, t) <= +radius);
+}
+// Five shades by the towns' dollars (quantiles of the towns with any); none is the palest.
+function fmapBreaks(values) {
+  const v = values.filter(x => x > 0).sort((a, b) => a - b);
+  if (!v.length) return [];
+  // Rounded to two figures, so the legend reads $60,000, not $62,367.
+  const nice = x => { const p = Math.pow(10, Math.max(0, Math.floor(Math.log10(x)) - 1)); return Math.round(x / p) * p; };
+  return [...new Set([0.2, 0.4, 0.6, 0.8].map(q => nice(v[Math.min(v.length - 1, Math.floor(q * v.length))])))];
+}
+function fmapShade(x, breaks) {
+  if (!x) return '#f0ede6';
+  let i = 0; while (i < breaks.length && x > breaks[i]) i++;
+  return FMAP_COLORS[i];
+}
+function fmapValue(t, subj) { return subj ? ((t.by_subject || {})[subj] || 0) : t.dollars; }
+function setFmapRadius(v) { LMAP_RADIUS = v; drawFundingMap(); }
+function setFmapTown(f) { LMAP_TOWN = f; drawFundingMap(); }
+function drawFundingMap() {
+  const box = document.getElementById('lMap'); if (!box) return;
+  fmapStyle();
+  if (LMAP_ERR) { box.innerHTML = `<div class="empty">${escHtml(LMAP_ERR)}</div>`; return; }
+  if (!LMAP || LMAP_VIEW !== LAND_VIEW) { box.innerHTML = '<div class="empty">Loading the map…</div>'; loadFundingMap(); return; }
+  const M = LMAP, subj = LAND_SUBJECT;
+  const towns = fmapTowns(M, LMAP_RADIUS);
+  const vals = towns.map(t => fmapValue(t, subj)), breaks = fmapBreaks(vals);
+  const b = towns.reduce((a, t) => [Math.min(a[0], t.b[0]), Math.min(a[1], t.b[1]), Math.max(a[2], t.b[2]), Math.max(a[3], t.b[3])], [1e9, 1e9, -1e9, -1e9]);
+  const pad = 8, vb = `${b[0] - pad} ${b[1] - pad} ${b[2] - b[0] + 2 * pad} ${b[3] - b[1] + 2 * pad}`;
+  const top = [...towns].sort((x, y) => fmapValue(y, subj) - fmapValue(x, subj)).slice(0, 6).map(t => t.fips);
+  const sel = towns.find(t => t.fips === LMAP_TOWN) || towns.find(t => t.fips === M.home_town) || null;
+  const svg = `<svg class="fmap-svg" viewBox="${vb}" role="img" aria-label="Map of towns shaded by grant dollars">
+    ${towns.map(t => `<path d="${t.d}" fill="${t.built ? fmapShade(fmapValue(t, subj), breaks) : '#e4e1d8'}" class="${t.fips === M.home_town ? 'home' : ''}${sel && t.fips === sel.fips ? ' sel' : ''}" onclick="setFmapTown('${t.fips}')"><title>${escHtml(t.name)}: ${money(fmapValue(t, subj))}</title></path>`).join('')}
+    ${towns.filter(t => top.includes(t.fips) || t.fips === M.home_town).map(t => `<text x="${t.cx}" y="${t.cy}" text-anchor="middle" font-size="${Math.max(10, (b[2] - b[0]) / 38)}">${escHtml(t.name)}</text>`).join('')}
+  </svg>`;
+  const fmt = n => money(n).replace(/\.00$/, '');
+  const legend = breaks.length ? `<div class="fmap-legend"><span><i style="background:#f0ede6"></i>None on file</span>${FMAP_COLORS.map((c, i) =>
+    `<span><i style="background:${c}"></i>${i === 0 ? 'Up to ' + fmt(breaks[0]) : i === FMAP_COLORS.length - 1 ? 'Over ' + fmt(breaks[breaks.length - 1]) : fmt(breaks[i - 1]) + ' to ' + fmt(breaks[i])}</span>`).join('')}</div>` : '';
+  const subjLabel = subj ? ((LAND && LAND.subjects.find(s => s.code === subj)) || {}).label || '' : '';
+  let side = '<div class="fmap-town"><p>Click a town to see who gave there.</p></div>';
+  if (sel) {
+    const fs = (sel.funders || []).map(f => ({...f, shown: subj ? ((f.s || {})[subj] || 0) : f.dollars})).filter(f => f.shown > 0).sort((x, y) => y.shown - x.shown);
+    const county = (M.counties.find(c => c.fips === sel.county) || {}).name || '';
+    side = `<div class="fmap-town"><h3>${escHtml(sel.name)}</h3>
+      <p>${escHtml(county)}. ${money(fmapValue(sel, subj))}${subj ? ' to ' + escHtml(subjLabel.toLowerCase()) + ' organizations' : ''} in ${sel.grants.toLocaleString()} grants${subj ? ' (all subjects)' : ''}, tax years ${M.counties[0].years[0]} to ${M.counties[0].years[M.counties[0].years.length - 1]}.</p>
+      ${!sel.built ? `<p>The funders for ${escHtml(county)} are not on the map yet.</p>` : fs.length
+        ? `<p><b>Its largest funders</b> (those an organization can approach):</p><ol>${fs.map(f => `<li>${f.listing_id ? `<a onclick="openListing('${f.listing_id}')" style="cursor:pointer">${escHtml(f.name)}</a>` : escHtml(f.name)}: ${money(f.shown)}${subj ? '' : ` in ${f.grants} grant${f.grants === 1 ? '' : 's'}`}${f.by_invitation ? ' <span class="badge">By invitation</span>' : ''}</li>`).join('')}</ol>`
+        : '<p>No funder an organization can approach gave here in these years.</p>'}</div>`;
+  }
+  const radiusSel = M.home_town ? `<select onchange="setFmapRadius(this.value)" aria-label="How far">${FMAP_RADII.map(([v, l]) => `<option value="${v}" ${v === LMAP_RADIUS ? 'selected' : ''}>${l}</option>`).join('')}</select>` : '';
+  const unplaced = Object.values(M.unplaced || {}).reduce((a, u) => a + u.grants, 0);
+  box.innerHTML = `<p class="lead">Where foundations' grants went, town by town${subj ? ', to ' + escHtml(subjLabel.toLowerCase()) + ' organizations' : ''}: the darker the town, the more it received. Your town is outlined. Funders are listed under the towns their grants went to; no funder or person is placed on the map.</p>
+    <div class="fmap-tools">${radiusSel}</div>
+    <div class="fmap-wrap"><div>${svg}${legend}</div>${side}</div>
+    <p class="gp-method">Town outlines from the US Census Bureau. Grants from foundations' IRS filings, by the town each filing gives for its grantee; a village is counted in its town.${unplaced ? ` ${unplaced.toLocaleString()} grants to places the map cannot put on a town are in the totals but not on the map.` : ''}</p>`;
 }
