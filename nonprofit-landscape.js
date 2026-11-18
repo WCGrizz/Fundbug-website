@@ -36,7 +36,8 @@ function landName(f) { return f.display_name || f.name || ''; }
 // A funder's Giving Change (Oct 28 2026; moved here from nonprofit-portal.html Nov 10 2026, so the advisor portal, which
 // loads this file without that page, has them too).
 const changeWords = g => `${g.pct > 0 ? 'Up' : g.pct < 0 ? 'Down' : 'About the same as'} ${g.pct ? Math.abs(g.pct).toLocaleString('en-US') + '% from ' : ''}${g.prior_year}: ${money(g.dollars)} in its ${g.year} filing, ${money(g.prior_dollars)} in ${g.prior_year}`;
-// The two filings a table's Giving Change mostly compares (Nov 2 2026, Will: "clearer about the time period its
+// The two filings a table's Giving Change mostly compares, said in the sentence above the table (Nov 18 2026, Will: the
+// heading with its years was the only one on two lines) (Nov 2 2026, Will: "clearer about the time period its
 // measuring"): its header names them; a funder on other years says its own in its cell.
 function changePeriod(changes) {
   const n = {};
@@ -85,9 +86,9 @@ function drawLandscape() {
       <b>${pct(w.state, all)}</b> from elsewhere in ${escHtml(L.state)}, and <b>${pct(w.out_of_state, all)}</b> from out of state.</p>`);
   h.push(`<div class="card fmap-card"><h2>Funding Map</h2><div id="lMap">${LMAP && LMAP_VIEW === LAND_VIEW ? '' : '<div class="empty">Loading the map…</div>'}</div></div>`);
   h.push(`<div class="card"><h2>${subj ? 'Funders Of ' + escHtml(subjLabel) : 'Top Funders'}</h2>
-      <p class="lead">${subj ? 'Dollars to ' + escHtml(subjLabel.toLowerCase()) + ' organizations here. ' : ''}Open a funder FundBug lists to see its giving profile and how to apply. Giving Change compares all of a funder's giving, wherever it went, in its latest tax filing with the one before (the years in the heading, or in the cell when a funder's differ); hover it for the amounts.</p>
+      <p class="lead">${subj ? 'Dollars to ' + escHtml(subjLabel.toLowerCase()) + ' organizations here. ' : ''}Open a funder FundBug lists to see its giving profile and how to apply. Giving Change compares all of a funder's giving, wherever it went, in its latest tax filing with the one before${period ? ` (${period} for most funders here; a cell gives its own years when a funder's differ)` : ''}; hover it for the amounts.</p>
       <p class="lead">The ${Math.min(funders.length, 50)} largest funders here. To find any other foundation, <a onclick="showPage('matches')" style="cursor:pointer">Search The Library</a>.</p>
-      <div class="gp-table"><table><thead><tr><th>Funder</th><th>Based In</th><th class="num">Dollars Here</th><th class="num">${subj ? 'Grants (All Subjects)' : 'Grants'}</th><th class="num">${subj ? 'Typical Grant (All Subjects)' : 'Typical Grant'}</th><th class="num">Giving Change${period ? ', ' + period : ''}</th><th>Years</th></tr></thead><tbody>
+      <div class="gp-table"><table><thead><tr><th>Funder</th><th>Based In</th><th class="num">Dollars Here</th><th class="num">${subj ? 'Grants (All Subjects)' : 'Grants'}</th><th class="num">${subj ? 'Typical Grant (All Subjects)' : 'Typical Grant'}</th><th class="num">Giving Change</th><th>Years</th></tr></thead><tbody>
       ${list.slice(0, LAND_SHOWN).map(f => `<tr>
         <td>${f.listing_id ? `<a onclick="openListing('${f.listing_id}')" style="cursor:pointer">${escHtml(landName(f))}</a>` : escHtml(landName(f))}
           ${f.donor_advised ? '<br><span class="badge">Gives here from donors&#39; funds: no applications</span>' : ''}
@@ -104,8 +105,8 @@ function drawLandscape() {
   const uPeriod = changePeriod(unplaced.map(f => f.giving_change));
   if (!subj && unplaced.length) {
     h.push(`<div class="card"><h2>Based Here, Giving Not Placed</h2>
-      <p class="lead">These funders are based in ${escHtml(L.county)}, but their tax filings give the funder's own address for every grantee, so FundBug cannot tell how much of their giving stays here. The figures are all their grants, wherever they went, and are not part of the totals above.</p>
-      <div class="gp-table"><table><thead><tr><th>Funder</th><th>Based In</th><th class="num">All Their Grants</th><th class="num">Dollars, All Places</th><th class="num">Giving Change${uPeriod ? ', ' + uPeriod : ''}</th><th>Years</th></tr></thead><tbody>
+      <p class="lead">These funders are based in ${escHtml(L.county)}, but their tax filings give the funder's own address for every grantee, so FundBug cannot tell how much of their giving stays here. The figures are all their grants, wherever they went, and are not part of the totals above.${uPeriod ? ` Giving Change compares ${uPeriod} for most of them.` : ''}</p>
+      <div class="gp-table"><table><thead><tr><th>Funder</th><th>Based In</th><th class="num">All Their Grants</th><th class="num">Dollars, All Places</th><th class="num">Giving Change</th><th>Years</th></tr></thead><tbody>
       ${unplaced.map(f => `<tr>
         <td>${f.listing_id ? `<a onclick="openListing('${f.listing_id}')" style="cursor:pointer">${escHtml(landName(f))}</a>` : escHtml(landName(f))}
           ${f.accepts_unsolicited === false || f.by_invitation ? '<br><span class="badge">Does not accept unsolicited applications</span>' : ''}</td>

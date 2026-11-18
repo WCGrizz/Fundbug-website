@@ -34,10 +34,10 @@ eq(changePeriod([a, a, b, null]), '2023 to 2024', 'the heading names the pair mo
 ok(!givingChangeHtml(a, '2023 to 2024').includes('(2023 to 2024)') && givingChangeHtml(b, '2023 to 2024').includes('(2024 to 2025)'),
    'a funder on other years names its own in its cell');
 ok(givingChangeHtml({year: 2024, prior_year: 2021, dollars: 1, prior_dollars: 1, pct: 0}, '2023 to 2024').includes('(2021 to 2024)'), 'a gap names the years compared');
-ok(/Giving Change\$\{period \? ', ' \+ period : ''\}<\/th>/.test(land), 'the Top Funders heading carries the period');
+ok(land.includes('<th class="num">Giving Change</th>') && land.includes("(${period} for most funders here; a cell gives its own years when a funder's differ)"), 'the period is said above the table, the heading kept to one line (Nov 18 2026)');
 ok(/given in \$\{ch\.year\} than in \$\{ch\.prior_year\}/.test(html), 'the funder page tile names both years');
 eq(givingChangeHtml(null), '', 'none: an empty cell, never 0%');
 ok(/givingChangeHtml\(f\.giving_change, period\)/.test(land), 'the Top Funders table shows it');
 ok(/givingChangeOf\(p\.by_year\)/.test(html), 'the funder page shows it in At A Glance');
-ok(/nonprofit-landscape\.js\?v=2026-11-18/.test(html), 'the landscape script\'s version tag was bumped');
+ok(/nonprofit-landscape\.js\?v=2026-11-18b/.test(html), 'the landscape script\'s version tag was bumped');
 console.log(fails ? fails + ' FAILED' : 'all passed'); process.exit(fails ? 1 : 0);

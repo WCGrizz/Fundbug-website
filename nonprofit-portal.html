@@ -1802,9 +1802,11 @@ const NAV = [
     {path: 'answers', page: 'answers', label: 'Answers', apply: () => drShowTab('answers'), load: () => loadDrafting()},
     {path: 'answers/applications', page: 'answers', label: 'Applications', apply: () => drShowTab('apps'), load: () => loadDrafting()}]},
   {key: 'library', label: 'Library', subs: [
+    // The Funding Landscape first: what clicking Library opens (Nov 18 2026, Will). Links meaning "your matches" still
+    // go to Fits You by its own address.
+    {path: 'library/landscape', page: 'landscape', label: 'Funding Landscape', load: () => openLandscape()},
     {path: 'library', page: 'matches', label: 'Fits You', apply: () => setLibraryView(true)},
     {path: 'library/all', page: 'matches', label: 'All Funders', acct: true, apply: () => setLibraryView(false)},
-    {path: 'library/landscape', page: 'landscape', label: 'Funding Landscape', load: () => openLandscape()},
     {path: 'library/digests', page: 'digests', label: 'Digests', acct: true, load: () => loadDigests()},
     {path: 'library/left-out', page: 'leftout', label: 'Left Out', preview: true}]},
   {key: 'organization', label: 'Organization', right: true, subs: [
@@ -3814,7 +3816,7 @@ document.getElementById('pwIn').addEventListener('keydown', e => { if (e.key ===
 </script>
 <script src="/answers-nav.js?v=2026-11-11b"></script>
 <script src="/nonprofit-drafting.js?v=2026-11-11b"></script>
-<script src="/nonprofit-landscape.js?v=2026-11-18"></script>
+<script src="/nonprofit-landscape.js?v=2026-11-18b"></script>
 <script src="/nonprofit-funding-plan.js?v=2026-11-11b"></script>
 <script src="/nonprofit-tracker-history.js?v=2026-10-22"></script>
 <script src="/nonprofit-bell.js?v=2026-11-11a"></script>

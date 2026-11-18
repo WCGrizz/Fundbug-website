@@ -179,7 +179,7 @@ ok(/const p=await apiFetch\('\/api\/portal\/profile'\);\s*\/\/[^\n]*\n[^\n]*\n\s
 // The open-elsewhere note (Oct 20 2026): np_landscape's elsewhere_note, escaped, as a badge under the funder's name.
 ok(/\$\{f\.elsewhere_note \? '<br><span class="badge">' \+ escHtml\(f\.elsewhere_note\) \+ '<\/span>' : ''\}/.test(landscape),
    'the landscape shows a funder\'s open-elsewhere note as a badge, escaped');
-ok(/nonprofit-landscape\.js\?v=2026-11-18/.test(html), 'the portal loads the landscape script with the new version tag');
+ok(/nonprofit-landscape\.js\?v=2026-11-18b/.test(html), 'the portal loads the landscape script with the new version tag');
 // Nov 10 2026 (Will): a listing not reviewed by hand yet opens with the note, in the Library only.
 ok(/if \(!L\.reviewed && !L\.on_file_only\) out\.push\(`<div class="unverified">/.test(html)
    && html.includes("We haven't verified these funder details by hand yet. They come from the funder's tax filings and website."),

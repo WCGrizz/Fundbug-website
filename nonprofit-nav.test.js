@@ -82,10 +82,11 @@ function load(mode, opts) {
   ok(T.els.wrap.has('no-sub') && T.els.subnav.innerHTML === '', 'Home has no left column');
   T.n.go('library');
   const subs = [...T.els.subnav.innerHTML.matchAll(/>([^<]+)<\/a>/g)].map(m => m[1]);
-  eq(subs, ['Fits You', 'All Funders', 'Funding Landscape', 'Digests'], "the Library's column");
+  eq(subs, ['Funding Landscape', 'Fits You', 'All Funders', 'Digests'], "the Library's column, the Funding Landscape first (Nov 18 2026, Will)");
   ok(!T.els.wrap.has('no-sub') && /class="active"[^>]*>Fits You</.test(T.els.subnav.innerHTML), 'Fits You is marked');
   ok(/class="active"[^>]*>Library</.test(T.els.topLinks.innerHTML), 'Library is marked in the bar');
   ok(/href="\/nonprofit\/library\/all"/.test(T.els.subnav.innerHTML), 'each link is a real address (a new tab opens it)');
+  ok(/href="\/nonprofit\/library\/landscape"[^>]*>Library</.test(T.els.topLinks.innerHTML), 'Library in the bar opens the Funding Landscape (Nov 18 2026, Will)');
 }
 
 // Going places
