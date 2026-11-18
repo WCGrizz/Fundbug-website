@@ -2820,7 +2820,7 @@ async function loadListingPage(id, onFile) {
     : "We haven't verified these program details by hand yet. They come from the program's own pages."}</div>`);
   if (MODE === 'account' && !L.on_file_only) {                  // saving needs a listing
     const saved = ((RESULT && RESULT.shown) || []).some(m => m.id === id && m.saved);
-    out.push(`<div class="m-actions" style="justify-content:flex-start;margin:4px 0 12px"><button class="btn sm ${saved ? 'saved' : ''}" id="pSave" onclick="saveListing('${id}')">${saved ? 'Saved ✓' : 'Save To Tracker'}</button><button class="btn ghost sm" onclick="prepListing('${id}', this)">Prep Application</button><button class="btn ghost sm" onclick="hideListing('${id}', true)">Hide From Matches</button></div>`);
+    out.push(`<div class="m-actions" style="justify-content:flex-start;margin:4px 0 12px"><button class="btn sm ${saved ? 'saved' : ''}" id="pSave" onclick="saveListing('${id}')">${saved ? 'Saved ✓' : 'Save To Tracker'}</button><button class="btn ghost sm" onclick="prepListing('${id}', this)">Prep Application</button><button class="btn ghost sm" onclick="hideListing('${id}', true)">Hide From Matches</button>${L.kind === 'funder' ? `<button class="btn ghost sm" onclick="funderBriefDownload('${id}', this)">Funder Brief</button>` : ''}</div>`);
   }
   // A foundation whose only page is its tax filing on ProPublica (Oct 14 2026, Will: a brief banner); its filing's
   // contact and instructions are below. Nov 5 2026, Will: no word about a website at all ("the references to no
@@ -3423,6 +3423,29 @@ function boardReportPanel() {
     <label class="chk"><input type="checkbox" id="brDeclined" checked> Include Declined Applications</label>
     <div class="err" id="brErr"></div>
     <div class="fp-actions"><button class="btn" id="brGo" onclick="boardReportDownload()">Download The PDF</button><button class="btn ghost" onclick="closePanel()">Cancel</button></div>`);
+}
+// The Funder Brief (Nov 18 2026, backend nonprofit/np_funder_brief): the funder's page on paper, with this
+// organization's history with it, as a PDF named as the backend names it (np_funder_brief.filename).
+function funderBriefName(title, now) {
+  const t = String(title || 'funder').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50) || 'funder';
+  const p = n => String(n).padStart(2, '0');
+  return `${t}-funder-brief-${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}.pdf`;
+}
+async function funderBriefDownload(id, btn) {
+  const was = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Making It…';
+  try {
+    let r;
+    try { r = await fetch(API_BASE + '/api/nonprofit/reports/funder/' + encodeURIComponent(id), {headers: {'Authorization': 'Bearer ' + (load(TOKEN_KEY) || '')}}); }
+    catch (e) { throw new Error(FB_OFFLINE); }
+    if (!r.ok) { let d = null; try { d = (await r.json()).detail; } catch (e) {} throw new Error(fbErrorText(r.status, d)); }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(await r.blob()); a.download = funderBriefName(LISTING && LISTING.title, new Date());
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    fbSaved('The Funder Brief is downloaded.');
+  } catch (e) { fbProblem('Could not make the Funder Brief: ' + e.message); }
+  btn.disabled = false; btn.textContent = was;
 }
 // The file's name, as the backend names it (np_board_report.filename): the API does not expose its header to the page.
 function boardReportName(acct, now) {
