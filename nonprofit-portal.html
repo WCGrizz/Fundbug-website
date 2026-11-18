@@ -1092,6 +1092,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <label class="chk" style="margin:0"><input type="checkbox" id="tFav" onchange="drawTracker()"> Starred Only</label>
           <button class="btn ghost sm" onclick="toggleAddOwn()">Add Your Own</button>
           <button class="btn ghost sm" onclick="calendarPanel()">Subscribe In Your Calendar</button>
+          <button class="btn ghost sm acct-only" onclick="boardReportPanel()">Board Report</button>
         </div>
         <div class="card" id="addOwn" hidden>
           <h2>Add A Funder Or Program</h2>
@@ -3413,6 +3414,38 @@ async function calendarPanel() {
     <ul class="cal-how"><li><b>Google Calendar:</b> Other calendars, then From URL.</li><li><b>Outlook:</b> Add calendar, then Subscribe from web.</li>
       <li><b>Apple Calendar:</b> File, then New Calendar Subscription.</li></ul>
     <div class="fp-actions"><button class="btn ghost" onclick="closePanel()">Close</button></div>`);
+}
+// The Board Report (Nov 18 2026, backend nonprofit/np_board_report): this fiscal year from the Tracker and Funding Plan,
+// as a PDF. Fetched with the account's sign-in and saved as a file; declined applications in unless unticked.
+function boardReportPanel() {
+  fpPanel('Board Report', `
+    <p class="lead">A PDF for your board: this fiscal year's awards, applications waiting on a decision and in progress, what is coming due in the next 90 days, and your Funding Plan's goal and progress.</p>
+    <label class="chk"><input type="checkbox" id="brDeclined" checked> Include Declined Applications</label>
+    <div class="err" id="brErr"></div>
+    <div class="fp-actions"><button class="btn" id="brGo" onclick="boardReportDownload()">Download The PDF</button><button class="btn ghost" onclick="closePanel()">Cancel</button></div>`);
+}
+// The file's name, as the backend names it (np_board_report.filename): the API does not expose its header to the page.
+function boardReportName(acct, now) {
+  const org = String((acct && acct.subscriber && acct.subscriber.business_name) || 'organization').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50) || 'organization';
+  const p = n => String(n).padStart(2, '0');
+  return `${org}-board-report-${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}.pdf`;
+}
+async function boardReportDownload() {
+  const btn = document.getElementById('brGo'), err = document.getElementById('brErr');
+  const declined = document.getElementById('brDeclined').checked ? 1 : 0;
+  err.textContent = ''; btn.disabled = true; btn.textContent = 'Making It…';
+  try {
+    let r;
+    try { r = await fetch(API_BASE + '/api/nonprofit/reports/board?declined=' + declined, {headers: {'Authorization': 'Bearer ' + (load(TOKEN_KEY) || '')}}); }
+    catch (e) { throw new Error(FB_OFFLINE); }
+    if (!r.ok) { let d = null; try { d = (await r.json()).detail; } catch (e) {} throw new Error(fbErrorText(r.status, d)); }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(await r.blob()); a.download = boardReportName(ACCOUNT, new Date());
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    closePanel(); fbSaved('Your Board Report is downloaded.');
+  } catch (e) { err.textContent = 'Could not make the report: ' + e.message; btn.disabled = false; btn.textContent = 'Download The PDF'; }
 }
 async function addSeen(groupId) {
   try { await apiFetch('/api/nonprofit/tracker', 'POST', {group_id: groupId}); await loadTracker(); }
