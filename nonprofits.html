@@ -92,24 +92,21 @@ nav { position: sticky; top: 64px; z-index: 100; background: var(--ink); padding
 .hero-sample .mail-why { margin-bottom: 12px; }
 .hero-sample-tag { position: absolute; top: -12px; right: 14px; z-index: 2; }
 .hero > .hero-inner + .hero-inner { margin-top: 8px; }
-/* Screens from the portal, moving slowly under the headline (Nov 18 2026, Will: "a carousel of images from the portal
-   slowly moving", so first-time visitors see what it has). Seven screens of the sample organization (Berkshire Youth
-   Arts (Sample)), set twice so the loop has no seam. It stops while pointed at, and stands still for anyone whose device
-   asks for less motion (then it scrolls by hand). */
-.shots { position: relative; z-index: 1; margin: 56px -32px 12px; overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
-          mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
-.shots-track { display: flex; gap: 22px; width: max-content; animation: shots-slide 75s linear infinite; }
-.shots:hover .shots-track { animation-play-state: paused; }
-.shot { margin: 0; width: 440px; flex: none; text-align: left; }
-.shot img { display: block; width: 100%; height: auto; border-radius: 10px; border: 1px solid rgba(255,255,255,.16);
-  box-shadow: 0 18px 44px rgba(0,0,0,.42); background: var(--cream); }
-.shot figcaption { margin-top: 10px; font-size: 15px; color: var(--cream); }
-@keyframes shots-slide { from { transform: translateX(0); } to { transform: translateX(calc(-50% - 11px)); } }
-@media (max-width: 700px) { .shots { margin: 40px -16px 8px; } .shot { width: 290px; } }
-@media (prefers-reduced-motion: reduce) {
-  .shots-track { animation: none; } .shots { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
-  .shots-track .shot-dup { display: none; } }
+/* Screens from the portal, faded and drifting behind the headline (Nov 18 2026, Will: "in the background behind this
+   wording ... faded out, and slowly moving across continuously"). Two rows of the sample organization's screens
+   (Berkshire Youth Arts (Sample)), each set twice so the loop has no seam; the second row runs the other way. Decorative
+   only: hidden from screen readers, never in front of the words, not shown on phones, and still for anyone whose device asks for less motion. */
+.shots { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; opacity: .17;
+  display: flex; flex-direction: column; justify-content: center; gap: 30px; }
+.shots-row { display: flex; gap: 30px; width: max-content; animation: shots-left 380s linear infinite; }
+.shots-row.rev { animation-name: shots-right; animation-duration: 440s; }
+.shots-row img { display: block; width: 840px; height: auto; flex: none; border-radius: 14px; }
+.hero::before { z-index: 1; background-image: radial-gradient(ellipse 70% 75% at 40% 45%, rgba(26,26,20,.8) 0%, rgba(26,26,20,.3) 60%, transparent 100%),
+  radial-gradient(ellipse 60% 60% at 50% 40%, rgba(90,158,82,.10) 0%, transparent 70%); }
+@keyframes shots-left { from { transform: translateX(0); } to { transform: translateX(calc(-50% - 15px)); } }
+@keyframes shots-right { from { transform: translateX(calc(-50% - 15px)); } to { transform: translateX(0); } }
+@media (max-width: 700px) { .shots { display: none; } }          /* desktop only (Will, Nov 18 2026) */
+@media (prefers-reduced-motion: reduce) { .shots-row { animation: none; } }
 /* Phone menu, as on the business page; hidden on wider screens. */
 .nav-hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 10px; margin-right: -10px; }
 .nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--cream2); border-radius: 2px; transition: all .25s; }
@@ -352,6 +349,11 @@ footer { background: var(--ink); border-top: 1px solid rgba(255,255,255,.08); pa
 
 <!-- HERO -->
 <section class="hero">
+  <!-- Portal screens drifting behind the words (decorative). -->
+  <div class="shots" aria-hidden="true">
+    <div class="shots-row"><img src="/img/portal/matches.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/funder.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/giving.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/landscape.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/plan.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/tracker.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/answers.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/matches.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/funder.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/giving.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/landscape.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/plan.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/tracker.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/answers.webp" alt="" width="1200" height="750" decoding="async"></div>
+    <div class="shots-row rev"><img src="/img/portal/landscape.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/plan.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/tracker.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/answers.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/matches.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/funder.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/giving.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/landscape.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/plan.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/tracker.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/answers.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/matches.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/funder.webp" alt="" width="1200" height="750" decoding="async"><img src="/img/portal/giving.webp" alt="" width="1200" height="750" decoding="async"></div>
+  </div>
   <div class="hero-inner hero-grid no-sample">
     <div class="hero-copy">
       <div class="eyebrow">Grants And Funders For Massachusetts Nonprofits</div>
@@ -371,23 +373,6 @@ footer { background: var(--ink); border-top: 1px solid rgba(255,255,255,.08); pa
     <!-- The sample digest beside the headline is off for now (Will, Oct 15 2026: he did not like how it looked at
          the top). The sample further down the page stays. -->
   </div>
-  <div class="shots" role="region" aria-label="Screens from the FundBug portal">
-    <div class="shots-track">
-      <figure class="shot"><img src="/img/portal/matches.webp" alt="The Library: funders that fit the organization, each with its typical grant, how to apply and why it may fit" width="1200" height="750" decoding="async"><figcaption>Funders That Fit You</figcaption></figure>
-      <figure class="shot"><img src="/img/portal/funder.webp" alt="A funder&#39;s page: what it funds, how to apply and what its filing says" width="1200" height="750" decoding="async"><figcaption>A Page For Every Funder</figcaption></figure>
-      <figure class="shot"><img src="/img/portal/giving.webp" alt="A funder&#39;s giving: median grant, grants to first-time grantees, and where its money goes" width="1200" height="750" decoding="async"><figcaption>Its Giving, From Tax Filings</figcaption></figure>
-      <figure class="shot"><img src="/img/portal/landscape.webp" alt="The Funding Landscape: every foundation that gave to organizations in Berkshire County" width="1200" height="750" decoding="async"><figcaption>Who Funds Your County</figcaption></figure>
-      <figure class="shot"><img src="/img/portal/plan.webp" alt="The Funding Plan: the year&#39;s goal, what is secured and pending, and what is left to raise" width="1200" height="750" decoding="async"><figcaption>Your Funding Plan</figcaption></figure>
-      <figure class="shot"><img src="/img/portal/tracker.webp" alt="The Tracker: each funder and program saved, its stage, amounts and follow-up dates" width="1200" height="750" decoding="async"><figcaption>Your Tracker</figcaption></figure>
-      <figure class="shot"><img src="/img/portal/answers.webp" alt="My Answers: the questions funders ask again and again, drafted from the organization&#39;s profile" width="1200" height="750" decoding="async"><figcaption>Drafted Answers You Approve</figcaption></figure>
-      <figure class="shot shot-dup" aria-hidden="true"><img src="/img/portal/matches.webp" alt="" width="1200" height="750" decoding="async" loading="lazy"><figcaption>Funders That Fit You</figcaption></figure>
-      <figure class="shot shot-dup" aria-hidden="true"><img src="/img/portal/funder.webp" alt="" width="1200" height="750" decoding="async" loading="lazy"><figcaption>A Page For Every Funder</figcaption></figure>
-      <figure class="shot shot-dup" aria-hidden="true"><img src="/img/portal/giving.webp" alt="" width="1200" height="750" decoding="async" loading="lazy"><figcaption>Its Giving, From Tax Filings</figcaption></figure>
-      <figure class="shot shot-dup" aria-hidden="true"><img src="/img/portal/landscape.webp" alt="" width="1200" height="750" decoding="async" loading="lazy"><figcaption>Who Funds Your County</figcaption></figure>
-      <figure class="shot shot-dup" aria-hidden="true"><img src="/img/portal/plan.webp" alt="" width="1200" height="750" decoding="async" loading="lazy"><figcaption>Your Funding Plan</figcaption></figure>
-      <figure class="shot shot-dup" aria-hidden="true"><img src="/img/portal/tracker.webp" alt="" width="1200" height="750" decoding="async" loading="lazy"><figcaption>Your Tracker</figcaption></figure>
-      <figure class="shot shot-dup" aria-hidden="true"><img src="/img/portal/answers.webp" alt="" width="1200" height="750" decoding="async" loading="lazy"><figcaption>Drafted Answers You Approve</figcaption></figure>
-    </div>
   </div>
   <div class="hero-inner">
     <div class="hero-local">
