@@ -12,7 +12,7 @@ ok(ctx.f('', new Date(2026, 0, 2)) === 'funder-funder-brief-2026-01-02.pdf', 'no
 ok(html.includes("${L.kind === 'funder' ? `<button class=\"btn ghost sm\" onclick=\"funderBriefDownload('${id}', this)\">Funder Brief</button>` : ''}"),
    'a funder page has the button, beside Save To Tracker (signed in only), and an opportunity does not');
 const dl = grab(/async function funderBriefDownload\(id, btn\) \{[\s\S]*?\n\}/);
-ok(dl.includes("'/api/nonprofit/reports/funder/' + encodeURIComponent(id)") && dl.includes("'Authorization': 'Bearer '"), 'it asks the backend with the sign-in');
+ok(dl.includes("downloadReport('/api/nonprofit/reports/funder/' + encodeURIComponent(id)") && /async function downloadReport\(path, name\)/.test(html), 'it asks the backend through the shared download');
 ok(dl.includes("fbProblem('Could not make the Funder Brief: '") && dl.includes('btn.disabled = false'), 'a failure says so and the button comes back');
 ['fbProblem', 'fbSaved', 'fbErrorText', 'load'].forEach(n => ok(new RegExp('function ' + n + '\\(').test(html), n + ' exists'));
 ok(/let LISTING = null/.test(html), 'LISTING exists');

@@ -2895,11 +2895,15 @@ async function loadListingPage(id, onFile) {
       if (!k || seen.some(x => x.includes(k) || k.includes(x))) return;
       seen.push(k); said.push([label, txt]);
     };
-    for (const a of f.applications || []) say('Its filing says', a.form_and_materials);
+    // A filing with more than one way to apply names each (Nov 18 2026: Feigenbaum's second is a student scholarship;
+    // unnamed, "Applicants must be a student at a Pittsfield MA high school" read as the foundation's only rule).
+    const apps = f.applications || [], many = apps.length > 1;
+    const forWhom = a => many && a.send_to ? ', for ' + (mostlyCaps(a.send_to) ? titleCase(a.send_to) : a.send_to) : '';
+    for (const a of apps) say('Its filing says' + forWhom(a), a.form_and_materials);
     say('Its filing says', f.how_to_apply);
-    for (const a of f.applications || []) {
-      if (a.deadlines) say('Deadlines' + (f.applications_year ? ` (its ${f.applications_year} filing)` : ''), a.deadlines);
-      if (a.restrictions) say('Restrictions', a.restrictions);
+    for (const a of apps) {
+      if (a.deadlines) say('Deadlines' + (f.applications_year ? ` (its ${f.applications_year} filing)` : '') + forWhom(a), a.deadlines);
+      if (a.restrictions) say('Restrictions' + forWhom(a), a.restrictions);
     }
     for (const [label, t] of said) { const h = cleanSectionHtml(t); apply.push(`<p><strong>${escHtml(label)}:</strong> ${clampHtml(h, 3, h.replace(/<[^>]+>/g, '').length)}</p>`); }
     put('overview', line('How To Apply', apply.join('')));
@@ -3419,8 +3423,9 @@ async function calendarPanel() {
 // as a PDF. Fetched with the account's sign-in and saved as a file; declined applications in unless unticked.
 function boardReportPanel() {
   fpPanel('Board Report', `
-    <p class="lead">A PDF for your board: this fiscal year's awards, applications waiting on a decision and in progress, what is coming due in the next 90 days, and your Funding Plan's goal and progress.</p>
+    <p class="lead">A PDF for your board: this fiscal year's awards, applications waiting on a decision and in progress, what is coming due in the next 90 days, and your Funding Plan's goal and progress. Your Tracker notes stay out unless you include them.</p>
     <label class="chk"><input type="checkbox" id="brDeclined" checked> Include Declined Applications</label>
+    <label class="chk"><input type="checkbox" id="brNotes"> Include Our Notes</label>
     <div class="err" id="brErr"></div>
     <div class="fp-actions"><button class="btn" id="brGo" onclick="boardReportDownload()">Download The PDF</button><button class="btn ghost" onclick="closePanel()">Cancel</button></div>`);
 }
@@ -3435,14 +3440,7 @@ async function funderBriefDownload(id, btn) {
   const was = btn.textContent;
   btn.disabled = true; btn.textContent = 'Making It…';
   try {
-    let r;
-    try { r = await fetch(API_BASE + '/api/nonprofit/reports/funder/' + encodeURIComponent(id), {headers: {'Authorization': 'Bearer ' + (load(TOKEN_KEY) || '')}}); }
-    catch (e) { throw new Error(FB_OFFLINE); }
-    if (!r.ok) { let d = null; try { d = (await r.json()).detail; } catch (e) {} throw new Error(fbErrorText(r.status, d)); }
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(await r.blob()); a.download = funderBriefName(LISTING && LISTING.title, new Date());
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    await downloadReport('/api/nonprofit/reports/funder/' + encodeURIComponent(id), funderBriefName(LISTING && LISTING.title, new Date()));
     fbSaved('The Funder Brief is downloaded.');
   } catch (e) { fbProblem('Could not make the Funder Brief: ' + e.message); }
   btn.disabled = false; btn.textContent = was;
@@ -3454,19 +3452,24 @@ function boardReportName(acct, now) {
   const p = n => String(n).padStart(2, '0');
   return `${org}-board-report-${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}.pdf`;
 }
+// A report's PDF from the backend, saved as a file (the Board Report and the Funder Brief, Nov 18 2026): fetched with
+// the account's sign-in; a failure throws with the reason.
+async function downloadReport(path, name) {
+  let r;
+  try { r = await fetch(API_BASE + path, {headers: {'Authorization': 'Bearer ' + (load(TOKEN_KEY) || '')}}); }
+  catch (e) { throw new Error(FB_OFFLINE); }
+  if (!r.ok) { let d = null; try { d = (await r.json()).detail; } catch (e) {} throw new Error(fbErrorText(r.status, d)); }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(await r.blob()); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
 async function boardReportDownload() {
   const btn = document.getElementById('brGo'), err = document.getElementById('brErr');
-  const declined = document.getElementById('brDeclined').checked ? 1 : 0;
+  const declined = document.getElementById('brDeclined').checked ? 1 : 0, notes = document.getElementById('brNotes').checked ? 1 : 0;
   err.textContent = ''; btn.disabled = true; btn.textContent = 'Making It…';
   try {
-    let r;
-    try { r = await fetch(API_BASE + '/api/nonprofit/reports/board?declined=' + declined, {headers: {'Authorization': 'Bearer ' + (load(TOKEN_KEY) || '')}}); }
-    catch (e) { throw new Error(FB_OFFLINE); }
-    if (!r.ok) { let d = null; try { d = (await r.json()).detail; } catch (e) {} throw new Error(fbErrorText(r.status, d)); }
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(await r.blob()); a.download = boardReportName(ACCOUNT, new Date());
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    await downloadReport('/api/nonprofit/reports/board?declined=' + declined + '&notes=' + notes, boardReportName(ACCOUNT, new Date()));
     closePanel(); fbSaved('Your Board Report is downloaded.');
   } catch (e) { err.textContent = 'Could not make the report: ' + e.message; btn.disabled = false; btn.textContent = 'Download The PDF'; }
 }

@@ -15,7 +15,9 @@ const panel = grab(/function boardReportPanel\(\) \{[\s\S]*?\n\}/);
 ok(panel.includes('id="brDeclined" checked') && panel.includes('Include Declined Applications'), 'declined applications are in unless unticked');
 ok(panel.includes('onclick="closePanel()">Cancel</button>'), 'the panel closes by its Cancel button');
 const dl = grab(/async function boardReportDownload\(\) \{[\s\S]*?\n\}/);
-ok(dl.includes("'/api/nonprofit/reports/board?declined=' + declined") && dl.includes("'Authorization': 'Bearer '"), 'it asks the backend with the sign-in');
+const get = grab(/async function downloadReport\(path, name\) \{[\s\S]*?\n\}/);
+ok(dl.includes("'/api/nonprofit/reports/board?declined=' + declined + '&notes=' + notes") && get.includes("'Authorization': 'Bearer '"), 'it asks the backend with the sign-in, through the shared download');
+ok(panel.includes('<input type="checkbox" id="brNotes"> Include Our Notes') && !panel.includes('id="brNotes" checked'), 'notes stay out unless ticked (Will, Nov 18 2026)');
 ok(dl.includes("err.textContent = 'Could not make the report: '"), 'a failure says so in the panel, never silently');
 ok(/function fpPanel\(/.test(fs.readFileSync(__dirname + '/nonprofit-funding-plan.js', 'utf8')) && html.includes('<script src="/nonprofit-funding-plan.js'),
    'fpPanel exists (nonprofit-funding-plan.js, loaded by the page)');
