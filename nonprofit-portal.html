@@ -1062,6 +1062,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
           <input id="mSearch" placeholder="Search titles" oninput="drawMatches()">
           <select id="mKind" onchange="drawMatches()"><option value="">Funders And Opportunities</option><option value="funder">Funders</option><option value="opportunity">Opportunities</option></select>
           <select id="mSource" class="acct-only" onchange="drawMatches()" aria-label="Source"><option value="">Any Source</option><option value="foundation">Foundations</option><option value="government">Government</option><option value="corporate">Corporate</option></select>
+          <select id="mWho" onchange="drawMatches()" aria-label="Who can apply"><option value="">Any Applicant</option><option value="public">Open To Towns And Public Agencies</option></select>
           <label class="chk" style="display:none"><input type="checkbox" id="mFits" checked onchange="drawMatches()"> Fits Only</label>
           <select id="mReviewed" class="preview-only" onchange="drawMatches()"><option value="">Reviewed Or Not</option><option value="yes">Reviewed Only</option><option value="no">Not Reviewed Yet</option></select>
         </div>
@@ -2616,9 +2617,11 @@ function filtered() {
   const q = document.getElementById('mSearch').value.trim().toLowerCase();
   const kind = document.getElementById('mKind').value, rev = document.getElementById('mReviewed').value;
   const src = (document.getElementById('mSource') || {}).value || '';
+  // Open to towns and public agencies too (Nov 18 2026, Will): for regional planning agencies and the towns they work with.
+  const who = (document.getElementById('mWho') || {}).value || '';
   const fitsOnly = MODE === 'account' && document.getElementById('mFits').checked;
   return RESULT.shown.filter(m => (!q || m.title.toLowerCase().includes(q) || (m.provided_by || '').toLowerCase().includes(q))
-    && (!kind || m.kind === kind) && (!src || m.source === src) && (!rev || (rev === 'yes') === m.reviewed) && (!fitsOnly || m.fits !== false));
+    && (!kind || m.kind === kind) && (!src || m.source === src) && (who !== 'public' || m.public_bodies) && (!rev || (rev === 'yes') === m.reviewed) && (!fitsOnly || m.fits !== false));
 }
 const MODES = {open_call: 'Open call', loi: 'Letter of inquiry first', rolling: 'Rolling', invitation_only: 'By invitation'};
 // A Funder's giving tier where the organization is (Nov 9 2026, Will: yes to the wording, np_api.giving_line):
