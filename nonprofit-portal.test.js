@@ -181,7 +181,8 @@ ok(/\$\{f\.elsewhere_note \? '<br><span class="badge">' \+ escHtml\(f\.elsewhere
    'the landscape shows a funder\'s open-elsewhere note as a badge, escaped');
 ok(/nonprofit-landscape\.js\?v=2026-11-18b/.test(html), 'the portal loads the landscape script with the new version tag');
 // Towns And Public Agencies (Nov 18 2026, Will): a Library filter for listings open to government bodies.
-ok(html.includes('<option value="public">Open To Towns And Public Agencies</option>') && html.includes("(who !== 'public' || m.public_bodies)"),
+ok(html.includes('<option value="public">Open To Towns And Public Agencies</option>') && html.includes("(who !== 'public' || m.public_bodies)")
+   && html.includes("(!fitsOnly || who === 'public' || m.fits !== false)"),
    'the Library can show what towns and public agencies may apply for');
 // Nov 10 2026 (Will): a listing not reviewed by hand yet opens with the note, in the Library only.
 ok(/if \(!L\.reviewed && !L\.on_file_only\) out\.push\(`<div class="unverified">/.test(html)
