@@ -2699,7 +2699,8 @@ function cardWhy(m) {
 function matchCard(m) {
   const facts = [];
   // Rounded as the digest rounds it (Oct 19 2026): $32,856 is $33,000.
-  if (m.kind === 'funder' && (m.typical_min || m.typical_max)) facts.push(`<span><b>Typical Grant:</b> ${escHtml(typicalText(m.typical_min, m.typical_max))}</span>`);
+  // A public charity's tax return lists only grants over $5,000, so its typical grant says so (Nov 24 2026).
+  if (m.kind === 'funder' && (m.typical_min || m.typical_max)) facts.push(`<span><b>Typical Grant:</b> ${escHtml(typicalText(m.typical_min, m.typical_max) + (m.typical_note ? ` (${m.typical_note})` : ''))}</span>`);
   // A required match beside the amount, as the digest shows it (Nov 24 2026, Will: "shouldnt it say matching grant then?").
   if (m.kind !== 'funder' && (m.amount || m.match)) facts.push(m.amount ? `<span><b>Amount:</b> ${escHtml(m.amount + (m.match ? '; ' + m.match : ''))}</span>` : `<span><b>${escHtml(m.match)}</b></span>`);
   if (m.kind !== 'funder' && (m.deadline || m.deadline_date)) facts.push(`<span><b>Deadline:</b> ${escHtml(m.deadline || m.deadline_date)}</span>`);
@@ -2900,7 +2901,7 @@ async function loadListingPage(id, onFile) {
       : openN ? 'Through its open programs' : 'See How To Apply']];
     const first = gv.first_time_median || (F.first_grants && F.first_grants.median);
     if (first) rows.push(['First grant', 'Typically ' + money(first) + ' to an organization it had not funded before']);
-    else { const ty = typicalText(F.typical_min, F.typical_max); if (ty) rows.push(['Typical grant', ty]); }
+    else { const ty = typicalText(F.typical_min, F.typical_max); if (ty) rows.push(['Typical grant', ty + (L.typical_note ? ` (${L.typical_note})` : '')]); }
     const myFips = MODE === 'account' && ACCOUNT && ACCOUNT.subscriber && ACCOUNT.subscriber.county_fips;
     const mine = myFips && (gpx.counties || []).find(c => c.fips === myFips);
     if (myFips && gpx.tax_year) rows.push(['In your county', mine ? `${money(mine.dollars)} in ${mine.grants} ${mine.grants === 1 ? 'grant' : 'grants'} (${gpx.tax_year})` : `No grants in its ${gpx.tax_year} filing`]);
@@ -2913,7 +2914,7 @@ async function loadListingPage(id, onFile) {
   if (L.provided_by && L.provided_by.name) put('overview', line('Provided By', `<p>${L.provided_by.listing_id ? `<a onclick="openListing('${L.provided_by.listing_id}')" style="cursor:pointer">${escHtml(L.provided_by.name)}</a>` : escHtml(L.provided_by.name)}</p>`));
   const f = L.funder;
   if (f) {
-    const typical = typicalText(f.typical_min, f.typical_max);             // rounded as the digest rounds it
+    const typical = typicalText(f.typical_min, f.typical_max) + (typicalText(f.typical_min, f.typical_max) && L.typical_note ? ` (${L.typical_note})` : '');   // rounded as the digest rounds it
     const g = f.giving || {};
     const recent = g.count ? `${g.count} grants to organizations, ${money(g.total)} in all (${g.year} filing)` : '';
     if (!L.giving) put('overview', line('Typical Grant', typical || recent ? `<p>${typical ? escHtml(typical) : ''}${typical && recent ? '<br>' : ''}${escHtml(recent)}</p>` : ''));
