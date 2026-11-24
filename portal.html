@@ -3215,7 +3215,8 @@ function paragraphs(text) {
 }
 // One <p> per paragraph (a list's lines kept with <br>); esc is the page's own HTML escaper.
 function paraHtml(text, esc, cls) {
-  return paragraphs(text).map(p => `<p${cls ? ` class="${cls}"` : ''}>` + p.split('\n').map(esc).join('<br>') + '</p>').join('');
+  const ps = paragraphs(text);         // a 10px gap after every paragraph but the last, whatever the page's own p margins
+  return ps.map((p, i) => `<p${cls ? ` class="${cls}"` : ''}${i < ps.length - 1 ? ' style="margin-bottom:10px"' : ''}>` + p.split('\n').map(esc).join('<br>') + '</p>').join('');
 }
 function esc(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
