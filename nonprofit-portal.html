@@ -1532,6 +1532,57 @@ function sentenceCut(t, n) {
   return after.length ? t.slice(0, after[0]) : t;
 }
 function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// ── Short paragraphs, never a wall (Nov 24 2026, Will: "make sure to use paragraph breaks throughout fundbug").
+// The same rule as fundbug_paragraphs.py in the backend repo; tests/paragraph_cases.json there holds the examples both
+// must agree on. Keeps existing breaks; splits a paragraph over 3 sentences or ~420 characters at sentence ends into
+// paragraphs of up to 2 sentences; never splits inside a sentence or changes a word; list lines keep their lines.
+const PARA_ABBR = new Set(['inc','co','corp','ltd','llc','st','mt','ft','pt','dr','mr','mrs','ms','jr','sr','no','nos','vs',
+  'etc','e.g','i.e','u.s','u.s.a','u.k','mass','ave','rd','blvd','dept','univ','approx','est','fig',
+  'jan','feb','mar','apr','jun','jul','aug','sep','sept','oct','nov','dec','gov','rev','hon','prof',
+  'assn','assoc','bros','p.o','a.m','p.m','ph.d','m.d','b.a','m.a','n.a','d.c']);
+function paraSentences(text) {
+  const out = []; let start = 0; const re = /[.!?]["'”’)\]]*\s+(?=["'“‘(\[]?[A-Z0-9$])/g; let m;
+  while ((m = re.exec(text))) {
+    let end = true;
+    if (text[m.index] === '.') {
+      const w = (text.slice(0, m.index).match(/([A-Za-z][A-Za-z.]*)$/) || [])[1];
+      if (w) { const lw = w.toLowerCase().replace(/\.+$/, ''); if (PARA_ABBR.has(lw) || (lw.length === 1 && /[a-z]/.test(lw))) end = false; }
+    }
+    if (end) { out.push(text.slice(start, m.index + m[0].length).trim()); start = m.index + m[0].length; }
+  }
+  const tail = text.slice(start).trim(); if (tail) out.push(tail);
+  return out;
+}
+function paraIsList(block) {
+  const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length < 2) return false;
+  const marked = lines.filter(l => /^([-*•]|\d+[.)])\s/.test(l)).length;
+  const unended = lines.filter(l => !/[.!?:;]$/.test(l)).length;
+  return marked >= 2 || unended >= Math.max(2, Math.floor(lines.length / 2) + 1);
+}
+function paragraphs(text) {
+  const out = [];
+  for (let block of String(text || '').trim().split(/\n\s*\n/)) {
+    block = block.trim(); if (!block) continue;
+    if (paraIsList(block)) { out.push(block.split('\n').map(l => l.trim()).filter(Boolean).join('\n')); continue; }
+    const flat = block.split(/\s+/).join(' '); const s = paraSentences(flat);
+    if (s.length <= 3 && flat.length <= 420) { out.push(flat); continue; }
+    const chunks = [];
+    for (const x of s) {
+      const cur = chunks[chunks.length - 1];
+      if (cur && cur.length < 2 && [...cur, x].join(' ').length <= 420) cur.push(x); else chunks.push([x]);
+    }
+    if (chunks.length > 1 && chunks[chunks.length - 1].length === 1 && chunks[chunks.length - 1][0].length <= 140) {
+      const last = chunks.pop(); chunks[chunks.length - 1] = chunks[chunks.length - 1].concat(last);
+    }
+    for (const c of chunks) out.push(c.join(' '));
+  }
+  return out;
+}
+// One <p> per paragraph (a list's lines kept with <br>); esc is the page's own HTML escaper.
+function paraHtml(text, esc, cls) {
+  return paragraphs(text).map(p => `<p${cls ? ` class="${cls}"` : ''}>` + p.split('\n').map(esc).join('<br>') + '</p>').join('');
+}
 function money(n) { return n == null ? '' : '$' + Number(n).toLocaleString('en-US'); }
 
 // What went wrong, in plain words (Nov 11 2026, Will: 1, 2, 3 of "where else do things feel unfinished"): the
@@ -2648,7 +2699,8 @@ function matchCard(m) {
   const facts = [];
   // Rounded as the digest rounds it (Oct 19 2026): $32,856 is $33,000.
   if (m.kind === 'funder' && (m.typical_min || m.typical_max)) facts.push(`<span><b>Typical Grant:</b> ${escHtml(typicalText(m.typical_min, m.typical_max))}</span>`);
-  if (m.kind !== 'funder' && m.amount) facts.push(`<span><b>Amount:</b> ${escHtml(m.amount)}</span>`);
+  // A required match beside the amount, as the digest shows it (Nov 24 2026, Will: "shouldnt it say matching grant then?").
+  if (m.kind !== 'funder' && (m.amount || m.match)) facts.push(m.amount ? `<span><b>Amount:</b> ${escHtml(m.amount + (m.match ? '; ' + m.match : ''))}</span>` : `<span><b>${escHtml(m.match)}</b></span>`);
   if (m.kind !== 'funder' && (m.deadline || m.deadline_date)) facts.push(`<span><b>Deadline:</b> ${escHtml(m.deadline || m.deadline_date)}</span>`);
   if (m.mode) facts.push(`<span><b>How:</b> ${escHtml(MODES[m.mode] || m.mode)}</span>`);
   return `<div class="m">
@@ -2836,7 +2888,7 @@ async function loadListingPage(id, onFile) {
   if (L.kind === 'funder' && onFiling && !(L.funder && (L.funder.website || L.funder.grants_page))) {
     out.push('<div class="no-site">How to reach it comes from its tax filing: see How To Apply and Contact below.</div>');
   }
-  if (L.description) put('overview', line('What It Is', `<p>${escHtml(L.description)}</p>`));
+  if (L.description) put('overview', line('What It Is', paraHtml(L.description, escHtml)));
   // Is this funder for us? (Oct 28 2026, Will: "1 through 5"): how it takes requests, its first grant, its giving in
   // the organization's county, its open programs and its website, before any chart.
   if (L.kind === 'funder' && L.funder) {
@@ -2944,7 +2996,7 @@ async function loadListingPage(id, onFile) {
       `<li><a onclick="openListing('${o.id}')" style="cursor:pointer">${escHtml(o.title)}</a>${o.deadline ? ' (deadline ' + escHtml(o.deadline) + ')' : ''}</li>`).join('') + '</ul>'));
   } else {
     const facts = [];
-    if (L.amount) facts.push('Amount: ' + L.amount);
+    if (L.amount || L.match) facts.push(L.amount ? 'Amount: ' + L.amount + (L.match ? '; ' + L.match : '') : L.match);
     if (L.deadline || L.deadline_date) facts.push('Deadline: ' + (L.deadline || L.deadline_date));
     if (L.mode) facts.push('How: ' + (MODES[L.mode] || L.mode));
     if (facts.length) put('overview', line('Key Facts', '<p class="section-text">' + escHtml(facts.join('\n')) + '</p>'));
