@@ -14,4 +14,6 @@ ok(out.startsWith('<option value="">Every Stage (3)</option>'), 'Every Stage cou
 ok(out.indexOf('in_progress (1)') < out.indexOf('<optgroup label="Other Stages">') && out.includes('awarded (1)'), 'stages in use first, with counts');
 ok(/<optgroup label="Other Stages">.*saved.*declined.*<\/optgroup>/.test(out) && !/saved \(/.test(out), 'the rest under Other Stages, without counts');
 ok(/stSel\.innerHTML = stageOptions\(TRACKER\.stages, TRACKER\.items\); stSel\.value = stKeep;/.test(html), 'redrawn with the list, the choice kept');
+const odd = ctx.__t.stageOptions(stages.filter(x => x.code !== 'in_progress'), items);
+ok(/in_progress|In Progress \(1\)/.test(odd) && odd.includes('In Progress (1)'), 'a stage an item has but the list lacks is offered, with its count');
 process.exit(fails ? 1 : 0);

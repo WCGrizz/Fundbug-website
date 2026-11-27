@@ -3424,7 +3424,11 @@ async function loadTracker() {
 function stageOptions(stages, items) {
   const n = {};
   for (const i of items || []) if (!i.seen_in_digest) n[i.status] = (n[i.status] || 0) + 1;
-  const used = stages.filter(s => n[s.code]), rest = stages.filter(s => !n[s.code]);
+  // A stage an item has that the list does not name (the demo's "In Progress") is offered too, named as the list names it.
+  const known = new Set(stages.map(s => s.code));
+  const extra = Object.keys(n).filter(c => c && c !== 'undefined' && !known.has(c))
+    .map(c => ({code: c, label: String(c).replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase())}));
+  const used = stages.filter(s => n[s.code]).concat(extra), rest = stages.filter(s => !n[s.code]);
   const total = Object.values(n).reduce((a, b) => a + b, 0);
   return `<option value="">Every Stage${total ? ` (${total})` : ''}</option>`
     + used.map(s => `<option value="${s.code}">${escHtml(s.label)} (${n[s.code]})</option>`).join('')
