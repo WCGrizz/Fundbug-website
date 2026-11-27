@@ -85,6 +85,9 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .btn2{font-family:'Jost',sans-serif;font-size:15px;font-weight:600;padding:11px 16px;min-height:44px;border-radius:5px;border:1px solid var(--green-dk);background:var(--white);color:var(--green-dk);cursor:pointer}
 .btn2:disabled{opacity:.6;cursor:default}
 .note{font-size:14.5px;color:var(--ink);margin:-8px 0 14px}
+.based-line{font-size:15px;color:var(--ink);margin:-4px 0 14px;line-height:1.5}
+.based-in .note.based-note{margin:-4px 0 4px}
+.based-cancel{margin:0 0 16px}
 input[readonly]{background:var(--cream2);cursor:default}
 .scan .note{margin:0}
 .scanrow .btn2{margin-bottom:8px}
@@ -183,11 +186,12 @@ textarea:focus{border-color:var(--green);background:var(--white)}
         <p class="note" id="einNote">Your EIN fills in your name, ZIP, budget and the year you became tax-exempt from your IRS record, wherever the box is empty.</p>
       </div>
       <div class="row">
-        <div><label for="zip">ZIP Code</label><input id="zip" inputmode="numeric" maxlength="10" required></div>
+        <div><label for="zip">ZIP Code</label><input id="zip" inputmode="numeric" maxlength="10" required oninput="zipChanged(this.value)"></div>
         <div><label for="budget">Annual Budget ($)</label><input id="budget" inputmode="numeric" placeholder="300000"></div>
         <div id="sinceBox"><label for="since">Tax-Exempt Since (Year)</label><input id="since" inputmode="numeric" maxlength="4" placeholder="1998"></div>
         <div><label for="web">Website (Optional)</label><input id="web" type="url" placeholder="https://"></div>
       </div>
+      <div id="basedIn" class="based-in" aria-live="polite"></div>
       <label for="about" id="aboutLabel">About Your Organization</label>
       <textarea id="about" rows="6" maxlength="10000" placeholder="What you do, your programs, who you serve and where" oninput="descSource = 'person'"></textarea>
       <p class="note">A few sentences, or as much detail as you like. FundBug reads it, alongside your answers below, to judge which funders and programs fit you.</p>
@@ -272,7 +276,7 @@ textarea:focus{border-color:var(--green);background:var(--white)}
 </main>
 
 <script src="https://js.stripe.com/v3/"></script>
-<script src="/nonprofit-choices.js?v=2026-10-22"></script>
+<script src="/nonprofit-choices.js?v=2026-11-27"></script>
 <script>
 const API = 'https://fundbug-production.up.railway.app';
 const params = new URLSearchParams(location.search);
@@ -344,9 +348,15 @@ async function showForm() {
   enterRuns('scanUrl', scanSite); enterRuns('ein', fillFromEin);
   try { [TERMS, PLACES] = await Promise.all([getJson('/api/nonprofit/terms'), getJson('/api/nonprofit/places')]); }
   catch (e) { document.getElementById('err').textContent = 'Could not load the choices. Refresh and try again.'; return; }
-  const withCounties = PLACES.states.filter(([c]) => PLACES.counties[c]);
-  document.getElementById('areaState').innerHTML = withCounties.map(([c, n]) => `<option value="${c}">${escHtml(n)}</option>`).join('');
+  // Every state (Nov 27 2026): a state with no county list of its own gets one from its towns (countiesFor), and the
+  // list opens on the state the ZIP places the organization in, not always Massachusetts (the Hildene signup).
+  document.getElementById('areaState').innerHTML = PLACES.states.map(([c, n]) => `<option value="${c}">${escHtml(n)}</option>`).join('');
   document.getElementById('areaState').value = 'MA';
+  initBasedIn({api: API, box: 'basedIn', states: PLACES.states, onPlace: st => {
+    const sel = document.getElementById('areaState');
+    if (!where.counties.length && sel.value !== st && PLACES.states.some(([c]) => c === st)) { sel.value = st; drawCounties(); }
+  }});
+  if (document.getElementById('zip').value) zipChanged(document.getElementById('zip').value);
   drawCounties(); drawWhere();
   for (const field of Object.keys(picks)) { buildPicker(field); drawPicker(field); }
   initStripe();
@@ -377,8 +387,9 @@ function pickMode(m) {
   for (const k of ['county', 'statewide', 'several', 'national']) document.getElementById('w-' + k).hidden = k !== m;
   drawWhere();
 }
-function drawCounties() {
-  const st = document.getElementById('areaState').value, list = PLACES.counties[st] || [];
+async function drawCounties() {
+  const st = document.getElementById('areaState').value, list = await countiesFor(st);
+  if (document.getElementById('areaState').value !== st) return;          // another state was chosen meanwhile
   document.getElementById('countyBox').innerHTML = list.map(c => {
     const on = where.counties.some(r => r.fips === c.fips);
     return `<label class="chk"><input type="checkbox" data-fips="${c.fips}" ${on ? 'checked' : ''} onchange="toggleCounty(this,'${st}')"> ${escHtml(c.name)}</label>`;
@@ -443,7 +454,7 @@ async function scanSite() {
     if (!r.ok) throw new Error(data.detail || 'We could not read that website.');
     const p = data.proposals || {}, filled = [];
     if (fillEmpty('org', p.name)) filled.push('name');
-    if (fillEmpty('zip', p.zip_code)) filled.push('ZIP code');
+    if (fillEmpty('zip', p.zip_code)) { filled.push('ZIP code'); if (typeof zipChanged === 'function') zipChanged(p.zip_code); }
     if (fillEmpty('web', url)) filled.push('website');
     if (fillEmpty('about', p.description)) { descSource = 'website'; filled.push('a description of your work'); }
     if (suggest('subjects', p.subjects)) filled.push('subjects');
@@ -513,7 +524,7 @@ async function fillFromEin() {
     if (!r.ok || !data.proposals) throw new Error(data.detail || 'We could not look up that EIN, so nothing was filled in.');
     const p = data.proposals, filled = [];
     if (fillEmpty('org', p.name)) filled.push('name');
-    if (fillEmpty('zip', p.zip_code)) filled.push('ZIP code');
+    if (fillEmpty('zip', p.zip_code)) { filled.push('ZIP code'); if (typeof zipChanged === 'function') zipChanged(p.zip_code); }
     if (p.annual_budget != null && fillEmpty('budget', String(p.annual_budget))) filled.push(`budget (your ${p.filing_year || 'latest'} expenses)`);
     if (p.tax_exempt_since && fillEmpty('since', String(p.tax_exempt_since))) filled.push('tax-exempt since');
     if (p.org_type && fillEmpty('orgType', p.org_type)) { filled.push('kind of applicant'); applyKind(); }
@@ -603,6 +614,7 @@ async function submitSignup(e) {
     last_name: document.getElementById('last').value.trim(), org_name: document.getElementById('org').value.trim(),
     org_type: document.getElementById('orgType').value, ein: ind ? '' : document.getElementById('ein').value.trim(),
     zip_code: document.getElementById('zip').value.trim(), website_url: document.getElementById('web').value.trim(),
+    home_town: BASED.picked,
     annual_budget: budget ? parseInt(budget, 10) : null, tax_exempt_since: since ? parseInt(since, 10) : null,
     service_regions: regionsFor(where),
     subjects: [...picks.subjects], populations: [...picks.populations], funding_purposes: [...picks.funding_purposes],

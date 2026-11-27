@@ -156,6 +156,9 @@ nav{background:var(--ink);padding:0 28px;height:60px;display:flex;align-items:ce
 .card h2{font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:600;letter-spacing:-.01em;line-height:1.25;color:var(--ink);margin-bottom:8px}
 .card{margin-bottom:24px}
 .card .lead{font-size:15px;color:var(--ink);margin-bottom:16px}
+.based-line{font-size:15px;color:var(--ink);margin:-4px 0 14px;line-height:1.5}
+.based-in .based-note{font-size:14.5px;color:var(--ink);margin:-4px 0 4px}
+.based-cancel{margin:0 0 16px}
 .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 18px}
 .pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
 .pill{font-family:'Jost',sans-serif;font-size:14px;padding:7px 13px;border:1px solid var(--border);border-radius:20px;background:var(--cream);color:var(--ink);cursor:pointer;min-height:36px}
@@ -890,9 +893,10 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
                 <option value="nonprofit_other">Other nonprofit</option>
                 <option value="individual">Individual (artist, musician, writer)</option>
               </select></div>
-            <div><label for="fZip">ZIP Code</label><input id="fZip" inputmode="numeric" maxlength="10" placeholder="01201"></div>
+            <div><label for="fZip">ZIP Code</label><input id="fZip" inputmode="numeric" maxlength="10" placeholder="01201" oninput="zipChanged(this.value)"></div>
             <div><label for="fState">State</label><select id="fState"></select></div>
           </div>
+          <div id="basedIn" class="based-in" aria-live="polite"></div>
           <div class="row">
             <div><label for="fBudget">Annual Budget ($)</label><input id="fBudget" inputmode="numeric" placeholder="300000"></div>
             <div id="sinceBox"><label for="fSince">Tax-Exempt Since (Year)</label><input id="fSince" inputmode="numeric" maxlength="4" placeholder="2012"></div>
@@ -1405,7 +1409,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
   <div class="panel-body" id="panelBody"></div>
 </div>
 
-<script src="/nonprofit-choices.js?v=2026-10-22"></script>
+<script src="/nonprofit-choices.js?v=2026-11-27"></script>
 <script>
 const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? (localStorage.getItem('fb_np_api') || 'https://fundbug-production.up.railway.app')
@@ -2055,9 +2059,16 @@ function drawProfileForm() {
   document.getElementById('dState').innerHTML = '<option value=""></option>' + stateOpts;
   document.getElementById('dFye').innerHTML = '<option value="">Not answered</option>' + MONTH_NAMES.map((m, i) =>
     `<option value="${String(i + 1).padStart(2, '0')}-${MONTH_ENDS[i]}">${m} ${MONTH_ENDS[i]}</option>`).join('');
-  const withCounties = PLACES.states.filter(([code]) => PLACES.counties[code]);
-  document.getElementById('fAreaState').innerHTML = withCounties.map(([c, n]) => `<option value="${c}">${escHtml(n)}</option>`).join('');
+  // Every state (Nov 27 2026): one with no county list of its own gets one from its towns (countiesFor), and the list
+  // opens on the organization's own state (fillProfile), not always Massachusetts.
+  document.getElementById('fAreaState').innerHTML = PLACES.states.map(([c, n]) => `<option value="${c}">${escHtml(n)}</option>`).join('');
   document.getElementById('fAreaState').value = 'MA';
+  initBasedIn({api: API_BASE, box: 'basedIn', states: PLACES.states,
+    onPlace: st => {
+      const sel = document.getElementById('fAreaState');
+      if (!where.counties.length && sel.value !== st && PLACES.states.some(([c]) => c === st)) { sel.value = st; drawCounties(); }
+    },
+    onPick: () => { if (MODE === 'account') document.getElementById('saveNote').textContent = 'You have changes to save.'; }});
   drawCounties(); drawWhere();
   for (const field of Object.keys(picks)) { buildPicker(field); drawPicker(field); }
   ['fOrgType', 'fZip', 'fState', 'fBudget', 'fSince', 'fAudit', 'fNy', 'fPending', 'fFounded', 'fStaff', 'fVolunteers'].forEach(id =>
@@ -2157,8 +2168,9 @@ function pickMode(m) {
   drawWhere(); whereChanged();
 }
 function homeState() { return (MODE === 'account' && ACCOUNT && ACCOUNT.subscriber && ACCOUNT.subscriber.state) || document.getElementById('fState').value || 'MA'; }
-function drawCounties() {
-  const st = document.getElementById('fAreaState').value, list = (PLACES && PLACES.counties[st]) || [];
+async function drawCounties() {
+  const st = document.getElementById('fAreaState').value, list = await countiesFor(st);
+  if (document.getElementById('fAreaState').value !== st) return;          // another state was chosen meanwhile
   document.getElementById('countyBox').innerHTML = list.map(c => {
     const on = where.counties.some(r => r.fips === c.fips);
     return `<label class="chk"><input type="checkbox" data-fips="${c.fips}" ${on ? 'checked' : ''} onchange="toggleCounty(this,'${st}')"> ${escHtml(c.name)}</label>`;
@@ -2303,12 +2315,15 @@ async function saveAccount() {
   // The optional detail goes only when it changed (np_accounts.save checks it whole and refuses, saving nothing, when
   // the database is not ready for it).
   if (!sameDetails(p.details, ((ACCOUNT && ACCOUNT.profile) || {}).details)) changes.details = p.details;
+  if (BASED.picked) changes.home_town = BASED.picked;           // a town picked under Based In (Nov 27 2026)
   note.textContent = 'Saving…';
   try {
     const out = await apiFetch('/api/nonprofit/profile', 'POST', changes);
     ACCOUNT = await apiFetch('/api/nonprofit/me');
     note.textContent = (out.subscriber.length || out.profile.length) ? 'Saved. Your matches are updated.' : 'Nothing had changed.';
     if (out.zip_changed) note.textContent += ' Your new ZIP code is placed within a minute.';
+    if (out.home_town_saved) { note.textContent = 'Saved. Your matches are updated.'; BASED.found = BASED.picked; BASED.picked = null; drawBasedIn(); }
+    else if (changes.home_town) note.textContent += ' Your town was not saved; please try again.';
     loadProfileMeter();
     runMatches(true);
   } catch (e) { note.textContent = 'Not saved: ' + e.message; }
@@ -2325,7 +2340,14 @@ function fillProfile(p) {
   document.getElementById('fPending').checked = p.include_pending !== false;
   where = whereFrom(p.service_regions);
   const firstCounty = where.counties[0] || where.extraCounties && where.extraCounties[0];
-  if (firstCounty && PLACES.counties[firstCounty.state]) document.getElementById('fAreaState').value = firstCounty.state;
+  // Based In: an account shows where it is saved as being; the preview looks its ZIP up.
+  const sub = MODE === 'account' && ACCOUNT && ACCOUNT.subscriber;
+  BASED.picked = null; BASED.open = false;
+  if (sub) { BASED.zip = String(p.zip_code || '').replace(/[^0-9]/g, '').slice(0, 5);
+             setBasedFound({state: sub.state, city: sub.city, county: sub.county, county_fips: sub.county_fips}); }
+  else { BASED.zip = ''; zipChanged(p.zip_code); }
+  const home = (firstCounty && firstCounty.state) || (basedInPlace() && basedInPlace().state);
+  if (home && PLACES.states.some(([c]) => c === home)) document.getElementById('fAreaState').value = home;
   for (const f of Object.keys(picks)) { picks[f] = new Set(p[f] || []); drawPicker(f); }
   fillDetails(p.details);
   drawCounties(); drawWhere(); applyKind();

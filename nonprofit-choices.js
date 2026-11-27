@@ -137,6 +137,38 @@ function regionsForProfile(w) {
   if (w.mode === 'national') (w.extraCounties || []).forEach(c => out.push({type: 'county', state: c.state, fips: c.fips}));
   return out;
 }
+// Based In (Nov 27 2026, Will: "you can choose any of the 50 states, and then you select a town"). A town list is
+// [[town, county, county FIPS], ...] from /towns/<ST>.json (nonprofit/np_town_files.py).
+// The towns that start with what was typed first, then those that contain it; at most n.
+function townMatches(towns, q, n) {
+  const want = String(q || '').trim().toLowerCase();
+  if (!want) return [];
+  const starts = [], has = [];
+  for (const t of towns || []) {
+    const name = String(t[0]).toLowerCase();
+    if (name.startsWith(want)) starts.push(t); else if (name.includes(want)) has.push(t);
+    if (starts.length >= (n || 12)) break;
+  }
+  return starts.concat(has).slice(0, n || 12);
+}
+// What the town box shows for a town, and back: "Bennington, Bennington County".
+function townLabel(t) { return `${t[0]}, ${t[1]}`; }
+function townFromLabel(towns, label) {
+  const want = String(label || '').trim().toLowerCase();
+  return (towns || []).find(t => townLabel(t).toLowerCase() === want) || null;
+}
+// A state's counties from its towns, for a state with no county list of its own: [{fips, name}] by name.
+function countiesFromTowns(towns) {
+  const seen = new Map();
+  for (const t of towns || []) if (t[2] && !seen.has(t[2])) seen.set(t[2], {fips: t[2], name: t[1]});
+  return [...seen.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+// "Manchester Center, Vermont (Bennington County)"
+function basedInText(place, nameOf) {
+  if (!place || !place.state) return '';
+  const town = place.city ? place.city + ', ' : '';
+  return `${town}${nameOf ? nameOf(place.state) : place.state}${place.county ? ' (' + place.county + ')' : ''}`;
+}
 // ── CHOICE HELPERS END ──
 
 // ── THE PICKERS (Oct 19 2026): Subjects, Who You Serve and What You Need Funding For, a search, Suggested For You,
@@ -232,4 +264,103 @@ function drawPicker(field) {
   const chosen = [...picks[field]].map(c => termOf(field, c)).filter(Boolean);
   document.getElementById('pp-' + field).innerHTML = chosen.length
     ? `<b>You Picked:</b> ${chosen.map(t => escHtml(t.label)).join(', ')}` : '';
+}
+
+// ── BASED IN (Nov 27 2026): where the ZIP places the organization, as the geocoder will save it
+// (GET /api/nonprofit/zip/<zip>), with Change: a state, then a town from /towns/<ST>.json. A town picked there is
+// BASED.picked, which the page sends as home_town; the server writes it after the ZIP's geocode, so it stands.
+// The page calls initBasedIn({api, box, states, onPlace}) once, and zipChanged(zip) when its ZIP box changes.
+let BASED = {found: null, picked: null, open: false, zip: '', looking: false, cfg: null};
+const TOWN_LISTS = {};                                   // state -> its town list, or the fetch in flight
+async function townsFor(st) {
+  if (!st) return [];
+  if (!TOWN_LISTS[st]) {
+    // The fetch itself is kept, so keystrokes share one request; a failed one is forgotten, to be tried again.
+    TOWN_LISTS[st] = fetch('/towns/' + st + '.json').then(r => r.ok ? r.json() : Promise.reject(new Error(r.status)))
+      .then(d => d.towns || []).catch(() => { delete TOWN_LISTS[st]; return []; });
+  }
+  return TOWN_LISTS[st];
+}
+function basedInPlace() { return BASED.picked || BASED.found; }
+function basedStateName(code) { const s = (BASED.cfg && BASED.cfg.states || []).find(([c]) => c === code); return s ? s[1] : code; }
+function initBasedIn(cfg) { BASED.cfg = cfg; drawBasedIn(); }
+function setBasedFound(place) { BASED.found = place && place.state ? place : null; drawBasedIn(); }
+async function zipChanged(zip) {
+  const z = String(zip || '').replace(/[^0-9]/g, '').slice(0, 5);
+  if (z === BASED.zip) return;
+  BASED.zip = z; BASED.picked = null; BASED.open = false;
+  if (z.length !== 5) { BASED.found = null; BASED.looking = false; drawBasedIn(); return; }
+  BASED.looking = true; drawBasedIn();
+  let found = null;
+  try {
+    const r = await fetch(BASED.cfg.api + '/api/nonprofit/zip/' + z);
+    const d = r.ok ? await r.json() : {};
+    found = d.resolved ? {state: d.state, city: d.city, county: d.county, county_fips: d.county_fips} : null;
+  } catch (e) { found = null; }
+  if (z !== BASED.zip) return;                           // a newer ZIP was typed meanwhile: its own lookup answers
+  BASED.found = found; BASED.looking = false; drawBasedIn();
+  if (BASED.found && BASED.cfg.onPlace) BASED.cfg.onPlace(BASED.found.state);
+}
+function openBasedIn() { BASED.open = true; drawBasedIn(); }
+function closeBasedIn() { BASED.open = false; drawBasedIn(); }
+async function drawBasedIn() {
+  const box = BASED.cfg && document.getElementById(BASED.cfg.box);
+  if (!box) return;
+  const place = basedInPlace();
+  if (BASED.open) {
+    const st = (place && place.state) || '';
+    box.innerHTML = '<p class="based-line"><strong>Based In:</strong> choose your state, then your town.</p>'
+      + `<div class="row"><div><label for="biState">State</label><select id="biState" onchange="basedStatePicked(this.value)">`
+      + '<option value="">Choose a state</option>'
+      + BASED.cfg.states.map(([c, n]) => `<option value="${c}" ${c === st ? 'selected' : ''}>${escHtml(n)}</option>`).join('')
+      + `</select></div><div><label for="biTown">Town</label><input id="biTown" list="biTowns" autocomplete="off" `
+      + `placeholder="Start typing your town" oninput="basedTownTyped(this.value)" onchange="basedTownTyped(this.value, true)">`
+      + `<datalist id="biTowns"></datalist></div></div>`
+      + `<p class="note based-note" id="biNote">Type your town, then pick it from the list.</p>`
+      + `<div class="based-cancel"><button type="button" class="linkbtn" onclick="closeBasedIn()">Cancel</button></div>`;
+    if (st) townsFor(st);
+    return;
+  }
+  if (BASED.looking) { box.innerHTML = '<p class="based-line">Finding your ZIP code\u2026</p>'; return; }
+  if (place) {
+    box.innerHTML = `<p class="based-line"><strong>Based In:</strong> ${escHtml(basedInText(place, basedStateName))}`
+      + `${BASED.picked ? ', as you chose' : ''} <button type="button" class="linkbtn" onclick="openBasedIn()">Change</button></p>`;
+    return;
+  }
+  box.innerHTML = BASED.zip.length === 5
+    ? '<p class="based-line">We could not place that ZIP code. <button type="button" class="linkbtn" onclick="openBasedIn()">Choose Your Town</button></p>'
+    : '';
+}
+async function basedStatePicked(st) {
+  const input = document.getElementById('biTown');
+  if (input) input.value = '';
+  await townsFor(st);
+  const note = document.getElementById('biNote');
+  if (note) note.textContent = st && !(TOWN_LISTS[st] || []).length ? 'No town list for this state yet.' : 'Type your town, then pick it from the list.';
+}
+async function basedTownTyped(text, done) {
+  const st = (document.getElementById('biState') || {}).value;
+  const towns = await townsFor(st);
+  const hit = townFromLabel(towns, text);
+  if (hit) {
+    BASED.picked = {state: st, city: hit[0], county: hit[1], county_fips: hit[2]};
+    BASED.open = false; drawBasedIn();
+    if (BASED.cfg.onPlace) BASED.cfg.onPlace(st);
+    if (BASED.cfg.onPick) BASED.cfg.onPick(BASED.picked);
+    return;
+  }
+  const list = document.getElementById('biTowns');
+  if (list) list.innerHTML = townMatches(towns, text, 40).map(t => `<option value="${escHtml(townLabel(t))}"></option>`).join('');
+  const note = document.getElementById('biNote');
+  if (note && done && text.trim()) note.textContent = 'Pick your town from the list, so we have its county.';
+}
+// A state's counties for the County Or Towns picker: its own list, or one made from its towns.
+// Kept on PLACES.counties, so the page names them as it names the others (the "Serving:" summary).
+async function countiesFor(st) {
+  const has = typeof PLACES !== 'undefined' && PLACES && PLACES.counties;
+  const own = (has && PLACES.counties[st]) || [];
+  if (own.length) return own;
+  const made = countiesFromTowns(await townsFor(st));
+  if (has && made.length) PLACES.counties[st] = made;
+  return made;
 }
