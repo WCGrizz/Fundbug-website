@@ -1448,6 +1448,10 @@ function round2(n) {
   return (2 * r > step || (2 * r === step && q % 2 !== 0) ? q + 1 : q) * step;
 }
 // A funder's typical grant, as the digest says it (np_digest._typical): "$10,000 to $30,000", or one figure.
+// A filing's purpose line that says nothing about the grant (Nov 27 2026): Lee Bank's filing gives "EXEMPT PURPOSE" for
+// every grant. Shown blank. The same words as np_funder_brief.BOILERPLATE_RE; "Unrestricted" and "General support" stay.
+const BOILERPLATE_RE = /^\s*(?:(?:to\s+(?:further|support)\s+(?:its|their|the\s+(?:organization'?s?|recipient'?s?))\s+)?(?:exempt|charitable|tax[\s-]*exempt)\s+(?:purposes?|mission|activities)|(?:general\s+)?charitable(?:\s+purposes?)?|see\s+(?:attached|statement|schedule)[\w\s]*|public\s+charity|501\s*\(c\)\s*\(3\)(?:\s+purposes?)?|various|n\/?a)\s*\.?\s*$/i;
+function grantPurpose(p) { return BOILERPLATE_RE.test(String(p || '')) ? '' : (p || ''); }
 function typicalText(lo, hi) {
   lo = lo ? round2(lo) : lo; hi = hi ? round2(hi) : hi;
   const m = n => '$' + Number(n).toLocaleString('en-US');
@@ -2903,7 +2907,7 @@ async function loadListingPage(id, onFile) {
     : "We haven't verified these program details by hand yet. They come from the program's own pages."}</div>`);
   if (MODE === 'account' && !L.on_file_only) {                  // saving needs a listing
     const saved = ((RESULT && RESULT.shown) || []).some(m => m.id === id && m.saved);
-    out.push(`<div class="m-actions" style="justify-content:flex-start;margin:4px 0 12px"><button class="btn sm ${saved ? 'saved' : ''}" id="pSave" onclick="saveListing('${id}')">${saved ? 'Saved ✓' : 'Save To Tracker'}</button><button class="btn ghost sm" onclick="prepListing('${id}', this)">Prep Application</button><button class="btn ghost sm" onclick="hideListing('${id}', true)">Hide From Matches</button>${L.kind === 'funder' ? `<button class="btn ghost sm" onclick="funderBriefDownload('${id}', this)">Funder Brief</button>` : ''}</div>`);
+    out.push(`<div class="m-actions" style="justify-content:flex-start;margin:4px 0 12px"><button class="btn sm ${saved ? 'saved' : ''}" id="pSave" onclick="saveListing('${id}')">${saved ? 'Saved ✓' : 'Save To Tracker'}</button><button class="btn ghost sm" onclick="prepListing('${id}', this)">Prep Application</button><button class="btn ghost sm" onclick="hideListing('${id}', true)">Hide From Matches</button>${L.kind === 'funder' ? `<button class="btn ghost sm" onclick="funderBriefDownload('${id}', this)">Download Funder Brief (PDF)</button>` : ''}</div>`);
   }
   // A foundation whose only page is its tax filing on ProPublica (Oct 14 2026, Will: a brief banner); its filing's
   // contact and instructions are below. Nov 5 2026, Will: no word about a website at all ("the references to no
@@ -3309,7 +3313,7 @@ async function loadGrantees(id, scope, q, offset) {
   GP.rows = offset ? GP.rows.concat(r.rows) : r.rows;
   document.getElementById('gpScopes').innerHTML = r.scopes.map(s => `<button type="button" class="btn ghost sm ${s.scope === r.scope ? 'on' : ''}" onclick="loadGrantees('${id}', '${s.scope}', document.getElementById('gpSearch').value, 0)">${escHtml(s.label)} (${s.count.toLocaleString()})</button>`).join('');
   GP.scope = r.scope;
-  document.getElementById('gpRows').innerHTML = GP.rows.length ? GP.rows.map(g => `<tr><td>${escHtml(titleCase(g.recipient_name))}</td><td>${g.tax_year}</td><td>${escHtml(titleCase(g.city))}${g.state && r.scope === 'all' ? ', ' + escHtml(g.state) : ''}</td><td class="num">${money(g.amount)}</td><td>${escHtml(sentenceCase(g.purpose))}</td></tr>`).join('')
+  document.getElementById('gpRows').innerHTML = GP.rows.length ? GP.rows.map(g => `<tr><td>${escHtml(titleCase(g.recipient_name))}</td><td>${g.tax_year}</td><td>${escHtml(titleCase(g.city))}${g.state && r.scope === 'all' ? ', ' + escHtml(g.state) : ''}</td><td class="num">${money(g.amount)}</td><td>${escHtml(sentenceCase(grantPurpose(g.purpose)))}</td></tr>`).join('')
     : `<tr><td colspan="5">${r.q ? 'No grants match that search here.' : 'No grants here in its filings on file.'}</td></tr>`;
   document.getElementById('gpMore').innerHTML = r.more ? `<button type="button" class="btn ghost sm" onclick="loadGrantees('${id}', GP.scope, GP.q, ${GP.rows.length})">Show More (${(r.total - GP.rows.length).toLocaleString()} more)</button>` : '';
   const search = document.getElementById('gpSearch');
@@ -3320,7 +3324,7 @@ async function loadGrantees(id, scope, q, offset) {
   if (r.yours !== null && r.yours !== undefined) {
     const y = document.getElementById('gpYours'), yl = document.getElementById('gpYoursLine');
     if (y && r.yours.length) {
-      y.innerHTML = 'Grants to an organization with your name: ' + r.yours.map(g => `<strong>${money(g.amount)}</strong> in ${g.tax_year}${g.purpose ? ' (' + escHtml(sentenceCase(g.purpose)) + ')' : ''}`).join('; ') + '.';
+      y.innerHTML = 'Grants to an organization with your name: ' + r.yours.map(g => `<strong>${money(g.amount)}</strong> in ${g.tax_year}${grantPurpose(g.purpose) ? ' (' + escHtml(sentenceCase(grantPurpose(g.purpose))) + ')' : ''}`).join('; ') + '.';
       if (yl) yl.style.display = '';
     }
   }

@@ -242,6 +242,17 @@ textarea:focus{border-color:var(--green);background:var(--white)}
       <div class="picker" id="pk-funding_purposes"></div>
     </div>
 
+    <!-- Nov 27 2026 (Will: yes): the code before the plan and card, so a code from an event changes the trial, or the
+         price, before anyone reaches the card (it sat under the card, after "14 days free"). A free-access code hides
+         the plan card, so the code has its own card. -->
+    <div class="card" id="codeCard">
+      <h2>Have A Code?</h2>
+      <p class="lead">A code from FundBug, an event or a partner can lengthen your free trial or make FundBug free.</p>
+      <div class="row">
+        <div><label for="comp">Code From FundBug (Optional)</label><input id="comp" autocomplete="off" oninput="checkComp()"><div class="err" id="compNote" style="color:var(--green-dk)"></div></div>
+      </div>
+    </div>
+
     <div class="card" id="planCard">
       <h2>Your Plan</h2>
       <div class="plans" id="plans">
@@ -259,7 +270,6 @@ textarea:focus{border-color:var(--green);background:var(--white)}
     <div class="card">
       <h2>Almost Done</h2>
       <div class="row">
-        <div><label for="comp">Code From FundBug (Optional)</label><input id="comp" autocomplete="off" oninput="checkComp()"><div class="err" id="compNote" style="color:var(--green-dk)"></div></div>
         <div><label for="ref">Referral Code (Optional)</label><input id="ref" autocomplete="off"></div>
       </div>
       <label class="chk"><input type="checkbox" id="adult" required> I am 18 or older and agree to the <a href="/terms" target="_blank">terms</a> and <a href="/privacy" target="_blank">privacy policy</a>.</label>

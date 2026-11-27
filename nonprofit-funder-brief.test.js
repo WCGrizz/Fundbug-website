@@ -9,7 +9,7 @@ vm.createContext(ctx);
 vm.runInContext([grab(/function funderBriefName\([\s\S]*?\n\}/), 'globalThis.f = funderBriefName;'].join('\n'), ctx);
 ok(ctx.f('Feigenbaum Foundation', new Date(2026, 10, 18)) === 'feigenbaum-foundation-funder-brief-2026-11-18.pdf', 'named as the backend names it');
 ok(ctx.f('', new Date(2026, 0, 2)) === 'funder-funder-brief-2026-01-02.pdf', 'no title: a plain name');
-ok(html.includes("${L.kind === 'funder' ? `<button class=\"btn ghost sm\" onclick=\"funderBriefDownload('${id}', this)\">Funder Brief</button>` : ''}"),
+ok(html.includes("${L.kind === 'funder' ? `<button class=\"btn ghost sm\" onclick=\"funderBriefDownload('${id}', this)\">Download Funder Brief (PDF)</button>` : ''}"),
    'a funder page has the button, beside Save To Tracker (signed in only), and an opportunity does not');
 const dl = grab(/async function funderBriefDownload\(id, btn\) \{[\s\S]*?\n\}/);
 ok(dl.includes("downloadReport('/api/nonprofit/reports/funder/' + encodeURIComponent(id)") && /async function downloadReport\(path, name\)/.test(html), 'it asks the backend through the shared download');
