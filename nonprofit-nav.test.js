@@ -75,9 +75,9 @@ function load(mode, opts) {
   // Each link's full name (a phone shows the shorter one where there is one, Nov 12 2026).
   const links = [...T.els.topLinks.innerHTML.matchAll(/<a [^>]*>([\s\S]*?)<\/a>/g)].map(m => m[1]);
   const tops = links.map(h => (/class="nl-long">([^<]+)</.exec(h) || [null, h])[1]);
-  eq(tops, ['Home', 'Funding Plan', 'Tracker', 'My Answers', 'Library'], "the top bar: the five sections, in Will's order (Nov 10 2026)");
+  eq(tops, ['Home', 'Funding Plan', 'Tracker', 'Applications', 'Library'], "the top bar: the five sections, in Will's order (Nov 10 2026; Applications, Nov 27 2026)");
   const shorts = links.map(h => (/class="nl-short">([^<]+)</.exec(h) || [null, null])[1]);
-  eq(shorts, [null, 'Plan', null, 'Answers', null], 'on a phone, Plan and Answers, so all five fit across (Nov 12 2026)');
+  eq(shorts, [null, 'Plan', null, 'Apply', null], 'on a phone, Plan and Apply, so all five fit across (Nov 12 2026; Apply, Nov 27 2026)');
   ok(/class="top-org"[^>]*>Organization</.test(T.els.topRight.innerHTML), 'Organization at the right end of the bar');
   ok(T.els.wrap.has('no-sub') && T.els.subnav.innerHTML === '', 'Home has no left column');
   T.n.go('library');
@@ -120,7 +120,7 @@ function load(mode, opts) {
   const T = load('account', {hash: '#prep/user_abc'});
   T.n.showPage('prep');
   eq([T.loc.pathname + T.loc.hash, T.active()], ['/nonprofit/answers/applications#prep/user_abc', 'prep'], 'Prep Application sits under My Answers, its #prep/ kept');
-  ok(/class="active"[^>]*>Applications</.test(T.els.subnav.innerHTML), 'Applications is marked while preparing one');
+  ok(/class="active"[^>]*>Drafts</.test(T.els.subnav.innerHTML), 'Drafts is marked while preparing one (Applications, Nov 27 2026)');
 }
 {
   const P = load('preview');

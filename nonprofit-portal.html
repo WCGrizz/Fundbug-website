@@ -1135,14 +1135,14 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
 
       <div class="page" id="page-answers">
         <div class="hero">
-          <div class="eyebrow">Application Drafting</div>
-          <h1>My Answers</h1>
-          <p>The questions foundations ask again and again, answered from your Organization Profile. Edit anything, add your own, and reuse them on every application.</p>
+          <div class="eyebrow">Your Organization</div>
+          <h1>Applications</h1>
+          <p>Saved Answers are the questions foundations ask again and again, answered from your Organization Profile; edit anything, add your own, and reuse them. Drafts are the applications you are preparing.</p>
         </div>
         <div class="dr-modebar" id="drModeBar"></div>
         <div class="dr-tabs">
-          <button class="dr-tab active" id="drTabAnswers" onclick="drShowTab('answers')">My Answers</button>
-          <button class="dr-tab" id="drTabApps" onclick="drShowTab('apps')">Applications</button>
+          <button class="dr-tab active" id="drTabAnswers" onclick="drShowTab('answers')">Saved Answers</button>
+          <button class="dr-tab" id="drTabApps" onclick="drShowTab('apps')">Drafts</button>
         </div>
         <div class="dr-tabpane active" id="drPaneAnswers">
           <!-- One line until opened (Nov 10 2026, the page-by-page plan: "Drafting Strength shrinks to one line") -->
@@ -1166,7 +1166,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
             <label for="drAddAnswer">Your Answer (Optional)</label>
             <textarea id="drAddAnswer" class="dr-box" rows="4" placeholder="You can draft it later"></textarea>
             <div class="dr-foot">
-              <button class="dr-btn small" onclick="submitAddQuestion()">Add To My Answers</button>
+              <button class="dr-btn small" onclick="submitAddQuestion()">Add To Saved Answers</button>
               <button class="dr-btn ghost small" onclick="toggleAddQuestion(false)">Cancel</button>
             </div>
           </div>
@@ -1189,7 +1189,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
       </div>
 
       <div class="page" id="page-prep">
-        <button class="pr-back" onclick="backToAnswers()">&larr; My Answers</button>
+        <button class="pr-back" onclick="backToAnswers()">&larr; Saved Answers</button>
         <div class="dr-modebar" id="prModeBar"></div>
         <div id="prProgram"></div>
         <div class="pr-roadmap" id="prRoadmap" style="display:none"></div>
@@ -1201,12 +1201,12 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
         <div class="pr-addchoose" id="prAddChoose">
           <div class="dr-seg" role="group" aria-label="How to add questions">
             <button type="button" data-add="app" onclick="prAddTab('app')">From The Application</button>
-            <button type="button" data-add="lib" onclick="prAddTab('lib')">From My Answers</button>
+            <button type="button" data-add="lib" onclick="prAddTab('lib')">From Saved Answers</button>
             <button type="button" data-add="type" onclick="prAddTab('type')">Type A Question</button>
           </div>
         </div>
         <div class="pr-libbox" id="prLibBox">
-          <h3>From My Answers</h3>
+          <h3>From Saved Answers</h3>
           <p>Tick the answers to add. Each comes in as its own question, ready to adapt for this application.</p>
           <div id="prLibList"></div>
           <div class="dr-foot" style="margin-top:14px">
@@ -1298,7 +1298,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--border)}
         <div class="hero">
           <div class="eyebrow">Your Account</div>
           <h1>Team</h1>
-          <p>Everyone on your organization's FundBug account. Each person signs in with their own email, and everyone can work on the Organization Profile, Library, Tracker and My Answers.</p>
+          <p>Everyone on your organization's FundBug account. Each person signs in with their own email, and everyone can work on the Organization Profile, Library, Tracker and Applications.</p>
         </div>
         <div class="card" id="teamBox"><div class="empty">Loading…</div></div>
         <div class="card manager-only" id="inviteCard">
@@ -1859,9 +1859,10 @@ const NAV = [
     {path: 'tracker/seen', page: 'tracker', label: 'Seen In Your Digest', cls: 'view-seen', load: () => loadTracker()},
     // The board mockup (Nov 11 2026, nonprofit-board.js): reached by its address only, and in the column only while open.
     {path: 'tracker/board', page: 'board', label: 'Board (Mockup)', hidden: true, load: () => loadBoard()}]},
-  {key: 'answers', label: 'My Answers', short: 'Answers', acct: true, subs: [
-    {path: 'answers', page: 'answers', label: 'Answers', apply: () => drShowTab('answers'), load: () => loadDrafting()},
-    {path: 'answers/applications', page: 'answers', label: 'Applications', apply: () => drShowTab('apps'), load: () => loadDrafting()}]},
+  // Nov 27 2026 (Will: option A): Applications, with Saved Answers and Drafts; the addresses are unchanged.
+  {key: 'answers', label: 'Applications', short: 'Apply', acct: true, subs: [
+    {path: 'answers', page: 'answers', label: 'Saved Answers', apply: () => drShowTab('answers'), load: () => loadDrafting()},
+    {path: 'answers/applications', page: 'answers', label: 'Drafts', apply: () => drShowTab('apps'), load: () => loadDrafting()}]},
   {key: 'library', label: 'Library', subs: [
     // The Funding Landscape first: what clicking Library opens (Nov 18 2026, Will). Links meaning "your matches" still
     // go to Fits You by its own address.
@@ -2615,8 +2616,16 @@ function initFitsOnly() {
 }
 // Fits You and All Funders are two pages in the Library's column (Nov 10 2026); the old Fits Only box stays, hidden,
 // as the state drawMatches reads.
+// Each tab says what it holds (Nov 27 2026, Will: the two read as one).
+function libraryIntro(fits) {
+  return (fits ? 'The funders and programs that fit your organization, best fit first.'
+               : 'Every funder and program in FundBug, including those outside your area or focus, so you can look further.')
+    + ' ' + CHECK_ELIGIBILITY;
+}
 function setLibraryView(fits) {
   if (MODE !== 'account') return;
+  const sub = document.getElementById('matchesSub');
+  if (sub) sub.textContent = libraryIntro(fits);
   const box = document.getElementById('mFits');
   if (box.checked === fits) return;
   box.checked = fits;
@@ -2663,7 +2672,7 @@ async function runMatches(stay) {
     } catch (e) { document.getElementById('mSummary').textContent = 'Could not match: ' + e.message; return; }
     shownCount = PAGE_SIZE;
     // Says to check eligibility, as the digest's New Matches does (Nov 6 2026, Katie Meehan and Will).
-    document.getElementById('matchesSub').textContent = 'Every funder and program in FundBug: the ones that fit your organization first, best fit first. ' + CHECK_ELIGIBILITY;
+    document.getElementById('matchesSub').textContent = libraryIntro(document.getElementById('mFits').checked);
     drawMatches();
     drawStrip();
     return;
@@ -2826,8 +2835,17 @@ function filingCase(t) {
   x = x.replace(/\(([a-z]{2})\)/g, (m, c) => STATE_CODES.has(c.toUpperCase()) ? '(' + c.toUpperCase() + ')' : m);
   // The funder's own name stays a name ("the Lee Bank Foundation", not "the lee bank foundation").
   for (const w of NAME_WORDS) x = x.replace(new RegExp('\\b' + w.toLowerCase() + '\\b', 'g'), w);
+  // Places stay places (Nov 27 2026, as np_funder_brief.filing_case): "berkshire county", "the berkshires".
+  x = x.replace(/\b([a-z][a-z'-]+)\s+(county|counties)\b/g, (m, w, c) => NOT_PLACES.has(w) ? m : w[0].toUpperCase() + w.slice(1) + ' ' + c[0].toUpperCase() + c.slice(1));
+  x = x.replace(/\b((?:[a-z][a-z'-]+,\s+)*[a-z][a-z'-]+,?\s+(?:and|or)\s+)(?=[A-Z][a-z'-]+\s+Counties\b)/g,
+    m => m.replace(/[a-z][a-z'-]+/g, w => NOT_PLACES.has(w) ? w : w[0].toUpperCase() + w.slice(1)));
+  for (const r of REGIONS) x = x.replace(new RegExp('\\b' + r + '\\b', 'g'), m => m.split(' ').map(w => w[0].toUpperCase() + w.slice(1)).join(' '));
   return x;
 }
+const NOT_PLACES = new Set(['the', 'a', 'an', 'each', 'any', 'every', 'this', 'that', 'per', 'our', 'its', 'their', 'one', 'same', 'other',
+  'which', 'home', 'your', 'in', 'of', 'and', 'or', 'by', 'to', 'for', 'from', 'within', 'surrounding', 'neighboring',
+  'local', 'rural', 'whole', 'entire', 'all', 'some', 'these', 'those', 'such', 'several', 'multiple', 'two', 'three']);
+const REGIONS = ['berkshires', 'pioneer valley', 'cape cod', 'new england', 'hudson valley', 'north shore', 'south shore', 'merrimack valley', 'metrowest'];
 let NAME_WORDS = [];
 function addressCase(t) {
   t = String(t || '');
@@ -3083,7 +3101,23 @@ function showListingTab(tab) {
 
 // ── A funder's giving (Oct 13 2026, Will: "a page with the charts and graphs
 // and such, similar to instrumentl"; np_giving_profile, np_funder_page) ────────
-const titleCase = s => String(s || '').toLowerCase().replace(/\b([a-z])/g, c => c.toUpperCase()).replace(/\bDba\b/g, 'dba').replace(/'S\b/g, "'s");
+// A name in a filing's capitals, readable (Nov 27 2026, as np_funder_brief.name_case): initials kept (a word of three or
+// more letters with no vowel, "CDCSB"), small words lowercase inside a name ("YMCA of the Berkshires"), and the names
+// no rule gets right ("W.E.B. Du Bois", "MASS MoCA", "AdLib").
+const KEEP_CAPS = new Set(['YMCA', 'YWCA', 'USA', 'LLC', 'CDC', 'PTO', 'PTA', 'VFW', 'MA', 'NY', 'CT', 'NAACP', '4-H']);
+const SMALL_WORDS = new Set(['of', 'the', 'for', 'and', 'in', 'at', 'on', 'to', 'a', 'an', 'by', 'with']);
+const KNOWN_NAMES = [['Web Dubois', 'W.E.B. Du Bois'], ['W E B Dubois', 'W.E.B. Du Bois'], ['Mass Moca', 'MASS MoCA'], ['Adlib', 'AdLib'], ['Mcla', 'MCLA']];
+const titleCase = s => {
+  const words = String(s || '').trim().split(/\s+/).filter(Boolean);
+  let out = words.map((w, i) => {
+    const bare = w.replace(/[^A-Za-z]/g, '');
+    if (KEEP_CAPS.has(w) || (bare.length >= 3 && bare === bare.toUpperCase() && !/[AEIOUY]/.test(bare))) return w;
+    if (i > 0 && i < words.length - 1 && SMALL_WORDS.has(w.toLowerCase())) return w.toLowerCase();
+    return w.toLowerCase().replace(/\b([a-z])/g, c => c.toUpperCase());
+  }).join(' ').replace(/\bDba\b/g, 'dba').replace(/'S\b/g, "'s");
+  for (const [wrong, right] of KNOWN_NAMES) out = out.replace(new RegExp('\\b' + wrong + '\\b', 'g'), right);
+  return out;
+};
 const sentenceCase = s => { const t = String(s || '').toLowerCase().trim(); return t.charAt(0).toUpperCase() + t.slice(1); };
 const shortMoney = n => n >= 1e6 ? '$' + (n / 1e6).toFixed(n >= 1e7 ? 0 : 2).replace(/\.?0+$/, '') + 'M' : n >= 1e3 ? '$' + Math.round(n / 1e3) + 'K' : money(n);
 function gpBars(rows, opts) {
@@ -3381,9 +3415,20 @@ async function loadTracker() {
   try { TRACKER = await apiFetch('/api/nonprofit/tracker'); }
   catch (e) { document.getElementById('tSummary').textContent = 'Could not load your Tracker: ' + e.message; return; }
   const sel = document.getElementById('tStage'), keep = sel.value;
-  sel.innerHTML = '<option value="">Every Stage</option>' + TRACKER.stages.map(s => `<option value="${s.code}">${escHtml(s.label)}</option>`).join('');
+  sel.innerHTML = stageOptions(TRACKER.stages, TRACKER.items);
   sel.value = keep;
   drawTracker();
+}
+// The stage filter (Nov 27 2026, Will: simpler): the stages in use first, each with its count, and the rest under
+// Other Stages, so three saved items do not sit under nine choices.
+function stageOptions(stages, items) {
+  const n = {};
+  for (const i of items || []) if (!i.seen_in_digest) n[i.status] = (n[i.status] || 0) + 1;
+  const used = stages.filter(s => n[s.code]), rest = stages.filter(s => !n[s.code]);
+  const total = Object.values(n).reduce((a, b) => a + b, 0);
+  return `<option value="">Every Stage${total ? ` (${total})` : ''}</option>`
+    + used.map(s => `<option value="${s.code}">${escHtml(s.label)} (${n[s.code]})</option>`).join('')
+    + (rest.length ? `<optgroup label="Other Stages">${rest.map(s => `<option value="${s.code}">${escHtml(s.label)}</option>`).join('')}</optgroup>` : '');
 }
 // Open Tracker rows, kept through every redraw (an update redraws the list).
 const T_OPEN = new Set();
@@ -3403,6 +3448,8 @@ function stageLabel(code) {
 }
 function drawTracker() {
   if (!TRACKER) return;
+  const stSel = document.getElementById('tStage'), stKeep = stSel.value;      // counts kept current after a change
+  stSel.innerHTML = stageOptions(TRACKER.stages, TRACKER.items); stSel.value = stKeep;
   const st = document.getElementById('tStage').value, kind = document.getElementById('tKind').value, fav = document.getElementById('tFav').checked;
   const seen = TRACKER.items.filter(i => i.seen_in_digest);
   const tracked = TRACKER.items.filter(i => !i.seen_in_digest);

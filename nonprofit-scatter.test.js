@@ -8,7 +8,7 @@ const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++
 const grab = re => { const m = html.match(re); if (!m) throw new Error('not found: ' + re); return m[0]; };
 const ctx = {};
 vm.createContext(ctx);
-vm.runInContext([grab(/function escHtml\([\s\S]*?\n\}/), grab(/function money\(n\).*/), grab(/const shortMoney = .*/), grab(/const titleCase = .*/),
+vm.runInContext([grab(/function escHtml\([\s\S]*?\n\}/), grab(/function money\(n\).*/), grab(/const shortMoney = .*/), grab(/const KEEP_CAPS[\s\S]*?\nconst titleCase = s => \{[\s\S]*?\n\};/),
                  grab(/function grantScatter\(r, big\) \{[\s\S]*?\n\}/), 'globalThis.grantScatter = grantScatter;'].join('\n'), ctx);
 const dots = (svg, color) => (svg.match(new RegExp('<circle[^>]*fill:var\\(' + color + '\\)', 'g')) || []).length;
 

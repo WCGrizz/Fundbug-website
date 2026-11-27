@@ -501,7 +501,7 @@ function renderLibraryPicker(lib) {
   const used = new Set(((prData && prData.slots) || []).map(x => String(x.base_answer_id || '')));
   const withAnswers = (lib || []).filter(a => (a.answer_text || '').trim());
   document.getElementById('prLibAddBtn').disabled = !withAnswers.length;
-  if (!withAnswers.length) { box.innerHTML = '<p>You have no saved answers yet. Answers you write in My Answers, or save from an application, show up here.</p>'; return; }
+  if (!withAnswers.length) { box.innerHTML = '<p>You have no saved answers yet. Answers you write in Saved Answers, or save from an application, show up here.</p>'; return; }
   box.innerHTML = withAnswers.map(a => {
     const already = used.has(String(a.id)), q = (a.question_text || '').trim(), ans = (a.answer_text || '').trim();
     return `<label class="pr-libitem"><input type="checkbox" value="${drEsc(a.question_type)}" ${already ? 'disabled' : ''}>
@@ -585,7 +585,7 @@ function renderSlots(slots) {
         <button class="dr-btn small" id="prsave-${sid}" onclick="saveSlot('${sid}')">Save</button>
         <button class="dr-btn ghost small" onclick="adaptSlot('${sid}')" ${ready ? '' : 'disabled title="Complete your profile first"'}>${verb}</button>
         <button class="dr-btn ghost small" onclick="drCopy(document.querySelector('#prc-${sid} .dr-a').value, this, prStatus)">Copy</button>
-        <button class="dr-btn ghost small" onclick="promoteSlot('${sid}')">Save To My Answers</button>
+        <button class="dr-btn ghost small" onclick="promoteSlot('${sid}')">Save To Saved Answers</button>
         <span class="spacer"></span>
         <span class="dr-meta">${isDraft ? 'Drafted' : 'Saved'} ${drEsc(drWhen(isDraft ? s.generated_at : (s.reviewed_at || s.updated_at)))}</span>
         <button class="dr-btn danger small" onclick="deleteSlot('${sid}')">Remove</button>
@@ -598,7 +598,7 @@ function renderSlots(slots) {
 function prSuggestionBox(s) {
   const g = s.suggestion;
   if (!g || (s.answer_text || '').trim()) return '';
-  const where = g.in_library ? 'in My Answers' : (g.program_title ? 'for ' + drEsc(g.program_title) : 'on another application');
+  const where = g.in_library ? 'in Saved Answers' : (g.program_title ? 'for ' + drEsc(g.program_title) : 'on another application');
   return `<div class="dr-suggest" id="prsug-${drEsc(s.id)}">
     <div>You answered a question like this before: <b>“${drEsc(g.label || 'an earlier question')}”</b> ${where}.</div>
     <div class="dr-suggest-actions"><button class="dr-btn small" onclick="prUseSuggestion('${drEsc(s.id)}')">Use As A Starting Point</button>
@@ -649,7 +649,7 @@ async function adaptSlot(sid) {
   } catch (e) { await loadPrep(prPid); prStatus(drGateMessage(e), true); drCardMsg('prc-' + sid, drGateMessage(e), true, drIsGate(e)); }
 }
 async function deleteSlot(sid) {
-  if (!(await fbConfirm('It comes off this application only. Your saved answers in My Answers are not affected.', {title: 'Remove This Question?', yes: 'Remove It', danger: true}))) return;
+  if (!(await fbConfirm('It comes off this application only. Your Saved Answers are not affected.', {title: 'Remove This Question?', yes: 'Remove It', danger: true}))) return;
   prBusy(sid, 'Removing…');
   try { await apiFetch(prBase() + '/slots/' + encodeURIComponent(sid), 'DELETE'); prDirty.delete(sid); await loadPrep(prPid); prStatus('Removed.'); }
   catch (e) { await loadPrep(prPid); prStatus(e.message, true); drCardMsg('prc-' + sid, e.message, true); }
@@ -660,7 +660,7 @@ function promoteSlot(sid) {
   if (!card || card.querySelector('.pr-promote')) return;
   const box = document.createElement('div');
   box.className = 'pr-promote';
-  box.innerHTML = `<div class="dr-field-label" style="margin:0;width:100%">Save This Answer To My Answers</div>
+  box.innerHTML = `<div class="dr-field-label" style="margin:0;width:100%">Save This Answer To Saved Answers</div>
     ${slot && slot.base_answer_id ? `<button class="dr-btn small" data-mode="update">Update “${drEsc(slot.label)}”</button>` : ''}
     <button class="dr-btn ghost small" data-mode="new">Save As A New Answer</button>
     <button class="dr-btn ghost small" data-mode="cancel">Cancel</button>
@@ -680,7 +680,7 @@ function promoteSlot(sid) {
     try {
       const r = await apiFetch(prBase() + '/slots/' + encodeURIComponent(sid) + '/promote', 'POST', {mode: mode === 'update' ? 'update' : 'new', label});
       await loadPrep(prPid);
-      prStatus(r.mode === 'update' ? 'Updated in My Answers.' : 'Saved to My Answers as a new answer.');
+      prStatus(r.mode === 'update' ? 'Updated in Saved Answers.' : 'Saved to Saved Answers as a new answer.');
     } catch (e) { await loadPrep(prPid); prStatus(e.message, true); drCardMsg('prc-' + sid, e.message, true); }
   });
 }

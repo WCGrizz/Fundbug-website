@@ -1,0 +1,9 @@
+{"_about": "Shared by tests/test_np_funder_brief.py (np_funder_brief.name_case, filing_case) and fundbug-website nonprofit-casing.test.js (titleCase, filingCase), Nov 27 2026: a filing's capitals made readable the same way in the brief and on the portal.",
+ "names": [["CDCSB", "CDCSB"], ["MASS MOCA", "MASS MoCA"], ["ADLIB", "AdLib"],
+           ["WEB DUBOIS CENTER FOR FREEDOM & DEMOCRACY", "W.E.B. Du Bois Center for Freedom & Democracy"],
+           ["YMCA OF THE BERKSHIRES", "YMCA of the Berkshires"], ["BOYS AND GIRLS CLUB OF THE BERKSHIRES", "Boys and Girls Club of the Berkshires"],
+           ["THE MOUNT", "The Mount"], ["BERKSHIRE COUNTY HEAD START", "Berkshire County Head Start"], ["NBRC", "NBRC"]],
+ "filings": [["GRANTS FOR YOUTH AND FAMILIES IN BERKSHIRE COUNTY.", "Grants for youth and families in Berkshire County."],
+             ["RESIDENTS OF BERKSHIRE AND HAMPDEN COUNTIES. EACH COUNTY IS ELIGIBLE.", "Residents of Berkshire and Hampden Counties. Each county is eligible."],
+             ["PROGRAMS IN THE BERKSHIRES AND THE PIONEER VALLEY.", "Programs in the Berkshires and the Pioneer Valley."],
+             ["SERVING THE COUNTY.", "Serving the county."]]}

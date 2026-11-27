@@ -14,12 +14,12 @@ const TOUR_SINCE = '2026-11-10';                       // accounts made from thi
 const TOURS = {
   main: [
     {go: 'home', el: '#topLinks', title: 'Your Sections',
-     text: 'Everything is here: your Funding Plan, Tracker, My Answers and Library. Each section\'s pages are in the column on the left.'},
+     text: 'Everything is here: your Funding Plan, Tracker, Applications and Library. Each section\'s pages are in the column on the left.'},
     {go: 'home', el: '#pfStrip', title: 'Home',
      text: 'What to do next, and what is due in the next 30 days. Below them, your pipeline and what your team added since your last visit.'},
     {go: 'plan', el: '.fp-stack-card', title: 'Funding Plan',
      text: 'Set this year\'s goal, then add what you expect under each source: a grant, a bake sale, a donor.'},
-    {go: 'answers', el: '#drNav, #drCards, #drEmpty', title: 'My Answers',
+    {go: 'answers', el: '#drNav, #drCards, #drEmpty', title: 'Saved Answers',
      text: 'Answers to the questions funders ask most, drafted from your profile. Edit them once, then reuse them on every application.'},
     {go: 'library', el: '#mList .m', title: 'Your Library',
      text: 'Every funder and program that fits you, best first. Ones marked Not Reviewed Yet come from tax filings FundBug has not checked by hand.'},
